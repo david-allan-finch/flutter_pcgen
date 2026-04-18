@@ -1,19 +1,57 @@
+// Translation of pcgen.core.Race
+
+import '../cdom/enumeration/formula_key.dart';
+import '../cdom/enumeration/integer_key.dart';
 import '../cdom/enumeration/list_key.dart';
+import '../cdom/enumeration/object_key.dart';
 import 'pcobject.dart';
 
-// Represents a character race.
+/// Represents a character race.
 final class Race extends PObject {
+  /// Returns true if the race has unlimited hit-dice advancement.
   bool isAdvancementUnlimited() {
     final hda = getListFor<int>(ListKey.getConstant<int>('HITDICE_ADVANCEMENT'));
     return hda == null || hda.last == 0x7fffffff; // Integer.MAX_VALUE
   }
 
-  @override
-  int get hashCode => getKeyName().hashCode;
-
+  /// Returns the maximum hit dice this race can advance to.
   int maxHitDiceAdvancement() {
     final hda = getListFor<int>(ListKey.getConstant<int>('HITDICE_ADVANCEMENT'));
     if (hda == null || hda.isEmpty) return 0;
     return hda.reduce((a, b) => a > b ? a : b);
   }
+
+  /// Returns the CHOOSE info for this race (used by CHOOSE: processing).
+  dynamic getChooseInfo() =>
+      getSafe(ObjectKey.getConstant<dynamic>('CHOOSE_INFO'));
+
+  /// Returns the SELECT formula used by CHOOSE processing.
+  dynamic getSelectFormula() =>
+      getSafe(ObjectKey.getConstant<dynamic>('SELECT'));
+
+  /// Returns the CHOOSE actors list.
+  List<dynamic> getActors() =>
+      getSafeListFor<dynamic>(ListKey.getConstant<dynamic>('NEW_CHOOSE_ACTOR'));
+
+  /// Returns the formula source string used by the formula engine.
+  String getFormulaSource() => getKeyName();
+
+  /// Returns the NUM_CHOICES formula.
+  dynamic getNumChoices() =>
+      getSafe(ObjectKey.getConstant<dynamic>('NUM_CHOICES'));
+
+  /// Returns the number of monster class levels (MONCLASSLEVELS).
+  int getMonsterClassLevels() =>
+      get(IntegerKey.getConstant('MONSTER_CLASS_LEVELS')) ?? 0;
+
+  /// Returns the monster class for this race (MONCLASS token).
+  dynamic getMonsterClass() =>
+      getSafe(ObjectKey.getConstant<dynamic>('MONSTER_CLASS'));
+
+  @override
+  int get hashCode => getKeyName().hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      other is Race && getKeyName() == other.getKeyName();
 }
