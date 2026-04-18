@@ -5,8 +5,12 @@ import 'pcobject.dart';
 
 // Represents a campaign/source book that can be loaded.
 class Campaign extends PObject {
+  Uri? _sourceUri;
   bool _loaded = false;
   bool _published = false;
+
+  Uri? getSourceUri() => _sourceUri;
+  void setSourceUri(Uri uri) { _sourceUri = uri; }
 
   bool isLoaded() => _loaded;
   void setLoaded(bool loaded) { _loaded = loaded; }

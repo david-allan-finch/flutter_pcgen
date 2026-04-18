@@ -1,3 +1,4 @@
+import 'campaign.dart';
 import 'data_set.dart';
 import 'game_mode.dart';
 import 'pc_class.dart';
@@ -41,6 +42,47 @@ class Globals {
   static int minPCStatValue() => _gameMode?.getStatMin() ?? 3;
 
   static List<PCClass> getClassList() => _currentDataSet?.classes ?? [];
+
+  // Campaign registry
+  static final List<Campaign> _campaignList = [];
+
+  static List<Campaign> getCampaignList() => List.unmodifiable(_campaignList);
+
+  static void addCampaign(Campaign campaign) {
+    if (!_campaignList.any((c) => c.getKeyName() == campaign.getKeyName())) {
+      _campaignList.add(campaign);
+    }
+  }
+
+  /// Finds a campaign by its source URI. Returns null if not found.
+  /// If [createIfMissing] is true (default false), a stub campaign is added.
+  static Campaign? getCampaignByUri(Uri uri, [bool createIfMissing = false]) {
+    for (final c in _campaignList) {
+      if (c.getSourceUri() == uri) return c;
+    }
+    return null;
+  }
+
+  static Campaign? getCampaignKeyed(String key) {
+    for (final c in _campaignList) {
+      if (c.getKeyName() == key) return c;
+    }
+    return null;
+  }
+
+  /// Clears all game data lists in preparation for a reload.
+  static void emptyLists() {
+    _pcList.clear();
+    _currentPCIndex = 0;
+    _currentDataSet = null;
+    _campaignList.clear();
+    // Note: _gameMode is intentionally retained
+  }
+
+  /// Initialise default preferences (called after emptyLists on source load).
+  static void initPreferences() {
+    // TODO: apply game-mode defaults
+  }
 
   // Settings
   static bool showOutputNameForOtherItems = false;
