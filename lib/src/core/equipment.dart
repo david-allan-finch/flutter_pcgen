@@ -1,3 +1,5 @@
+// Translation of pcgen.core.Equipment
+
 import '../cdom/base/constants.dart';
 import '../cdom/enumeration/integer_key.dart';
 import '../cdom/enumeration/list_key.dart';
@@ -6,7 +8,10 @@ import '../cdom/enumeration/string_key.dart';
 import '../cdom/enumeration/type.dart';
 import 'pcobject.dart';
 
-// Equipment location constants
+// ---------------------------------------------------------------------------
+// Equipment location enum
+// ---------------------------------------------------------------------------
+
 enum EquipmentLocation {
   notCarried,
   carried,
@@ -22,131 +27,215 @@ enum EquipmentLocation {
   doubleWeapon,
 }
 
-// Represents a piece of equipment for a PC.
+// ---------------------------------------------------------------------------
+// Equipment
+// ---------------------------------------------------------------------------
+
+/// Represents a piece of equipment (weapon, armor, item) for a PC.
 class Equipment extends PObject {
-  int _qty = 1;
+  // Core numeric state
+  double _qty = 1.0;
   int _outputIndex = 0;
+  int _outputSubindex = 0;
   bool _isEquipped = false;
   bool _isAutomatic = false;
-  String _location = Constants.equipLocationNotcarried;
+  EquipmentLocation _eqLocation = EquipmentLocation.notCarried;
   double _weight = 0.0;
-  double _cost = 0.0;
-  int _carried = 0;
-  String? _parentName;
-  List<dynamic> _eqModifiers = [];
-  List<dynamic> _eqModifiersHead2 = [];
+  double _costMod = 0.0;
+  double _numberCarried = 0.0;
+  int _numberEquipped = 0;
+  String? _note;
+  String? _appliedName;
+  String? _modifiedName;
   String? _containerCapacityString;
 
-  // Quantity
-  int getQty() => _qty;
-  void setQty(int qty) { _qty = qty; }
-  void setQty(double qty) { _qty = qty.round(); }
+  Equipment? _parent;
+  List<dynamic> _eqModifiers = [];       // primary head
+  List<dynamic> _eqModifiersHead2 = [];  // secondary head (double weapons)
 
-  // Output order
+  // ---------------------------------------------------------------------------
+  // Quantity
+  // ---------------------------------------------------------------------------
+
+  double getQty() => _qty;
+  void setQty(double qty) { _qty = qty; }
+  void setNumberCarried(double n) { _numberCarried = n; }
+  double getNumberCarried() => _numberCarried;
+
+  // ---------------------------------------------------------------------------
+  // Output ordering
+  // ---------------------------------------------------------------------------
+
   int getOutputIndex() => _outputIndex;
   void setOutputIndex(int i) { _outputIndex = i; }
 
-  // Equipped status
+  int getOutputSubindex() => _outputSubindex;
+  void setOutputSubindex(int i) { _outputSubindex = i; }
+
+  // ---------------------------------------------------------------------------
+  // Equipped / location
+  // ---------------------------------------------------------------------------
+
   bool isEquipped() => _isEquipped;
-  void setEquipped(bool equipped) { _isEquipped = equipped; }
+  void setIsEquipped(bool equipped, [dynamic pc]) { _isEquipped = equipped; }
 
-  // Location
-  String getLocation() => _location;
-  void setLocation(String loc) { _location = loc; }
+  EquipmentLocation getLocation() => _eqLocation;
+  void setLocation(EquipmentLocation loc) { _eqLocation = loc; }
 
-  // Weight
-  double getWeight() => _weight;
+  int getNumberEquipped() => _numberEquipped;
+  void setNumberEquipped(int n) { _numberEquipped = n; }
+
+  // ---------------------------------------------------------------------------
+  // Physical properties
+  // ---------------------------------------------------------------------------
+
+  double getWeightAsDouble() => _weight;
   void setWeight(double w) { _weight = w; }
 
-  // Cost
-  double getCost() => _cost;
-  void setCost(double c) { _cost = c; }
+  double getCostAsDouble([dynamic pc]) => _costMod;
+  void setCostMod(double c) { _costMod = c; }
 
-  // Carried
-  int getCarried() => _carried;
-  void setCarried(int c) { _carried = c; }
+  // ---------------------------------------------------------------------------
+  // Names
+  // ---------------------------------------------------------------------------
 
-  // Parent
-  String? getParentName() => _parentName;
-  void setParentName(String? name) { _parentName = name; }
+  @override
+  String getName() => _modifiedName ?? getKeyName();
+  @override
+  void setName(String name) { setKeyName(name); }
 
-  // Slot
-  int getSlot() => getSafeInt(IntegerKey.slots);
+  void setModifiedName(String name) { _modifiedName = name; }
 
-  // Plus (enhancement bonus)
-  int getPlus() => getSafeInt(IntegerKey.plus);
+  String? getAppliedName() => _appliedName;
+  void setAppliedName(String name) { _appliedName = name; }
 
-  // AC check penalty
-  int acCheck() => getSafeInt(IntegerKey.acCheck);
+  String getBaseItemName() => getKeyName();
+  String getBaseItemKeyName() => getKeyName();
 
-  // Spell failure
-  int spellFailure() => getSafeInt(IntegerKey.spellFailure);
+  // ---------------------------------------------------------------------------
+  // Note
+  // ---------------------------------------------------------------------------
 
-  // Reach
-  int getReach() => getSafeInt(IntegerKey.reach);
+  String? getNote() => _note;
+  void setNote(String note) { _note = note; }
 
-  // Range
-  int getRange() => getSafeInt(IntegerKey.range);
+  // ---------------------------------------------------------------------------
+  // Parent / container
+  // ---------------------------------------------------------------------------
 
-  // Auto size prefix
-  bool isAutoSize() => getKeyName().startsWith(Constants.autoResizePrefix);
+  Equipment? getParent() => _parent;
+  void setParent(Equipment? parent) { _parent = parent; }
 
-  // Wield category
-  String getWieldName() {
-    final wield = getObject(ObjectKey.getConstant<dynamic>('WIELD'));
-    return wield?.toString() ?? '';
-  }
-
-  // Armor type
-  String getArmorType() {
-    final armorType = getObject(ObjectKey.getConstant<dynamic>('ARMOR_TYPE'));
-    return armorType?.toString() ?? '';
-  }
-
-  // Equipment modifiers for primary head
-  List<dynamic> getEqModifierList(bool primary) {
-    return primary ? List.unmodifiable(_eqModifiers) : List.unmodifiable(_eqModifiersHead2);
-  }
-
-  void addEqModifier(dynamic modifier, bool primary) {
-    if (primary) {
-      _eqModifiers.add(modifier);
-    } else {
-      _eqModifiersHead2.add(modifier);
-    }
-  }
-
-  // Size
-  dynamic getSizeAdjustment() {
-    return getObject(ObjectKey.getConstant<dynamic>('SIZE'));
-  }
-
-  // Is container
-  bool isContainer() {
-    return getSafeInt(IntegerKey.containerReduceWeight) > 0 ||
-        _containerCapacityString != null;
-  }
+  bool isContainer() =>
+      getSafeInt(IntegerKey.containerReduceWeight) > 0 ||
+      _containerCapacityString != null;
 
   String? getContainerCapacityString() => _containerCapacityString;
   void setContainerCapacityString(String s) { _containerCapacityString = s; }
 
-  // Is natural weapon
-  bool isNaturalWeapon() =>
-      containsInList(ListKey.getConstant<Type>('TYPE'), Type.natural);
+  // ---------------------------------------------------------------------------
+  // Equipment modifiers
+  // ---------------------------------------------------------------------------
 
-  // Is magic
-  bool isMagic() =>
-      containsInList(ListKey.getConstant<Type>('TYPE'), Type.magic);
+  List<dynamic> getEqModifierList(bool primary) =>
+      primary
+          ? List.unmodifiable(_eqModifiers)
+          : List.unmodifiable(_eqModifiersHead2);
 
-  // Is masterwork
-  bool isMasterwork() =>
-      containsInList(ListKey.getConstant<Type>('TYPE'), Type.masterwork);
+  void addToEqModifierList(dynamic eqMod, bool primary) {
+    if (primary) _eqModifiers.add(eqMod); else _eqModifiersHead2.add(eqMod);
+  }
 
-  // Hands needed to wield
-  int getHands() => getSafeInt(IntegerKey.hands);
+  dynamic getEqModifierKeyed(dynamic eqModKey, bool primary) {
+    final list = primary ? _eqModifiers : _eqModifiersHead2;
+    for (final mod in list) {
+      if ((mod as dynamic).getKeyName() == eqModKey?.toString()) return mod;
+    }
+    return null;
+  }
 
-  // Number of attacks with this weapon
-  int getNumAttacks() => 1;
+  // ---------------------------------------------------------------------------
+  // Type checking — delegates to TYPE list
+  // ---------------------------------------------------------------------------
+
+  bool isType(String aType, [bool primary = true]) {
+    final types = getSafeListFor<Type>(ListKey.getConstant<Type>('TYPE'));
+    return types.any((t) => t.name.equalsIgnoreCase(aType));
+  }
+
+  bool isEitherType(String aType) => isType(aType);
+  bool typeStringContains(String aType) => isType(aType);
+
+  bool isAmmunition()      => isType('AMMUNITION');
+  bool isArmor()           => isType('ARMOR');
+  bool isDouble()          => isType('DOUBLE');
+  bool isExtra()           => isType('EXTRA');
+  bool isHeavy()           => isType('HEAVY');
+  bool isMedium()          => isType('MEDIUM');
+  bool isLight()           => isType('LIGHT');
+  bool isMagic()           => isType('MAGIC');
+  bool isMelee()           => isType('MELEE');
+  bool isMonk()            => isType('MONK');
+  bool isNatural()         => isType('NATURAL');
+  bool isPrimaryNaturalWeapon() => isType('NATURAL') && !isType('SECONDARY');
+  bool isRanged()          => isType('RANGED');
+  bool isShield()          => isType('SHIELD');
+  bool isThrown()          => isType('THROWN');
+  bool isUnarmed()         => isType('UNARMED');
+  bool isWeapon()          => isType('WEAPON');
+  bool isProjectile()      => isType('PROJECTILE');
+  bool isAutomatic()       => _isAutomatic;
+  void setAutomatic(bool b) { _isAutomatic = b; }
+  bool isSellAsCash()      => isType('SELLASCASH');
+  bool isMasterwork()      => isType('MASTERWORK');
+  bool isNaturalWeapon()   => isNatural();
+
+  // ---------------------------------------------------------------------------
+  // Statistical properties
+  // ---------------------------------------------------------------------------
+
+  int getSlot()         => getSafeInt(IntegerKey.slots);
+  int getPlus()         => getSafeInt(IntegerKey.plus);
+  int acCheck()         => getSafeInt(IntegerKey.acCheck);
+  int spellFailure()    => getSafeInt(IntegerKey.spellFailure);
+  int getReach()        => getSafeInt(IntegerKey.reach);
+  int getRange()        => getSafeInt(IntegerKey.range);
+  int getHands()        => getSafeInt(IntegerKey.hands);
+  int getMaxCharges()   => getSafeInt(IntegerKey.maxCharges);
+  int getMinCharges()   => getSafeInt(IntegerKey.minCharges);
+  int getNumAttacks()   => 1;
+
+  String getWieldName() {
+    final wield = getSafe(ObjectKey.getConstant<dynamic>('WIELD'));
+    return wield?.toString() ?? '';
+  }
+
+  String getArmorType() {
+    final at = getSafe(ObjectKey.getConstant<dynamic>('ARMOR_TYPE'));
+    return at?.toString() ?? '';
+  }
+
+  bool isAutoSize() => getKeyName().startsWith(Constants.autoResizePrefix);
+
+  /// Returns all active bonus objects for this equipment given [pc].
+  List<dynamic> getActiveBonuses(dynamic pc) {
+    // TODO: filter raw bonus list through prerequisite checks
+    return getSafeListFor<dynamic>(ListKey.getConstant<dynamic>('BONUS'));
+  }
+
+  String getInterestingDisplayString([dynamic pc]) {
+    // TODO: build modifiers string
+    return getDisplayName();
+  }
+
+  String getItemNameFromModifiers() {
+    // TODO: reconstruct item name from eqMod names
+    return getName();
+  }
+
+  // ---------------------------------------------------------------------------
+  // Clone
+  // ---------------------------------------------------------------------------
 
   @override
   Equipment clone() {
@@ -155,12 +244,23 @@ class Equipment extends PObject {
     copy.setKeyName(getKeyName());
     copy._qty = _qty;
     copy._weight = _weight;
-    copy._cost = _cost;
-    copy._location = _location;
+    copy._costMod = _costMod;
+    copy._eqLocation = _eqLocation;
     copy._isEquipped = _isEquipped;
+    copy._modifiedName = _modifiedName;
+    copy._note = _note;
     return copy;
   }
 
   @override
   String toString() => getDisplayName();
+}
+
+// ---------------------------------------------------------------------------
+// String extension helper (case-insensitive compare)
+// ---------------------------------------------------------------------------
+
+extension _StringCI on String {
+  bool equalsIgnoreCase(String other) =>
+      toLowerCase() == other.toLowerCase();
 }
