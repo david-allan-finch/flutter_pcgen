@@ -1,0 +1,11 @@
+// Copyright (c) Thomas Parker, 2014.
+//
+// Translation of pcgen.cdom.facet.ConditionallyAvailableSpellFacet
+
+import '../helper/available_spell.dart';
+import 'base/abstract_qualified_list_facet.dart';
+
+/// Tracks conditionally-available spells (those with prerequisites) for a
+/// Player Character.
+class ConditionallyAvailableSpellFacet
+    extends AbstractQualifiedListFacet<AvailableSpell> {}

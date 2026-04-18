@@ -1,0 +1,24 @@
+// Copyright 2003 Chris Ward <frugal@purplewombat.co.uk>
+//
+// Translation of pcgen.persistence.lst.prereq.AbstractPrerequisiteSimpleParser
+
+import '../../../core/prereq/prerequisite.dart';
+import '../../../core/prereq/prerequisite_operator.dart';
+import 'abstract_prerequisite_parser.dart';
+
+/// Parses prerequisites where the formula is a simple key string (e.g. PRERACE:Human).
+/// Sets key = formula and operator = EQ (optionally inverted).
+abstract class AbstractPrerequisiteSimpleParser
+    extends AbstractPrerequisiteParser {
+  @override
+  Prerequisite parse(
+      String kind, String formula, bool invertResult, bool overrideQualify) {
+    final prereq = super.parse(kind, formula, invertResult, overrideQualify);
+    prereq.key = formula;
+    prereq.operator = PrerequisiteOperator.eq;
+    if (invertResult) {
+      prereq.operator = prereq.operator?.invert();
+    }
+    return prereq;
+  }
+}

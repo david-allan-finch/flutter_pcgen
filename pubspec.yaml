@@ -1,0 +1,27 @@
+name: pcgen2
+description: PCGen - Character creation and management for tabletop RPGs (Flutter/Dart port)
+version: 1.0.0
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+  flutter: ">=3.10.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  provider: ^6.1.1
+  path: ^1.9.0
+  path_provider: ^2.1.1
+  file: ^7.0.0
+  xml: ^6.3.0
+  logging: ^1.2.0
+  collection: ^1.18.0
+  petitparser: ^6.0.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true

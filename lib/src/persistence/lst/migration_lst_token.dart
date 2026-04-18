@@ -1,0 +1,13 @@
+// Copyright 2013 James Dempsey <jdempsey@users.sourceforge.net>
+//
+// Translation of pcgen.persistence.lst.MigrationLstToken
+
+import '../../core/system/migration_rule.dart';
+import 'lst_token.dart';
+
+/// Interface for tokens handled by the MigrationLoader.
+abstract interface class MigrationLstToken implements LstToken {
+  /// Parses [value] into [migrationRule] for the given [gameModeName].
+  /// Returns true on success.
+  bool parse(MigrationRule migrationRule, String value, String gameModeName);
+}
