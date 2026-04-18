@@ -132,6 +132,7 @@ final class GameMode implements Comparable<Object> {
   int _shortRangeDistance = 30;
   String _rankModFormula = '';
   dynamic _featTemplate;
+  int _displayOrder = 0x7fffffff; // Integer.MAX_VALUE default
 
   GameMode(String name) : _name = name, _folderName = name;
 
@@ -144,6 +145,9 @@ final class GameMode implements Comparable<Object> {
 
   String getDisplayName() => _displayName.isEmpty ? _name : _displayName;
   void setDisplayName(String name) { _displayName = name; }
+
+  int getDisplayOrder() => _displayOrder;
+  void setDisplayOrder(int order) { _displayOrder = order; }
 
   String getFolderName() => _folderName.isEmpty ? _name : _folderName;
 
