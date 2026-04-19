@@ -1,8 +1,50 @@
-// Copyright PCGen authors.
-//
 // Translation of pcgen.rules.persistence.token.AbstractYesNoToken
 
-/// Stub translation of AbstractYesNoToken.
-abstract class AbstractYesNoToken {
-  // TODO: full implementation
+import '../../../cdom/base/cdom_object.dart';
+import '../../../cdom/enumeration/object_key.dart';
+import '../../../rules/context/load_context.dart';
+import 'abstract_non_empty_token.dart';
+import 'cdom_write_token.dart';
+import 'parse_result.dart';
+
+/// Abstract base for tokens that store a YES/NO boolean value on a CDOMObject.
+///
+/// Subclasses implement [getTokenName] and [objectKey] to indicate which
+/// ObjectKey<bool> holds the value.
+abstract class AbstractYesNoToken<T extends CDOMObject>
+    extends AbstractNonEmptyToken<T> implements CDOMWriteToken<T> {
+  /// The ObjectKey<bool> used to store the parsed value.
+  ObjectKey get objectKey;
+
+  @override
+  ParseResult parseNonEmptyToken(LoadContext context, T obj, String value) {
+    return parseYesNoToObjectKey(context, obj, value, getTokenName(), objectKey);
+  }
+
+  /// Parses a YES/NO token and stores the result in [objectKey] on [obj].
+  static ParseResult parseYesNoToObjectKey(
+      LoadContext context, CDOMObject obj, String value,
+      String tokenName, ObjectKey key) {
+    if (value.equalsIgnoreCase('YES') || value == 'Y' || value == '1') {
+      obj.put(key, true);
+    } else if (value.equalsIgnoreCase('NO') || value == 'N' || value == '0') {
+      obj.put(key, false);
+    } else {
+      return ParseResultFail(
+          '$tokenName expected YES or NO as a value, got: $value');
+    }
+    return ParseResult.success;
+  }
+
+  @override
+  List<String>? unparse(LoadContext context, T obj) {
+    final val = obj.getSafe(objectKey) as bool?;
+    if (val == null) return null;
+    return ['${getTokenName()}:${val ? 'YES' : 'NO'}'];
+  }
+}
+
+extension _StringCI on String {
+  bool equalsIgnoreCase(String other) =>
+      toLowerCase() == other.toLowerCase();
 }
