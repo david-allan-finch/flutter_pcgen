@@ -2,7 +2,7 @@
 //
 // Translation of pcgen.core.character.CompanionMod
 
-import '../pobject.dart';
+import '../pcobject.dart';
 import '../categorized.dart';
 
 /// Represents a companion modifier that can be applied to a companion

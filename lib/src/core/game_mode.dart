@@ -272,6 +272,12 @@ final class GameMode implements Comparable<Object> {
   // XP
   // ---------------------------------------------------------------------------
 
+  final List<String> _xpTableNames = [];
+  List<String> getXPTableNames() => List.unmodifiable(_xpTableNames);
+  void addXPTableName(String name) {
+    if (!_xpTableNames.contains(name)) _xpTableNames.add(name);
+  }
+
   bool isXPEnabled() => _xpEnabled;
   void setXPEnabled(bool enabled) { _xpEnabled = enabled; }
 
@@ -367,6 +373,43 @@ final class GameMode implements Comparable<Object> {
   void setBonusStatLevels(String s) { bonusStatLevels.add(s); }
   void setRankModFormula(String s) { _rankModFormula = s; }
   String getRankModFormula() => _rankModFormula;
+
+  // ALT HP
+  String getAltHPAbbrev() => _althpAbbrev;
+  void setALTHPAbbrev(String s) { _althpAbbrev = s; }
+  String getAltHPName() => _althpName;
+  void setALTHPName(String s) { _althpName = s; }
+
+  // Menu / roll / qualifier
+  String getMenuEntry() => _menuEntry;
+  void setMenuEntry(String s) { _menuEntry = s; }
+  String getMoveFormula() => _moveFormula;
+  void setMoveFormula(String s) { _moveFormula = s; }
+  String getQualifier() => _qualifier;
+  void setQualifier(String s) { _qualifier = s; }
+  int getRollHP() => _rollHP;
+  void setRollHP(int v) { _rollHP = v; }
+  int getPurchaseModeMethodNum() => _purchaseModeMethodNum;
+  void setPurchaseModeMethodNum(int v) { _purchaseModeMethodNum = v; }
+  String getSpellListFmt() => _spellListFmt;
+  void setSpellListFmt(String s) { _spellListFmt = s; }
+  String getRollFormula() => _rollFormula;
+  void setRollFormula(String s) { _rollFormula = s; }
+  bool isAllowFreeBooks() => _allowFreeBooks;
+  void setAllowFreeBooks(bool b) { _allowFreeBooks = b; }
+  bool isMultiHanded() => _multiHanded;
+  void setMultiHanded(bool b) { _multiHanded = b; }
+  String getTabName() => _tabName;
+  void setTabName(String s) { _tabName = s; }
+  String getVarPrefix() => _varPrefix;
+  void setVarPrefix(String s) { _varPrefix = s; }
+
+  bool isSkillPointsPerLevelModified() => _skillPointsPerLevelModified;
+  void setSkillPointsPerLevelModified(bool b) { _skillPointsPerLevelModified = b; }
+  String getSpellRangeExpression() => _spellRangeExpression;
+  void setSpellRangeExpression(String s) { _spellRangeExpression = s; }
+  List<String> getGameModeDisplayNames() => List.unmodifiable(_gameModeDisplayNames);
+  void addGameModeDisplayName(String s) { _gameModeDisplayNames.add(s); }
 
   void addAllowedMode(String modeName) { allowedModes.add(modeName); }
   void addPlusCalculation(Type type, String formula) { plusCalcs[type] = formula; }

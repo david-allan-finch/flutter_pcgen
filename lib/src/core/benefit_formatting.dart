@@ -2,7 +2,7 @@ import '../cdom/content/cn_ability.dart';
 import '../cdom/enumeration/list_key.dart';
 import 'description.dart';
 import 'player_character.dart';
-import 'pobject.dart';
+import 'pcobject.dart';
 
 final class BenefitFormatting {
   BenefitFormatting._();
