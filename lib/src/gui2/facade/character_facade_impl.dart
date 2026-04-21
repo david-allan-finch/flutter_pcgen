@@ -1,0 +1,374 @@
+// Translation of pcgen.gui2.facade.CharacterFacadeImpl
+
+import 'package:flutter/foundation.dart';
+import '../../facade/core/character_facade.dart';
+import '../../facade/core/character_levels_facade.dart';
+import '../../facade/core/description_facade.dart';
+import '../../facade/core/equipment_list_facade.dart';
+import '../../facade/core/equipment_set_facade.dart';
+import '../../facade/core/companion_support_facade.dart';
+import '../../facade/core/spell_support_facade.dart';
+import '../../facade/core/temp_bonus_facade.dart';
+import '../../facade/util/list_facade.dart';
+import '../../facade/util/default_reference_facade.dart';
+import 'character_abilities.dart';
+import 'character_levels_facade_impl.dart';
+import 'description_facade_impl.dart';
+import 'equipment_list_facade_impl.dart';
+import 'equipment_set_facade_impl.dart';
+import 'companion_support_facade_impl.dart';
+import 'spell_support_facade_impl.dart';
+import 'temp_bonus_facade_impl.dart';
+
+/// Main implementation of CharacterFacade — the primary model object for an
+/// open character in the GUI. Wraps all character data and provides accessors
+/// for every aspect of the character (stats, levels, equipment, spells, etc.).
+///
+/// This is a translation of the 4000-line Java CharacterFacadeImpl. The Dart
+/// version centralises all character data in a Map<String, dynamic> and lazily
+/// constructs sub-facades on first access.
+class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
+  final Map<String, dynamic> _data;
+
+  // Sub-facades (lazily initialised)
+  CharacterAbilities? _abilities;
+  CharacterLevelsFacadeImpl? _levels;
+  DescriptionFacadeImpl? _description;
+  EquipmentListFacadeImpl? _equipmentList;
+  CompanionSupportFacadeImpl? _companionSupport;
+  SpellSupportFacadeImpl? _spellSupport;
+  TempBonusFacadeImpl? _tempBonus;
+
+  // Equipment sets
+  final List<EquipmentSetFacadeImpl> _equipmentSets = [];
+  int _activeEquipSetIndex = 0;
+
+  // Reference facades
+  late final DefaultReferenceFacade<Object> _raceRef;
+  late final DefaultReferenceFacade<Object> _alignmentRef;
+  late final DefaultReferenceFacade<Object> _deityRef;
+
+  CharacterFacadeImpl(this._data) {
+    _raceRef = DefaultReferenceFacade(_data['race']);
+    _alignmentRef = DefaultReferenceFacade(_data['alignment']);
+    _deityRef = DefaultReferenceFacade(_data['deity']);
+    if (_equipmentSets.isEmpty) {
+      _equipmentSets.add(EquipmentSetFacadeImpl('Default'));
+    }
+  }
+
+  // ---- Identity -----------------------------------------------------------
+
+  @override
+  String getDisplayName() => _str('name');
+
+  @override
+  String getTabName() => _str('tabName').isNotEmpty ? _str('tabName') : getDisplayName();
+
+  @override
+  void setName(String name) => _set('name', name);
+
+  @override
+  String getPlayerName() => _str('playerName');
+
+  @override
+  void setPlayerName(String name) => _set('playerName', name);
+
+  @override
+  String getFileName() => _str('fileName');
+
+  @override
+  void setFileName(String path) => _set('fileName', path);
+
+  @override
+  bool isModified() => _data['modified'] as bool? ?? false;
+
+  @override
+  void setModified(bool modified) {
+    _data['modified'] = modified;
+    notifyListeners();
+  }
+
+  // ---- Race ---------------------------------------------------------------
+
+  @override
+  DefaultReferenceFacade<Object> getRaceRef() => _raceRef;
+
+  @override
+  void setRace(Object? race) {
+    _data['race'] = race;
+    _raceRef.set(race);
+    notifyListeners();
+  }
+
+  // ---- Alignment ----------------------------------------------------------
+
+  @override
+  DefaultReferenceFacade<Object> getAlignmentRef() => _alignmentRef;
+
+  @override
+  void setAlignment(Object? alignment) {
+    _data['alignment'] = alignment;
+    _alignmentRef.set(alignment);
+    notifyListeners();
+  }
+
+  // ---- Deity --------------------------------------------------------------
+
+  @override
+  DefaultReferenceFacade<Object> getDeityRef() => _deityRef;
+
+  @override
+  void setDeity(Object? deity) {
+    _data['deity'] = deity;
+    _deityRef.set(deity);
+    notifyListeners();
+  }
+
+  // ---- Gender / Age -------------------------------------------------------
+
+  @override
+  String getGender() => _str('gender');
+
+  @override
+  void setGender(String gender) => _set('gender', gender);
+
+  @override
+  int getAge() => (_data['age'] as num?)?.toInt() ?? 0;
+
+  @override
+  void setAge(int age) {
+    _data['age'] = age;
+    notifyListeners();
+  }
+
+  @override
+  String getAgeCategory() => _str('ageCategory');
+
+  // ---- Abilities (stats) --------------------------------------------------
+
+  CharacterAbilities get abilities =>
+      _abilities ??= CharacterAbilities(_data);
+
+  // ---- Levels -------------------------------------------------------------
+
+  @override
+  CharacterLevelsFacade getLevels() =>
+      _levels ??= CharacterLevelsFacadeImpl(_data);
+
+  @override
+  int getTotalLevels() {
+    if (_data['classLevels'] is List) {
+      return (_data['classLevels'] as List).length;
+    }
+    return 0;
+  }
+
+  @override
+  int getXP() => (_data['xp'] as num?)?.toInt() ?? 0;
+
+  @override
+  void setXP(int xp) {
+    _data['xp'] = xp;
+    notifyListeners();
+  }
+
+  @override
+  int getXPForNextLevel() => (_data['xpForNext'] as num?)?.toInt() ?? 0;
+
+  @override
+  String getXPTableName() => _str('xpTable');
+
+  // ---- Description --------------------------------------------------------
+
+  @override
+  DescriptionFacade getDescription() =>
+      _description ??= DescriptionFacadeImpl(
+          (_data['description'] as Map<String, dynamic>?) ?? <String, dynamic>{});
+
+  // ---- Equipment ----------------------------------------------------------
+
+  @override
+  EquipmentListFacade getEquipmentList() =>
+      _equipmentList ??= EquipmentListFacadeImpl(_data);
+
+  @override
+  List<EquipmentSetFacade> getEquipmentSets() =>
+      List.unmodifiable(_equipmentSets);
+
+  @override
+  EquipmentSetFacade getEquippedItems() =>
+      _equipmentSets[_activeEquipSetIndex.clamp(0, _equipmentSets.length - 1)];
+
+  @override
+  void addEquipmentSet(String name) {
+    _equipmentSets.add(EquipmentSetFacadeImpl(name));
+    notifyListeners();
+  }
+
+  @override
+  void removeEquipmentSet(EquipmentSetFacade set) {
+    _equipmentSets.remove(set);
+    if (_activeEquipSetIndex >= _equipmentSets.length) {
+      _activeEquipSetIndex = _equipmentSets.length - 1;
+    }
+    notifyListeners();
+  }
+
+  @override
+  void setActiveEquipmentSet(EquipmentSetFacade set) {
+    final idx = _equipmentSets.indexOf(set as EquipmentSetFacadeImpl);
+    if (idx >= 0) {
+      _activeEquipSetIndex = idx;
+      notifyListeners();
+    }
+  }
+
+  // ---- Companions ---------------------------------------------------------
+
+  @override
+  CompanionSupportFacade getCompanionSupport() =>
+      _companionSupport ??= CompanionSupportFacadeImpl(_data);
+
+  // ---- Spells -------------------------------------------------------------
+
+  @override
+  SpellSupportFacade getSpellSupport() =>
+      _spellSupport ??= SpellSupportFacadeImpl(_data);
+
+  // ---- Temp bonuses -------------------------------------------------------
+
+  @override
+  TempBonusFacade getTempBonusFacade() =>
+      _tempBonus ??= TempBonusFacadeImpl(_data, []);
+
+  // ---- HP -----------------------------------------------------------------
+
+  @override
+  int getHP() => (_data['hp'] as num?)?.toInt() ?? 0;
+
+  @override
+  int getMaxHP() => (_data['maxHp'] as num?)?.toInt() ?? 0;
+
+  @override
+  void setHP(int hp) {
+    _data['hp'] = hp;
+    notifyListeners();
+  }
+
+  // ---- Saving throws ------------------------------------------------------
+
+  @override
+  int getFortSave() => (_data['fortSave'] as num?)?.toInt() ?? 0;
+
+  @override
+  int getRefSave() => (_data['refSave'] as num?)?.toInt() ?? 0;
+
+  @override
+  int getWillSave() => (_data['willSave'] as num?)?.toInt() ?? 0;
+
+  // ---- Initiative ---------------------------------------------------------
+
+  @override
+  int getInitiative() => (_data['initiative'] as num?)?.toInt() ?? 0;
+
+  // ---- AC -----------------------------------------------------------------
+
+  @override
+  int getAC() => (_data['ac'] as num?)?.toInt() ?? 0;
+
+  @override
+  int getTouchAC() => (_data['touchAC'] as num?)?.toInt() ?? 0;
+
+  @override
+  int getFlatFootedAC() => (_data['flatFootedAC'] as num?)?.toInt() ?? 0;
+
+  // ---- BAB ----------------------------------------------------------------
+
+  @override
+  String getBAB() => _str('bab');
+
+  // ---- Skills -------------------------------------------------------------
+
+  @override
+  int getSkillTotal(Object skill) {
+    if (_data['skills'] is Map) {
+      final key = skill is Map ? skill['name'] as String? : skill.toString();
+      return (_data['skills'][key] as num?)?.toInt() ?? 0;
+    }
+    return 0;
+  }
+
+  @override
+  int getSkillRanks(Object skill) {
+    if (_data['skillRanks'] is Map) {
+      final key = skill is Map ? skill['name'] as String? : skill.toString();
+      return (_data['skillRanks'][key] as num?)?.toInt() ?? 0;
+    }
+    return 0;
+  }
+
+  @override
+  void setSkillRanks(Object skill, int ranks) {
+    final key = skill is Map ? skill['name'] as String? : skill.toString();
+    (_data['skillRanks'] ??= <String, dynamic>{})[key] = ranks;
+    notifyListeners();
+  }
+
+  @override
+  int getSkillPointsRemaining() => (_data['skillPointsRemaining'] as num?)?.toInt() ?? 0;
+
+  // ---- Languages ----------------------------------------------------------
+
+  @override
+  ListFacade<Object> getLanguages() {
+    final langs = _data['languages'];
+    final list = langs is List ? langs : <dynamic>[];
+    return _SimpleListFacade(list);
+  }
+
+  // ---- Funds / wealth -----------------------------------------------------
+
+  @override
+  double getFunds() => (_data['funds'] as num?)?.toDouble() ?? 0.0;
+
+  @override
+  void setFunds(double funds) {
+    _data['funds'] = funds;
+    notifyListeners();
+  }
+
+  // ---- Notes --------------------------------------------------------------
+
+  @override
+  String getNotes() => _str('notes');
+
+  @override
+  void setNotes(String notes) => _set('notes', notes);
+
+  // ---- Serialization hints ------------------------------------------------
+
+  @override
+  String toString() => getDisplayName();
+
+  // ---- Helpers ------------------------------------------------------------
+
+  String _str(String key) => (_data[key] as String?) ?? '';
+
+  void _set(String key, dynamic value) {
+    if (_data[key] == value) return;
+    _data[key] = value;
+    notifyListeners();
+  }
+}
+
+class _SimpleListFacade implements ListFacade<Object> {
+  final List _list;
+  _SimpleListFacade(this._list);
+
+  @override
+  Object getElementAt(int index) => _list[index] as Object;
+
+  @override
+  int getSize() => _list.length;
+}

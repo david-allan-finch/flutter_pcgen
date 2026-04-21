@@ -1,0 +1,72 @@
+// Translation of pcgen.gui2.tabs.summary.ClassLevelTableModel
+
+import 'package:flutter/foundation.dart';
+
+/// Table model showing the character's class levels on the Summary tab.
+class ClassLevelTableModel extends ChangeNotifier {
+  static const List<String> columnNames = [
+    'Class', 'Level', 'HD', 'BAB', 'Fort', 'Ref', 'Will',
+  ];
+
+  final List<_ClassLevelRow> _rows = [];
+
+  int get rowCount => _rows.length;
+  int get columnCount => columnNames.length;
+
+  dynamic getValue(int row, int col) {
+    if (row < 0 || row >= _rows.length) return null;
+    final r = _rows[row];
+    switch (col) {
+      case 0: return r.className;
+      case 1: return r.level;
+      case 2: return r.hitDie;
+      case 3: return r.bab;
+      case 4: return r.fortSave;
+      case 5: return r.refSave;
+      case 6: return r.willSave;
+      default: return null;
+    }
+  }
+
+  void setData(
+      List<({String className, int level, String hitDie, String bab, String fortSave, String refSave, String willSave})> data) {
+    _rows.clear();
+    for (final d in data) {
+      _rows.add(_ClassLevelRow(
+        className: d.className,
+        level: d.level,
+        hitDie: d.hitDie,
+        bab: d.bab,
+        fortSave: d.fortSave,
+        refSave: d.refSave,
+        willSave: d.willSave,
+      ));
+    }
+    notifyListeners();
+  }
+
+  void clear() {
+    _rows.clear();
+    notifyListeners();
+  }
+}
+
+class _ClassLevelRow {
+  final String className;
+  final int level;
+  final String hitDie;
+  final String bab;
+  final String fortSave;
+  final String refSave;
+  final String willSave;
+
+  _ClassLevelRow({
+    required this.className,
+    required this.level,
+    required this.hitDie,
+    required this.bab,
+    required this.fortSave,
+    required this.refSave,
+    required this.willSave,
+  });
+}
