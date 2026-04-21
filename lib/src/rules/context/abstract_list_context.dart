@@ -1,6 +1,7 @@
 // Translated from pcgen/rules/context/AbstractListContext.java
 // Copyright 2008 (C) Tom Parker <thpr@users.sourceforge.net> - LGPL 2.1+
 
+import 'package:flutter_pcgen/src/base/util/hash_map_to_list.dart';
 import 'package:flutter_pcgen/src/cdom/base/associated_prereq_object.dart';
 import 'package:flutter_pcgen/src/cdom/base/cdom_list.dart';
 import 'package:flutter_pcgen/src/cdom/base/cdom_object.dart';
@@ -178,26 +179,27 @@ class TrackingListCommitStrategy implements ListCommitStrategy {
   ) {
     final lo = OwnerURI(_extractURI, owner);
 
-    final map = <CDOMObject, List<AssociatedPrereqObject>>{};
+    final map = HashMapToList<CDOMObject, AssociatedPrereqObject>();
     final addedMap = positiveMasterMap[swl]?[lo] ?? {};
     for (final lw in addedMap.keys) {
       final apo = addedMap[lw]!;
       if (tokenName == apo.getAssociation(AssociationKey.token)) {
-        map.putIfAbsent(lw, () => []).add(apo);
+        map.addToListFor(lw, apo);
       }
     }
 
-    final rmap = <CDOMObject, List<AssociatedPrereqObject>>{};
+    final rmap = HashMapToList<CDOMObject, AssociatedPrereqObject>();
     final removedMap = negativeMasterMap[swl]?[lo] ?? {};
     for (final lw in removedMap.keys) {
       final apo = removedMap[lw]!;
       if (tokenName == apo.getAssociation(AssociationKey.token)) {
-        rmap.putIfAbsent(lw, () => []).add(apo);
+        rmap.addToListFor(lw, apo);
       }
     }
 
     final hasClear = _masterClearSet[swl]?.contains(lo) ?? false;
-    return AssociatedCollectionChanges(map, rmap, hasClear);
+    return AssociatedCollectionChanges(
+        map.isEmpty() ? null : map, rmap.isEmpty() ? null : rmap, hasClear);
   }
 
   void clearMasterList(

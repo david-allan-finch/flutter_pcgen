@@ -51,7 +51,7 @@ class VariableKey {
   }
 
   static Iterable<VariableKey> getAllConstants() =>
-      List.unmodifiable(_map.values());
+      List.unmodifiable(_map.values);
 
   static void clearConstants() => _map.clear();
 }

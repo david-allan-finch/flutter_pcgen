@@ -388,6 +388,37 @@ abstract class CDOMObject extends ConcretePrereqObject
     return _mapChar!.getKeysFor(mapKey).length;
   }
 
+  // --- List association tracking (used by list loading context) ---
+  // Mirrors Java CDOMObject.putToList / getModifiedLists / getListMods.
+  // Keys are CDOMReference<CDOMList<...>> and CDOMReference<...>; typed as
+  // dynamic to avoid circular imports with cdom_reference.dart.
+
+  Map<dynamic, Map<dynamic, List<dynamic>>>? _listAssocChar;
+
+  void putToList(dynamic listKey, dynamic ref, dynamic apo) {
+    _listAssocChar ??= {};
+    _listAssocChar!.putIfAbsent(listKey, () => {}).putIfAbsent(ref, () => []).add(apo);
+  }
+
+  Iterable<dynamic> getModifiedLists() => _listAssocChar?.keys ?? const <dynamic>[];
+
+  Map<dynamic, List<dynamic>> getListMods(dynamic listKey) =>
+      _listAssocChar?[listKey] ?? {};
+
+  // --- Clone support ---
+
+  /// Copies all key/value stores from this object into [copy].
+  void cloneTo(CDOMObject copy) {
+    copy._displayName = _displayName;
+    copy._sourceURI = _sourceURI;
+    if (_integerChar != null) copy._integerChar = Map.of(_integerChar!);
+    if (_stringChar != null) copy._stringChar = Map.of(_stringChar!);
+    if (_formulaChar != null) copy._formulaChar = Map.of(_formulaChar!);
+    if (_variableChar != null) copy._variableChar = Map.of(_variableChar!);
+    if (_objectChar != null) copy._objectChar = Map.of(_objectChar!);
+    if (_factChar != null) copy._factChar = Map.of(_factChar!);
+  }
+
   // --- Identified / Loadable implementation ---
 
   @override

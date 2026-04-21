@@ -35,7 +35,7 @@ final class SubClass extends PCClass implements Categorized<SubClass> {
   int getProhibitCost() {
     final prohib = getInt(IntegerKey.prohibitCost);
     if (prohib != null) return prohib;
-    return getSafe<int>(IntegerKey.cost) ?? 0;
+    return getSafeInt(IntegerKey.cost);
   }
 
   @override

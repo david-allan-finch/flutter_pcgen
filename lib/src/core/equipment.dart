@@ -177,7 +177,7 @@ class Equipment extends PObject {
 
   bool isType(String aType, [bool primary = true]) {
     final types = getSafeListFor<Type>(ListKey.getConstant<Type>('TYPE'));
-    return types.any((t) => t.name.equalsIgnoreCase(aType));
+    return types.any((t) => t.toString().equalsIgnoreCase(aType));
   }
 
   bool isEitherType(String aType) => isType(aType);
