@@ -30,7 +30,7 @@ flutter:
     - assets/images/
     - assets/tips/
 
-  fonts:
-    - family: PCGenIcons
-      fonts:
-        - asset: assets/fonts/PCGenIcons.ttf
+  # fonts:
+  #   - family: PCGenIcons
+  #     fonts:
+  #       - asset: assets/fonts/PCGenIcons.ttf
