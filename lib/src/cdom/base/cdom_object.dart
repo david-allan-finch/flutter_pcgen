@@ -432,6 +432,9 @@ abstract class CDOMObject extends ConcretePrereqObject
   @override
   PCGenScoped? getEnclosingScope() => null;
 
+  @override
+  List<String> getGrantedVariableArray() => const [];
+
   // --- Equality ---
 
   bool isCDOMEqual(CDOMObject cdo) {
