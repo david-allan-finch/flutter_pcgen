@@ -16,9 +16,9 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.util.enumeration.ProhibitedSpellType
-import 'package:pcgen2/src/cdom/enumeration/list_key.dart';
-import 'package:pcgen2/src/cdom/identifier/spell_school.dart';
-import 'package:pcgen2/src/core/spell/spell.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/list_key.dart';
+import 'package:flutter_pcgen/src/cdom/identifier/spell_school.dart';
+import 'package:flutter_pcgen/src/core/spell/spell.dart';
 
 enum ProhibitedSpellType {
   alignment('Alignment'),

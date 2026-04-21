@@ -16,7 +16,7 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.util.enumeration.VisionType
-import 'package:pcgen2/src/base/lang/case_insensitive_string.dart';
+import 'package:flutter_pcgen/src/base/lang/case_insensitive_string.dart';
 
 /// A dynamic (non-enum) type registry for vision types.
 ///

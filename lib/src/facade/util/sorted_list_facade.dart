@@ -16,7 +16,7 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.facade.util.SortedListFacade
-import 'package:pcgen2/src/base/logging/pcgen_logging.dart';
+import 'package:flutter_pcgen/src/base/logging/pcgen_logging.dart';
 
 import 'abstract_list_facade.dart';
 import 'list_facade.dart';
