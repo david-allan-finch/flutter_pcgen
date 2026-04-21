@@ -172,7 +172,7 @@ class _Restriction {
 
   const _Restriction(this.minLevel, this.maxLevel, this.knownRequired);
 
-  String getLSTformat() {
+  String getLSTformat([bool useAny = false]) {
     final sb = StringBuffer();
     if (knownRequired != null) {
       sb.write('KNOWN=');

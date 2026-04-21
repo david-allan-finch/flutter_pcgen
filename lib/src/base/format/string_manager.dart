@@ -11,7 +11,7 @@ class _StringContainer implements ObjectContainer<String> {
   List<String> getContainedObjects() => [_value];
 
   @override
-  String getLSTformat() => _value;
+  String getLSTformat([bool useAny = false]) => _value;
 }
 
 class StringManager implements FormatManager<String> {

@@ -41,7 +41,7 @@ class UserChooseInformation
   void setTitle(String chooseTitle) => _title = chooseTitle;
 
   @override
-  String getLSTformat() => '*USERINPUT';
+  String getLSTformat([bool useAny = false]) => '*USERINPUT';
 
   @override
   GroupingState getGroupingState() => GroupingState.allowsNone;

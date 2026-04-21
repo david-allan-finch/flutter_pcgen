@@ -20,7 +20,7 @@ import 'package:flutter_pcgen/src/cdom/enumeration/grouping_state.dart';
 
 // A named collection of selectable objects for the CHOOSE system.
 abstract interface class SelectableSet<T> {
-  String getLSTformat();
+  String getLSTformat([bool useAny = false]);
   Type getChoiceClass();
   String getName();
   GroupingState getGroupingState();

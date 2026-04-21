@@ -48,7 +48,7 @@ class HitDieStep implements Processor<HitDie> {
   }
 
   @override
-  String getLSTformat() {
+  String getLSTformat([bool useAny = false]) {
     final sb = StringBuffer('%');
     if (_dieLimit == null) sb.write('H');
     sb.write(_numSteps > 0 ? 'up' : 'down');

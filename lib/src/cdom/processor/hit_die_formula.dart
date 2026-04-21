@@ -30,7 +30,7 @@ class HitDieFormula implements Processor<HitDie> {
       HitDie(_formula.resolve(origHD.getDie()) as int);
 
   @override
-  String getLSTformat() => '%$_formula';
+  String getLSTformat([bool useAny = false]) => '%$_formula';
 
   @override
   Type getModifiedClass() => HitDie;

@@ -43,7 +43,7 @@ class DamageReduction extends ConcretePrereqObject {
         .toSet();
   }
 
-  String getLSTformat() => '$reduction/$bypass';
+  String getLSTformat([bool useAny = false]) => '$reduction/$bypass';
 
   @override
   String toString() {

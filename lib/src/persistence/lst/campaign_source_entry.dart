@@ -45,7 +45,7 @@ class CampaignSourceEntry implements SourceEntry {
   @override
   List<Prerequisite> getPrerequisites() => _prerequisites;
 
-  String getLSTformat() {
+  String getLSTformat([bool useAny = false]) {
     final sb = StringBuffer(_uri);
     if (_includeItems.isNotEmpty) {
       sb.write('|(INCLUDE:${_includeItems.join('|')})');

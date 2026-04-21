@@ -22,7 +22,7 @@ import 'package:flutter_pcgen/src/cdom/enumeration/grouping_state.dart';
 // Encodes/decodes to persistent LST strings.
 abstract interface class ChooseInformation<T> {
   String getName();
-  String getLSTformat();
+  String getLSTformat([bool useAny = false]);
   String getTitle();
   GroupingState getGroupingState();
   Type getReferenceClass();

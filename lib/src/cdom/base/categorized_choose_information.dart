@@ -78,7 +78,7 @@ class CategorizedChooseInformation<T extends Categorized<T>>
   int get hashCode => _setName.hashCode + 29;
 
   @override
-  String getLSTformat() => _pcs.getLSTformat(false);
+  String getLSTformat([bool useAny = false]) => _pcs.getLSTformat(false);
 
   @override
   Type getReferenceClass() => _category.get()!.getReferenceClass();

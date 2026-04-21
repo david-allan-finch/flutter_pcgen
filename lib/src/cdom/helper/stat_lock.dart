@@ -30,7 +30,7 @@ class StatLock {
         _lockValue = formula;
 
   PCStat getLockedStat() => _lockedStat.get();
-  String getLSTformat() => _lockedStat.getLSTformat(false);
+  String getLSTformat([bool useAny = false]) => _lockedStat.getLSTformat(false);
   Formula getLockValue() => _lockValue;
 
   @override

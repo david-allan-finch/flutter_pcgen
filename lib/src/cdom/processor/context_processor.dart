@@ -36,7 +36,7 @@ class ContextProcessor<T, R> implements Processor<T> {
   }
 
   @override
-  String getLSTformat() =>
+  String getLSTformat([bool useAny = false]) =>
       '${_contextItems.getLSTformat()}|${_processor.getLSTformat()}';
 
   @override

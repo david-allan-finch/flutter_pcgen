@@ -29,7 +29,7 @@ class HitDieLock implements Processor<HitDie> {
   HitDie applyProcessor(HitDie origHD, Object? context) => _hitDie;
 
   @override
-  String getLSTformat() => _hitDie.getDie().toString();
+  String getLSTformat([bool useAny = false]) => _hitDie.getDie().toString();
 
   @override
   Type getModifiedClass() => HitDie;

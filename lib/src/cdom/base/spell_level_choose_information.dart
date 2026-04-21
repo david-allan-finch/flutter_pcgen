@@ -72,7 +72,7 @@ class SpellLevelChooseInformation implements ChooseInformation<SpellLevel> {
   void setTitleStr(String choiceTitle) => title = choiceTitle;
 
   @override
-  String getLSTformat() => info.join(Constants.pipe);
+  String getLSTformat([bool useAny = false]) => info.join(Constants.pipe);
 
   @override
   GroupingState getGroupingState() => GroupingState.allowsNone;

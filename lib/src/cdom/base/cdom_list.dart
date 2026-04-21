@@ -37,5 +37,5 @@ abstract interface class CDOMList<T extends CDOMObject>
 
   /// Returns a representation of this CDOMList, suitable for storing in an LST
   /// file.
-  String getLSTformat();
+  String getLSTformat([bool useAny = false]);
 }

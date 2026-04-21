@@ -56,7 +56,7 @@ class KnownSpellIdentifier extends ConcretePrereqObject {
     return spellList;
   }
 
-  String getLSTformat() => ref.getLSTformat(false);
+  String getLSTformat([bool useAny = false]) => ref.getLSTformat(false);
 
   @override
   int get hashCode => spellLevel == null ? ref.hashCode : spellLevel! * ref.hashCode;

@@ -14,7 +14,7 @@ class _CompoundContainer implements ObjectContainer<Compound> {
   List<Compound> getContainedObjects() => [_value];
 
   @override
-  String getLSTformat() => _value.toString();
+  String getLSTformat([bool useAny = false]) => _value.toString();
 }
 
 class CompoundFormatManager implements FormatManager<Compound> {

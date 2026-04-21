@@ -11,7 +11,7 @@ class _BoolContainer implements ObjectContainer<bool> {
   List<bool> getContainedObjects() => [_value];
 
   @override
-  String getLSTformat() => _value ? 'TRUE' : 'FALSE';
+  String getLSTformat([bool useAny = false]) => _value ? 'TRUE' : 'FALSE';
 }
 
 class BooleanManager implements FormatManager<bool> {

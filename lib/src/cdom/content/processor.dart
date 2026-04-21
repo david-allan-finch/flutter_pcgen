@@ -25,5 +25,5 @@ abstract interface class Processor<T> {
   Type getModifiedClass();
 
   // Returns the LST representation of this Processor.
-  String getLSTformat();
+  String getLSTformat([bool useAny = false]);
 }

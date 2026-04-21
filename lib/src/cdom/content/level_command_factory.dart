@@ -29,7 +29,7 @@ class LevelCommandFactory extends ConcretePrereqObject implements Comparable<Lev
 
   String getLevelCount() => levels;
   PCClass getPCClass() => pcClassRef.get();
-  String getLSTformat() => pcClassRef.getLSTformat(false);
+  String getLSTformat([bool useAny = false]) => pcClassRef.getLSTformat(false);
 
   @override
   int get hashCode => pcClassRef.hashCode * 29 + levels.hashCode;

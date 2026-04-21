@@ -13,7 +13,7 @@ class _ArrayContainer<T> implements ObjectContainer<List<T>> {
   List<List<T>> getContainedObjects() => [_value];
 
   @override
-  String getLSTformat() =>
+  String getLSTformat([bool useAny = false]) =>
       _value.map((v) => _componentFormat.unconvert(v)).join(',');
 }
 

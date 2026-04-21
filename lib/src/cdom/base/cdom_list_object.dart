@@ -52,7 +52,7 @@ abstract class CDOMListObject<T extends CDOMObject> extends ConcretePrereqObject
   String getDisplayName() => _name ?? '';
 
   @override
-  String getLSTformat() => getKeyName();
+  String getLSTformat([bool useAny = false]) => getKeyName();
 
   @override
   bool isInternal() => false;

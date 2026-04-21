@@ -12,7 +12,7 @@ class _NumberContainer implements ObjectContainer<num> {
   List<num> getContainedObjects() => [_value];
 
   @override
-  String getLSTformat() => _value.toString();
+  String getLSTformat([bool useAny = false]) => _value.toString();
 }
 
 class NumberManager implements FormatManager<num> {

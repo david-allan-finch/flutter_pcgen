@@ -44,7 +44,7 @@ class ChangeArmorType implements Processor<String> {
   }
 
   @override
-  String getLSTformat() =>
+  String getLSTformat([bool useAny = false]) =>
       _result.isEmpty ? _source : '$_source|$_result';
 
   @override

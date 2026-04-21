@@ -37,7 +37,7 @@ class ChoiceSet<T> extends ConcretePrereqObject implements SelectableSet<T> {
         _useAny = any;
 
   @override
-  String getLSTformat() => _pcs.getLSTformat(_useAny);
+  String getLSTformat([bool useAny = false]) => _pcs.getLSTformat(_useAny);
 
   @override
   Type getChoiceClass() => _pcs.getChoiceClass();

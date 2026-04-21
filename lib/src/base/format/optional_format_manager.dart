@@ -13,7 +13,7 @@ class _OptionalContainer<T> implements ObjectContainer<T?> {
   List<T?> getContainedObjects() => [_value];
 
   @override
-  String getLSTformat() =>
+  String getLSTformat([bool useAny = false]) =>
       _value == null ? '' : _componentFormat.unconvert(_value!);
 }
 
