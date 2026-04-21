@@ -25,7 +25,7 @@ class IsVisibleToActor implements OutputActor<dynamic> {
 
   @override
   dynamic process(String charId, dynamic obj) {
-    final visibility = obj?.getSafe(/* ObjectKey.visibility */ null);
+    final visibility = obj?.getSafeObject(ObjectKey.getConstant('VISIBILITY'));
     if (visibility == null) return false;
     return visibility.isVisibleTo(_view);
   }

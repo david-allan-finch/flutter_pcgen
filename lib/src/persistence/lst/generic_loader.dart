@@ -43,7 +43,7 @@ class GenericLoader<T extends CDOMObject> extends LstObjectFileLoader<T> {
     if (fields.isEmpty) return null;
 
     po.setName(fields[0]);
-    po.put(ObjectKey.sourceCampaign, source.getCampaign());
+    po.putObject(ObjectKey.sourceCampaign, source.getCampaign());
     po.setSourceURI(source.getURI());
 
     if (isNew) {

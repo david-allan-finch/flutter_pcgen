@@ -30,7 +30,7 @@ class LegsFacet {
     final aRace = raceFacet.get(id);
     int legs = 0;
     if (aRace != null) {
-      legs = aRace.getSafe('LEGS') as int? ?? 0;
+      legs = aRace.getSafeInt(IntegerKey.legs) as int? ?? 0;
     }
 
     // Scan templates for any overrides

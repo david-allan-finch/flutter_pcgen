@@ -19,7 +19,7 @@ class EQRangeTermEvaluator extends BaseEQTermEvaluator implements TermEvaluator 
   @override
   String evaluateForEquipment(dynamic eq, bool primary, dynamic pc) {
     // IntegerKey.RANGE — deprecated when RANGE CodeControl is used
-    return (eq.getSafe('RANGE') as num? ?? 0).toString();
+    return (eq.getSafeInt(IntegerKey.range) as num? ?? 0).toString();
   }
 
   @override

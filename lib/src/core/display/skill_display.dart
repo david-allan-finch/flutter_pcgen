@@ -27,7 +27,7 @@ class SkillDisplay {
     skills.removeWhere((skill) {
       final outputIndex = pc.getSkillOrder(skill) as int?;
       if (outputIndex != null && outputIndex == -1) return true;
-      final vis = skill.getSafe('VISIBILITY');
+      final vis = skill.getSafeObject(ObjectKey.getConstant('VISIBILITY'));
       if (vis != null && (vis.isVisibleTo('HIDDEN_EXPORT') as bool? ?? false)) {
         return true;
       }

@@ -15,7 +15,7 @@ class EQSpellFailureTermEvaluator extends BaseEQTermEvaluator
   @override
   String evaluate(dynamic eq) {
     // Logs a warning if EQSPELLFAILURE control is active — caller should check.
-    return eq.getSafe('SPELL_FAILURE').toString();
+    return eq.getSafeObject(ObjectKey.getConstant('SPELL_FAILURE')).toString();
   }
 
   @override

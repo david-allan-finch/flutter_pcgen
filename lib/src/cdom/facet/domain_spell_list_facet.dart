@@ -20,7 +20,7 @@ class DomainSpellListFacet
   @override
   void dataAdded(DataFacetChangeEvent<CharID, Domain> dfce) {
     final list = dfce.getCDOMObject()
-        .get(ObjectKey.getConstant('DOMAIN_SPELLLIST'));
+        .getObject(ObjectKey.getConstant('DOMAIN_SPELLLIST'));
     if (list != null) {
       spellListFacet.add(dfce.getCharID(), list, dfce.getCDOMObject());
     }
@@ -29,7 +29,7 @@ class DomainSpellListFacet
   @override
   void dataRemoved(DataFacetChangeEvent<CharID, Domain> dfce) {
     final list = dfce.getCDOMObject()
-        .get(ObjectKey.getConstant('DOMAIN_SPELLLIST'));
+        .getObject(ObjectKey.getConstant('DOMAIN_SPELLLIST'));
     if (list != null) {
       spellListFacet.remove(dfce.getCharID(), list, dfce.getCDOMObject());
     }

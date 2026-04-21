@@ -60,7 +60,7 @@ class ClassSkillChoiceActor implements PersistentChoiceActor<Skill> {
     if (_applyRank != null) {
       if (owner is PCClassLevel) {
         // Ensure skill-point budget for this level is already computed.
-        final pcClass = owner.getSafe(ObjectKey.parent) as PCClass?;
+        final pcClass = owner.getSafeObject(ObjectKey.parent) as PCClass?;
         if (pcClass != null) {
           int levelIndex = 1;
           for (final lvlInfo in playerChar.getLevelInfo()) {

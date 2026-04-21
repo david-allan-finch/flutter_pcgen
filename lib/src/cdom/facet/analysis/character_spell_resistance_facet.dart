@@ -20,7 +20,7 @@ class CharacterSpellResistanceFacet extends AbstractSourcedListFacet<CharID, dyn
   @override
   void dataAdded(DataFacetChangeEvent<CharID, CDOMObject> dfce) {
     final cdo = dfce.getCDOMObject();
-    final sr = cdo.get(ObjectKey.getConstant<dynamic>('SR'));
+    final sr = cdo.getObject(ObjectKey.getConstant<dynamic>('SR'));
     if (sr != null) {
       add(dfce.getCharID(), sr.getReduction(), cdo);
     }

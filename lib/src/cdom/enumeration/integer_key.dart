@@ -39,6 +39,7 @@ class IntegerKey {
   static final IntegerKey knownSpellsFromSpecialty = getConstant('KNOWN_SPELLS_FROM_SPECIALTY');
   static final IntegerKey legs = getConstant('LEGS', defaultValue: 2);
   static final IntegerKey level = getConstant('LEVEL');
+  static final IntegerKey levelAdjustment = getConstant('LEVEL_ADJUSTMENT', defaultValue: 0);
   static final IntegerKey levelLimit = getConstant('LEVEL_LIMIT', defaultValue: Constants.noLevelLimit);
   static final IntegerKey levelsPerFeat = getConstant('LEVELS_PER_FEAT');
   static final IntegerKey maxCharges = getConstant('MAX_CHARGES');

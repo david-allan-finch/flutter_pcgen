@@ -31,15 +31,15 @@ final class Ability extends PObject {
 
   /// Returns true if this ability can be taken multiple times.
   bool isMult() =>
-      getSafe(ObjectKey.getConstant<bool>('MULT', defaultValue: false)) as bool? ?? false;
+      getSafeObject(ObjectKey.getConstant<bool>('MULT', defaultValue: false)) as bool? ?? false;
 
   /// Returns true if multiple copies of this ability stack.
   bool isStackable() =>
-      getSafe(ObjectKey.getConstant<bool>('STACK', defaultValue: false)) as bool? ?? false;
+      getSafeObject(ObjectKey.getConstant<bool>('STACK', defaultValue: false)) as bool? ?? false;
 
   /// Returns the cost of this ability in pool points.
   double getCost() =>
-      (getSafe(ObjectKey.getConstant<dynamic>('COST')) as num?)?.toDouble() ?? 1.0;
+      (getSafeObject(ObjectKey.getConstant<dynamic>('COST')) as num?)?.toDouble() ?? 1.0;
 
   /// Returns all description keys used by this ability.
   List<dynamic> getDescriptionKey() =>

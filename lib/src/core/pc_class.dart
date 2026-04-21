@@ -43,10 +43,10 @@ class PCClass extends PObject {
   PCClassLevel getOriginalClassLevel(int lvl) {
     if (!_levelMap.containsKey(lvl)) {
       final classLevel = PCClassLevel();
-      classLevel.put(IntegerKey.level, lvl);
+      classLevel.putInt(IntegerKey.level, lvl);
       classLevel.setName('${getDisplayName()}($lvl)');
-      classLevel.put(StringKey.qualifiedKey, getKeyName());
-      classLevel.put(ObjectKey.tokenParent, this);
+      classLevel.putString(StringKey.qualifiedKey, getKeyName());
+      classLevel.putObject(ObjectKey.tokenParent, this);
       _levelMap[lvl] = classLevel;
     }
     return _levelMap[lvl]!;
@@ -69,7 +69,7 @@ class PCClass extends PObject {
   // Basic class properties
   // ---------------------------------------------------------------------------
 
-  String? getAbbrev() => get(StringKey.abbKr);
+  String? getAbbrev() => getString(StringKey.abbKr);
 
   String getSpellType() => getSafeString(StringKey.listtype);
 
@@ -136,19 +136,19 @@ class PCClass extends PObject {
 
   /// Returns the stat used for learning/casting spells, or null if none.
   PCStat? baseSpellStat() {
-    if (getSafe(ObjectKey.useSpellSpellStat) as bool? ?? false) return null;
-    if (getSafe(ObjectKey.casterWithoutSpellStat) as bool? ?? false) return null;
-    final ss = get(ObjectKey.spellStat);
+    if (getSafeObject(ObjectKey.useSpellSpellStat) as bool? ?? false) return null;
+    if (getSafeObject(ObjectKey.casterWithoutSpellStat) as bool? ?? false) return null;
+    final ss = getObject(ObjectKey.spellStat);
     if (ss != null) return (ss as dynamic).get() as PCStat?;
     return null;
   }
 
   /// Returns the stat used for bonus spells.
   PCStat? bonusSpellStat() {
-    final hbss = get(ObjectKey.hasBonusSpellStat) as bool?;
+    final hbss = getObject(ObjectKey.hasBonusSpellStat) as bool?;
     if (hbss == null) return baseSpellStat();
     if (hbss) {
-      final bssref = get(ObjectKey.bonusSpellStat);
+      final bssref = getObject(ObjectKey.bonusSpellStat);
       if (bssref != null) return (bssref as dynamic).get() as PCStat?;
     }
     return null;

@@ -55,7 +55,7 @@ abstract class AbstractYesNoToken<T extends CDOMObject>
 
   @override
   List<String>? unparse(LoadContext context, T obj) {
-    final val = obj.getSafe(objectKey) as bool?;
+    final val = obj.getSafeObject(objectKey) as bool?;
     if (val == null) return null;
     return ['${getTokenName()}:${val ? 'YES' : 'NO'}'];
   }

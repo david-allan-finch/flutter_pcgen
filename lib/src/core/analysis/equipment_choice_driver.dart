@@ -28,7 +28,7 @@ final class EquipmentChoiceDriver {
   /// Returns true if a valid choice was made (or none was needed).
   static bool getChoice(int pool, dynamic parent, dynamic eqMod, bool bAdd,
       PlayerCharacter pc) {
-    final choiceString = eqMod.getSafe(StringKey.choiceString) as String;
+    final choiceString = eqMod.getSafeString(StringKey.choiceString) as String;
     if (choiceString.isEmpty) return true;
 
     final forEqBuilder = choiceString.startsWith('EQBUILDER.');

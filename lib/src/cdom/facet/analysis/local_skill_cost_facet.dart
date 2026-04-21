@@ -56,7 +56,7 @@ class LocalSkillCostFacet extends AbstractSubScopeFacet<PCClass, SkillCost, Skil
     if (cdo is Domain) {
       return domainFacet.getSource(id, cdo)?.getPcclass();
     } else if (cdo is PCClassLevel) {
-      return cdo.get(ObjectKey.getConstant('PARENT')) as PCClass?;
+      return cdo.getObject(ObjectKey.getConstant('PARENT')) as PCClass?;
     } else if (cdo is PCClass) {
       return cdo;
     }

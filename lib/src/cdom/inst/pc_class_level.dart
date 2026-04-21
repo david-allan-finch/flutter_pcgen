@@ -34,7 +34,7 @@ final class PCClassLevel extends CDOMObject {
   @override
   bool isType(String type) => false;
 
-  String? getQualifiedKey() => get(StringKey.qualifiedKey);
+  String? getQualifiedKey() => getString(StringKey.qualifiedKey);
 
   @override
   String toString() => getDisplayName() ?? '';

@@ -52,12 +52,12 @@ class HitPointFacet extends AbstractAssociationFacet<CharID, PCClassLevel, int>
 
     bool first = true;
     for (final pcClass in classFacet.getSet(id)) {
-      final dieLock = cdo.get(ObjectKey.getConstant<dynamic>('HITDIE'));
+      final dieLock = cdo.getObject(ObjectKey.getConstant<dynamic>('HITDIE'));
       if (dieLock != null) {
         for (int level = 1;
             level <= classFacet.getLevel(id, pcClass);
             level++) {
-          final baseHD = pcClass.getSafe(ObjectKey.getConstant<HitDie>('LEVEL_HITDIE'));
+          final baseHD = pcClass.getSafeObject(ObjectKey.getConstant<HitDie>('LEVEL_HITDIE'));
           if (baseHD != getLevelHitDie(id, pcClass, level)) {
             rollHP(id, pcClass, level, first);
             pc.setDirty(true);
@@ -77,15 +77,15 @@ class HitPointFacet extends AbstractAssociationFacet<CharID, PCClassLevel, int>
   /// applying race and template die locks.
   HitDie getLevelHitDie(CharID id, PCClass pcClass, int classLevel) {
     HitDie currDie =
-        pcClass.getSafe(ObjectKey.getConstant<HitDie>('LEVEL_HITDIE')) as HitDie;
+        pcClass.getSafeObject(ObjectKey.getConstant<HitDie>('LEVEL_HITDIE')) as HitDie;
 
-    final raceLock = raceFacet.get(id)?.get(ObjectKey.getConstant<dynamic>('HITDIE'));
+    final raceLock = raceFacet.get(id)?.getObject(ObjectKey.getConstant<dynamic>('HITDIE'));
     if (raceLock != null) {
       currDie = raceLock.applyProcessor(currDie, pcClass) as HitDie;
     }
 
     for (final template in templateFacet.getSet(id)) {
-      final lock = template.get(ObjectKey.getConstant<dynamic>('HITDIE'));
+      final lock = template.getObject(ObjectKey.getConstant<dynamic>('HITDIE'));
       if (lock != null) {
         currDie = lock.applyProcessor(currDie, pcClass) as HitDie;
       }
@@ -93,10 +93,10 @@ class HitPointFacet extends AbstractAssociationFacet<CharID, PCClassLevel, int>
 
     final cl = classFacet.getClassLevel(id, pcClass, classLevel);
     if (cl != null) {
-      if (cl.get(ObjectKey.getConstant<dynamic>('DONTADD_HITDIE')) != null) {
+      if (cl.getObject(ObjectKey.getConstant<dynamic>('DONTADD_HITDIE')) != null) {
         return HitDie.zero;
       }
-      final lock = cl.get(ObjectKey.getConstant<dynamic>('HITDIE'));
+      final lock = cl.getObject(ObjectKey.getConstant<dynamic>('HITDIE'));
       if (lock != null) {
         currDie = lock.applyProcessor(currDie, pcClass) as HitDie;
       }

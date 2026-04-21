@@ -569,7 +569,7 @@ class BonusManager {
       if (!pc.isApplied(aBonus)) continue;
       final Object? aCreator = entry.value.source;
       if (aCreator == null) continue;
-      final String aDesc = (aCreator as CDOMObject).getSafe(StringKey.tempDescription) as String? ?? '';
+      final String aDesc = (aCreator as CDOMObject).getSafeString(StringKey.tempDescription) as String? ?? '';
       if (!aList.contains(aDesc)) {
         aList.add(aDesc);
       }

@@ -35,7 +35,7 @@ class HandsFacet {
     final aRace = raceFacet.get(id);
     int hands = 0;
     if (aRace != null) {
-      hands = aRace.getSafe('CREATURE_HANDS') as int? ?? 0;
+      hands = aRace.getSafeInt(IntegerKey.creatureHands) as int? ?? 0;
     }
 
     // Scan templates for any overrides

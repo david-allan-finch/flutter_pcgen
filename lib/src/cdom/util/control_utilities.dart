@@ -27,7 +27,7 @@ class ControlUtilities {
         .getReferenceContext()
         .silentlyGetConstructedCDOMObject('CodeControl', 'Controller');
     if (controller != null) {
-      final val = controller.get(ObjectKey.getConstant<bool>('*$feature'));
+      final val = controller.getObject(ObjectKey.getConstant<bool>('*$feature'));
       return val == true;
     }
     return false;
@@ -40,7 +40,7 @@ class ControlUtilities {
         .getReferenceContext()
         .silentlyGetConstructedCDOMObject('CodeControl', 'Controller');
     if (controller != null) {
-      return controller.get(ObjectKey.getConstant<String>('*$commandName')) != null;
+      return controller.getObject(ObjectKey.getConstant<String>('*$commandName')) != null;
     }
     return false;
   }

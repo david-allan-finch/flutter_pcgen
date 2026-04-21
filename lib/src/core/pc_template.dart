@@ -34,9 +34,9 @@ final class PCTemplate extends PObject {
 
   bool isRemovable() {
     final visibility =
-        getSafe(ObjectKey.visibility) as Visibility?;
+        getSafeObject(ObjectKey.visibility) as Visibility?;
     if (visibility != null && visibility.isVisibleTo(View.visibleDisplay)) {
-      return getSafe(ObjectKey.removable) as bool? ?? false;
+      return getSafeObject(ObjectKey.removable) as bool? ?? false;
     }
     return false;
   }

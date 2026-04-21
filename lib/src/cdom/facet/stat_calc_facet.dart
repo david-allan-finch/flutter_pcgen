@@ -83,14 +83,14 @@ class StatCalcFacet {
   int getStatModFor(CharID id, PCStat stat) {
     return variableCheckingFacet
         .getVariableValue(
-            id, stat.getSafe(FormulaKey.statMod).toString(), 'STAT:${stat.getKeyName()}')
+            id, stat.getSafeFormula(FormulaKey.statMod).toString(), 'STAT:${stat.getKeyName()}')
         .toInt();
   }
 
   int getModFornumber(CharID id, int aNum, PCStat stat) {
     return variableCheckingFacet
         .getVariableValue(
-            id, stat.getSafe(FormulaKey.statMod).toString(), aNum.toString())
+            id, stat.getSafeFormula(FormulaKey.statMod).toString(), aNum.toString())
         .toInt();
   }
 

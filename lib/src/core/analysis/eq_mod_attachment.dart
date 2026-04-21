@@ -46,7 +46,7 @@ final class EqModAttachment {
         }
 
         if (curMod == null) {
-          if ((eqMod.getSafe(StringKey.choiceString) as String).isNotEmpty) {
+          if ((eqMod.getSafeString(StringKey.choiceString) as String).isNotEmpty) {
             eqMod = eqMod.clone();
           }
           eq.addToEqModifierList(eqMod, i == 1);

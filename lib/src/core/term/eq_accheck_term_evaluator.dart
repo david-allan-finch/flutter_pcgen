@@ -19,7 +19,7 @@ class EQACCheckTermEvaluator extends BaseEQTermEvaluator implements TermEvaluato
   @override
   String evaluateForEquipment(dynamic eq, bool primary, dynamic pc) {
     // IntegerKey.AC_CHECK — deprecated when EQACCHECK CodeControl is used
-    return (eq.getSafe('AC_CHECK') as num? ?? 0).toInt().toString();
+    return (eq.getSafeInt(IntegerKey.acCheck) as num? ?? 0).toInt().toString();
   }
 
   @override

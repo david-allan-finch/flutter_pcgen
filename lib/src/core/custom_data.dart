@@ -372,7 +372,7 @@ class CustomData {
 
   static void _writeCustomSources() {
     for (final Campaign c in Globals.getCampaignList()) {
-      if ((c.getSafe(StringKey.destination) as String? ?? '').isNotEmpty) {
+      if ((c.getSafeString(StringKey.destination) as String? ?? '').isNotEmpty) {
         // stub: CampaignOutput.output(Globals.getContext(), c)
         // log: stub CampaignOutput for ${c.getKeyName()}
       }

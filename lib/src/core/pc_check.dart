@@ -23,5 +23,5 @@ import 'pcobject.dart';
 final class PCCheck extends PObject {
   String? getLocalScopeName() => 'PC.SAVE';
 
-  String? getSortKey() => get(StringKey.sortKey);
+  String? getSortKey() => getString(StringKey.sortKey);
 }

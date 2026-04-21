@@ -16,7 +16,7 @@ class PCRaceSizeTermEvaluator extends BasePCTermEvaluator implements TermEvaluat
     // TODO: Requires formula resolution infrastructure.
     // Stub: returns the numeric size of the race if available.
     try {
-      return (pc.getDisplay().getRace().getSafe('SIZE').resolve(pc, '') as num)
+      return (pc.getDisplay().getRace().getSafeObject(ObjectKey.getConstant('SIZE')).resolve(pc, '') as num)
           .toDouble();
     } catch (_) {
       return 0.0;

@@ -19,7 +19,7 @@ class EQBaseCostTermEvaluator extends BaseEQTermEvaluator implements TermEvaluat
   @override
   String evaluateForEquipment(dynamic eq, bool primary, dynamic pc) {
     // ObjectKey.COST
-    return eq.getSafe('COST').toString();
+    return eq.getSafeObject(ObjectKey.getConstant('COST')).toString();
   }
 
   @override

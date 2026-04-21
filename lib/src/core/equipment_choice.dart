@@ -166,7 +166,7 @@ class EquipmentChoice {
     for (final Ability anAbility in ref.getManufacturerId(cat).getAllObjects() as Iterable<Ability>) {
       final bool matchesType =
           typeString.toLowerCase() == 'all' || anAbility.isType(typeString);
-      if ((anAbility.getSafe(ObjectKey.visibility) as dynamic)?.toString() == 'DEFAULT' &&
+      if ((anAbility.getSafeObject(ObjectKey.visibility) as dynamic)?.toString() == 'DEFAULT' &&
           !availableList.contains(anAbility.getKeyName())) {
         if (matchesType && !ChooseActivation.hasNewChooseToken(anAbility)) {
           availableList.add(anAbility.getKeyName());
@@ -199,7 +199,7 @@ class EquipmentChoice {
   void addParentsExistingEquipmentModifiersToChooser(
       Equipment parent, String choiceType) {
     for (final EquipmentModifier sibling in parent.getEqModifierList(true)) {
-      if (sibling.getSafe(StringKey.choiceString).toString().startsWith(choiceType)) {
+      if (sibling.getSafeString(StringKey.choiceString).toString().startsWith(choiceType)) {
         availableList.addAll(parent.getAssociationList(sibling));
       }
     }
@@ -271,7 +271,7 @@ class EquipmentChoice {
     }
 
     final int select =
-        (parent.getSafe(FormulaKey.select) as dynamic)?.resolve(parent, true, pc, '')?.toInt() ?? 0;
+        (parent.getSafeFormula(FormulaKey.select) as dynamic)?.resolve(parent, true, pc, '')?.toInt() ?? 0;
     setMaxSelect(select);
 
     String? originalkind;

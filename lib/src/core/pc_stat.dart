@@ -31,5 +31,5 @@ final class PCStat extends PObject
   String toString() => getKeyName();
 
   @override
-  String getSortKey() => get(StringKey.sortKey) as String? ?? '';
+  String getSortKey() => getString(StringKey.sortKey) as String? ?? '';
 }

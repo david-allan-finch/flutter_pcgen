@@ -19,7 +19,7 @@ class EQHandsTermEvaluator extends BaseEQTermEvaluator implements TermEvaluator 
   @override
   String evaluateForEquipment(dynamic eq, bool primary, dynamic pc) {
     // IntegerKey.SLOTS
-    return (eq.getSafe('SLOTS') as num? ?? 0).toInt().toString();
+    return (eq.getSafeObject(ObjectKey.getConstant('SLOTS')) as num? ?? 0).toInt().toString();
   }
 
   @override

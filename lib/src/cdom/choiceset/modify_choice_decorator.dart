@@ -42,8 +42,8 @@ class ModifyChoiceDecorator {
     final Set<CNAbility> returnSet = {};
     for (final CNAbility cna in pcFeats) {
       final dynamic a = cna.getAbility();
-      // stub: a.getSafe(ObjectKey.MULTIPLE_ALLOWED)
-      final bool multAllowed = a.getSafe(null) as bool; // stub
+      // stub: a.getSafeObject(ObjectKey.MULTIPLE_ALLOWED)
+      final bool multAllowed = a.getSafeObject(ObjectKey.getConstant('MULT')) as bool; // stub
       if (multAllowed && collection.contains(a)) {
         returnSet.add(cna);
       }

@@ -20,7 +20,7 @@ class EQWeightTermEvaluator extends BaseEQTermEvaluator implements TermEvaluator
     final weight = eq.getWeightInPounds();
     if (eq.isCalculatingCost() && eq.isAmmunition()) {
       final unitWeight =
-          (weight as num).toDouble() / eq.getSafe('BASE_QUANTITY');
+          (weight as num).toDouble() / eq.getSafeInt(IntegerKey.baseQuantity);
       eq.setWeightAlreadyUsed(true);
       return unitWeight.toString();
     }

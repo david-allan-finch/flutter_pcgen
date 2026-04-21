@@ -29,7 +29,7 @@ class ReachFacet {
     final aRace = raceFacet.get(id);
     int reach = 0;
     if (aRace != null) {
-      reach = aRace.getSafe('REACH') as int? ?? 0;
+      reach = aRace.getSafeInt(IntegerKey.reach) as int? ?? 0;
     }
 
     // Scan templates for any overrides

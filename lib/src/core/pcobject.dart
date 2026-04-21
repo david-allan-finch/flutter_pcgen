@@ -34,7 +34,7 @@ class PObject extends CDOMObject implements Comparable<Object> {
 
   String getOutputName() {
     // OutputNameFormatting.getOutputName deferred - use display name for now
-    final outputName = get(StringKey.outputName);
+    final outputName = getString(StringKey.outputName);
     if (outputName != null && outputName.isNotEmpty) return outputName;
     return getDisplayName();
   }

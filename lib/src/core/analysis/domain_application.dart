@@ -43,8 +43,8 @@ final class DomainApplication {
       }
 
       if (maxLevel > 1 &&
-          aClass.getSafe(IntegerKey.knownSpellsFromSpecialty) == 0) {
-        final domainSpellList = d.get(ObjectKey.domainSpellList);
+          aClass.getSafeInt(IntegerKey.knownSpellsFromSpecialty) == 0) {
+        final domainSpellList = d.getObject(ObjectKey.domainSpellList);
         final aList = pc.getAllSpellsInLists([domainSpellList]);
         for (final gcs in aList) {
           if (SpellLevel.getFirstLvlForKey(gcs, domainSpellList, pc) < maxLevel) {
@@ -88,8 +88,8 @@ final class DomainApplication {
         removeSpellsFromClassForLevels(pc, domain, aClass);
       }
       if (maxLevel > 1 &&
-          aClass.getSafe(IntegerKey.knownSpellsFromSpecialty) == 0) {
-        final domainSpellList = domain.get(ObjectKey.domainSpellList);
+          aClass.getSafeInt(IntegerKey.knownSpellsFromSpecialty) == 0) {
+        final domainSpellList = domain.getObject(ObjectKey.domainSpellList);
         final aList = pc.getAllSpellsInLists([domainSpellList]);
         for (final gcs in aList) {
           if (SpellLevel.getFirstLvlForKey(gcs, domainSpellList, pc) < maxLevel) {
@@ -120,7 +120,7 @@ final class DomainApplication {
     final defaultBook = _getDefaultSpellBook();
     for (int aLevel = minLevel; aLevel <= maxLevel; aLevel++) {
       final domainSpells =
-          pc.getSpellsIn(d.get(ObjectKey.domainSpellList), aLevel);
+          pc.getSpellsIn(d.getObject(ObjectKey.domainSpellList), aLevel);
       for (final spell in domainSpells) {
         final slist = pc.getCharacterSpells(aClass, spell, defaultBook, aLevel);
         bool flag = true;

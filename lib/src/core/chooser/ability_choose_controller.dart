@@ -26,14 +26,14 @@ class AbilityChooseController extends ChooseController<dynamic> {
 
   @override
   bool isMultYes() =>
-      ability.getSafe('MULTIPLE_ALLOWED') as bool? ?? false;
+      ability.getSafeObject(ObjectKey.getConstant('MULTIPLE_ALLOWED')) as bool? ?? false;
 
   @override
-  bool isStackYes() => ability.getSafe('STACKS') as bool? ?? false;
+  bool isStackYes() => ability.getSafeObject(ObjectKey.getConstant('STACKS')) as bool? ?? false;
 
   @override
   double getCost() =>
-      (ability.getSafe('SELECTION_COST') as num? ?? 1).toDouble();
+      (ability.getSafeObject(ObjectKey.getConstant('SELECTION_COST')) as num? ?? 1).toDouble();
 
   @override
   int getTotalChoices() => isMultYes() ? 0x7FFFFFFF : 1;

@@ -24,7 +24,7 @@ import 'package:flutter_pcgen/src/core/size_adjustment.dart';
 abstract final class SizeUtilities {
   static SizeAdjustment? getDefaultSizeAdjustment() {
     for (final s in Globals.currentDataSet?.sizeAdjustments ?? []) {
-      final isDefault = s.get(ObjectKey.isDefaultSize);
+      final isDefault = s.getObject(ObjectKey.isDefaultSize);
       if (isDefault == true) return s;
     }
     return null;

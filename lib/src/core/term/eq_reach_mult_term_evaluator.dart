@@ -15,7 +15,7 @@ class EQReachMultTermEvaluator extends BaseEQTermEvaluator
   @override
   String evaluate(dynamic eq) {
     // Disabled if EQREACH control is active — caller should check.
-    return eq.getSafe('REACH_MULT').toString();
+    return eq.getSafeInt(IntegerKey.reachMult).toString();
   }
 
   @override

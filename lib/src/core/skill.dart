@@ -27,19 +27,19 @@ final class Skill extends PObject {
 
   /// Returns the abbreviation of the key ability stat for this skill.
   String getKeyStatAbb() {
-    final keyStat = getSafe(ObjectKey.getConstant<dynamic>('KEY_STAT'));
+    final keyStat = getSafeObject(ObjectKey.getConstant<dynamic>('KEY_STAT'));
     return (keyStat as dynamic)?.get()?.getKeyName() ?? '';
   }
 
   /// Returns true if this skill can be used untrained.
   bool isUntrained() =>
-      getSafe(ObjectKey.getConstant<bool>('USE_UNTRAINED', defaultValue: true))
+      getSafeObject(ObjectKey.getConstant<bool>('USE_UNTRAINED', defaultValue: true))
           as bool? ??
       true;
 
   /// Returns true if this skill is exclusive to certain classes.
   bool isExclusive() =>
-      getSafe(ObjectKey.getConstant<bool>('EXCLUSIVE', defaultValue: false))
+      getSafeObject(ObjectKey.getConstant<bool>('EXCLUSIVE', defaultValue: false))
           as bool? ??
       false;
 

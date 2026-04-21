@@ -45,7 +45,7 @@ class AbilityUtilities {
     final Ability ability = cna.getAbility();
 
     final TransitionChoice<CNAbility>? mc =
-        ability.get(ObjectKey.modifyChoice) as TransitionChoice<CNAbility>?;
+        ability.getObject(ObjectKey.modifyChoice) as TransitionChoice<CNAbility>?;
     if (mc != null) {
       mc.act(mc.driveChoice(aPC), ability, aPC);
     }
@@ -88,14 +88,14 @@ class AbilityUtilities {
     final List<CNAbility> cnAbilities = pc.getMatchingCNAbilities(ability);
     if (cnAbilities.isEmpty) return false;
 
-    if (!(ability.getSafe(ObjectKey.multipleAllowed) as bool? ?? false)) {
+    if (!(ability.getSafeObject(ObjectKey.multipleAllowed) as bool? ?? false)) {
       return true;
     }
-    if (allowStack && (ability.getSafe(ObjectKey.stacks) as bool? ?? false)) {
+    if (allowStack && (ability.getSafeObject(ObjectKey.stacks) as bool? ?? false)) {
       return false;
     }
 
-    final dynamic info = ability.get(ObjectKey.chooseInfo);
+    final dynamic info = ability.getObject(ObjectKey.chooseInfo);
     if (info == null) return false;
     final Object decoded = info.decodeChoice(Globals.getContext(), selection);
     for (final CNAbility cna in cnAbilities) {
@@ -134,7 +134,7 @@ class AbilityUtilities {
 
   static void driveChooseAndAdd(CNAbility cna, PlayerCharacter pc, bool toAdd) {
     final Ability ability = cna.getAbility();
-    if (!(ability.getSafe(ObjectKey.multipleAllowed) as bool? ?? false)) {
+    if (!(ability.getSafeObject(ObjectKey.multipleAllowed) as bool? ?? false)) {
       final CNAbilitySelection cnas = CNAbilitySelection(cna);
       if (toAdd) {
         pc.addAbility(cnas, UserSelection.getInstance(), UserSelection.getInstance());

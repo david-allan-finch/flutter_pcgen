@@ -27,7 +27,7 @@ final class ExchangeLevelApplication {
   ExchangeLevelApplication._();
 
   static void exchangeLevels(PlayerCharacter aPC, PCClass newcl) {
-    final le = newcl.get(ObjectKey.exchangeLevel);
+    final le = newcl.getObject(ObjectKey.exchangeLevel);
     if (le == null) return;
 
     try {
@@ -43,7 +43,7 @@ final class ExchangeLevelApplication {
           iMaxDonation =
               [iMaxDonation, iNumOrigClassLevel - iLowest + 1].reduce((a, b) => a < b ? a : b);
           if (newcl.hasMaxLevel()) {
-            final limit = newcl.getSafe(IntegerKey.levelLimit) -
+            final limit = newcl.getSafeInt(IntegerKey.levelLimit) -
                 aPC.getLevel(newcl);
             iMaxDonation = [iMaxDonation, limit].reduce((a, b) => a < b ? a : b);
           }

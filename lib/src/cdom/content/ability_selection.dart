@@ -71,7 +71,7 @@ class AbilitySelection extends Selection<Ability, String> implements Comparable<
         throw ArgumentError('String in decodeChoice must be a Feat Key (or Feat Key with Selection if appropriate), was: $persistentFormat');
       }
       return AbilitySelection(ability, choices[0]);
-    } else if (ability.getSafe(null) == true) {
+    } else if (ability.getSafeObject(ObjectKey.getConstant('MULT')) == true) {
       // MULT:YES, CHOOSE:NOCHOICE
       return AbilitySelection(ability, '');
     } else {

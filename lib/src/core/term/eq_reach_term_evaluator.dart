@@ -14,7 +14,7 @@ class EQReachTermEvaluator extends BaseEQTermEvaluator implements TermEvaluator 
   @override
   String evaluate(dynamic eq) {
     // Disabled if EQREACH control is active — caller should check.
-    return eq.getSafe('REACH').toString();
+    return eq.getSafeInt(IntegerKey.reach).toString();
   }
 
   @override

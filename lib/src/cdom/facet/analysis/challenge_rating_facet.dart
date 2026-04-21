@@ -44,13 +44,13 @@ class ChallengeRatingFacet {
   /// Returns the CR provided solely by the Race.
   int? calcRaceCR(CharID id) {
     final race = raceFacet.get(id);
-    // TODO: race.getSafe(ObjectKey.CHALLENGE_RATING).toInteger()
+    // TODO: race.getSafeObject(ObjectKey.CHALLENGE_RATING).toInteger()
     return 0;
   }
 
   /// Returns the base racial hit dice count.
   int getBaseHD(CharID id) {
-    // TODO: raceFacet.get(id).getSafe(ObjectKey.MONSTER_CLASS).getLevelCount()
+    // TODO: raceFacet.get(id).getSafeObject(ObjectKey.MONSTER_CLASS).getLevelCount()
     return 0;
   }
 

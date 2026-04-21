@@ -24,7 +24,7 @@ import 'pcobject.dart';
 /// Translated from pcgen.core.SizeAdjustment. Provides size-based bonus
 /// activation and scoping under "PC.SIZE".
 final class SizeAdjustment extends PObject {
-  String? getSortKey() => get(StringKey.sortKey);
+  String? getSortKey() => getString(StringKey.sortKey);
 
   /// Returns the local scope name for variable resolution.
   String getLocalScopeName() => 'PC.SIZE';

@@ -101,7 +101,7 @@ final class OutputNameFormatting {
 
     bool isPI = false;
     try {
-      isPI = (po as dynamic).getSafe('NAME_PI') as bool? ?? false;
+      isPI = (po as dynamic).getSafeObject(ObjectKey.getConstant('NAME_PI')) as bool? ?? false;
     } catch (_) {}
 
     if (isPI) {

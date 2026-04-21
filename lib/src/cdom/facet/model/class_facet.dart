@@ -215,7 +215,7 @@ class ClassInfo {
   bool setClassLevel(dynamic pcc, dynamic pcl) {
     final localMap = _map[pcc];
     if (localMap == null) return false;
-    // stub: pcl.ownBonuses(pcc); pcl.put(ObjectKey.PARENT, pcc);
+    // stub: pcl.ownBonuses(pcc); pcl.putObject(ObjectKey.PARENT, pcc);
     localMap[pcl.getLevel() as int] = pcl;
     return true;
   }
@@ -235,7 +235,7 @@ class ClassInfo {
     }
     dynamic classLevel = localMap[level];
     if (classLevel == null) {
-      // stub: classLevel = pcc.getOriginalClassLevel(level); classLevel.put(ObjectKey.PARENT, pcc);
+      // stub: classLevel = pcc.getOriginalClassLevel(level); classLevel.putObject(ObjectKey.PARENT, pcc);
       localMap[level] = classLevel;
     }
     return classLevel;

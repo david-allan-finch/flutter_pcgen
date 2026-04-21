@@ -23,7 +23,7 @@ class GrantedAbilityFacet extends AbstractCNASEnforcingFacet {
     for (final array in list) {
       final cna = array[0].cnas.getCNAbility();
       if (cna.getAbilityCategory() == cat &&
-          (cna.getAbility().getSafe(ObjectKey.getConstant<dynamic>('VISIBILITY'))
+          (cna.getAbility().getSafeObject(ObjectKey.getConstant<dynamic>('VISIBILITY'))
                   as dynamic)
               .isVisibleTo(view)) {
         return true;

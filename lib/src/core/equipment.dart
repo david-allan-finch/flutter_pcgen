@@ -223,12 +223,12 @@ class Equipment extends PObject {
   int getNumAttacks()   => 1;
 
   String getWieldName() {
-    final wield = getSafe(ObjectKey.getConstant<dynamic>('WIELD'));
+    final wield = getSafeObject(ObjectKey.getConstant<dynamic>('WIELD'));
     return wield?.toString() ?? '';
   }
 
   String getArmorType() {
-    final at = getSafe(ObjectKey.getConstant<dynamic>('ARMOR_TYPE'));
+    final at = getSafeObject(ObjectKey.getConstant<dynamic>('ARMOR_TYPE'));
     return at?.toString() ?? '';
   }
 

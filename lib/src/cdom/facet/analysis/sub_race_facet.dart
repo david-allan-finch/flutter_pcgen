@@ -42,7 +42,7 @@ class SubRaceFacet {
     // TODO: This should be type safe to return a SubRace
     final sr = template.get('SUBRACE');
     if (sr == null) {
-      if (template.getSafe('USETEMPLATENAMEFORSUBRACE') == true) {
+      if (template.getSafeObject(ObjectKey.getConstant('USETEMPLATENAMEFORSUBRACE')) == true) {
         return template.getDisplayName() as String?;
       }
       return null;

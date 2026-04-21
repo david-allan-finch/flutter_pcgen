@@ -33,7 +33,7 @@ final class CampaignOutput {
   /// relative to the PCC files directory.
   static Future<void> output(LoadContext context, Campaign campaign) async {
     // TODO: resolve destination path from ConfigurationSettings.getPccFilesDir()
-    //       and campaign.getSafe(StringKey.destination)
+    //       and campaign.getSafeString(StringKey.destination)
     // TODO: write COMMENT lines from campaign's comment list
     // TODO: call context.unparse(campaign) to get LST lines and write them
   }

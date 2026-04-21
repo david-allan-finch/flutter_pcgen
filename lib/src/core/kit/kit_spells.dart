@@ -38,7 +38,7 @@ class KitSpells extends BaseKit {
     }
 
     final workingBook = spellBook ?? _defaultSpellBook(aPC);
-    if (!aClass.getSafe('MEMORIZE_SPELLS') &&
+    if (!aClass.getSafeObject(ObjectKey.getConstant('MEMORIZE_SPELLS')) &&
         workingBook != _defaultSpellBook(aPC)) {
       warnings.add('SPELLS: ${aClass.getDisplayName()} can only add to ${_defaultSpellBook(aPC)}');
       return false;

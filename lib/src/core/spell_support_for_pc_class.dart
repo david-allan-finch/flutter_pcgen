@@ -147,8 +147,8 @@ class SpellSupportForPCClass {
         aPC.getTotalBonusTo('STAT', 'BASESPELLKNOWNSTAT').toInt() +
         aPC.getTotalBonusTo('STAT', 'BASESPELLKNOWNSTAT;CLASS=${source.getKeyName()}').toInt();
 
-    if (!(source.getSafe(ObjectKey.useSpellSpellStat) as bool? ?? false) &&
-        !(source.getSafe(ObjectKey.casterWithoutSpellStat) as bool? ?? false)) {
+    if (!(source.getSafeObject(ObjectKey.useSpellSpellStat) as bool? ?? false) &&
+        !(source.getSafeObject(ObjectKey.casterWithoutSpellStat) as bool? ?? false)) {
       final int maxSpellLevel =
           aPC.getVariableValue('MAXLEVELSTAT=$statString', '').toInt();
       if ((maxSpellLevel + bonusStat) < spellLevel) {
@@ -184,13 +184,13 @@ class SpellSupportForPCClass {
     }
 
     if (total > 0 && spellLevel > 0) {
-      total += source.getSafe(IntegerKey.knownSpellsFromSpecialty) as int? ?? 0;
+      total += source.getSafeInt(IntegerKey.knownSpellsFromSpecialty) as int? ?? 0;
       final int? assoc = aPC.getDomainSpellCount(source);
       if (assoc != null) total += assoc;
     }
 
     total += aPC.getKnownSpellCountForLevel(
-        source.get(ObjectKey.classSpelllist), spellLevel);
+        source.getObject(ObjectKey.classSpelllist), spellLevel);
 
     return total;
   }
@@ -237,7 +237,7 @@ class SpellSupportForPCClass {
       }
     }
 
-    total += source.getSafe(IntegerKey.knownSpellsFromSpecialty) as int? ?? 0;
+    total += source.getSafeInt(IntegerKey.knownSpellsFromSpecialty) as int? ?? 0;
     final int? assoc = aPC.getDomainSpellCount(source);
     if (assoc != null) total += assoc;
 
@@ -398,7 +398,7 @@ class SpellSupportForPCClass {
               if (source.getKeyName() ==
                   aPC.getDomainSource(d).getPcclass().getKeyName()) {
                 bList = aPC.getSpellsIn(
-                    d.get(ObjectKey.domainSpelllist) as dynamic, ix);
+                    d.getObject(ObjectKey.domainSpelllist) as dynamic, ix);
               }
             }
           }

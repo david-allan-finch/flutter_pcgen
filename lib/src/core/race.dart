@@ -40,11 +40,11 @@ final class Race extends PObject {
 
   /// Returns the CHOOSE info for this race (used by CHOOSE: processing).
   dynamic getChooseInfo() =>
-      getSafe(ObjectKey.getConstant<dynamic>('CHOOSE_INFO'));
+      getSafeObject(ObjectKey.getConstant<dynamic>('CHOOSE_INFO'));
 
   /// Returns the SELECT formula used by CHOOSE processing.
   dynamic getSelectFormula() =>
-      getSafe(ObjectKey.getConstant<dynamic>('SELECT'));
+      getSafeObject(ObjectKey.getConstant<dynamic>('SELECT'));
 
   /// Returns the CHOOSE actors list.
   List<dynamic> getActors() =>
@@ -55,15 +55,15 @@ final class Race extends PObject {
 
   /// Returns the NUM_CHOICES formula.
   dynamic getNumChoices() =>
-      getSafe(ObjectKey.getConstant<dynamic>('NUM_CHOICES'));
+      getSafeObject(ObjectKey.getConstant<dynamic>('NUM_CHOICES'));
 
   /// Returns the number of monster class levels (MONCLASSLEVELS).
   int getMonsterClassLevels() =>
-      get(IntegerKey.getConstant('MONSTER_CLASS_LEVELS')) ?? 0;
+      getInt(IntegerKey.getConstant('MONSTER_CLASS_LEVELS')) ?? 0;
 
   /// Returns the monster class for this race (MONCLASS token).
   dynamic getMonsterClass() =>
-      getSafe(ObjectKey.getConstant<dynamic>('MONSTER_CLASS'));
+      getSafeObject(ObjectKey.getConstant<dynamic>('MONSTER_CLASS'));
 
   @override
   int get hashCode => getKeyName().hashCode;

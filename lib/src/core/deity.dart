@@ -28,8 +28,8 @@ import 'pcobject.dart';
 /// Other properties (alignment, favoured weapons, worshippers) are held
 /// via the standard CDOMObject key/value store inherited from PObject.
 final class Deity extends PObject {
-  static final ListKey<dynamic> domainListKey =
-      ListKey.getConstant<dynamic>('DOMAIN_LIST');
+  static final ListKey<Domain> domainListKey =
+      ListKey.getConstant<Domain>('DOMAIN_LIST');
 
   /// Returns the list of domains offered by this deity.
   List<Domain> getDomainList() =>
@@ -37,7 +37,7 @@ final class Deity extends PObject {
 
   /// Returns the deity's favoured weapon key, if set.
   String? getFavWeaponKeyName() {
-    final ref = getSafe(ObjectKey.getConstant<dynamic>('FAVORED_WEAPON'));
+    final ref = getSafeObject(ObjectKey.getConstant<dynamic>('FAVORED_WEAPON'));
     return (ref as dynamic)?.get()?.getKeyName();
   }
 

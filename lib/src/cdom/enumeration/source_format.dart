@@ -38,7 +38,7 @@ enum SourceFormat {
       case SourceFormat.long_:
         return cdo.getString(StringKey.sourceLong);
       case SourceFormat.date:
-        final d = cdo.get(ObjectKey.sourceDate);
+        final d = cdo.getObject(ObjectKey.sourceDate);
         return d?.toString();
       case SourceFormat.page:
         return cdo.getString(StringKey.sourcePage);
@@ -50,9 +50,9 @@ enum SourceFormat {
   String getPublisher(CDOMObject campaign) {
     switch (this) {
       case SourceFormat.long_:
-        return (campaign.getSafe(StringKey.pubNameLong) as String?) ?? '';
+        return (campaign.getSafeString(StringKey.pubNameLong) as String?) ?? '';
       case SourceFormat.web:
-        return (campaign.getSafe(StringKey.pubNameWeb) as String?) ?? '';
+        return (campaign.getSafeString(StringKey.pubNameWeb) as String?) ?? '';
       default:
         return '';
     }
@@ -63,7 +63,7 @@ enum SourceFormat {
   static String formatShort(CDOMObject cdo, int aMaxLen) {
     String? theShortName = cdo.getString(StringKey.sourceShort);
     if (theShortName == null) {
-      final campaign = cdo.get(ObjectKey.sourceCampaign);
+      final campaign = cdo.getObject(ObjectKey.sourceCampaign);
       if (campaign != null) {
         theShortName = (campaign as CDOMObject).getString(StringKey.sourceShort);
       }
@@ -83,7 +83,7 @@ enum SourceFormat {
 
     String? source = format.getField(cdo);
     String? publisher;
-    final campaign = cdo.get(ObjectKey.sourceCampaign);
+    final campaign = cdo.getObject(ObjectKey.sourceCampaign);
     if (campaign != null) {
       publisher = format.getPublisher(campaign as CDOMObject);
       source ??= format.getField(campaign as CDOMObject);

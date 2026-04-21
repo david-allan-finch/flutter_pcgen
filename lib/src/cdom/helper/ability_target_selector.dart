@@ -70,7 +70,7 @@ class AbilityTargetSelector<T> extends ConcretePrereqObject
   @override
   void applyChoice(ChooseDriver obj, T choice, dynamic pc) {
     final ab = _ability.get();
-    final ci = ab.get(ObjectKey.chooseInfo) as ChooseInformation<T>?;
+    final ci = ab.getObject(ObjectKey.chooseInfo) as ChooseInformation<T>?;
     if (ci != null) {
       _detailedApply(obj, ci, choice, pc);
     }
@@ -101,7 +101,7 @@ class AbilityTargetSelector<T> extends ConcretePrereqObject
   @override
   void removeChoice(ChooseDriver obj, T choice, dynamic pc) {
     final ab = _ability.get();
-    final ci = ab.get(ObjectKey.chooseInfo) as ChooseInformation<T>?;
+    final ci = ab.getObject(ObjectKey.chooseInfo) as ChooseInformation<T>?;
     if (ci != null) {
       _detailedRemove(obj, ci, choice, pc);
     }
@@ -137,7 +137,7 @@ class AbilityTargetSelector<T> extends ConcretePrereqObject
 
   @override
   Type getChoiceClass() {
-    final ci = _ability.get().get(ObjectKey.chooseInfo) as ChooseInformation?;
+    final ci = _ability.get().getObject(ObjectKey.chooseInfo) as ChooseInformation?;
     return ci?.getReferenceClass() ?? dynamic;
   }
 }
