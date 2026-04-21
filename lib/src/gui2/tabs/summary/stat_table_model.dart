@@ -21,6 +21,11 @@ import 'package:flutter/foundation.dart';
 
 /// Table model for the ability score (stat) table on the Summary tab.
 class StatTableModel extends ChangeNotifier {
+  // ignore: unused_field
+  final dynamic _character;
+
+  StatTableModel([this._character]);
+
   static const List<String> columnNames = [
     'Stat', 'Base', 'Race', 'Other', 'Total', 'Mod',
   ];
@@ -45,6 +50,24 @@ class StatTableModel extends ChangeNotifier {
   }
 
   bool isCellEditable(int row, int col) => col == 1; // only Base is editable
+
+  /// Returns the stat abbreviation at [row] (e.g. "STR").
+  String statName(int row) {
+    if (row < 0 || row >= _rows.length) return '';
+    return _rows[row].name;
+  }
+
+  /// Returns the base score at [row].
+  int baseScore(int row) {
+    if (row < 0 || row >= _rows.length) return 0;
+    return _rows[row].base;
+  }
+
+  /// Returns the ability score modifier at [row].
+  int modifier(int row) {
+    if (row < 0 || row >= _rows.length) return 0;
+    return _rows[row].modifier;
+  }
 
   void setBase(int row, int value) {
     if (row < 0 || row >= _rows.length) return;

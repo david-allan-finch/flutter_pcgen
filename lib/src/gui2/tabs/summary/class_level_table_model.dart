@@ -21,6 +21,11 @@ import 'package:flutter/foundation.dart';
 
 /// Table model showing the character's class levels on the Summary tab.
 class ClassLevelTableModel extends ChangeNotifier {
+  // ignore: unused_field
+  final dynamic _character;
+
+  ClassLevelTableModel([this._character]);
+
   static const List<String> columnNames = [
     'Class', 'Level', 'HD', 'BAB', 'Fort', 'Ref', 'Will',
   ];
@@ -44,6 +49,21 @@ class ClassLevelTableModel extends ChangeNotifier {
       default: return null;
     }
   }
+
+  /// Returns the class name at [row].
+  String className(int row) {
+    if (row < 0 || row >= _rows.length) return '';
+    return _rows[row].className;
+  }
+
+  /// Returns the class level at [row].
+  int level(int row) {
+    if (row < 0 || row >= _rows.length) return 0;
+    return _rows[row].level;
+  }
+
+  /// Returns the hit points gained at [row] (stub — returns 0 until HP tracking added).
+  int hp(int row) => 0;
 
   void setData(
       List<({String className, int level, String hitDie, String bab, String fortSave, String refSave, String willSave})> data) {

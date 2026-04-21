@@ -50,7 +50,7 @@ class QualifiedObject<T> extends ConcretePrereqObject {
   void setObject(T obj) { _object = obj; }
 
   @override
-  String toString() => 'Object:$_object, Prereq:${getPrerequisites()}';
+  String toString() => 'Object:$_object, Prereq:${getPrerequisiteList()}';
 
   @override
   bool operator ==(Object obj) {

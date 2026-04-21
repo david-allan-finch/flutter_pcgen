@@ -66,4 +66,6 @@ enum StringKey {
   tempvalue,
   sizeformula,
   subregion,
+  hdFormula,
+  classType,
 }

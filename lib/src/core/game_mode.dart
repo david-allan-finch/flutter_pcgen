@@ -79,8 +79,8 @@ final class GameMode implements Comparable<Object> {
   String _displayName = '';
   String _folderName = '';
 
-  // Context for loading game-mode-specific LST data
-  late final LoadContext _modeContext = LoadContext();
+  // Context for loading game-mode-specific LST data (set during data loading)
+  LoadContext? _modeContext;
 
   // Allowed modes and collections
   List<String> allowedModes = [];
@@ -168,7 +168,9 @@ final class GameMode implements Comparable<Object> {
 
   String getFolderName() => _folderName.isEmpty ? _name : _folderName;
 
-  LoadContext getModeContext() => _modeContext;
+  LoadContext getModeContext() =>
+      _modeContext ?? (throw StateError('modeContext not initialised'));
+  void setModeContext(LoadContext ctx) { _modeContext = ctx; }
 
   // ---------------------------------------------------------------------------
   // Die sizes

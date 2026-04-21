@@ -21,6 +21,17 @@ import 'package:flutter/foundation.dart';
 
 /// Manages the HTML info pane content for a selected item on the Summary tab.
 class InfoPaneHandler extends ChangeNotifier {
+  // ignore: unused_field
+  final dynamic _character;
+
+  InfoPaneHandler([this._character]);
+
+  /// Called when this handler is attached to the visible tab.
+  void install() {}
+
+  /// Called when this handler is detached from the visible tab.
+  void uninstall() {}
+
   String _htmlContent = '';
 
   String get htmlContent => _htmlContent;

@@ -21,6 +21,11 @@ import 'package:flutter/foundation.dart';
 
 /// Table model for the languages list on the Summary tab.
 class LanguageTableModel extends ChangeNotifier {
+  // ignore: unused_field
+  final dynamic _character;
+
+  LanguageTableModel([this._character]);
+
   static const List<String> columnNames = ['Language', 'Source'];
 
   final List<_LanguageRow> _rows = [];
@@ -36,6 +41,15 @@ class LanguageTableModel extends ChangeNotifier {
       case 1: return r.source;
       default: return null;
     }
+  }
+
+  /// Number of languages in the list.
+  int get languageCount => _rows.length;
+
+  /// Returns the language name at [index].
+  String languageName(int index) {
+    if (index < 0 || index >= _rows.length) return '';
+    return _rows[index].name;
   }
 
   void setLanguages(List<({String name, String source})> languages) {
