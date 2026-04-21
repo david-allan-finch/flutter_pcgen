@@ -19,7 +19,7 @@
 import 'pcobject.dart';
 
 // Represents a language that a character can speak/read/write.
-final class Language extends PObject implements Comparable<Language> {
+final class Language extends PObject {
   @override
   int compareTo(Object other) {
     if (other is Language) {

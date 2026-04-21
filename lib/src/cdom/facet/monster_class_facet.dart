@@ -58,7 +58,7 @@ class MonsterClassFacet implements DataFacetChangeListener<CharID, CDOMObject> {
     levelInfoFacet.addAll(id, existingLevelInfo);
 
     // Re-add existing non-monster classes and recalculate skill points
-    if (!pc.isImporting() && ci != null && !ci.isEmpty()) {
+    if (!pc.isImporting() && ci != null && !ci.isEmpty) {
       int totalLevels = levelFacet.getTotalLevels(id);
       for (final pcClass in ci.getClassSet()) {
         if (!pcClass.isMonster()) {

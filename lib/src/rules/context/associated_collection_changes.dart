@@ -41,7 +41,7 @@ class AssociatedCollectionChanges<T> implements AssociatedChanges<T> {
   @override
   List<T>? getAdded() => _positive?.getKeySet().toList();
 
-  bool hasAddedItems() => _positive != null && !_positive!.isEmpty();
+  bool hasAddedItems() => _positive != null && !_positive!.isEmpty;
 
   @override
   List<T>? getRemoved() {
@@ -49,7 +49,7 @@ class AssociatedCollectionChanges<T> implements AssociatedChanges<T> {
     return _negative!.getKeySet().toList();
   }
 
-  bool hasRemovedItems() => _negative != null && !_negative!.isEmpty();
+  bool hasRemovedItems() => _negative != null && !_negative!.isEmpty;
 
   @override
   MapToList<T, AssociatedPrereqObject>? getAddedAssociations() => _positive;

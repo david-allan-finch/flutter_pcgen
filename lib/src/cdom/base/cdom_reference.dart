@@ -16,23 +16,9 @@
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
 //
 // Translation of pcgen.cdom.base.CDOMReference
+import 'package:flutter_pcgen/src/base/util/object_container.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/grouping_state.dart';
-
-// Stub interfaces for types not yet translated
-abstract interface class ObjectContainer<T> {
-  List<T> getContainedObjects();
-}
-
-abstract interface class Converter<T, R> {
-  List<R> convert(ObjectContainer<T> container);
-}
-
-abstract interface class PrimitiveCollection<T> {
-  GroupingState getGroupingState();
-  String getLSTformat(bool useAny);
-  Type getReferenceClass();
-  List getCollection(dynamic pc, Converter c);
-}
+import 'primitive_collection.dart';
 
 /// A CDOMReference stores references to Objects. Often these are CDOMObjects,
 /// but that is not strictly required.

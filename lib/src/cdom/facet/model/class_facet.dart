@@ -57,7 +57,7 @@ class ClassFacet extends AbstractDataFacet<CharID, dynamic> {
         info.removeClass(obj);
         fireDataFacetChangeEvent(id, obj, DataFacetChangeEvent.dataRemoved);
       }
-      if (info.isEmpty()) {
+      if (info.isEmpty) {
         removeCache(id);
       }
     }
@@ -101,7 +101,7 @@ class ClassFacet extends AbstractDataFacet<CharID, dynamic> {
   /// Returns true if no PCClass objects exist for the given CharID.
   bool isEmpty(CharID id) {
     final info = _getClassInfo(id);
-    return info == null || info.isEmpty();
+    return info == null || info.isEmpty;
   }
 
   /// Returns true if this ClassFacet contains the given PCClass for the given CharID.

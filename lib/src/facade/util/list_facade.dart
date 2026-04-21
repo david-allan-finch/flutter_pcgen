@@ -22,7 +22,6 @@ abstract interface class ListFacade<E> implements Iterable<E> {
   void removeListListener(void Function(ListChangeEvent<E>) listener);
   E getElementAt(int index);
   int getSize();
-  bool isEmpty();
   bool containsElement(E element);
 }
 

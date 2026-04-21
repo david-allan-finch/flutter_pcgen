@@ -257,7 +257,7 @@ class SpellSupportForPCClass {
         final List<dynamic>? spec = cl.getListFor(ListKey.specialtyKnown);
         if (spec != null) cache.setSpecialtyKnown(lvl, spec);
       }
-      if (!cache.isEmpty()) {
+      if (!cache.isEmpty) {
         _spellCache = cache;
       }
       _spellCacheValid = true;

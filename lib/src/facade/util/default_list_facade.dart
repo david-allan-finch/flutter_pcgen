@@ -16,10 +16,11 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.facade.util.DefaultListFacade
+import 'dart:collection' show IterableBase;
 import 'list_facade.dart';
 
 // Mutable, observable list for use in the facade layer.
-class DefaultListFacade<E> implements ListFacade<E> {
+class DefaultListFacade<E> extends IterableBase<E> implements ListFacade<E> {
   final List<E> _elementList;
   final List<void Function(ListChangeEvent<E>)> _listeners = [];
 
@@ -45,9 +46,6 @@ class DefaultListFacade<E> implements ListFacade<E> {
 
   @override
   int getSize() => _elementList.length;
-
-  @override
-  bool isEmpty() => _elementList.isEmpty;
 
   @override
   bool containsElement(E element) => _elementList.contains(element);
@@ -97,7 +95,7 @@ class DefaultListFacade<E> implements ListFacade<E> {
 
   void updateContents(List<E> newElements) {
     const maxUpdateSize = 20;
-    if (isEmpty() || newElements.isEmpty || (getSize() - newElements.length).abs() > maxUpdateSize) {
+    if (isEmpty || newElements.isEmpty || (getSize() - newElements.length).abs() > maxUpdateSize) {
       setContents(newElements);
       return;
     }
