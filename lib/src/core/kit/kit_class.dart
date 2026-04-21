@@ -28,9 +28,9 @@ import 'base_kit.dart';
 
 // Kit task that adds class levels to a PC, optionally setting a subclass.
 class KitClass extends BaseKit {
-  CdomSingleRef<PCClass>? pcClass;
+  CDOMSingleRef<PCClass>? pcClass;
   Formula? levelFormula;
-  CdomReference<SubClass>? subClass;
+  CDOMReference<SubClass>? subClass;
 
   // Transient state (not cloned)
   PCClass? _theClass;
@@ -89,12 +89,12 @@ class KitClass extends BaseKit {
   @override
   String getObjectName() => 'Classes';
 
-  void setPcclass(CdomSingleRef<PCClass> ref) { pcClass = ref; }
-  CdomReference<PCClass>? getPcclass() => pcClass;
+  void setPcclass(CDOMSingleRef<PCClass> ref) { pcClass = ref; }
+  CDOMReference<PCClass>? getPcclass() => pcClass;
   void setLevel(Formula formula) { levelFormula = formula; }
   Formula? getLevel() => levelFormula;
-  void setSubClass(CdomReference<SubClass> sc) { subClass = sc; }
-  CdomReference<SubClass>? getSubClass() => subClass;
+  void setSubClass(CDOMReference<SubClass> sc) { subClass = sc; }
+  CDOMReference<SubClass>? getSubClass() => subClass;
 
   @override
   String toString() {

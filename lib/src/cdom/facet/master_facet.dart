@@ -20,7 +20,7 @@ class MasterFacet extends AbstractItemFacet<CharID, Follower> {
     for (final cMod in companionModFacet.getSet(id)) {
       if (cMod.getType().toLowerCase() ==
           get(id)?.getType().getKeyName().toLowerCase()) {
-        final formula = cMod.get(StringKey.masterCheckFormula);
+        final formula = cMod.getString(StringKey.masterCheckFormula);
         if (formula != null) return formula;
       }
     }
@@ -32,7 +32,7 @@ class MasterFacet extends AbstractItemFacet<CharID, Follower> {
     for (final cMod in companionModFacet.getSet(id)) {
       if (cMod.getType().toLowerCase() ==
           get(id)?.getType().getKeyName().toLowerCase()) {
-        final formula = cMod.get(StringKey.masterHpFormula);
+        final formula = cMod.getString(StringKey.masterHpFormula);
         if (formula != null) return formula;
       }
     }
@@ -44,7 +44,7 @@ class MasterFacet extends AbstractItemFacet<CharID, Follower> {
     for (final cMod in companionModFacet.getSet(id)) {
       if (cMod.getType().toLowerCase() ==
           get(id)?.getType().getKeyName().toLowerCase()) {
-        final formula = cMod.get(StringKey.masterBabFormula);
+        final formula = cMod.getString(StringKey.masterBabFormula);
         if (formula != null) return formula;
       }
     }

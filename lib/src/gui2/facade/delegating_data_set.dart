@@ -47,13 +47,13 @@ import 'package:flutter_pcgen/src/facade/util/map_facade.dart';
 /// preventing memory leaks.
 class DelegatingDataSet implements DataSetFacade {
   final DelegatingListFacade<Race> _races;
-  final DelegatingListFacade<PcClass> _classes;
+  final DelegatingListFacade<PCClass> _classes;
   final DelegatingListFacade<Skill> _skills;
   final DelegatingListFacade<Deity> _deities;
-  final DelegatingListFacade<PcTemplate> _templates;
+  final DelegatingListFacade<PCTemplate> _templates;
   final DelegatingListFacade<PcAlignment> _alignments;
   final DelegatingListFacade<Kit> _kits;
-  final DelegatingListFacade<PcStat> _stats;
+  final DelegatingListFacade<PCStat> _stats;
   final DelegatingListFacade<Campaign> _campaigns;
   final DelegatingListFacade<BodyStructure> _bodyStructures;
   final DelegatingListFacade<EquipmentFacade> _equipment;
@@ -121,13 +121,13 @@ class DelegatingDataSet implements DataSetFacade {
   ListFacade<Race> getRaces() => _races;
 
   @override
-  ListFacade<PcClass> getClasses() => _classes;
+  ListFacade<PCClass> getClasses() => _classes;
 
   @override
   ListFacade<Deity> getDeities() => _deities;
 
   @override
-  ListFacade<PcTemplate> getTemplates() => _templates;
+  ListFacade<PCTemplate> getTemplates() => _templates;
 
   @override
   ListFacade<Campaign> getCampaigns() => _campaigns;
@@ -139,7 +139,7 @@ class DelegatingDataSet implements DataSetFacade {
   ListFacade<PcAlignment> getAlignments() => _alignments;
 
   @override
-  ListFacade<PcStat> getStats() => _stats;
+  ListFacade<PCStat> getStats() => _stats;
 
   @override
   Skill? getSpeakLanguageSkill() => _delegate.getSpeakLanguageSkill();

@@ -248,7 +248,7 @@ class SpellSupportForPCClass {
     if (force || !_spellCacheValid) {
       final SpellProgressionCache cache = SpellProgressionCache();
       for (final PCClassLevel cl in source.getOriginalClassLevelCollection()) {
-        final int? lvl = cl.get(IntegerKey.level) as int?;
+        final int? lvl = cl.getInt(IntegerKey.level) as int?;
         if (lvl == null) continue;
         final List<dynamic>? cast = cl.getListFor(ListKey.cast);
         if (cast != null) cache.setCast(lvl, cast);

@@ -34,7 +34,7 @@ class SizeFacet extends AbstractDataFacet<CharID, dynamic>
     // stub: check CControl.BASESIZE via loadContextFacet/resultFacet
     final info = _getInfo(id);
     if (info == null) {
-      // stub: return SizeUtilities.getDefaultSizeAdjustment().get(IntegerKey.SIZEORDER)
+      // stub: return SizeUtilities.getDefaultSizeAdjustment().getInt(IntegerKey.SIZEORDER)
       return 0;
     }
     return info.racialSizeInt;

@@ -22,12 +22,12 @@ import 'package:flutter_pcgen/src/core/pc_class.dart';
 
 // Stores the constraints for a class level exchange.
 class LevelExchange extends ConcretePrereqObject {
-  final CdomSingleRef<PCClass> _exchangeClass;
+  final CDOMSingleRef<PCClass> _exchangeClass;
   final int _minDonatingLevel;
   final int _maxDonatedLevels;
   final int _donatingLowerLevelBound;
 
-  LevelExchange(CdomSingleRef<PCClass> pcc, int minDonatingLvl, int maxDonated, int donatingLowerBound)
+  LevelExchange(CDOMSingleRef<PCClass> pcc, int minDonatingLvl, int maxDonated, int donatingLowerBound)
       : _exchangeClass = pcc,
         _minDonatingLevel = minDonatingLvl,
         _maxDonatedLevels = maxDonated,
@@ -47,7 +47,7 @@ class LevelExchange extends ConcretePrereqObject {
   }
 
   int getDonatingLowerLevelBound() => _donatingLowerLevelBound;
-  CdomSingleRef<PCClass> getExchangeClass() => _exchangeClass;
+  CDOMSingleRef<PCClass> getExchangeClass() => _exchangeClass;
   int getMaxDonatedLevels() => _maxDonatedLevels;
   int getMinDonatingLevel() => _minDonatingLevel;
 

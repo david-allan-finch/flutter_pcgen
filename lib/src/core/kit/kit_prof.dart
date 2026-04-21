@@ -25,7 +25,7 @@ import 'base_kit.dart';
 // Kit task that grants weapon proficiencies to a PC.
 final class KitProf extends BaseKit {
   int? choiceCount;
-  final List<CdomSingleRef<WeaponProf>> _profList = [];
+  final List<CDOMSingleRef<WeaponProf>> _profList = [];
   bool? racialProf;
 
   // Transient state
@@ -39,8 +39,8 @@ final class KitProf extends BaseKit {
   int? getCount() => choiceCount;
   int getSafeCount() => choiceCount ?? 1;
 
-  void addProficiency(CdomSingleRef<WeaponProf> ref) { _profList.add(ref); }
-  List<CdomSingleRef<WeaponProf>> getProficiencies() => List.unmodifiable(_profList);
+  void addProficiency(CDOMSingleRef<WeaponProf> ref) { _profList.add(ref); }
+  List<CDOMSingleRef<WeaponProf>> getProficiencies() => List.unmodifiable(_profList);
 
   @override
   bool testApply(Kit aKit, PlayerCharacter aPC, List<String> warnings) {

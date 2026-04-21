@@ -52,21 +52,21 @@ final class PCTemplate extends PObject {
         in getSafeListFor<PCTemplate>(ListKey.getConstant<PCTemplate>('REPEATLEVEL_TEMPLATES'))) {
       for (final lt
           in rlt.getSafeListFor<PCTemplate>(ListKey.getConstant<PCTemplate>('LEVEL_TEMPLATES'))) {
-        final lvl = lt.get(IntegerKey.level) as int?;
+        final lvl = lt.getInt(IntegerKey.level) as int?;
         if (lvl != null && lvl <= totalLevels) result.add(lt);
       }
     }
 
     for (final lt
         in getSafeListFor<PCTemplate>(ListKey.getConstant<PCTemplate>('LEVEL_TEMPLATES'))) {
-      final lvl = lt.get(IntegerKey.level) as int?;
+      final lvl = lt.getInt(IntegerKey.level) as int?;
       if (lvl != null && lvl <= totalLevels) result.add(lt);
     }
 
     for (final lt
         in getSafeListFor<PCTemplate>(ListKey.getConstant<PCTemplate>('HD_TEMPLATES'))) {
-      final hdMax = lt.get(IntegerKey.hdMax) as int?;
-      final hdMin = lt.get(IntegerKey.hdMin) as int?;
+      final hdMax = lt.getInt(IntegerKey.hdMax) as int?;
+      final hdMin = lt.getInt(IntegerKey.hdMin) as int?;
       if (hdMax != null &&
           hdMin != null &&
           hdMax >= totalHitDice &&

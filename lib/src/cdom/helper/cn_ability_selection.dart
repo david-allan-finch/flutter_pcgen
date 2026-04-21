@@ -126,5 +126,5 @@ class CnAbilitySelection extends ConcretePrereqObject implements QualifyingObjec
   int get hashCode => _cna.hashCode;
 
   @override
-  CdomObject getCDOMObject() => _cna.getCDOMObject();
+  CDOMObject getCDOMObject() => _cna.getCDOMObject();
 }

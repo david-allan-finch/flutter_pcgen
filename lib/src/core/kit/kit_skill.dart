@@ -35,10 +35,10 @@ import 'kit_skill_add.dart';
 final class KitSkill extends BaseKit {
   bool? free;
   double? rank;
-  final List<CdomReference<Skill>> _skillList = [];
-  CdomSingleRef<PCClass>? className;
+  final List<CDOMReference<Skill>> _skillList = [];
+  CDOMSingleRef<PCClass>? className;
   int? choiceCount;
-  final List<CdomSingleRef<Language>> _selection = [];
+  final List<CDOMSingleRef<Language>> _selection = [];
   List<KitSkillAdd>? _skillsToAdd;
 
   void setFree(bool argFree) { free = argFree; }
@@ -48,18 +48,18 @@ final class KitSkill extends BaseKit {
   void setRank(double setRank) { rank = setRank; }
   double? getRank() => rank;
 
-  void addSkill(CdomReference<Skill> ref) { _skillList.add(ref); }
-  List<CdomReference<Skill>> getSkills() => List.unmodifiable(_skillList);
+  void addSkill(CDOMReference<Skill> ref) { _skillList.add(ref); }
+  List<CDOMReference<Skill>> getSkills() => List.unmodifiable(_skillList);
 
-  void setPcclass(CdomSingleRef<PCClass> ref) { className = ref; }
-  CdomReference<PCClass>? getPcclass() => className;
+  void setPcclass(CDOMSingleRef<PCClass> ref) { className = ref; }
+  CDOMReference<PCClass>? getPcclass() => className;
 
   void setCount(int quan) { choiceCount = quan; }
   int? getCount() => choiceCount;
   int getSafeCount() => choiceCount ?? 1;
 
-  void addSelection(CdomSingleRef<Language> ref) { _selection.add(ref); }
-  List<CdomSingleRef<Language>> getSelections() => List.unmodifiable(_selection);
+  void addSelection(CDOMSingleRef<Language> ref) { _selection.add(ref); }
+  List<CDOMSingleRef<Language>> getSelections() => List.unmodifiable(_selection);
 
   @override
   bool testApply(Kit aKit, PlayerCharacter aPC, List<String> warnings) {

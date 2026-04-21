@@ -161,8 +161,8 @@ enum TermEvaluatorBuilderPCVar implements TermEvaluatorBuilder {
   pcCastAtwill('ATWILL', ['ATWILL'], true),
   startPcBl(r'BL[.=]?', ['BL.', 'BL=', 'BL'], false),
   startPcClBeforelevel(r'CL;BEFORELEVEL[.=]', ['CL;BEFORELEVEL.', 'CL;BEFORELEVEL='], false),
-  startPcClasslevel(r'CLASSLEVEL[.=]', ['CLASSLEVEL.', 'CLASSLEVEL='], false),
-  startPcClass(r'CLASS[.=]', ['CLASS.', 'CLASS='], false),
+  startPCClasslevel(r'CLASSLEVEL[.=]', ['CLASSLEVEL.', 'CLASSLEVEL='], false),
+  startPCClass(r'CLASS[.=]', ['CLASS.', 'CLASS='], false),
   startPcCl(r'CL[.=]?', ['CL.', 'CL=', 'CL'], false),
   startPcCountEqtype(r'COUNT\[EQTYPE\.?', ['COUNT[EQTYPE', 'COUNT[EQTYPE.'], false),
   startPcCountEquipment(r'COUNT\[EQUIPMENT\.?', ['COUNT[EQUIPMENT.', 'COUNT[EQUIPMENT'], false),
@@ -375,10 +375,10 @@ enum TermEvaluatorBuilderPCVar implements TermEvaluatorBuilder {
               'Badly formed formula $expressionString in $src should have an integer following $matchedSection');
         }
         return PCCLBeforeLevelTermEvaluator(expressionString, src.substring(6), lvl);
-      case startPcClasslevel:
+      case startPCClasslevel:
         final exp = expressionString.replaceAll('{', '(').replaceAll('}', ')');
         return PCCLTermEvaluator(expressionString, exp.substring(11));
-      case startPcClass:
+      case startPCClass:
         return PCHasClassTermEvaluator(expressionString, expressionString.substring(6));
       case startPcCl:
         if (expressionString.length == 2) {

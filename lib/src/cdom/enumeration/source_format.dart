@@ -29,25 +29,25 @@ enum SourceFormat {
   page,
   web;
 
-  String? getField(CdomObject cdo) {
+  String? getField(CDOMObject cdo) {
     switch (this) {
       case SourceFormat.short_:
-        return cdo.get(StringKey.sourceShort);
+        return cdo.getString(StringKey.sourceShort);
       case SourceFormat.medium:
-        return cdo.get(StringKey.sourceLong);
+        return cdo.getString(StringKey.sourceLong);
       case SourceFormat.long_:
-        return cdo.get(StringKey.sourceLong);
+        return cdo.getString(StringKey.sourceLong);
       case SourceFormat.date:
         final d = cdo.get(ObjectKey.sourceDate);
         return d?.toString();
       case SourceFormat.page:
-        return cdo.get(StringKey.sourcePage);
+        return cdo.getString(StringKey.sourcePage);
       case SourceFormat.web:
-        return cdo.get(StringKey.sourceWeb);
+        return cdo.getString(StringKey.sourceWeb);
     }
   }
 
-  String getPublisher(CdomObject campaign) {
+  String getPublisher(CDOMObject campaign) {
     switch (this) {
       case SourceFormat.long_:
         return (campaign.getSafe(StringKey.pubNameLong) as String?) ?? '';
@@ -60,12 +60,12 @@ enum SourceFormat {
 
   bool allowsPage() => this != SourceFormat.web;
 
-  static String formatShort(CdomObject cdo, int aMaxLen) {
-    String? theShortName = cdo.get(StringKey.sourceShort);
+  static String formatShort(CDOMObject cdo, int aMaxLen) {
+    String? theShortName = cdo.getString(StringKey.sourceShort);
     if (theShortName == null) {
       final campaign = cdo.get(ObjectKey.sourceCampaign);
       if (campaign != null) {
-        theShortName = (campaign as CdomObject).get(StringKey.sourceShort);
+        theShortName = (campaign as CDOMObject).getString(StringKey.sourceShort);
       }
     }
     if (theShortName != null) {
@@ -75,7 +75,7 @@ enum SourceFormat {
     return '';
   }
 
-  static String getFormattedString(CdomObject cdo, SourceFormat format, bool includePage) {
+  static String getFormattedString(CDOMObject cdo, SourceFormat format, bool includePage) {
     final ret = StringBuffer();
     if (cdo.isType('Custom')) {
       ret.write('Custom - ');
@@ -85,8 +85,8 @@ enum SourceFormat {
     String? publisher;
     final campaign = cdo.get(ObjectKey.sourceCampaign);
     if (campaign != null) {
-      publisher = format.getPublisher(campaign as CdomObject);
-      source ??= format.getField(campaign as CdomObject);
+      publisher = format.getPublisher(campaign as CDOMObject);
+      source ??= format.getField(campaign as CDOMObject);
     }
     source ??= '';
 
@@ -97,7 +97,7 @@ enum SourceFormat {
     ret.write(source);
 
     if (includePage && format.allowsPage()) {
-      final pageNumber = cdo.get(StringKey.sourcePage);
+      final pageNumber = cdo.getString(StringKey.sourcePage);
       if (pageNumber != null) {
         if (ret.length != 0) ret.write(', ');
         ret.write(pageNumber);

@@ -49,11 +49,11 @@ class ClassWrappedToken implements CDOMCompatibilityToken<dynamic> {
 
   @override
   ParseResult parseToken(LoadContext context, dynamic obj, String value) {
-    // TODO: implement using PCClassLevel.get(IntegerKey.LEVEL),
+    // TODO: implement using PCClassLevel.getInt(IntegerKey.LEVEL),
     // ObjectKey.TOKEN_PARENT, SubClass, SubstitutionClass once ported.
     //
     // Java logic:
-    //   if (ONE.equals(obj.get(IntegerKey.LEVEL))) {
+    //   if (ONE.equals(obj.getInt(IntegerKey.LEVEL))) {
     //     PCClass parent = (PCClass) obj.get(ObjectKey.TOKEN_PARENT);
     //     if (parent instanceof SubClass || parent instanceof SubstitutionClass)
     //       return ParseResult.Fail("Data used token: " + value + " …");

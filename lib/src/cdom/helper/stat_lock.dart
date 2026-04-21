@@ -22,10 +22,10 @@ import 'package:flutter_pcgen/src/core/pc_stat.dart';
 
 // Represents a PCStat locked to a specific value (which may be a formula).
 class StatLock {
-  final CdomSingleRef<PCStat> _lockedStat;
+  final CDOMSingleRef<PCStat> _lockedStat;
   final Formula _lockValue;
 
-  StatLock(CdomSingleRef<PCStat> stat, Formula formula)
+  StatLock(CDOMSingleRef<PCStat> stat, Formula formula)
       : _lockedStat = stat,
         _lockValue = formula;
 

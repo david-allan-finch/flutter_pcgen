@@ -19,7 +19,7 @@
 import 'package:flutter_pcgen/src/cdom/base/cdom_object.dart';
 import 'package:flutter_pcgen/src/core/ability_category.dart';
 import 'package:flutter_pcgen/src/base/formula/formula.dart';
-import 'package:flutter_pcgen/src/cdom/reference/cdom_single_ref.dart';
+import 'package:flutter_pcgen/src/cdom/reference/cdom_single_ref.dart' show CDOMSingleRef;
 import 'nature.dart';
 import 'skill_cost.dart';
 
@@ -29,7 +29,7 @@ final class AssociationKey<T> {
   static final Map<String, AssociationKey<dynamic>> _map = {};
 
   // Load (Context) items
-  static final AssociationKey<CdomObject> owner = AssociationKey._('OWNER');
+  static final AssociationKey<CDOMObject> owner = AssociationKey._('OWNER');
   static final AssociationKey<String> token = AssociationKey._('TOKEN');
 
   // Token relationship items
@@ -38,7 +38,7 @@ final class AssociationKey<T> {
   static final AssociationKey<bool> known = AssociationKey._('KNOWN');
   static final AssociationKey<List<String>> assocChoices = AssociationKey._('ASSOC_CHOICES');
   static final AssociationKey<Nature> nature = AssociationKey._('NATURE');
-  static final AssociationKey<CdomSingleRef<AbilityCategory>> category = AssociationKey._('CATEGORY');
+  static final AssociationKey<CDOMSingleRef<AbilityCategory>> category = AssociationKey._('CATEGORY');
   static final AssociationKey<String> casterLevel = AssociationKey._('CASTER_LEVEL');
   static final AssociationKey<Formula> timesPerUnit = AssociationKey._('TIMES_PER_UNIT');
   static final AssociationKey<String> timeUnit = AssociationKey._('TIME_UNIT');

@@ -120,5 +120,5 @@ class AbilitySelection extends Selection<Ability, String> implements Comparable<
   }
 
   @override
-  CdomObject getCDOMObject() => getObject();
+  CDOMObject getCDOMObject() => getObject();
 }

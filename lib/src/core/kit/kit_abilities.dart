@@ -32,8 +32,8 @@ import 'base_kit.dart';
 final class KitAbilities extends BaseKit {
   bool? free;
   int? choiceCount;
-  final List<CdomReference<Ability>> _abilities = [];
-  CdomSingleRef<AbilityCategory>? catRef;
+  final List<CDOMReference<Ability>> _abilities = [];
+  CDOMSingleRef<AbilityCategory>? catRef;
 
   // Transient state
   List<CnAbilitySelection>? _abilitiesToAdd;
@@ -46,11 +46,11 @@ final class KitAbilities extends BaseKit {
   int? getCount() => choiceCount;
   int getSafeCount() => choiceCount ?? 1;
 
-  void addAbility(CdomReference<Ability> ref) { _abilities.add(ref); }
-  List<CdomReference<Ability>> getAbilityKeys() => List.unmodifiable(_abilities);
+  void addAbility(CDOMReference<Ability> ref) { _abilities.add(ref); }
+  List<CDOMReference<Ability>> getAbilityKeys() => List.unmodifiable(_abilities);
 
-  void setCategory(CdomSingleRef<AbilityCategory> ac) { catRef = ac; }
-  CdomSingleRef<AbilityCategory>? getCategory() => catRef;
+  void setCategory(CDOMSingleRef<AbilityCategory> ac) { catRef = ac; }
+  CDOMSingleRef<AbilityCategory>? getCategory() => catRef;
 
   @override
   bool testApply(Kit aKit, PlayerCharacter aPC, List<String> warnings) {

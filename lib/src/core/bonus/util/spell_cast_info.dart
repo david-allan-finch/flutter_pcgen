@@ -31,6 +31,6 @@ class SpellCastInfo {
   }
 
   String getLevel() => _level;
-  String getPcClassName() => _classString;
+  String getPCClassName() => _classString;
   String? getType() => _type;
 }

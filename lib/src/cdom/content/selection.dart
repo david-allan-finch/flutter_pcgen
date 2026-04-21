@@ -19,7 +19,7 @@
 import 'package:flutter_pcgen/src/cdom/base/cdom_object.dart';
 
 // Generic container pairing a CDOMObject with an optional selection string.
-class Selection<BT extends CdomObject, SEL> {
+class Selection<BT extends CDOMObject, SEL> {
   final BT _base;
   final SEL? _selection;
 

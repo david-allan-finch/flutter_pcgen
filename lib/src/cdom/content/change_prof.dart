@@ -23,15 +23,15 @@ import 'package:flutter_pcgen/src/core/weapon_prof.dart';
 
 // Represents a change to a WeaponProficiency type for a PlayerCharacter.
 class ChangeProf extends ConcretePrereqObject {
-  final CdomReference<WeaponProf> _source;
-  final CdomGroupRef<WeaponProf> _result;
+  final CDOMReference<WeaponProf> _source;
+  final CDOMGroupRef<WeaponProf> _result;
 
-  ChangeProf(CdomReference<WeaponProf> sourceProf, CdomGroupRef<WeaponProf> resultType)
+  ChangeProf(CDOMReference<WeaponProf> sourceProf, CDOMGroupRef<WeaponProf> resultType)
       : _source = sourceProf,
         _result = resultType;
 
-  CdomReference<WeaponProf> getSource() => _source;
-  CdomGroupRef<WeaponProf> getResult() => _result;
+  CDOMReference<WeaponProf> getSource() => _source;
+  CDOMGroupRef<WeaponProf> getResult() => _result;
 
   @override
   bool operator ==(Object other) {

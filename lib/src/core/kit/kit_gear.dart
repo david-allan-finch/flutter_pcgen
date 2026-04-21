@@ -30,11 +30,11 @@ import 'base_kit.dart';
 final class KitGear extends BaseKit {
   Formula? quantity;
   int? maxCost;
-  CdomReference<Equipment>? equip;
+  CDOMReference<Equipment>? equip;
   List<EqModRef>? mods;
   String? theLocationStr;
   bool? sizeToPC;
-  CdomSingleRef<SizeAdjustment>? size;
+  CDOMSingleRef<SizeAdjustment>? size;
 
   // Transient state (not cloned)
   Formula? _actingQuantity;
@@ -57,8 +57,8 @@ final class KitGear extends BaseKit {
   void setMaxCost(int cost) { maxCost = cost; }
   int? getMaxCost() => maxCost;
 
-  void setEquipment(CdomReference<Equipment> ref) { equip = ref; }
-  CdomReference<Equipment>? getEquipment() => equip;
+  void setEquipment(CDOMReference<Equipment> ref) { equip = ref; }
+  CDOMReference<Equipment>? getEquipment() => equip;
 
   void setMods(List<EqModRef> modList) { mods = modList; }
   List<EqModRef>? getMods() => mods;
@@ -66,8 +66,8 @@ final class KitGear extends BaseKit {
   void setSizeToPC(bool flag) { sizeToPC = flag; }
   bool? getSizeToPC() => sizeToPC;
 
-  void setSize(CdomSingleRef<SizeAdjustment> sizeRef) { size = sizeRef; }
-  CdomSingleRef<SizeAdjustment>? getSize() => size;
+  void setSize(CDOMSingleRef<SizeAdjustment> sizeRef) { size = sizeRef; }
+  CDOMSingleRef<SizeAdjustment>? getSize() => size;
 
   @override
   bool testApply(Kit aKit, PlayerCharacter aPC, List<String> warnings) {

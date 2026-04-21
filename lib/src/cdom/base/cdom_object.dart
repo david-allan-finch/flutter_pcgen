@@ -16,6 +16,7 @@
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
 //
 // Translation of pcgen.cdom.base.CDOMObject
+import 'dart:collection' show LinkedHashSet;
 import 'package:flutter_pcgen/src/base/util/indirect.dart';
 import 'package:flutter_pcgen/src/base/util/object_container.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/fact_key.dart';
@@ -46,8 +47,8 @@ abstract class CDOMObject extends ConcretePrereqObject
       (o1, o2) => o1.getKeyName().toLowerCase().compareTo(o2.getKeyName().toLowerCase());
 
   static int Function(CDOMObject, CDOMObject) pObjectNameComp = (o1, o2) {
-    String key1 = o1.get(StringKey.sortKey) ?? o1.getDisplayName();
-    String key2 = o2.get(StringKey.sortKey) ?? o2.getDisplayName();
+    String key1 = o1.getString(StringKey.sortKey) ?? o1.getDisplayName();
+    String key2 = o2.getString(StringKey.sortKey) ?? o2.getDisplayName();
     if (key1 != key2) return key1.compareTo(key2);
     if (o1.getDisplayName() != o2.getDisplayName()) {
       return o1.getDisplayName().compareTo(o2.getDisplayName());
@@ -73,7 +74,7 @@ abstract class CDOMObject extends ConcretePrereqObject
   bool containsIntegerKey(IntegerKey key) =>
       _integerChar != null && _integerChar!.containsKey(key);
 
-  int? get(IntegerKey key) => _integerChar?[key];
+  int? getInt(IntegerKey key) => _integerChar?[key];
 
   int getSafeInt(IntegerKey key) {
     return _integerChar?[key] ?? key.getDefault();
@@ -98,7 +99,7 @@ abstract class CDOMObject extends ConcretePrereqObject
   bool containsStringKey(StringKey key) =>
       _stringChar != null && _stringChar!.containsKey(key);
 
-  String? get(StringKey key) => _stringChar?[key];
+  String? getString(StringKey key) => _stringChar?[key];
 
   String getSafeString(StringKey key) => _stringChar?[key] ?? '';
 
@@ -300,7 +301,7 @@ abstract class CDOMObject extends ConcretePrereqObject
     if (_listChar == null) return {};
     final list = _listChar!.getListFor(key);
     if (list == null) return {};
-    return LinkedHashSet<T>.from(list);
+    return LinkedHashSet<T>.of(list);
   }
 
   String getListAsString(ListKey<dynamic> key) {
@@ -391,7 +392,7 @@ abstract class CDOMObject extends ConcretePrereqObject
 
   @override
   String getKeyName() {
-    return get(StringKey.keyName) ?? getDisplayName();
+    return getString(StringKey.keyName) ?? getDisplayName();
   }
 
   void setKeyName(String key) {
@@ -448,26 +449,3 @@ abstract class CDOMObject extends ConcretePrereqObject
   }
 }
 
-// Import for LinkedHashSet
-class LinkedHashSet<T> extends Set<T> {
-  final Set<T> _inner = {};
-
-  LinkedHashSet.from(Iterable<T> items) {
-    _inner.addAll(items);
-  }
-
-  @override
-  bool add(T value) => _inner.add(value);
-  @override
-  bool contains(Object? element) => _inner.contains(element);
-  @override
-  Iterator<T> get iterator => _inner.iterator;
-  @override
-  int get length => _inner.length;
-  @override
-  T? lookup(Object? element) => _inner.lookup(element);
-  @override
-  bool remove(Object? value) => _inner.remove(value);
-  @override
-  Set<T> toSet() => Set.from(_inner);
-}

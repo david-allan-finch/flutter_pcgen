@@ -15,7 +15,7 @@ class FixedSizeFormula {
   bool get isValid => true;
 
   int resolveStatic() {
-    return size.get().get(IntegerKey.getConstant('SIZEORDER')) as int? ?? 0;
+    return size.get().getInt(IntegerKey.getConstant('SIZEORDER')) as int? ?? 0;
   }
 
   int resolve(dynamic pc, String source) => resolveStatic();
