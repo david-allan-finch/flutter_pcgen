@@ -17,9 +17,6 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 //
-//
-//
-//
 // Translation of pcgen.gui2.util.ShowMessageGuiObserver
 
 import '../../core/utils/message_type.dart';

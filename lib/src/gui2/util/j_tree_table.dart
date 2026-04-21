@@ -11,7 +11,6 @@
 // it only in accordance with the terms of the license agreement
 // you entered into with Sun.
 //
-//
 // Translation of pcgen.gui2.util.JTreeTable
 
 import 'package:flutter/material.dart';
