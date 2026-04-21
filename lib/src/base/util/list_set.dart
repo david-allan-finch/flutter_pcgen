@@ -1,5 +1,7 @@
+import 'dart:collection' show SetBase;
+
 // A Set backed by a List, maintaining insertion order and using equals for comparison.
-class ListSet<T> implements Set<T> {
+class ListSet<T> extends SetBase<T> {
   final List<T> _list = [];
 
   @override

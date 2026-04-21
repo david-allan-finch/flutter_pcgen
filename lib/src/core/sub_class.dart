@@ -18,6 +18,7 @@
 // Translation of pcgen.core.SubClass
 import 'package:flutter_pcgen/src/cdom/base/categorized.dart';
 import 'package:flutter_pcgen/src/cdom/base/category.dart';
+import 'package:flutter_pcgen/src/cdom/base/loadable.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/integer_key.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/object_key.dart';
 import 'pc_class.dart';
@@ -25,27 +26,30 @@ import 'pc_class.dart';
 // A specialized variant of a PCClass with modified spell prohibition and cost.
 final class SubClass extends PCClass implements Categorized<SubClass> {
   String getChoice() {
-    final sp = get(ObjectKey.choice);
+    final sp = getObject(ObjectKey.choice);
     if (sp == null) return '';
     // SpellProhibitor value list — simplified
     return sp.toString();
   }
 
   int getProhibitCost() {
-    final prohib = get(IntegerKey.prohibitCost) as int?;
+    final prohib = getInt(IntegerKey.prohibitCost);
     if (prohib != null) return prohib;
     return getSafe<int>(IntegerKey.cost) ?? 0;
   }
 
   @override
   Category<SubClass>? getCDOMCategory() {
-    return get(ObjectKey.subclassCategory) as Category<SubClass>?;
+    return getObject(ObjectKey.subclassCategory) as Category<SubClass>?;
   }
 
   @override
   void setCDOMCategory(Category<SubClass>? cat) {
-    put(ObjectKey.subclassCategory, cat);
+    putObject(ObjectKey.subclassCategory, cat);
   }
+
+  @override
+  ClassIdentity<Loadable> getClassIdentity() => getCDOMCategory()!;
 
   @override
   String getFullKey() => '${getCDOMCategory()}.${super.getFullKey()}';

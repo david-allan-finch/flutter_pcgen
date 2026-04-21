@@ -17,14 +17,15 @@
 //
 // Translation of pcgen.cdom.reference.CDOMAllRef
 import 'package:flutter_pcgen/src/cdom/base/cdom_reference.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/grouping_state.dart';
 import 'cdom_group_ref.dart';
 
 // A reference to ALL objects of a given type.
-class CDOMAllRef<T> implements CDOMGroupRef<T> {
+class CDOMAllRef<T> extends CDOMReference<T> implements CDOMGroupRef<T> {
   final List<T> _objects = [];
   final String _typeName;
 
-  CDOMAllRef(this._typeName);
+  CDOMAllRef(this._typeName) : super('ALL');
 
   @override
   void addResolution(T obj) {
@@ -38,13 +39,22 @@ class CDOMAllRef<T> implements CDOMGroupRef<T> {
   List<T> getContainedObjects() => List.unmodifiable(_objects);
 
   @override
-  String getLSTformat([String? joinWith]) => 'ALL';
+  int getObjectCount() => _objects.length;
 
   @override
-  int getReferenceCount() => _objects.length;
+  String getReferenceDescription() => 'ALL objects of $_typeName';
 
   @override
-  String? getReferenceClass() => _typeName;
+  String? getChoice() => null;
+
+  @override
+  GroupingState getGroupingState() => GroupingState.any;
+
+  @override
+  String getLSTformat(bool useAny) => useAny ? 'ANY' : 'ALL';
+
+  @override
+  Type getReferenceClass() => T;
 
   @override
   String getPersistentFormat() => 'ALL';
