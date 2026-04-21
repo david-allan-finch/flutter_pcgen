@@ -103,8 +103,9 @@ class PCGenFrameState extends State<PCGenFrame> {
   }
 
   void createNewCharacter(dynamic dataset) {
-    final character = CharacterManager.createNewCharacter(
-        dataset ?? _currentDataSetRef.get());
+    final ds = (dataset ?? _currentDataSetRef.get()) as DataSetFacade?;
+    if (ds == null) return;
+    final character = CharacterManager.createNewCharacter(null, ds);
     if (character != null) {
       _currentCharacterRef.set(character);
     }

@@ -83,6 +83,6 @@ class _PCGenRootState extends State<_PCGenRoot> {
         controller: context.read<PCGenPreloaderController>(),
       );
     }
-    return const PCGenFrame();
+    return PCGenFrame(context.read<UIContext>());
   }
 }

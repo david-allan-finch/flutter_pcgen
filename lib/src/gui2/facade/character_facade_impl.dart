@@ -28,6 +28,7 @@ import 'package:flutter_pcgen/src/facade/core/spell_support_facade.dart';
 import 'package:flutter_pcgen/src/facade/core/temp_bonus_facade.dart';
 import 'package:flutter_pcgen/src/facade/util/list_facade.dart';
 import 'package:flutter_pcgen/src/facade/util/default_reference_facade.dart';
+import 'package:flutter_pcgen/src/facade/util/reference_facade.dart';
 import 'character_abilities.dart';
 import 'character_levels_facade_impl.dart';
 import 'description_facade_impl.dart';
@@ -64,11 +65,15 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
   late final DefaultReferenceFacade<Object> _raceRef;
   late final DefaultReferenceFacade<Object> _alignmentRef;
   late final DefaultReferenceFacade<Object> _deityRef;
+  late final DefaultReferenceFacade<String> _nameRef;
+  late final DefaultReferenceFacade<String?> _fileRef;
 
   CharacterFacadeImpl(this._data) {
     _raceRef = DefaultReferenceFacade(_data['race']);
     _alignmentRef = DefaultReferenceFacade(_data['alignment']);
     _deityRef = DefaultReferenceFacade(_data['deity']);
+    _nameRef = DefaultReferenceFacade(_data['name'] as String? ?? '');
+    _fileRef = DefaultReferenceFacade(_data['fileName'] as String?);
     if (_equipmentSets.isEmpty) {
       _equipmentSets.add(EquipmentSetFacadeImpl('Default'));
     }
@@ -80,27 +85,52 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
   String getDisplayName() => _str('name');
 
   @override
+  String getName() => _str('name');
+
+  @override
+  ReferenceFacade<String> getNameRef() => _nameRef;
+
+  @override
   String getTabName() => _str('tabName').isNotEmpty ? _str('tabName') : getDisplayName();
 
   @override
-  void setName(String name) => _set('name', name);
+  void setName(String name) {
+    _set('name', name);
+    _nameRef.set(name);
+  }
 
   @override
+  String getPlayersName() => _str('playerName');
+
   String getPlayerName() => _str('playerName');
 
   @override
+  void setPlayersName(String name) => _set('playerName', name);
+
   void setPlayerName(String name) => _set('playerName', name);
 
   @override
+  String? getFilePath() => _data['fileName'] as String?;
+
   String getFileName() => _str('fileName');
 
   @override
-  void setFileName(String path) => _set('fileName', path);
+  void setFilePath(String? path) {
+    _set('fileName', path ?? '');
+    _fileRef.set(path);
+  }
+
+  void setFileName(String path) => setFilePath(path);
 
   @override
-  bool isModified() => _data['modified'] as bool? ?? false;
+  ReferenceFacade<String?> getFileRef() => _fileRef;
 
   @override
+  bool isDirty() => _data['modified'] as bool? ?? false;
+
+  @override
+  bool isModified() => isDirty();
+
   void setModified(bool modified) {
     _data['modified'] = modified;
     notifyListeners();

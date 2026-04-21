@@ -29,6 +29,7 @@ import 'package:flutter_pcgen/src/core/pc_template.dart';
 import 'package:flutter_pcgen/src/core/player_character.dart';
 import 'package:flutter_pcgen/src/core/qualified_object.dart';
 import 'package:flutter_pcgen/src/core/race.dart';
+import 'package:flutter_pcgen/src/facade/util/reference_facade.dart';
 import 'ability_facade.dart';
 import 'data_set_facade.dart';
 import 'equipment_facade.dart';
@@ -39,12 +40,14 @@ abstract interface class CharacterFacade {
   // -- Identity --
   String getName();
   void setName(String name);
+  ReferenceFacade<String> getNameRef();
   String getPlayersName();
   void setPlayersName(String name);
   String getTabName();
   void setTabName(String name);
   String? getFilePath();
   void setFilePath(String? path);
+  ReferenceFacade<String?> getFileRef();
 
   // -- Race / Alignment / Basics --
   Race? getRace();

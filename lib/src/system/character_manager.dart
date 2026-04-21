@@ -64,7 +64,7 @@ final class CharacterManager {
   /// The new character is automatically added to [getCharacters()].
   /// Returns null if creation fails.
   static CharacterFacade? createNewCharacter(
-      UIDelegate delegate, DataSetFacade dataset) {
+      UIDelegate? delegate, DataSetFacade dataset) {
     // TODO: construct a CharacterFacadeImpl, add to _characters, fire
     //       PlayerCharacterWasLoadedMessage via the plugin message bus.
     return null;
@@ -132,6 +132,25 @@ final class CharacterManager {
     for (final character in snapshot) {
       closeCharacter(character);
     }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Convenience aliases used by PCGenFrame
+  // ---------------------------------------------------------------------------
+
+  /// Alias for [closeCharacter].
+  static void removeCharacter(CharacterFacade character) =>
+      closeCharacter(character);
+
+  /// Opens a character from [filePath] without requiring a UIDelegate.
+  static CharacterFacade? loadCharacterFromFile(String filePath) {
+    // TODO: load using PCGIOHandler.
+    return null;
+  }
+
+  /// Opens a party file from [filePath] without requiring a UIDelegate.
+  static void loadPartyFromFile(String filePath) {
+    // TODO: parse party file and load each character.
   }
 
   // ---------------------------------------------------------------------------

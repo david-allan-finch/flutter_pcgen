@@ -58,7 +58,7 @@ class _PCGenMenuBarState extends State<PCGenMenuBar> {
     );
   }
 
-  Widget _buildMenu(BuildContext context, String label, List<PopupMenuItem<String>> items) {
+  Widget _buildMenu(BuildContext context, String label, List<PopupMenuEntry<String>> items) {
     return PopupMenuButton<String>(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -69,7 +69,7 @@ class _PCGenMenuBarState extends State<PCGenMenuBar> {
     );
   }
 
-  List<PopupMenuItem<String>> _buildFileItems(BuildContext context) => [
+  List<PopupMenuEntry<String>> _buildFileItems(BuildContext context) => [
         _item(PCGenActionMap.newCommand, 'New'),
         _item(PCGenActionMap.openCommand, 'Open...'),
         const PopupMenuDivider(),
@@ -87,13 +87,13 @@ class _PCGenMenuBarState extends State<PCGenMenuBar> {
         _item(PCGenActionMap.exitCommand, 'Exit'),
       ];
 
-  List<PopupMenuItem<String>> _buildEditItems(BuildContext context) => [
+  List<PopupMenuEntry<String>> _buildEditItems(BuildContext context) => [
         _item(PCGenActionMap.addKitCommand, 'Add Kit'),
         const PopupMenuDivider(),
         _item(PCGenActionMap.tempBonusCommand, 'Temp Bonus'),
       ];
 
-  List<PopupMenuItem<String>> _buildSourcesItems(BuildContext context) => [
+  List<PopupMenuEntry<String>> _buildSourcesItems(BuildContext context) => [
         _item(PCGenActionMap.sourcesLoadSelectCommand, 'Load Sources...'),
         const PopupMenuDivider(),
         _item(PCGenActionMap.sourcesReloadCommand, 'Reload Sources'),
@@ -102,7 +102,7 @@ class _PCGenMenuBarState extends State<PCGenMenuBar> {
         _item(PCGenActionMap.installDataCommand, 'Install Data...'),
       ];
 
-  List<PopupMenuItem<String>> _buildToolsItems(BuildContext context) => [
+  List<PopupMenuEntry<String>> _buildToolsItems(BuildContext context) => [
         _item(PCGenActionMap.preferencesCommand, 'Preferences...'),
         const PopupMenuDivider(),
         _item(PCGenActionMap.logCommand, 'Log'),
@@ -111,7 +111,7 @@ class _PCGenMenuBarState extends State<PCGenMenuBar> {
         _item(PCGenActionMap.solverviewCommand, 'Solver View'),
       ];
 
-  List<PopupMenuItem<String>> _buildHelpItems(BuildContext context) => [
+  List<PopupMenuEntry<String>> _buildHelpItems(BuildContext context) => [
         _item(PCGenActionMap.helpDocsCommand, 'Documentation'),
         const PopupMenuDivider(),
         _item(PCGenActionMap.helpOglCommand, 'OGL'),
