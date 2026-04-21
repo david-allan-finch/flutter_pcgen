@@ -96,7 +96,7 @@ class IntegerKey {
     return key;
   }
 
-  static Iterable<IntegerKey> getAllConstants() => List.unmodifiable(_typeMap.values());
+  static Iterable<IntegerKey> getAllConstants() => List.unmodifiable(_typeMap.values);
 
   static void clearConstants() => _typeMap.clear();
 }

@@ -67,7 +67,7 @@ class ListKey<T> {
   }
 
   static Iterable<ListKey<dynamic>> getAllConstants() =>
-      List.unmodifiable(_typeMap.values());
+      List.unmodifiable(_typeMap.values);
 
   static void clearConstants() => _typeMap.clear();
 }

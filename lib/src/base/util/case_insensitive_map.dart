@@ -4,6 +4,9 @@ import 'package:flutter_pcgen/src/base/lang/case_insensitive_string.dart';
 class CaseInsensitiveMap<V> {
   final Map<CaseInsensitiveString, V> _map = {};
 
+  V? operator [](String key) => _map[CaseInsensitiveString(key)];
+  void operator []=(String key, V value) { _map[CaseInsensitiveString(key)] = value; }
+
   V? put(String key, V value) {
     final k = CaseInsensitiveString(key);
     final old = _map[k];

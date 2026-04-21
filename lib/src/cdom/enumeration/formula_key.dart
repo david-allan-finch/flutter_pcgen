@@ -61,7 +61,7 @@ class FormulaKey {
     return key;
   }
 
-  static Iterable<FormulaKey> getAllConstants() => List.unmodifiable(_typeMap.values());
+  static Iterable<FormulaKey> getAllConstants() => List.unmodifiable(_typeMap.values);
 
   static void clearConstants() => _typeMap.clear();
 }

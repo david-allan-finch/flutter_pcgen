@@ -44,7 +44,7 @@ class FactSetKey<T> {
   }
 
   static Iterable<FactSetKey<dynamic>> getAllConstants() =>
-      List.unmodifiable(_typeMap.values());
+      List.unmodifiable(_typeMap.values);
 
   static void clearConstants() => _typeMap.clear();
 }

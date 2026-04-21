@@ -112,7 +112,7 @@ class ObjectKey<T> {
   }
 
   static Iterable<ObjectKey<dynamic>> getAllConstants() =>
-      List.unmodifiable(_typeMap.values());
+      List.unmodifiable(_typeMap.values);
 
   static void clearConstants() => _typeMap.clear();
 }

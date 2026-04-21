@@ -79,7 +79,7 @@ class Type implements Comparable<Type> {
   static Type? valueOf(String name) => _typeMap[name];
 
   static Iterable<Type> getAllConstants() =>
-      List.unmodifiable(_typeMap.values());
+      List.unmodifiable(_typeMap.values);
 
   static void clearConstants() => _typeMap.clear();
 }
