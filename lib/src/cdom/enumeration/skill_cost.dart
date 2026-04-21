@@ -27,11 +27,11 @@ enum SkillCost {
   int getCost() {
     switch (this) {
       case SkillCost.classSkill:
-        return Globals.gameMode.skillCostClass;
+        return Globals.gameMode?.skillCostClass ?? 1;
       case SkillCost.crossClass:
-        return Globals.gameMode.skillCostCrossClass;
+        return Globals.gameMode?.skillCostCrossClass ?? 2;
       case SkillCost.exclusive:
-        return Globals.gameMode.skillCostExclusive;
+        return Globals.gameMode?.skillCostExclusive ?? 0;
     }
   }
 }
