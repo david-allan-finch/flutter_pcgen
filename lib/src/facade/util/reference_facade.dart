@@ -15,9 +15,13 @@
 // License along with this library; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
+import 'package:flutter/foundation.dart' show Listenable;
+
 // Translation of pcgen.facade.util.ReferenceFacade
 // Observable reference (single value) abstraction for the facade layer.
-abstract interface class ReferenceFacade<E> {
+// Extends Listenable so Flutter widgets can call addListener/removeListener
+// with void Function() callbacks directly.
+abstract interface class ReferenceFacade<E> implements Listenable {
   E? get();
   void addReferenceListener(void Function(ReferenceChangeEvent<E>) listener);
   void removeReferenceListener(void Function(ReferenceChangeEvent<E>) listener);

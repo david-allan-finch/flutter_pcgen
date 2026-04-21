@@ -93,18 +93,18 @@ class InfoTabbedPaneState extends State<InfoTabbedPane>
   void _buildTabList() {
     _tabs.addAll([
       _TabEntry(type: SummaryInfoTabWidget, builder: () => const SummaryInfoTabWidget()),
-      _TabEntry(type: RaceInfoTabWidget, builder: () => const RaceInfoTabWidget()),
-      _TabEntry(type: TemplateInfoTabWidget, builder: () => const TemplateInfoTabWidget()),
-      _TabEntry(type: ClassInfoTabWidget, builder: () => const ClassInfoTabWidget()),
-      _TabEntry(type: SkillInfoTabWidget, builder: () => const SkillInfoTabWidget()),
-      _TabEntry(type: AbilitiesInfoTabWidget, builder: () => const AbilitiesInfoTabWidget()),
-      _TabEntry(type: DomainInfoTabWidget, builder: () => const DomainInfoTabWidget()),
-      _TabEntry(type: SpellsInfoTabWidget, builder: () => const SpellsInfoTabWidget()),
-      _TabEntry(type: InventoryInfoTabWidget, builder: () => const InventoryInfoTabWidget()),
-      _TabEntry(type: DescriptionInfoTabWidget, builder: () => const DescriptionInfoTabWidget()),
-      _TabEntry(type: TempBonusInfoTabWidget, builder: () => const TempBonusInfoTabWidget()),
-      _TabEntry(type: CompanionInfoTabWidget, builder: () => const CompanionInfoTabWidget()),
-      _TabEntry(type: CharacterSheetInfoTabWidget, builder: () => const CharacterSheetInfoTabWidget()),
+      _TabEntry(type: RaceInfoTab, builder: () => const RaceInfoTab()),
+      _TabEntry(type: TemplateInfoTab, builder: () => const TemplateInfoTab()),
+      _TabEntry(type: ClassInfoTab, builder: () => const ClassInfoTab()),
+      _TabEntry(type: SkillInfoTab, builder: () => const SkillInfoTab()),
+      _TabEntry(type: AbilitiesInfoTab, builder: () => const AbilitiesInfoTab()),
+      _TabEntry(type: DomainInfoTab, builder: () => const DomainInfoTab()),
+      _TabEntry(type: SpellsInfoTab, builder: () => const SpellsInfoTab()),
+      _TabEntry(type: InventoryInfoTab, builder: () => const InventoryInfoTab()),
+      _TabEntry(type: DescriptionInfoTab, builder: () => const DescriptionInfoTab()),
+      _TabEntry(type: TempBonusInfoTab, builder: () => const TempBonusInfoTab()),
+      _TabEntry(type: CompanionInfoTab, builder: () => const CompanionInfoTab()),
+      _TabEntry(type: CharacterSheetInfoTab, builder: () => const CharacterSheetInfoTab()),
     ]);
   }
 
