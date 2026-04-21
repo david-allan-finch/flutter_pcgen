@@ -2,6 +2,8 @@
 //
 // Translation of pcgen.core.character.CompanionMod
 
+import 'package:flutter_pcgen/src/cdom/base/category.dart';
+import 'package:flutter_pcgen/src/cdom/base/loadable.dart';
 import 'package:flutter_pcgen/src/core/pcobject.dart';
 import 'package:flutter_pcgen/src/cdom/base/categorized.dart';
 
@@ -39,9 +41,12 @@ class CompanionMod extends PObject implements Categorized<CompanionMod> {
   CompanionMod? getCDOMCategory() => _category;
 
   @override
-  void setCDOMCategory(dynamic cat) {
+  void setCDOMCategory(Category<CompanionMod> cat) {
     _category = cat;
   }
+
+  @override
+  ClassIdentity<Loadable>? getClassIdentity() => _category;
 }
 
 /// Placeholder key classes — replace with actual implementations.

@@ -16,6 +16,7 @@
 // Translation of pcgen.core.Ability
 import 'package:flutter_pcgen/src/cdom/base/categorized.dart';
 import 'package:flutter_pcgen/src/cdom/base/category.dart';
+import 'package:flutter_pcgen/src/cdom/base/loadable.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/integer_key.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/list_key.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/object_key.dart';
@@ -32,6 +33,8 @@ final class Ability extends PObject implements Categorized<Ability> {
   Category<Ability>? getCDOMCategory() => _category;
   @override
   void setCDOMCategory(Category<Ability> cat) { _category = cat; }
+  @override
+  ClassIdentity<Loadable>? getClassIdentity() => _category;
 
   void clearCDOMCategory() { _category = null; }
 
