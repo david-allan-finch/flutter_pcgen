@@ -18,7 +18,7 @@
 // Translation of pcgen.rules.context.AssociatedCollectionChanges
 import 'package:flutter_pcgen/src/base/util/map_to_list.dart';
 import 'package:flutter_pcgen/src/cdom/base/associated_prereq_object.dart';
-import 'associated_changes.dart';
+import 'package:flutter_pcgen/src/rules/context/associated_changes.dart';
 
 class AssociatedCollectionChanges<T> implements AssociatedChanges<T> {
   final MapToList<T, AssociatedPrereqObject>? _positive;

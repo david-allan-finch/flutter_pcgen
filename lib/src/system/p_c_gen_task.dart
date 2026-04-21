@@ -17,9 +17,9 @@
 //
 // Translation of pcgen.system.PCGenTask
 
-import 'p_c_gen_task_event.dart';
-import 'p_c_gen_task_listener.dart';
-import 'progress_container.dart';
+import 'package:flutter_pcgen/src/system/p_c_gen_task_event.dart';
+import 'package:flutter_pcgen/src/system/p_c_gen_task_listener.dart';
+import 'package:flutter_pcgen/src/system/progress_container.dart';
 
 /// Abstract base task that reports progress to registered listeners.
 abstract class PCGenTask implements ProgressContainer {

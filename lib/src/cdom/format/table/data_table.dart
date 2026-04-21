@@ -3,7 +3,7 @@
 // Translation of pcgen.cdom.format.table.DataTable
 
 import 'package:flutter_pcgen/src/cdom/base/loadable.dart';
-import 'table_column.dart';
+import 'package:flutter_pcgen/src/cdom/format/table/table_column.dart';
 
 /// Lookup type enumeration for row selection in a DataTable.
 enum LookupType {

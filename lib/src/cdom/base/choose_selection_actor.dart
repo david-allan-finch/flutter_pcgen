@@ -16,7 +16,7 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.base.ChooseSelectionActor
-import 'choose_driver.dart';
+import 'package:flutter_pcgen/src/cdom/base/choose_driver.dart';
 
 // A ChooseSelectionActor applies and removes selections (from the CHOOSE token)
 // to a PlayerCharacter.

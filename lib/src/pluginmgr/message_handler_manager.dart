@@ -17,8 +17,8 @@
 //
 // Translation of pcgen.pluginmgr.MessageHandlerManager
 
-import 'p_c_gen_message.dart';
-import 'p_c_gen_message_handler.dart';
+import 'package:flutter_pcgen/src/pluginmgr/p_c_gen_message.dart';
+import 'package:flutter_pcgen/src/pluginmgr/p_c_gen_message_handler.dart';
 
 /// Records message handlers and dispatches messages to them in order.
 class MessageHandlerManager {

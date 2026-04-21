@@ -17,7 +17,7 @@
 //
 // Translation of pcgen.core.ShieldProf
 import 'package:flutter_pcgen/src/cdom/base/ungranted.dart';
-import 'pcobject.dart';
+import 'package:flutter_pcgen/src/core/pcobject.dart';
 
 // Represents a shield proficiency that a character may possess.
 final class ShieldProf extends PCObject

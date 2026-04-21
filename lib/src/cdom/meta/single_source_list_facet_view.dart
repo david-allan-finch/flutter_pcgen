@@ -16,7 +16,7 @@
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
 //
 // Translation of pcgen.cdom.meta.SingleSourceListFacetView
-import 'facet_view.dart';
+import 'package:flutter_pcgen/src/cdom/meta/facet_view.dart';
 
 // FacetView backed by an AbstractSingleSourceListFacet.
 class SingleSourceListFacetView<T> implements FacetView<T> {

@@ -17,9 +17,9 @@
 //
 // Translation of pcgen.cdom.base.SimpleAssociatedObject
 import 'package:flutter_pcgen/src/cdom/enumeration/association_key.dart';
-import 'association_support.dart';
-import 'associated_prereq_object.dart';
-import 'concrete_prereq_object.dart';
+import 'package:flutter_pcgen/src/cdom/base/association_support.dart';
+import 'package:flutter_pcgen/src/cdom/base/associated_prereq_object.dart';
+import 'package:flutter_pcgen/src/cdom/base/concrete_prereq_object.dart';
 
 // Minimal implementation of AssociatedPrereqObject combining prereqs and associations.
 class SimpleAssociatedObject extends ConcretePrereqObject implements AssociatedPrereqObject {

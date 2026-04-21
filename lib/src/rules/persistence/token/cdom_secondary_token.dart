@@ -17,8 +17,8 @@
 //
 // Translation of pcgen.rules.persistence.token.CDOMSecondaryToken
 import 'package:flutter_pcgen/src/rules/context/load_context.dart';
-import 'cdom_token.dart';
-import 'cdom_sub_token.dart';
+import 'package:flutter_pcgen/src/rules/persistence/token/cdom_token.dart';
+import 'package:flutter_pcgen/src/rules/persistence/token/cdom_sub_token.dart';
 
 /// A CDOMSecondaryToken is both a CDOMToken and a CDOMSubToken, and can unparse.
 abstract interface class CDOMSecondaryToken<T>

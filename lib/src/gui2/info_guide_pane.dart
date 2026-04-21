@@ -18,7 +18,7 @@
 // Translation of pcgen.gui2.InfoGuidePane
 
 import 'package:flutter/material.dart';
-import 'ui_context.dart';
+import 'package:flutter_pcgen/src/gui2/ui_context.dart';
 import 'package:flutter_pcgen/src/facade/core/source_selection_facade.dart';
 
 /// Provides a guide for first-time users showing what to do next

@@ -7,11 +7,11 @@ import 'package:flutter_pcgen/src/cdom/enumeration/skill_cost.dart';
 import 'package:flutter_pcgen/src/cdom/list/class_skill_list.dart';
 import 'package:flutter_pcgen/src/core/pc_class.dart';
 import 'package:flutter_pcgen/src/core/skill.dart';
-import 'base/abstract_sub_scope_facet.dart';
-import 'event/scope_facet_change_event.dart';
-import 'event/scope_facet_change_listener.dart';
-import 'master_skill_facet.dart';
-import 'model/skill_list_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/base/abstract_sub_scope_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/event/scope_facet_change_event.dart';
+import 'package:flutter_pcgen/src/cdom/facet/event/scope_facet_change_listener.dart';
+import 'package:flutter_pcgen/src/cdom/facet/master_skill_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/model/skill_list_facet.dart';
 
 /// Maps Skills from ClassSkillList objects to their SkillCost for each PCClass.
 class SkillListToCostFacet extends AbstractSubScopeFacet<PCClass, SkillCost, Skill>

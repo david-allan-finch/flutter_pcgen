@@ -16,7 +16,7 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.base.BasicClassIdentity
-import 'class_identity.dart';
+import 'package:flutter_pcgen/src/cdom/base/class_identity.dart';
 
 // BasicClassIdentity wraps a runtime Type and provides identity semantics.
 // In Dart there is no reflective newInstance, so we accept a factory function.

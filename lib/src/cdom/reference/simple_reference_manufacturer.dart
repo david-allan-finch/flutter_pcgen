@@ -3,7 +3,7 @@
 // Translation of pcgen.cdom.reference.SimpleReferenceManufacturer
 
 import 'package:flutter_pcgen/src/cdom/base/loadable.dart';
-import 'abstract_reference_manufacturer.dart';
+import 'package:flutter_pcgen/src/cdom/reference/abstract_reference_manufacturer.dart';
 
 /// A ReferenceManufacturer for non-categorized CDOMObjects.
 class SimpleReferenceManufacturer<T extends Loadable>

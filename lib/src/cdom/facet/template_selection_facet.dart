@@ -8,7 +8,7 @@
 // Translation of pcgen.cdom.facet.TemplateSelectionFacet
 
 import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
-import 'base/abstract_association_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/base/abstract_association_facet.dart';
 
 /// Tracks PCTemplates of a Player Character with the CHOOSE selection that was
 /// made (if CHOOSE was present). PCTemplate is typed as [dynamic].

@@ -2,7 +2,7 @@
 //
 // Translation of pcgen.persistence.lst.InstallLstToken
 
-import 'lst_token.dart';
+import 'package:flutter_pcgen/src/persistence/lst/lst_token.dart';
 
 /// Interface for tokens in install.lst files.
 abstract interface class InstallLstToken implements LstToken {

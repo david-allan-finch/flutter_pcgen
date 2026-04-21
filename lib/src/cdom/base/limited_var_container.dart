@@ -14,7 +14,7 @@
 // Fifth Floor, Boston, MA 02110-1301, USA
 //
 // Translation of pcgen.cdom.base.LimitedVarContainer
-import 'var_container.dart';
+import 'package:flutter_pcgen/src/cdom/base/var_container.dart';
 
 // LimitedVarContainer is a VarContainer with identity information that can be
 // used to limit the objects a token should impact.

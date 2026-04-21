@@ -19,7 +19,7 @@
 import 'package:flutter_pcgen/src/core/pc_class.dart';
 import 'package:flutter_pcgen/src/core/pc_stat.dart';
 import 'package:flutter_pcgen/src/core/player_character.dart';
-import 'pc_level_info_stat.dart';
+import 'package:flutter_pcgen/src/core/pclevelinfo/pc_level_info_stat.dart';
 
 // Represents the data kept about a level that a PC has added.
 final class PCLevelInfo {

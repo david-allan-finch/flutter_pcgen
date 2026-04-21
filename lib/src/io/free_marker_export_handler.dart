@@ -1,7 +1,7 @@
 // Translation of pcgen.io.FreeMarkerExportHandler
 
 import 'package:flutter_pcgen/src/core/player_character.dart';
-import 'export_handler.dart';
+import 'package:flutter_pcgen/src/io/export_handler.dart';
 
 /// Export handler that uses FreeMarker templates (stubbed — not available in Dart).
 class FreeMarkerExportHandler extends ExportHandler {

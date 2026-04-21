@@ -2,7 +2,7 @@
 //
 // Translation of pcgen.cdom.formula.VariableListener
 
-import 'variable_change_event.dart';
+import 'package:flutter_pcgen/src/cdom/formula/variable_change_event.dart';
 
 /// Listener notified when a variable value changes.
 abstract interface class VariableListener<T> {

@@ -7,7 +7,7 @@ import 'package:flutter_pcgen/src/cdom/enumeration/list_key.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/object_key.dart';
 import 'package:flutter_pcgen/src/util/enumeration/view.dart';
 import 'package:flutter_pcgen/src/util/enumeration/visibility.dart';
-import 'pcobject.dart';
+import 'package:flutter_pcgen/src/core/pcobject.dart';
 
 // The CDOMObject for Templates.
 final class PCTemplate extends PObject {

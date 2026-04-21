@@ -17,7 +17,7 @@
 //
 // Translation of pcgen.gui2.tabs.CharacterInfoTab
 
-import 'tab_title.dart';
+import 'package:flutter_pcgen/src/gui2/tabs/tab_title.dart';
 
 /// Interface that must be implemented by all tabs displaying character information.
 ///

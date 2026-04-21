@@ -18,7 +18,7 @@
 // Translation of pcgen.gui3.dialog.NewPurchaseMethodDialogController
 
 import 'package:flutter/material.dart';
-import 'new_purchase_method_model.dart';
+import 'package:flutter_pcgen/src/gui3/dialog/new_purchase_method_model.dart';
 
 /// Controller for the New Purchase Method dialog.
 class NewPurchaseMethodDialogController {

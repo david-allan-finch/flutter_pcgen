@@ -17,8 +17,8 @@
 //
 // Translation of pcgen.gui2.PCGenUIManager
 
-import 'pc_gen_frame.dart';
-import 'ui_context.dart';
+import 'package:flutter_pcgen/src/gui2/pc_gen_frame.dart';
+import 'package:flutter_pcgen/src/gui2/ui_context.dart';
 
 /// Responsible for starting up and shutting down PCGen's main window.
 /// Provides static methods for external UI frameworks (e.g. Mac app toolbar).

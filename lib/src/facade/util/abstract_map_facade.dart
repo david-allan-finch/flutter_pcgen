@@ -16,8 +16,8 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.facade.util.AbstractMapFacade
-import 'event/map_event.dart';
-import 'map_facade.dart';
+import 'package:flutter_pcgen/src/facade/util/event/map_event.dart';
+import 'package:flutter_pcgen/src/facade/util/map_facade.dart';
 
 abstract class AbstractMapFacade<K, V> implements MapFacade<K, V> {
   final List<MapListener<K, V>> _listeners = [];

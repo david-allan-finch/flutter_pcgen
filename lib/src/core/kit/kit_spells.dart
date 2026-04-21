@@ -2,8 +2,8 @@
 //
 // Translation of pcgen.core.kit.KitSpells
 
-import 'base_kit.dart';
-import 'kit_spell_book_entry.dart';
+import 'package:flutter_pcgen/src/core/kit/base_kit.dart';
+import 'package:flutter_pcgen/src/core/kit/kit_spell_book_entry.dart';
 
 /// Applies spells to a character's spell book via a kit.
 class KitSpells extends BaseKit {

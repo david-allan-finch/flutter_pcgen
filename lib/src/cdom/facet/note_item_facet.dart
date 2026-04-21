@@ -9,7 +9,7 @@
 
 import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
 import 'package:flutter_pcgen/src/core/note_item.dart';
-import 'base/abstract_list_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/base/abstract_list_facet.dart';
 
 /// Tracks the [NoteItem] objects that have been added to a Player Character.
 class NoteItemFacet extends AbstractListFacet<CharID, NoteItem> {}

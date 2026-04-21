@@ -2,7 +2,7 @@
 //
 // Translation of pcgen.core.term.BaseEQTermEvaluator
 
-import 'term_util.dart';
+import 'package:flutter_pcgen/src/core/term/term_util.dart';
 
 /// Abstract base for term evaluators that operate on Equipment.
 abstract class BaseEQTermEvaluator {

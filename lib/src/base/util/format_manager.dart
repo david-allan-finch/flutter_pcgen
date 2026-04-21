@@ -1,6 +1,6 @@
-import 'indirect.dart';
-import 'object_container.dart';
-import 'value_store.dart';
+import 'package:flutter_pcgen/src/base/util/indirect.dart';
+import 'package:flutter_pcgen/src/base/util/object_container.dart';
+import 'package:flutter_pcgen/src/base/util/value_store.dart';
 
 abstract interface class FormatManager<T> {
   T convert(String inputStr);

@@ -4,9 +4,9 @@
 
 import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
 import 'package:flutter_pcgen/src/core/equipment.dart';
-import 'base/abstract_data_facet.dart';
-import 'equipment_facet.dart';
-import 'event/data_facet_change_event.dart';
+import 'package:flutter_pcgen/src/cdom/facet/base/abstract_data_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/equipment_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/event/data_facet_change_event.dart';
 
 /// Tracks the Equipment that is currently Equipped by a Player Character.
 ///

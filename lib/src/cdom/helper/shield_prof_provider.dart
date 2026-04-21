@@ -18,7 +18,7 @@
 // Translation of pcgen.cdom.helper.ShieldProfProvider
 import 'package:flutter_pcgen/src/cdom/base/cdom_reference.dart';
 import 'package:flutter_pcgen/src/core/shield_prof.dart';
-import 'abstract_prof_provider.dart';
+import 'package:flutter_pcgen/src/cdom/helper/abstract_prof_provider.dart';
 
 // A ShieldProfProvider grants shield proficiencies either by direct ShieldProf
 // reference or by Equipment TYPE (e.g. TYPE=Shield.Heavy).

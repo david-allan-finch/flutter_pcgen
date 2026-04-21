@@ -19,7 +19,7 @@
 // Translation of pcgen.core.analysis.SubstitutionClassApplication
 import 'package:flutter_pcgen/src/core/pc_class.dart';
 import 'package:flutter_pcgen/src/core/player_character.dart';
-import 'substitution_level_support.dart';
+import 'package:flutter_pcgen/src/core/analysis/substitution_level_support.dart';
 
 // Handles substitution-class selection UI and application during level-up.
 final class SubstitutionClassApplication {

@@ -3,8 +3,8 @@
 // Translation of pcgen.rules.persistence.ChoiceSetLoadUtilities
 
 import 'package:flutter_pcgen/src/rules/context/load_context.dart';
-import 'token_library.dart';
-import 'token_utilities.dart';
+import 'package:flutter_pcgen/src/rules/persistence/token_library.dart';
+import 'package:flutter_pcgen/src/rules/persistence/token_utilities.dart';
 
 /// Utility class for parsing CHOOSE token values into PrimitiveCollection
 /// and QualifierToken objects.

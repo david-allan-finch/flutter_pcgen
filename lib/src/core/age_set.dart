@@ -18,8 +18,8 @@
 import 'package:flutter_pcgen/src/cdom/base/bonus_container.dart';
 import 'package:flutter_pcgen/src/cdom/base/loadable.dart';
 import 'package:flutter_pcgen/src/cdom/base/transition_choice.dart';
-import 'bonus/bonus_obj.dart';
-import 'kit.dart';
+import 'package:flutter_pcgen/src/core/bonus/bonus_obj.dart';
+import 'package:flutter_pcgen/src/core/kit.dart';
 
 // Represents an AGESET entry from the BioSettings game mode file.
 // Groups bonuses and kit transitions applied when a character reaches an age bracket.

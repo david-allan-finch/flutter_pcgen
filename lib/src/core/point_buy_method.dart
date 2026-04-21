@@ -18,7 +18,7 @@
 // Translation of pcgen.core.PointBuyMethod
 import 'package:flutter_pcgen/src/cdom/base/bonus_container.dart';
 import 'package:flutter_pcgen/src/cdom/base/loadable.dart';
-import 'bonus/bonus_obj.dart';
+import 'package:flutter_pcgen/src/core/bonus/bonus_obj.dart';
 
 // Represents a point-buy method (e.g. "28-Point Buy") from the game mode.
 final class PointBuyMethod implements BonusContainer, Loadable {

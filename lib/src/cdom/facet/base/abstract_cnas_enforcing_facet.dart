@@ -21,7 +21,7 @@ import 'package:flutter_pcgen/src/cdom/helper/cn_ability_selection.dart';
 import 'package:flutter_pcgen/src/cdom/helper/cn_ability_selection_utilities.dart';
 import 'package:flutter_pcgen/src/cdom/facet/event/data_facet_change_event.dart';
 import 'package:flutter_pcgen/src/cdom/facet/event/data_facet_change_listener.dart';
-import 'abstract_data_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/base/abstract_data_facet.dart';
 
 // Helper pairing a CNAbilitySelection with its source object.
 class SourcedCNAS {

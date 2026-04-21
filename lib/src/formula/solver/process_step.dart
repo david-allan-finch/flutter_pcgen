@@ -1,4 +1,4 @@
-import 'modifier.dart';
+import 'package:flutter_pcgen/src/formula/solver/modifier.dart';
 
 class ProcessStep<T> {
   final Modifier<T> modifier;

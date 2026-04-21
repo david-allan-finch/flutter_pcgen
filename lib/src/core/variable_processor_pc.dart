@@ -17,9 +17,9 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.core.VariableProcessorPC
-import 'player_character.dart';
-import 'term/evaluator_factory.dart';
-import 'variable_processor.dart';
+import 'package:flutter_pcgen/src/core/player_character.dart';
+import 'package:flutter_pcgen/src/core/term/evaluator_factory.dart';
+import 'package:flutter_pcgen/src/core/variable_processor.dart';
 
 // Variable processor for player-character-scoped variables.
 class VariableProcessorPC extends VariableProcessor {

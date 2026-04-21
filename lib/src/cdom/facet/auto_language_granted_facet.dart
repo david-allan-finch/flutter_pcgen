@@ -4,9 +4,9 @@
 
 import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
 import 'package:flutter_pcgen/src/core/language.dart';
-import 'auto_language_facet.dart';
-import 'base/abstract_sourced_list_facet.dart';
-import 'model/language_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/auto_language_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/base/abstract_sourced_list_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/model/language_facet.dart';
 
 /// Tracks Languages that have passed their AUTO:LANG prerequisites and are
 /// actively granted to the Player Character.

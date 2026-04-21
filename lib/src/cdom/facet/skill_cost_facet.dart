@@ -6,9 +6,9 @@ import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/skill_cost.dart';
 import 'package:flutter_pcgen/src/core/pc_class.dart';
 import 'package:flutter_pcgen/src/core/skill.dart';
-import 'base/abstract_sub_scope_facet.dart';
-import 'event/sub_scope_facet_change_event.dart';
-import 'event/sub_scope_facet_change_listener.dart';
+import 'package:flutter_pcgen/src/cdom/facet/base/abstract_sub_scope_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/event/sub_scope_facet_change_event.dart';
+import 'package:flutter_pcgen/src/cdom/facet/event/sub_scope_facet_change_listener.dart';
 
 // TODO: wire analysis/input skill cost sub-facets in init() once translated:
 //   ListToSkillCostFacet, LocalAddedSkillCostFacet, LocalSkillCostFacet,

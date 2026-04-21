@@ -17,7 +17,7 @@
 //
 // Translation of pcgen.cdom.helper.SimpleArmorProfProvider
 import 'package:flutter_pcgen/src/core/armor_prof.dart';
-import 'abstract_simple_prof_provider.dart';
+import 'package:flutter_pcgen/src/cdom/helper/abstract_simple_prof_provider.dart';
 
 // A SimpleArmorProfProvider grants proficiency for a single ArmorProf, and
 // also provides equipment-level resolution via getArmorProf().

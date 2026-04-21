@@ -3,7 +3,7 @@
 // Translation of pcgen.cdom.facet.VariableCheckingFacet
 
 import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
-import 'player_character_tracking_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/player_character_tracking_facet.dart';
 
 /// A transition-class facet that retrieves variable values from a Player
 /// Character. Delegates to [PlayerCharacterTrackingFacet].

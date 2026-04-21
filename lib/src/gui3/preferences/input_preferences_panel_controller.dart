@@ -18,7 +18,7 @@
 // Translation of pcgen.gui3.preferences.InputPreferencesPanelController
 
 import 'package:flutter/material.dart';
-import 'input_preferences_model.dart';
+import 'package:flutter_pcgen/src/gui3/preferences/input_preferences_model.dart';
 
 /// Controller/widget for the Input preferences panel.
 class InputPreferencesPanelController extends StatelessWidget {

@@ -16,7 +16,7 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.content.UserFunction
-import 'user_content.dart';
+import 'package:flutter_pcgen/src/cdom/content/user_content.dart';
 
 // A UserFunction is a custom formula function defined in data. It stores the
 // original expression string for unparse and provides the parsed function to

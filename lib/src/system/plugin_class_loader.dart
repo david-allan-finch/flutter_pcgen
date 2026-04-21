@@ -17,7 +17,7 @@
 //
 // Translation of pcgen.system.PluginClassLoader
 
-import 'plugin_loader.dart';
+import 'package:flutter_pcgen/src/system/plugin_loader.dart';
 
 /// Loads plugin classes from a directory and dispatches them to the
 /// appropriate [PluginLoader] instances.

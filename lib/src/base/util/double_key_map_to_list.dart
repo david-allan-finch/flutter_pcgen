@@ -1,6 +1,6 @@
-import 'double_key_map.dart';
-import 'hash_map_to_list.dart';
-import 'map_to_list.dart';
+import 'package:flutter_pcgen/src/base/util/double_key_map.dart';
+import 'package:flutter_pcgen/src/base/util/hash_map_to_list.dart';
+import 'package:flutter_pcgen/src/base/util/map_to_list.dart';
 
 class DoubleKeyMapToList<K1, K2, V> {
   final DoubleKeyMap<K1, K2, List<V>> _map = DoubleKeyMap();

@@ -17,7 +17,7 @@
 //
 // Translation of pcgen.gui2.facade.LanguageChooserFacadeImpl
 
-import 'general_chooser_facade_base.dart';
+import 'package:flutter_pcgen/src/gui2/facade/general_chooser_facade_base.dart';
 
 /// Chooser facade for selecting languages for a character.
 class LanguageChooserFacadeImpl extends GeneralChooserFacadeBase<String> {

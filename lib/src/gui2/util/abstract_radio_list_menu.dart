@@ -21,7 +21,7 @@ import 'package:flutter/material.dart';
 
 import 'package:flutter_pcgen/src/facade/util/list_facade.dart';
 import 'package:flutter_pcgen/src/facade/util/event/list_event.dart';
-import 'abstract_list_menu.dart';
+import 'package:flutter_pcgen/src/gui2/util/abstract_list_menu.dart';
 
 /// A dynamic menu that displays each item as a radio-button entry.
 /// Only one item can be selected at a time.

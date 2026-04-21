@@ -17,12 +17,12 @@
 //
 // Translation of pcgen.cdom.base.ConcretePersistentTransitionChoice
 import 'package:flutter_pcgen/src/cdom/enumeration/association_list_key.dart';
-import 'cdom_object.dart';
-import 'choice_actor.dart';
-import 'concrete_transition_choice.dart';
-import 'persistent_choice_actor.dart';
-import 'persistent_transition_choice.dart';
-import 'selectable_set.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_object.dart';
+import 'package:flutter_pcgen/src/cdom/base/choice_actor.dart';
+import 'package:flutter_pcgen/src/cdom/base/concrete_transition_choice.dart';
+import 'package:flutter_pcgen/src/cdom/base/persistent_choice_actor.dart';
+import 'package:flutter_pcgen/src/cdom/base/persistent_transition_choice.dart';
+import 'package:flutter_pcgen/src/cdom/base/selectable_set.dart';
 
 // ConcretePersistentTransitionChoice extends ConcreteTransitionChoice to add
 // encoding/decoding and persistent-restore behaviour.

@@ -17,7 +17,7 @@
 //
 // Translation of pcgen.gui2.filter.FilterHandler
 
-import 'filter.dart';
+import 'package:flutter_pcgen/src/gui2/filter/filter.dart';
 
 /// Interface for components that handle filter application.
 abstract class FilterHandler<T> {

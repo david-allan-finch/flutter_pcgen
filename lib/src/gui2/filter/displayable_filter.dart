@@ -17,7 +17,7 @@
 //
 // Translation of pcgen.gui2.filter.DisplayableFilter
 
-import 'filter.dart';
+import 'package:flutter_pcgen/src/gui2/filter/filter.dart';
 
 /// A filter that has a display name and description.
 abstract class DisplayableFilter<T> implements Filter<T> {

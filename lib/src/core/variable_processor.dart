@@ -20,9 +20,9 @@
 // Translated from pcgen/core/VariableProcessor.java
 // JEP (PJEP/PjepPool) and ExportHandler are stubbed.
 
-import 'player_character.dart';
-import 'character/cached_variable.dart';
-import 'character/character_spell.dart';
+import 'package:flutter_pcgen/src/core/player_character.dart';
+import 'package:flutter_pcgen/src/core/character/cached_variable.dart';
+import 'package:flutter_pcgen/src/core/character/character_spell.dart';
 
 /// Enum representing the four basic math operations used by the broken parser.
 enum _MathOp { plus, minus, multiply, divide }

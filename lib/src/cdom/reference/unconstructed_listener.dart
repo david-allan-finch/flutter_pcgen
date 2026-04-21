@@ -16,7 +16,7 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.reference.UnconstructedListener
-import 'unconstructed_event.dart';
+import 'package:flutter_pcgen/src/cdom/reference/unconstructed_event.dart';
 
 // Receives UnconstructedEvents when unconstructed objects are found during load.
 abstract interface class UnconstructedListener {

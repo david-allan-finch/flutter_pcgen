@@ -5,10 +5,10 @@
 import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
 import 'package:flutter_pcgen/src/core/character/spell_book.dart';
 import 'package:flutter_pcgen/src/core/equipment.dart';
-import 'base/abstract_storage_facet.dart';
-import 'equipment_facet.dart';
-import 'event/data_facet_change_event.dart';
-import 'event/data_facet_change_listener.dart';
+import 'package:flutter_pcgen/src/cdom/facet/base/abstract_storage_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/equipment_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/event/data_facet_change_event.dart';
+import 'package:flutter_pcgen/src/cdom/facet/event/data_facet_change_listener.dart';
 
 /// Tracks [SpellBook] objects for a Player Character, keyed by name.
 class SpellBookFacet extends AbstractStorageFacet<CharID>

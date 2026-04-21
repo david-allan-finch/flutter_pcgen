@@ -22,16 +22,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_pcgen/src/facade/util/list_facade.dart';
 import 'package:flutter_pcgen/src/facade/util/event/list_event.dart';
 import 'package:flutter_pcgen/src/facade/util/event/list_listener.dart';
-import 'table/default_dynamic_table_column_model.dart';
-import 'table/dynamic_table_column_model.dart';
-import 'treeview/data_view.dart';
-import 'treeview/data_view_column.dart';
-import 'treeview/tree_view.dart';
-import 'treeview/tree_view_model.dart';
-import 'treeview/tree_view_table_model.dart';
-import 'treetable/tree_table_node.dart';
-import 'tree_column_cell_renderer.dart';
-import 'j_table_menu_button.dart';
+import 'package:flutter_pcgen/src/gui2/util/table/default_dynamic_table_column_model.dart';
+import 'package:flutter_pcgen/src/gui2/util/table/dynamic_table_column_model.dart';
+import 'package:flutter_pcgen/src/gui2/util/treeview/data_view.dart';
+import 'package:flutter_pcgen/src/gui2/util/treeview/data_view_column.dart';
+import 'package:flutter_pcgen/src/gui2/util/treeview/tree_view.dart';
+import 'package:flutter_pcgen/src/gui2/util/treeview/tree_view_model.dart';
+import 'package:flutter_pcgen/src/gui2/util/treeview/tree_view_table_model.dart';
+import 'package:flutter_pcgen/src/gui2/util/treetable/tree_table_node.dart';
+import 'package:flutter_pcgen/src/gui2/util/tree_column_cell_renderer.dart';
+import 'package:flutter_pcgen/src/gui2/util/j_table_menu_button.dart';
 
 /// Flutter equivalent of JTreeViewTable. Uses a [TreeViewModel] to display
 /// arbitrary objects as an expandable tree with optional extra data columns.

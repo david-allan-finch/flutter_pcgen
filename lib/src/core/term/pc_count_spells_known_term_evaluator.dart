@@ -2,8 +2,8 @@
 //
 // Translation of pcgen.core.term.PCCountSpellsKnownTermEvaluator
 
-import 'base_pc_term_evaluator.dart';
-import 'term_evaluator.dart';
+import 'package:flutter_pcgen/src/core/term/base_pc_term_evaluator.dart';
+import 'package:flutter_pcgen/src/core/term/term_evaluator.dart';
 
 class PCCountSpellsKnownTermEvaluator extends BasePCTermEvaluator implements TermEvaluator {
   final List<int> nums;

@@ -2,8 +2,8 @@
 //
 // Translation of pcgen.core.term.PCSPellBaseStatScoreEvaluatorTermEvaluator
 
-import 'base_pc_term_evaluator.dart';
-import 'term_evaluator.dart';
+import 'package:flutter_pcgen/src/core/term/base_pc_term_evaluator.dart';
+import 'package:flutter_pcgen/src/core/term/term_evaluator.dart';
 
 class PCSPellBaseStatScoreEvaluatorTermEvaluator extends BasePCTermEvaluator implements TermEvaluator {
   final String classKey;

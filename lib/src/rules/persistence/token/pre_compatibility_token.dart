@@ -3,9 +3,9 @@
 // Translation of pcgen.rules.persistence.token.PreCompatibilityToken
 
 import 'package:flutter_pcgen/src/rules/context/load_context.dart';
-import 'cdom_primary_token.dart';
-import 'cdom_secondary_token.dart';
-import 'parse_result.dart';
+import 'package:flutter_pcgen/src/rules/persistence/token/cdom_primary_token.dart';
+import 'package:flutter_pcgen/src/rules/persistence/token/cdom_secondary_token.dart';
+import 'package:flutter_pcgen/src/rules/persistence/token/parse_result.dart';
 
 /// Handles legacy PRExxx token format, converting it to modern Prerequisite
 /// objects.

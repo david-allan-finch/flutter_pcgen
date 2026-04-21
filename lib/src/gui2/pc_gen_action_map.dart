@@ -17,7 +17,7 @@
 //
 // Translation of pcgen.gui2.PCGenActionMap
 
-import 'ui_context.dart';
+import 'package:flutter_pcgen/src/gui2/ui_context.dart';
 
 typedef ActionCallback = void Function();
 

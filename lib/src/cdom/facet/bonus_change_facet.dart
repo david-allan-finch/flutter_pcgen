@@ -3,8 +3,8 @@
 // Translation of pcgen.cdom.facet.BonusChangeFacet
 
 import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
-import 'base/abstract_storage_facet.dart';
-import 'bonus_checking_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/base/abstract_storage_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/bonus_checking_facet.dart';
 
 /// Tracks bonus values and fires [BonusChangeEvent]s when they change.
 class BonusChangeFacet extends AbstractStorageFacet<CharID> {

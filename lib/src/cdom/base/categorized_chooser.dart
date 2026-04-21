@@ -17,8 +17,8 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.base.CategorizedChooser
-import 'category.dart';
-import 'chooser.dart';
+import 'package:flutter_pcgen/src/cdom/base/category.dart';
+import 'package:flutter_pcgen/src/cdom/base/chooser.dart';
 
 // CategorizedChooser extends Chooser to additionally allow decoding with
 // an explicit Category context.

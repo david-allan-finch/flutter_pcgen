@@ -18,7 +18,7 @@
 // Translation of pcgen.gui2.tabs.equip.EquipmentModels
 
 import 'package:flutter/foundation.dart';
-import 'equipment_model.dart';
+import 'package:flutter_pcgen/src/gui2/tabs/equip/equipment_model.dart';
 
 /// Manages multiple equipment sets (models) for a character.
 class EquipmentModels extends ChangeNotifier {

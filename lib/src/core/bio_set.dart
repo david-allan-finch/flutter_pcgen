@@ -17,8 +17,8 @@
 //
 // Translation of pcgen.core.BioSet
 
-import 'age_set.dart';
-import 'pcobject.dart';
+import 'package:flutter_pcgen/src/core/age_set.dart';
+import 'package:flutter_pcgen/src/core/pcobject.dart';
 
 // ---------------------------------------------------------------------------
 // BioSet — bio data (age/height/weight/hair/eyes/skin) for races by region

@@ -2,7 +2,7 @@
 //
 // Translation of pcgen.persistence.lst.EquipIconLstToken
 
-import 'lst_token.dart';
+import 'package:flutter_pcgen/src/persistence/lst/lst_token.dart';
 
 /// Interface for tokens handled by the equipment-icon LST loader.
 abstract interface class EquipIconLstToken implements LstToken {

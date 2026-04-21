@@ -3,7 +3,7 @@
 // Translation of pcgen.facade.core.SourceSelectionFacade
 
 import 'package:flutter_pcgen/src/facade/util/reference_facade.dart';
-import 'loadable_facade.dart';
+import 'package:flutter_pcgen/src/facade/core/loadable_facade.dart';
 
 abstract interface class SourceSelectionFacade implements LoadableFacade {
   List<dynamic> getCampaigns();

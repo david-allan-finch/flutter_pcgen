@@ -16,7 +16,7 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.core.SpecialAbility
-import 'text_property.dart';
+import 'package:flutter_pcgen/src/core/text_property.dart';
 
 /// Represents a Special Ability in PCGen.
 ///

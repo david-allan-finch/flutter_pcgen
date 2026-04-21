@@ -19,7 +19,7 @@
 import 'package:flutter_pcgen/src/cdom/base/cdom_reference.dart';
 import 'package:flutter_pcgen/src/cdom/base/loadable.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/grouping_state.dart';
-import 'cdom_group_ref.dart';
+import 'package:flutter_pcgen/src/cdom/reference/cdom_group_ref.dart';
 
 // A CDOMReference that contains objects whose key starts with a given prefix
 // pattern (ending in '%' in LST notation).

@@ -4,8 +4,8 @@
 
 import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
 import 'package:flutter_pcgen/src/cdom/helper/cn_ability_selection.dart';
-import 'base/abstract_single_source_list_facet.dart';
-import 'prerequisite_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/base/abstract_single_source_list_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/prerequisite_facet.dart';
 
 /// Stores all conditionally-granted [CNAbilitySelection] objects for a Player
 /// Character. [ConditionallyGrantedAbilityFacet] determines which are active

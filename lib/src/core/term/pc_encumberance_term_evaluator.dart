@@ -2,9 +2,9 @@
 //
 // Translation of pcgen.core.term.PCEncumberanceTermEvaluator
 
-import 'base_pcd_term_evaluator.dart';
-import 'term_evaluator.dart';
-import 'term_util.dart';
+import 'package:flutter_pcgen/src/core/term/base_pcd_term_evaluator.dart';
+import 'package:flutter_pcgen/src/core/term/term_evaluator.dart';
+import 'package:flutter_pcgen/src/core/term/term_util.dart';
 
 class PCEncumberanceTermEvaluator extends BasePCDTermEvaluator implements TermEvaluator {
   PCEncumberanceTermEvaluator(String originalText) {

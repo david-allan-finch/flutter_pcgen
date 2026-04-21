@@ -17,7 +17,7 @@
 //
 // Translation of pcgen.gui2.util.treeview.CachedDataView
 
-import 'data_view.dart';
+import 'package:flutter_pcgen/src/gui2/util/treeview/data_view.dart';
 
 /// A DataView wrapper that caches data values to avoid redundant lookups.
 class CachedDataView<T> implements DataView<T> {

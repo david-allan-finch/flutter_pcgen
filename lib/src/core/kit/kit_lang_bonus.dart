@@ -2,7 +2,7 @@
 //
 // Translation of pcgen.core.kit.KitLangBonus
 
-import 'base_kit.dart';
+import 'package:flutter_pcgen/src/core/kit/base_kit.dart';
 
 /// Applies bonus languages to a character via a kit.
 class KitLangBonus extends BaseKit {

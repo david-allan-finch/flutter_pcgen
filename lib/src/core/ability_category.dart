@@ -17,7 +17,7 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.core.AbilityCategory
-import 'ability.dart';
+import 'package:flutter_pcgen/src/core/ability.dart';
 
 // Stores and manages information about Ability categories (e.g., FEAT, SPECIAL_ABILITY).
 class AbilityCategory {

@@ -25,9 +25,9 @@ import 'package:flutter_pcgen/src/core/system_collections.dart';
 import 'package:flutter_pcgen/src/facade/core/ui_delegate.dart';
 import 'package:flutter_pcgen/src/system/p_c_gen_task.dart';
 import 'package:flutter_pcgen/src/system/language_bundle.dart';
-import 'persistence_layer_exception.dart';
-import 'lst/campaign_loader.dart';
-import 'lst/campaign_source_entry.dart';
+import 'package:flutter_pcgen/src/persistence/persistence_layer_exception.dart';
+import 'package:flutter_pcgen/src/persistence/lst/campaign_loader.dart';
+import 'package:flutter_pcgen/src/persistence/lst/campaign_source_entry.dart';
 
 /// Loads source data files for a selected set of campaigns into the game data
 /// context. Orchestrates all the type-specific loaders (class, race, deity,

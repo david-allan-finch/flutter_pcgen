@@ -18,7 +18,7 @@
 // Translation of pcgen.cdom.reference.CDOMAllRef
 import 'package:flutter_pcgen/src/cdom/base/cdom_reference.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/grouping_state.dart';
-import 'cdom_group_ref.dart';
+import 'package:flutter_pcgen/src/cdom/reference/cdom_group_ref.dart';
 
 // A reference to ALL objects of a given type.
 class CDOMAllRef<T> extends CDOMReference<T> implements CDOMGroupRef<T> {

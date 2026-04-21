@@ -6,8 +6,8 @@ import 'package:flutter_pcgen/src/cdom/base/category.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/nature.dart';
 import 'package:flutter_pcgen/src/core/ability.dart';
-import 'base/abstract_data_facet.dart';
-import 'event/data_facet_change_event.dart';
+import 'package:flutter_pcgen/src/cdom/facet/base/abstract_data_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/event/data_facet_change_event.dart';
 
 /// Tracks [Ability] objects for a Player Character organized by [Category] and
 /// [Nature]. Uses identity semantics for the inner set (to handle cloned

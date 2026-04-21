@@ -2,8 +2,8 @@
 //
 // Translation of pcgen.persistence.lst.SimpleLoader
 
-import 'lst_line_file_loader.dart';
-import 'lst_utils.dart';
+import 'package:flutter_pcgen/src/persistence/lst/lst_line_file_loader.dart';
+import 'package:flutter_pcgen/src/persistence/lst/lst_utils.dart';
 
 /// A loader that parses simple tab-delimited LST lines into Loadable objects.
 ///

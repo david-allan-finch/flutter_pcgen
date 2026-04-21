@@ -2,7 +2,7 @@
 //
 // Translation of pcgen.facade.core.CharacterLevelsFacade
 
-import 'character_level_facade.dart';
+import 'package:flutter_pcgen/src/facade/core/character_level_facade.dart';
 
 abstract interface class CharacterLevelsFacade {
   bool investSkillPoints(CharacterLevelFacade level, dynamic skill, int points);

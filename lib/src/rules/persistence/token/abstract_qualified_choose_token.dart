@@ -3,9 +3,9 @@
 // Translation of pcgen.rules.persistence.token.AbstractQualifiedChooseToken
 
 import 'package:flutter_pcgen/src/rules/context/load_context.dart';
-import 'abstract_token_with_separator.dart';
-import 'cdom_secondary_token.dart';
-import 'parse_result.dart';
+import 'package:flutter_pcgen/src/rules/persistence/token/abstract_token_with_separator.dart';
+import 'package:flutter_pcgen/src/rules/persistence/token/cdom_secondary_token.dart';
+import 'package:flutter_pcgen/src/rules/persistence/token/parse_result.dart';
 
 /// Abstract base for CHOOSE sub-tokens that operate on CDOMObject-typed
 /// collections using a [ReferenceManufacturer], and support an optional

@@ -17,7 +17,7 @@
 //
 // Translation of pcgen.cdom.helper.AbstractSimpleProfProvider
 import 'package:flutter_pcgen/src/cdom/base/cdom_object.dart';
-import 'prof_provider.dart';
+import 'package:flutter_pcgen/src/cdom/helper/prof_provider.dart';
 
 // An AbstractSimpleProfProvider grants proficiency based on a single
 // proficiency object. It never grants proficiency by Equipment TYPE and

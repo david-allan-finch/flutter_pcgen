@@ -17,7 +17,7 @@
 // Translation of pcgen.cdom.helper.SpellLevelInfo
 import 'package:flutter_pcgen/src/core/pc_class.dart';
 import 'package:flutter_pcgen/src/core/player_character.dart';
-import 'spell_level.dart';
+import 'package:flutter_pcgen/src/cdom/helper/spell_level.dart';
 
 // Pairs a class filter with min/max spell-level formulas for the SPELLLEVEL token.
 class SpellLevelInfo {

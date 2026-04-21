@@ -17,7 +17,7 @@
 //
 // Translation of pcgen.gui2.converter.event.ProgressListener
 
-import 'progress_event.dart';
+import 'package:flutter_pcgen/src/gui2/converter/event/progress_event.dart';
 
 /// Listener interface for progress events fired by conversion sub-panels.
 abstract class ProgressListener {

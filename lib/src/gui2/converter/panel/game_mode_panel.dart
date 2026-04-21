@@ -18,7 +18,7 @@
 // Translation of pcgen.gui2.converter.panel.GameModePanel
 
 import 'package:flutter/material.dart';
-import 'convert_sub_panel.dart';
+import 'package:flutter_pcgen/src/gui2/converter/panel/convert_sub_panel.dart';
 
 /// Wizard step: select which game mode to convert data for.
 class GameModePanel extends ConvertSubPanel {

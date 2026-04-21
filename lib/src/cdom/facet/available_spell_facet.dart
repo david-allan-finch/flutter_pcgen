@@ -8,7 +8,7 @@ import 'package:flutter_pcgen/src/cdom/list/class_spell_list.dart';
 import 'package:flutter_pcgen/src/cdom/list/domain_spell_list.dart';
 import 'package:flutter_pcgen/src/base/util/hash_map_to_list.dart';
 import 'package:flutter_pcgen/src/core/spell/spell.dart';
-import 'base/abstract_sub_scope_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/base/abstract_sub_scope_facet.dart';
 
 /// Tracks the spells available to a Player Character keyed by
 /// CDOMList<Spell> (spell list) and level.

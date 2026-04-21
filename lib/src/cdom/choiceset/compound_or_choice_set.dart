@@ -18,7 +18,7 @@
 // Translation of pcgen.cdom.choiceset.CompoundOrChoiceSet
 import 'package:flutter_pcgen/src/cdom/base/constants.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/grouping_state.dart';
-import 'choice_set_utilities.dart';
+import 'package:flutter_pcgen/src/cdom/choiceset/choice_set_utilities.dart';
 
 // A PrimitiveChoiceSet that performs a logical OR (union) of multiple
 // underlying choice sets: objects present in ANY set are included.

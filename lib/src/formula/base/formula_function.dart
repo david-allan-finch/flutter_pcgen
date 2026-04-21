@@ -1,7 +1,7 @@
 import 'package:flutter_pcgen/src/base/util/format_manager.dart';
-import 'dependency_manager.dart';
-import 'evaluation_manager.dart';
-import 'formula_semantics.dart';
+import 'package:flutter_pcgen/src/formula/base/dependency_manager.dart';
+import 'package:flutter_pcgen/src/formula/base/evaluation_manager.dart';
+import 'package:flutter_pcgen/src/formula/base/formula_semantics.dart';
 import 'package:flutter_pcgen/src/formula/parse/node.dart';
 import 'package:flutter_pcgen/src/formula/visitor/dependency_visitor.dart';
 import 'package:flutter_pcgen/src/formula/visitor/evaluate_visitor.dart';

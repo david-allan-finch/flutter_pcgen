@@ -18,7 +18,7 @@
 // Translation of pcgen.persistence.lst.CampaignSourceEntry
 import 'package:flutter_pcgen/src/cdom/prereq/prerequisite.dart';
 import 'package:flutter_pcgen/src/core/campaign.dart';
-import 'source_entry.dart';
+import 'package:flutter_pcgen/src/persistence/lst/source_entry.dart';
 
 // Associates a Campaign with an LST source file URI, with optional include/exclude/prereq filters.
 class CampaignSourceEntry implements SourceEntry {

@@ -17,7 +17,7 @@
 //
 // Translation of pcgen.cdom.reference.CDOMDirectSingleRef
 import 'package:flutter_pcgen/src/cdom/base/cdom_reference.dart';
-import 'cdom_single_ref.dart';
+import 'package:flutter_pcgen/src/cdom/reference/cdom_single_ref.dart';
 
 // A direct reference that holds an object inline (no lookup needed).
 class CDOMDirectSingleRef<T> implements CDOMSingleRef<T> {

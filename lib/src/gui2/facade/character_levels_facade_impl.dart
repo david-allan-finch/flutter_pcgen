@@ -21,7 +21,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_pcgen/src/facade/core/character_levels_facade.dart';
 import 'package:flutter_pcgen/src/facade/core/character_level_facade.dart';
 import 'package:flutter_pcgen/src/facade/util/list_facade.dart';
-import 'character_level_facade_impl.dart';
+import 'package:flutter_pcgen/src/gui2/facade/character_level_facade_impl.dart';
 
 /// Implementation of CharacterLevelsFacade managing the character's level progression.
 class CharacterLevelsFacadeImpl extends ChangeNotifier

@@ -17,8 +17,8 @@
 //
 // Translation of pcgen.rules.context.EditorObjectContext
 import 'package:flutter_pcgen/src/cdom/base/cdom_object.dart';
-import 'object_commit_strategy.dart';
-import 'runtime_object_context.dart';
+import 'package:flutter_pcgen/src/rules/context/object_commit_strategy.dart';
+import 'package:flutter_pcgen/src/rules/context/runtime_object_context.dart';
 
 // stub: TrackingObjectCommitStrategy not yet translated
 class TrackingObjectCommitStrategy implements ObjectCommitStrategy {

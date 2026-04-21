@@ -19,9 +19,9 @@
 import 'package:flutter_pcgen/src/cdom/enumeration/grouping_state.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/nature.dart';
 import 'package:flutter_pcgen/src/cdom/reference/cdom_single_ref.dart';
-import 'concrete_prereq_object.dart';
-import 'primitive_choice_set.dart';
-import 'selectable_set.dart';
+import 'package:flutter_pcgen/src/cdom/base/concrete_prereq_object.dart';
+import 'package:flutter_pcgen/src/cdom/base/primitive_choice_set.dart';
+import 'package:flutter_pcgen/src/cdom/base/selectable_set.dart';
 
 // ChoiceSet is a named container wrapping a PrimitiveChoiceSet that implements
 // SelectableSet. Also contains a static inner-class AbilityChoiceSet.

@@ -16,7 +16,7 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.facade.util.MapFacade
-import 'event/map_event.dart';
+import 'package:flutter_pcgen/src/facade/util/event/map_event.dart';
 
 abstract interface class MapFacade<K, V> {
   void addMapListener(MapListener<K, V> listener);

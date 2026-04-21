@@ -14,8 +14,8 @@
 // Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.grouping.GroupingDefinition
-import 'grouping_collection.dart';
-import 'grouping_info.dart';
+import 'package:flutter_pcgen/src/cdom/grouping/grouping_collection.dart';
+import 'package:flutter_pcgen/src/cdom/grouping/grouping_info.dart';
 
 // Parser that converts a persistent grouping string into a GroupingCollection.
 abstract interface class GroupingDefinition<T> {

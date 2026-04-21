@@ -17,7 +17,7 @@
 //
 // Translation of pcgen.cdom.facet.event.DataFacetChangeListener
 import 'package:flutter_pcgen/src/cdom/base/pcgen_identifier.dart';
-import 'data_facet_change_event.dart';
+import 'package:flutter_pcgen/src/cdom/facet/event/data_facet_change_event.dart';
 
 abstract interface class DataFacetChangeListener<IDT extends PCGenIdentifier, T> {
   void dataAdded(DataFacetChangeEvent<IDT, T> dfce);

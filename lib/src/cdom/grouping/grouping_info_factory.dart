@@ -14,8 +14,8 @@
 // Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.grouping.GroupingInfoFactory
-import 'grouping_info.dart';
-import 'grouping_tokenizer.dart';
+import 'package:flutter_pcgen/src/cdom/grouping/grouping_info.dart';
+import 'package:flutter_pcgen/src/cdom/grouping/grouping_tokenizer.dart';
 
 // Constructs GroupingInfo objects given a PCGenScope and instruction string.
 // Warning: NOT thread safe.

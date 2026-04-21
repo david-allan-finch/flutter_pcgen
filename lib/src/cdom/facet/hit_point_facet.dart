@@ -9,14 +9,14 @@ import 'package:flutter_pcgen/src/cdom/enumeration/object_key.dart';
 import 'package:flutter_pcgen/src/cdom/inst/pc_class_level.dart';
 import 'package:flutter_pcgen/src/core/pc_class.dart';
 import 'package:flutter_pcgen/src/core/settings_handler.dart';
-import 'base/abstract_association_facet.dart';
-import 'bonus_checking_facet.dart';
-import 'event/data_facet_change_event.dart';
-import 'event/data_facet_change_listener.dart';
-import 'model/class_facet.dart';
-import 'model/race_facet.dart';
-import 'model/template_facet.dart';
-import 'player_character_tracking_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/base/abstract_association_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/bonus_checking_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/event/data_facet_change_event.dart';
+import 'package:flutter_pcgen/src/cdom/facet/event/data_facet_change_listener.dart';
+import 'package:flutter_pcgen/src/cdom/facet/model/class_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/model/race_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/model/template_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/player_character_tracking_facet.dart';
 
 // TODO: wire LevelFacet once analysis/LevelFacet is translated.
 

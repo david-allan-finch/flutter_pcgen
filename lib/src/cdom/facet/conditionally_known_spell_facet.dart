@@ -3,7 +3,7 @@
 // Translation of pcgen.cdom.facet.ConditionallyKnownSpellFacet
 
 import 'package:flutter_pcgen/src/cdom/helper/available_spell.dart';
-import 'base/abstract_qualified_list_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/base/abstract_qualified_list_facet.dart';
 
 /// Tracks conditionally-known spells (those with prerequisites) for a Player
 /// Character. Used together with [KnownSpellFacet] for the full known spell set.

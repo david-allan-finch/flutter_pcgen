@@ -18,7 +18,7 @@
 // Translation of pcgen.gui2.converter.PCGenDataConvert
 
 import 'package:flutter/material.dart';
-import 'convert_panel.dart';
+import 'package:flutter_pcgen/src/gui2/converter/convert_panel.dart';
 
 /// Entry point for the LST data conversion tool.
 /// Shows the ConvertPanel in a dialog window.

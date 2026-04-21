@@ -5,7 +5,7 @@
 import 'package:flutter_pcgen/src/cdom/base/cdom_object.dart';
 import 'package:flutter_pcgen/src/cdom/base/qualifying_object.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
-import 'player_character_tracking_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/player_character_tracking_facet.dart';
 
 /// A transition-class facet that tests prerequisites for a Player Character.
 /// Delegates to [PlayerCharacterTrackingFacet] to get the PC and then calls

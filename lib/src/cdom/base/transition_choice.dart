@@ -16,9 +16,9 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.base.TransitionChoice
-import 'basic_choice.dart';
-import 'cdom_object.dart';
-import 'selectable_set.dart';
+import 'package:flutter_pcgen/src/cdom/base/basic_choice.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_object.dart';
+import 'package:flutter_pcgen/src/cdom/base/selectable_set.dart';
 
 // Holds a set of choices and the count allowed for the legacy CHOOSE system.
 abstract interface class TransitionChoice<T> implements BasicChoice<T> {

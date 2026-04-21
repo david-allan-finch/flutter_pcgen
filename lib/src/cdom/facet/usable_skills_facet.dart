@@ -7,10 +7,10 @@ import 'package:flutter_pcgen/src/cdom/enumeration/object_key.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/skill_cost.dart';
 import 'package:flutter_pcgen/src/core/pc_class.dart';
 import 'package:flutter_pcgen/src/core/skill.dart';
-import 'base/abstract_sourced_list_facet.dart';
-import 'event/sub_scope_facet_change_event.dart';
-import 'event/sub_scope_facet_change_listener.dart';
-import 'skill_cost_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/base/abstract_sourced_list_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/event/sub_scope_facet_change_event.dart';
+import 'package:flutter_pcgen/src/cdom/facet/event/sub_scope_facet_change_listener.dart';
+import 'package:flutter_pcgen/src/cdom/facet/skill_cost_facet.dart';
 
 /// Tracks non-exclusive use-untrained skills (CLASS or CROSSCLASS for any PCClass).
 class UsableSkillsFacet extends AbstractSourcedListFacet<CharID, Skill>

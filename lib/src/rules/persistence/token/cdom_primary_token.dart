@@ -16,8 +16,8 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.rules.persistence.token.CDOMPrimaryToken
-import 'cdom_token.dart';
-import 'cdom_write_token.dart';
+import 'package:flutter_pcgen/src/rules/persistence/token/cdom_token.dart';
+import 'package:flutter_pcgen/src/rules/persistence/token/cdom_write_token.dart';
 
 /// A CDOMPrimaryToken both parses and unparses an object.
 /// Combines CDOMToken (parse) and CDOMWriteToken (unparse).

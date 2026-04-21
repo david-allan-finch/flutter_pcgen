@@ -27,8 +27,8 @@ import 'package:flutter_pcgen/src/core/pc_stat.dart';
 import 'package:flutter_pcgen/src/core/pc_template.dart';
 import 'package:flutter_pcgen/src/core/race.dart';
 import 'package:flutter_pcgen/src/core/skill.dart';
-import 'ability_facade.dart';
-import 'equipment_facade.dart';
+import 'package:flutter_pcgen/src/facade/core/ability_facade.dart';
+import 'package:flutter_pcgen/src/facade/core/equipment_facade.dart';
 
 // Provides access to all loaded game data for UI browsing.
 abstract interface class DataSetFacade {

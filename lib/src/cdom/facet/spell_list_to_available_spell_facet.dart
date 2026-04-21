@@ -6,12 +6,12 @@ import 'package:flutter_pcgen/src/cdom/base/cdom_list.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
 import 'package:flutter_pcgen/src/cdom/helper/available_spell.dart';
 import 'package:flutter_pcgen/src/core/spell/spell.dart';
-import 'available_spell_facet.dart';
-import 'conditionally_available_spell_facet.dart';
-import 'event/data_facet_change_event.dart';
-import 'event/data_facet_change_listener.dart';
-import 'master_available_spell_facet.dart';
-import 'spell_list_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/available_spell_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/conditionally_available_spell_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/event/data_facet_change_event.dart';
+import 'package:flutter_pcgen/src/cdom/facet/event/data_facet_change_listener.dart';
+import 'package:flutter_pcgen/src/cdom/facet/master_available_spell_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/spell_list_facet.dart';
 
 /// Routes spells from master spell lists into [AvailableSpellFacet] (or
 /// [ConditionallyAvailableSpellFacet] if they have prerequisites).

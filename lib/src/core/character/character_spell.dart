@@ -23,7 +23,7 @@ import 'package:flutter_pcgen/src/core/pc_class.dart';
 import 'package:flutter_pcgen/src/core/player_character.dart';
 import 'package:flutter_pcgen/src/core/race.dart';
 import 'package:flutter_pcgen/src/core/spell/spell.dart';
-import 'spell_info.dart';
+import 'package:flutter_pcgen/src/core/character/spell_info.dart';
 
 // Associates a Spell with a source (PCClass/Domain/Race) and a list of SpellInfos.
 final class CharacterSpell implements Comparable<CharacterSpell> {

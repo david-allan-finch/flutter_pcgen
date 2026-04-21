@@ -3,7 +3,7 @@
 // Translation of pcgen.persistence.lst.prereq.AbstractPrerequisiteIntegerParser
 
 import 'package:flutter_pcgen/src/core/prereq/prerequisite.dart';
-import 'abstract_prerequisite_parser.dart';
+import 'package:flutter_pcgen/src/persistence/lst/prereq/abstract_prerequisite_parser.dart';
 
 /// Parses prerequisites where the formula is a single integer (e.g. PRELEVEL:5).
 abstract class AbstractPrerequisiteIntegerParser

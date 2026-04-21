@@ -20,7 +20,7 @@ import 'package:flutter_pcgen/src/cdom/reference/cdom_single_ref.dart';
 import 'package:flutter_pcgen/src/core/kit.dart';
 import 'package:flutter_pcgen/src/core/pc_alignment.dart';
 import 'package:flutter_pcgen/src/core/player_character.dart';
-import 'base_kit.dart';
+import 'package:flutter_pcgen/src/core/kit/base_kit.dart';
 
 class KitAlignment extends BaseKit {
   List<CDOMSingleRef<PCAlignment>>? _alignments;

@@ -18,7 +18,7 @@
 // Translation of pcgen.gui2.tabs.InventoryInfoTab
 
 import 'package:flutter/material.dart';
-import 'equip_info_tab.dart';
+import 'package:flutter_pcgen/src/gui2/tabs/equip_info_tab.dart';
 
 /// Tab panel for the inventory/gear management tab (wraps equipment sub-tabs).
 class InventoryInfoTab extends StatefulWidget {

@@ -23,8 +23,8 @@ import 'package:flutter_pcgen/src/cdom/reference/manufacturable_factory.dart';
 import 'package:flutter_pcgen/src/cdom/reference/reference_manufacturer.dart';
 import 'package:flutter_pcgen/src/cdom/reference/unconstructed_event.dart';
 import 'package:flutter_pcgen/src/cdom/reference/unconstructed_listener.dart';
-import 'runtime_reference_context.dart';
-import 'tracking_manufacturer.dart';
+import 'package:flutter_pcgen/src/rules/context/runtime_reference_context.dart';
+import 'package:flutter_pcgen/src/rules/context/tracking_manufacturer.dart';
 
 class TrackingReferenceContext extends RuntimeReferenceContext
     implements UnconstructedListener {

@@ -18,14 +18,14 @@
 // Translation of pcgen.cdom.reference.TransparentFactory
 import 'package:flutter_pcgen/src/cdom/base/class_identity.dart';
 import 'package:flutter_pcgen/src/cdom/base/loadable.dart';
-import 'cdom_group_ref.dart';
-import 'cdom_single_ref.dart';
-import 'cdom_transparent_all_ref.dart';
-import 'cdom_transparent_single_ref.dart';
-import 'cdom_transparent_type_ref.dart';
-import 'manufacturable_factory.dart';
-import 'reference_manufacturer.dart';
-import 'unconstructed_validator.dart';
+import 'package:flutter_pcgen/src/cdom/reference/cdom_group_ref.dart';
+import 'package:flutter_pcgen/src/cdom/reference/cdom_single_ref.dart';
+import 'package:flutter_pcgen/src/cdom/reference/cdom_transparent_all_ref.dart';
+import 'package:flutter_pcgen/src/cdom/reference/cdom_transparent_single_ref.dart';
+import 'package:flutter_pcgen/src/cdom/reference/cdom_transparent_type_ref.dart';
+import 'package:flutter_pcgen/src/cdom/reference/manufacturable_factory.dart';
+import 'package:flutter_pcgen/src/cdom/reference/reference_manufacturer.dart';
+import 'package:flutter_pcgen/src/cdom/reference/unconstructed_validator.dart';
 
 // A ManufacturableFactory that produces Transparent CDOMReferences (i.e.,
 // references that will be re-resolved per campaign load, not directly resolved).

@@ -4,8 +4,8 @@
 
 import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
 import 'package:flutter_pcgen/src/cdom/helper/cn_ability_selection.dart';
-import 'base/abstract_list_facet.dart';
-import 'conditional_ability_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/base/abstract_list_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/conditional_ability_facet.dart';
 
 /// Tracks the [CNAbilitySelection] objects that the PC currently qualifies for
 /// (the "active" subset of [ConditionalAbilityFacet]). Uses identity equality

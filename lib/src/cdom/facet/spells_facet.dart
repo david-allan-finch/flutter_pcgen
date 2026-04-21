@@ -8,10 +8,10 @@ import 'package:flutter_pcgen/src/cdom/content/spell_like_ability.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/association_key.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
 import 'package:flutter_pcgen/src/core/spell/spell.dart';
-import 'base/abstract_qualified_list_facet.dart';
-import 'cdom_object_source_facet.dart';
-import 'event/data_facet_change_event.dart';
-import 'event/data_facet_change_listener.dart';
+import 'package:flutter_pcgen/src/cdom/facet/base/abstract_qualified_list_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/cdom_object_source_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/event/data_facet_change_event.dart';
+import 'package:flutter_pcgen/src/cdom/facet/event/data_facet_change_listener.dart';
 
 /// Tracks [SpellLikeAbility] objects granted via SPELLS token on CDOMObjects.
 class SpellsFacet extends AbstractQualifiedListFacet<SpellLikeAbility>

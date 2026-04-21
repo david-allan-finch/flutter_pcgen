@@ -20,9 +20,9 @@
 import 'package:flutter_pcgen/src/cdom/base/cdom_object.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/object_key.dart';
 import 'package:flutter_pcgen/src/rules/context/load_context.dart';
-import 'abstract_non_empty_token.dart';
-import 'cdom_write_token.dart';
-import 'parse_result.dart';
+import 'package:flutter_pcgen/src/rules/persistence/token/abstract_non_empty_token.dart';
+import 'package:flutter_pcgen/src/rules/persistence/token/cdom_write_token.dart';
+import 'package:flutter_pcgen/src/rules/persistence/token/parse_result.dart';
 
 /// Abstract base for tokens that store a YES/NO boolean value on a CDOMObject.
 ///

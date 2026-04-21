@@ -17,7 +17,7 @@
 //
 // Translation of pcgen.cdom.base.AssociationSupport
 import 'package:flutter_pcgen/src/cdom/enumeration/association_key.dart';
-import 'associated_object.dart';
+import 'package:flutter_pcgen/src/cdom/base/associated_object.dart';
 
 // Delegate helper that implements AssociatedObject using a HashMap.
 class AssociationSupport implements AssociatedObject {

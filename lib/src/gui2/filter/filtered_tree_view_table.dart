@@ -18,9 +18,9 @@
 // Translation of pcgen.gui2.filter.FilteredTreeViewTable
 
 import 'package:flutter/material.dart';
-import 'filtered_tree_view_model.dart';
-import 'filter.dart';
-import 'filter_bar.dart';
+import 'package:flutter_pcgen/src/gui2/filter/filtered_tree_view_model.dart';
+import 'package:flutter_pcgen/src/gui2/filter/filter.dart';
+import 'package:flutter_pcgen/src/gui2/filter/filter_bar.dart';
 
 /// A widget that combines a FilterBar with a tree-view table.
 class FilteredTreeViewTable<T> extends StatefulWidget {

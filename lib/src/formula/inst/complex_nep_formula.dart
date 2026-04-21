@@ -3,7 +3,7 @@ import 'package:flutter_pcgen/src/formula/base/evaluation_manager.dart';
 import 'package:flutter_pcgen/src/formula/parse/node.dart';
 import 'package:flutter_pcgen/src/formula/visitor/evaluate_visitor.dart';
 import 'package:flutter_pcgen/src/formula/visitor/static_visitor.dart';
-import 'nep_formula.dart';
+import 'package:flutter_pcgen/src/formula/inst/nep_formula.dart';
 
 // A full formula parsed from a string expression.
 class ComplexNEPFormula<T> implements NEPFormula<T> {

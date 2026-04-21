@@ -2,7 +2,7 @@
 //
 // Translation of pcgen.cdom.formula.ListChannelAdapter
 
-import 'variable_channel.dart';
+import 'package:flutter_pcgen/src/cdom/formula/variable_channel.dart';
 
 /// Adapts a VariableChannel of array type to a mutable list facade.
 class ListChannelAdapter<T> {

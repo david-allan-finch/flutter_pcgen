@@ -18,7 +18,7 @@
 // Translation of pcgen.gui2.tabs.AbilitiesInfoTab
 
 import 'package:flutter/material.dart';
-import 'models/character_combo_box_model.dart';
+import 'package:flutter_pcgen/src/gui2/tabs/models/character_combo_box_model.dart';
 import 'package:flutter_pcgen/src/gui2/filter/filter_bar.dart';
 
 /// Tab panel for viewing and selecting character abilities/feats.

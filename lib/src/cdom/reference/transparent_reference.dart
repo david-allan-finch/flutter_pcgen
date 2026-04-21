@@ -17,7 +17,7 @@
 //
 // Translation of pcgen.cdom.reference.TransparentReference
 import 'package:flutter_pcgen/src/cdom/base/loadable.dart';
-import 'reference_manufacturer.dart';
+import 'package:flutter_pcgen/src/cdom/reference/reference_manufacturer.dart';
 
 // A TransparentReference is a CDOMReference that can be re-resolved using a
 // ReferenceManufacturer. Used when a reference must be created before the

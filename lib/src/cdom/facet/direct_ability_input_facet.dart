@@ -5,7 +5,7 @@
 import 'package:flutter_pcgen/src/cdom/base/cdom_object.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
 import 'package:flutter_pcgen/src/cdom/helper/cn_ability_selection.dart';
-import 'base/abstract_single_source_list_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/base/abstract_single_source_list_facet.dart';
 
 /// Tracks [CNAbilitySelection] objects granted via indirect %LIST grants.
 class DirectAbilityInputFacet

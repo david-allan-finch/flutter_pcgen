@@ -18,7 +18,7 @@
 // Translation of pcgen.persistence.lst.WieldCategoryLoader
 
 import 'package:flutter_pcgen/src/rules/context/load_context.dart';
-import 'simple_loader.dart';
+import 'package:flutter_pcgen/src/persistence/lst/simple_loader.dart';
 
 /// Loads WieldCategory objects from wieldcategory .lst files.
 ///

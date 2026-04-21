@@ -5,7 +5,7 @@
 import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
 import 'package:flutter_pcgen/src/cdom/formula/monitorable_variable_store.dart';
 import 'package:flutter_pcgen/src/formula/base/variable_id.dart';
-import 'base/abstract_item_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/base/abstract_item_facet.dart';
 
 /// Stores the [MonitorableVariableStore] (results of the new formula system
 /// calculations) for each Player Character identified by a [CharID].

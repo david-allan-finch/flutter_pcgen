@@ -17,7 +17,7 @@
 //
 // Translation of pcgen.system.PCGenTaskListener
 
-import 'p_c_gen_task_event.dart';
+import 'package:flutter_pcgen/src/system/p_c_gen_task_event.dart';
 
 abstract interface class PCGenTaskListener {
   void progressChanged(PCGenTaskEvent event);

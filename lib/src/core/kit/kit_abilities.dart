@@ -26,7 +26,7 @@ import 'package:flutter_pcgen/src/core/ability.dart';
 import 'package:flutter_pcgen/src/core/ability_category.dart';
 import 'package:flutter_pcgen/src/core/kit.dart';
 import 'package:flutter_pcgen/src/core/player_character.dart';
-import 'base_kit.dart';
+import 'package:flutter_pcgen/src/core/kit/base_kit.dart';
 
 // Kit task that grants abilities to a PC.
 final class KitAbilities extends BaseKit {

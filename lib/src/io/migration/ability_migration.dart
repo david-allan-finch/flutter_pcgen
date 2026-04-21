@@ -17,7 +17,7 @@
 //
 // Translation of pcgen.io.migration.AbilityMigration
 
-import 'migration_utils.dart';
+import 'package:flutter_pcgen/src/io/migration/migration_utils.dart';
 
 /// Handles migration of ability data between PCG file versions.
 class AbilityMigration {

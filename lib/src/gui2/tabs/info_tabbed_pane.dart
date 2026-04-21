@@ -19,24 +19,24 @@
 
 import 'package:flutter/material.dart';
 
-import 'character_info_tab.dart';
-import 'tab_title.dart';
-import 'todo_handler.dart';
-import 'abilities_info_tab.dart';
-import 'character_sheet_info_tab.dart';
-import 'class_info_tab.dart';
-import 'companion_info_tab.dart';
-import 'description_info_tab.dart';
-import 'domain_info_tab.dart';
-import 'equip_info_tab.dart';
-import 'inventory_info_tab.dart';
-import 'purchase_info_tab.dart';
-import 'race_info_tab.dart';
-import 'skill_info_tab.dart';
-import 'spells_info_tab.dart';
-import 'summary_info_tab.dart';
-import 'temp_bonus_info_tab.dart';
-import 'template_info_tab.dart';
+import 'package:flutter_pcgen/src/gui2/tabs/character_info_tab.dart';
+import 'package:flutter_pcgen/src/gui2/tabs/tab_title.dart';
+import 'package:flutter_pcgen/src/gui2/tabs/todo_handler.dart';
+import 'package:flutter_pcgen/src/gui2/tabs/abilities_info_tab.dart';
+import 'package:flutter_pcgen/src/gui2/tabs/character_sheet_info_tab.dart';
+import 'package:flutter_pcgen/src/gui2/tabs/class_info_tab.dart';
+import 'package:flutter_pcgen/src/gui2/tabs/companion_info_tab.dart';
+import 'package:flutter_pcgen/src/gui2/tabs/description_info_tab.dart';
+import 'package:flutter_pcgen/src/gui2/tabs/domain_info_tab.dart';
+import 'package:flutter_pcgen/src/gui2/tabs/equip_info_tab.dart';
+import 'package:flutter_pcgen/src/gui2/tabs/inventory_info_tab.dart';
+import 'package:flutter_pcgen/src/gui2/tabs/purchase_info_tab.dart';
+import 'package:flutter_pcgen/src/gui2/tabs/race_info_tab.dart';
+import 'package:flutter_pcgen/src/gui2/tabs/skill_info_tab.dart';
+import 'package:flutter_pcgen/src/gui2/tabs/spells_info_tab.dart';
+import 'package:flutter_pcgen/src/gui2/tabs/summary_info_tab.dart';
+import 'package:flutter_pcgen/src/gui2/tabs/temp_bonus_info_tab.dart';
+import 'package:flutter_pcgen/src/gui2/tabs/template_info_tab.dart';
 
 /// Tab index constants matching the Java originals.
 class InfoTabbedPaneIndex {

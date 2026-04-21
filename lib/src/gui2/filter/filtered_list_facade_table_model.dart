@@ -18,7 +18,7 @@
 // Translation of pcgen.gui2.filter.FilteredListFacadeTableModel
 
 import 'package:flutter/foundation.dart';
-import 'filtered_list_facade.dart';
+import 'package:flutter_pcgen/src/gui2/filter/filtered_list_facade.dart';
 
 /// Table model backed by a FilteredListFacade.
 class FilteredListFacadeTableModel<E> extends ChangeNotifier {

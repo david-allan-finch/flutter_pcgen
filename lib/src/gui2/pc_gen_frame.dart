@@ -18,13 +18,13 @@
 // Translation of pcgen.gui2.PCGenFrame
 
 import 'package:flutter/material.dart';
-import 'ui_context.dart';
-import 'ui_property_context.dart';
-import 'pc_gen_action_map.dart';
-import 'pc_gen_menu_bar.dart';
-import 'pc_gen_status_bar.dart';
-import 'character_tabs.dart';
-import 'info_guide_pane.dart';
+import 'package:flutter_pcgen/src/gui2/ui_context.dart';
+import 'package:flutter_pcgen/src/gui2/ui_property_context.dart';
+import 'package:flutter_pcgen/src/gui2/pc_gen_action_map.dart';
+import 'package:flutter_pcgen/src/gui2/pc_gen_menu_bar.dart';
+import 'package:flutter_pcgen/src/gui2/pc_gen_status_bar.dart';
+import 'package:flutter_pcgen/src/gui2/character_tabs.dart';
+import 'package:flutter_pcgen/src/gui2/info_guide_pane.dart';
 import 'package:flutter_pcgen/src/facade/core/character_facade.dart';
 import 'package:flutter_pcgen/src/facade/core/source_selection_facade.dart';
 import 'package:flutter_pcgen/src/facade/core/data_set_facade.dart';

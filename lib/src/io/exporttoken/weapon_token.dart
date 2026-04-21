@@ -17,7 +17,7 @@
 //
 // Translation of pcgen.io.exporttoken.WeaponToken
 
-import 'abstract_export_token.dart';
+import 'package:flutter_pcgen/src/io/exporttoken/abstract_export_token.dart';
 
 class WeaponToken extends AbstractExportToken {
   @override

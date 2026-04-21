@@ -28,8 +28,8 @@ import 'package:flutter_pcgen/src/core/skill.dart';
 import 'package:flutter_pcgen/src/core/analysis/skill_rank_control.dart';
 import 'package:flutter_pcgen/src/core/pclevelinfo/pc_level_info.dart';
 import 'package:flutter_pcgen/src/base/logging/pcgen_logging.dart';
-import 'base_kit.dart';
-import 'kit_skill_add.dart';
+import 'package:flutter_pcgen/src/core/kit/base_kit.dart';
+import 'package:flutter_pcgen/src/core/kit/kit_skill_add.dart';
 
 // Kit task that adds skill ranks to a PC.
 final class KitSkill extends BaseKit {

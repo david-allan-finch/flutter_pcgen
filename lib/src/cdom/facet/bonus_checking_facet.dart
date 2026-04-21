@@ -5,7 +5,7 @@
 import 'package:flutter_pcgen/src/cdom/base/cdom_object.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
 import 'package:flutter_pcgen/src/core/bonus/bonus_obj.dart';
-import 'player_character_tracking_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/player_character_tracking_facet.dart';
 
 /// A transition-class facet that provides access to bonus values on a Player
 /// Character. Delegates to [PlayerCharacterTrackingFacet] to get the PC and

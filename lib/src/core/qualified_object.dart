@@ -22,7 +22,7 @@
 import 'package:flutter_pcgen/src/cdom/base/concrete_prereq_object.dart';
 import 'package:flutter_pcgen/src/cdom/base/cdom_object.dart';
 import 'package:flutter_pcgen/src/cdom/prereq/prerequisite.dart';
-import 'player_character.dart';
+import 'package:flutter_pcgen/src/core/player_character.dart';
 
 // Associates an object with a set of prerequisites — the object is only
 // available when all prerequisites are met.

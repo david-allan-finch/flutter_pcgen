@@ -2,6 +2,6 @@
 //
 // Translation of pcgen.facade.core.ItemFacade
 
-import 'info_facade.dart';
+import 'package:flutter_pcgen/src/facade/core/info_facade.dart';
 
 abstract interface class ItemFacade implements InfoFacade {}

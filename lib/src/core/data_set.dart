@@ -16,22 +16,22 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.core.DataSet
-import 'ability.dart';
-import 'ability_category.dart';
-import 'campaign.dart';
-import 'deity.dart';
-import 'domain.dart';
-import 'equipment.dart';
-import 'kit.dart';
-import 'language.dart';
-import 'pc_alignment.dart';
-import 'pc_class.dart';
-import 'pc_template.dart';
-import 'pc_stat.dart';
-import 'race.dart';
-import 'size_adjustment.dart';
-import 'skill.dart';
-import 'weapon_prof.dart';
+import 'package:flutter_pcgen/src/core/ability.dart';
+import 'package:flutter_pcgen/src/core/ability_category.dart';
+import 'package:flutter_pcgen/src/core/campaign.dart';
+import 'package:flutter_pcgen/src/core/deity.dart';
+import 'package:flutter_pcgen/src/core/domain.dart';
+import 'package:flutter_pcgen/src/core/equipment.dart';
+import 'package:flutter_pcgen/src/core/kit.dart';
+import 'package:flutter_pcgen/src/core/language.dart';
+import 'package:flutter_pcgen/src/core/pc_alignment.dart';
+import 'package:flutter_pcgen/src/core/pc_class.dart';
+import 'package:flutter_pcgen/src/core/pc_template.dart';
+import 'package:flutter_pcgen/src/core/pc_stat.dart';
+import 'package:flutter_pcgen/src/core/race.dart';
+import 'package:flutter_pcgen/src/core/size_adjustment.dart';
+import 'package:flutter_pcgen/src/core/skill.dart';
+import 'package:flutter_pcgen/src/core/weapon_prof.dart';
 
 // Holds all the data loaded from data sources for a given game mode.
 class DataSet {

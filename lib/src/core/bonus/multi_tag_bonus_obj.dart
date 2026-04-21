@@ -16,7 +16,7 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.core.bonus.MultiTagBonusObj
-import 'bonus_obj.dart';
+import 'package:flutter_pcgen/src/core/bonus/bonus_obj.dart';
 
 // Abstract BonusObj subclass that maps token strings to integer tag indices.
 abstract class MultiTagBonusObj extends BonusObj {

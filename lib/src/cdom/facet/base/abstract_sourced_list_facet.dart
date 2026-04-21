@@ -7,7 +7,7 @@
 
 import 'package:flutter_pcgen/src/cdom/base/pcgen_identifier.dart';
 import 'package:flutter_pcgen/src/cdom/facet/event/data_facet_change_event.dart';
-import 'abstract_data_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/base/abstract_data_facet.dart';
 
 // dynamic: CDOMObject (not yet translated - used in getCountFrom / containsFrom)
 

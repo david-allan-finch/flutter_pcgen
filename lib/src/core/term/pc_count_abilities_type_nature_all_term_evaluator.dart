@@ -2,8 +2,8 @@
 //
 // Translation of pcgen.core.term.PCCountAbilitiesTypeNatureAllTermEvaluator
 
-import 'base_pc_count_abilities_type_term_evaluator.dart';
-import 'term_evaluator.dart';
+import 'package:flutter_pcgen/src/core/term/base_pc_count_abilities_type_term_evaluator.dart';
+import 'package:flutter_pcgen/src/core/term/term_evaluator.dart';
 
 class PCCountAbilitiesTypeNatureAllTermEvaluator extends BasePCCountAbilitiesTypeTermEvaluator
     implements TermEvaluator {

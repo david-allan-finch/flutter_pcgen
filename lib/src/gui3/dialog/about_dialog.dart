@@ -18,7 +18,7 @@
 // Translation of pcgen.gui3.dialog.AboutDialog
 
 import 'package:flutter/material.dart';
-import 'about_dialog_controller.dart';
+import 'package:flutter_pcgen/src/gui3/dialog/about_dialog_controller.dart';
 
 /// About dialog showing PCGen version and credits.
 class PCGenAboutDialog extends StatelessWidget {

@@ -2,8 +2,8 @@
 //
 // Translation of pcgen.core.term.PCCountMiscFundsTermEvaluator
 
-import 'base_pcd_term_evaluator.dart';
-import 'term_evaluator.dart';
+import 'package:flutter_pcgen/src/core/term/base_pcd_term_evaluator.dart';
+import 'package:flutter_pcgen/src/core/term/term_evaluator.dart';
 
 class PCCountMiscFundsTermEvaluator extends BasePCDTermEvaluator implements TermEvaluator {
   PCCountMiscFundsTermEvaluator(String originalText) {

@@ -19,7 +19,7 @@
 import 'package:flutter_pcgen/src/cdom/enumeration/integer_key.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/list_key.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/string_key.dart';
-import 'pcobject.dart';
+import 'package:flutter_pcgen/src/core/pcobject.dart';
 
 // Represents a campaign/source book that can be loaded.
 class Campaign extends PObject {

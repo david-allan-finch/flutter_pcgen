@@ -18,9 +18,9 @@
 // Translation of pcgen.core.BenefitFormatting
 import 'package:flutter_pcgen/src/cdom/content/cn_ability.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/list_key.dart';
-import 'description.dart';
-import 'player_character.dart';
-import 'pcobject.dart';
+import 'package:flutter_pcgen/src/core/description.dart';
+import 'package:flutter_pcgen/src/core/player_character.dart';
+import 'package:flutter_pcgen/src/core/pcobject.dart';
 
 final class BenefitFormatting {
   BenefitFormatting._();

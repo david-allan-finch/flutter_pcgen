@@ -14,8 +14,8 @@
 // Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.facade.util.VetoableReferenceFacade
-import 'abstract_reference_facade.dart';
-import 'reference_facade.dart';
+import 'package:flutter_pcgen/src/facade/util/abstract_reference_facade.dart';
+import 'package:flutter_pcgen/src/facade/util/reference_facade.dart';
 
 /// A [WriteableReferenceFacade] that allows registered functions to veto
 /// proposed changes. A veto function returns [true] to block the change.

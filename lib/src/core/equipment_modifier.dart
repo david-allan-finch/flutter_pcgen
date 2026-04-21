@@ -16,9 +16,9 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.core.EquipmentModifier
-import 'bonus/bonus_obj.dart';
-import 'pcobject.dart';
-import 'special_property.dart';
+import 'package:flutter_pcgen/src/core/bonus/bonus_obj.dart';
+import 'package:flutter_pcgen/src/core/pcobject.dart';
+import 'package:flutter_pcgen/src/core/special_property.dart';
 
 /// Definition and game rules for an equipment modifier (EQMOD).
 ///

@@ -17,7 +17,7 @@
 //
 // Translation of pcgen.gui2.converter.event.TaskStrategyMessage
 
-import 'task_strategy_listener.dart';
+import 'package:flutter_pcgen/src/gui2/converter/event/task_strategy_listener.dart';
 
 /// Static broadcaster for task-strategy status messages.
 /// Listeners register via [addTaskStrategyListener] and receive

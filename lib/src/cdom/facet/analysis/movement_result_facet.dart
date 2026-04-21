@@ -9,12 +9,12 @@ import 'package:flutter_pcgen/src/cdom/facet/equipment_facet.dart';
 import 'package:flutter_pcgen/src/cdom/facet/formula_resolving_facet.dart';
 import 'package:flutter_pcgen/src/cdom/facet/model/race_facet.dart';
 import 'package:flutter_pcgen/src/cdom/facet/model/template_facet.dart';
-import 'base_movement_facet.dart';
-import 'load_facet.dart';
-import 'move_clone_facet.dart';
-import 'movement_facet.dart';
-import 'unencumbered_armor_facet.dart';
-import 'unencumbered_load_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/analysis/base_movement_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/analysis/load_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/analysis/move_clone_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/analysis/movement_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/analysis/unencumbered_armor_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/analysis/unencumbered_load_facet.dart';
 
 /// Stores the resulting aggregated movement for a Player Character.
 class MovementResultFacet extends AbstractStorageFacet<CharID> {

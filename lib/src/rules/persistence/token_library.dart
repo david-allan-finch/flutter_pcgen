@@ -5,18 +5,18 @@
 import 'dart:collection';
 
 import 'package:flutter_pcgen/src/persistence/lst/prereq/prerequisite_parser_interface.dart';
-import 'token/c_d_o_m_compatibility_token.dart';
-import 'token/c_d_o_m_interface_token.dart';
-import 'token/c_d_o_m_primary_token.dart';
-import 'token/c_d_o_m_secondary_token.dart';
-import 'token/c_d_o_m_token.dart';
-import 'token/deferred_token.dart';
-import 'token/modifier_factory.dart';
-import 'token/post_deferred_token.dart';
-import 'token/post_validation_token.dart';
-import 'token/primitive_token.dart';
-import 'token/qualifier_token.dart';
-import 'util/token_family.dart';
+import 'package:flutter_pcgen/src/rules/persistence/token/c_d_o_m_compatibility_token.dart';
+import 'package:flutter_pcgen/src/rules/persistence/token/c_d_o_m_interface_token.dart';
+import 'package:flutter_pcgen/src/rules/persistence/token/c_d_o_m_primary_token.dart';
+import 'package:flutter_pcgen/src/rules/persistence/token/c_d_o_m_secondary_token.dart';
+import 'package:flutter_pcgen/src/rules/persistence/token/c_d_o_m_token.dart';
+import 'package:flutter_pcgen/src/rules/persistence/token/deferred_token.dart';
+import 'package:flutter_pcgen/src/rules/persistence/token/modifier_factory.dart';
+import 'package:flutter_pcgen/src/rules/persistence/token/post_deferred_token.dart';
+import 'package:flutter_pcgen/src/rules/persistence/token/post_validation_token.dart';
+import 'package:flutter_pcgen/src/rules/persistence/token/primitive_token.dart';
+import 'package:flutter_pcgen/src/rules/persistence/token/qualifier_token.dart';
+import 'package:flutter_pcgen/src/rules/persistence/util/token_family.dart';
 
 /// Static registry for all token types known to the PCGen rules engine.
 ///

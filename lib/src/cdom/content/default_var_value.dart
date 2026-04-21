@@ -18,7 +18,7 @@
 // Translation of pcgen.cdom.content.DefaultVarValue
 import 'package:flutter_pcgen/src/base/util/format_manager.dart';
 import 'package:flutter_pcgen/src/base/util/indirect.dart';
-import 'user_content.dart';
+import 'package:flutter_pcgen/src/cdom/content/user_content.dart';
 
 // DefaultVarValue is a shell object used during LST loading to carry the
 // default value definition for a variable format. Values are not used at

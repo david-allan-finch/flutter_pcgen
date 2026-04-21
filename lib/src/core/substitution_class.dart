@@ -16,7 +16,7 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.core.SubstitutionClass
-import 'pc_class.dart';
+import 'package:flutter_pcgen/src/core/pc_class.dart';
 
 // A SubstitutionClass is a PCClass variant that substitutes levels
 // for another class. No additional data beyond PCClass.

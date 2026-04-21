@@ -1,4 +1,4 @@
-import 'indirect.dart';
+import 'package:flutter_pcgen/src/base/util/indirect.dart';
 
 class NamedIndirect<T> implements Indirect<T> {
   final String _name;

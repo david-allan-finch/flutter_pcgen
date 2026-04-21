@@ -2,8 +2,8 @@
 //
 // Translation of pcgen.rules.persistence.token.CDOMCompatibilityToken
 
-import 'cdom_token.dart';
-import 'compatibility_token.dart';
+import 'package:flutter_pcgen/src/rules/persistence/token/cdom_token.dart';
+import 'package:flutter_pcgen/src/rules/persistence/token/compatibility_token.dart';
 
 /// A [CDOMCompatibilityToken] implements a tag syntax from a previous version
 /// of PCGen.

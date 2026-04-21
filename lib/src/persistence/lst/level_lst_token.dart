@@ -2,7 +2,7 @@
 //
 // Translation of pcgen.persistence.lst.LevelLstToken
 
-import 'lst_token.dart';
+import 'package:flutter_pcgen/src/persistence/lst/lst_token.dart';
 
 /// Interface for tokens handled by the level.lst loader.
 abstract interface class LevelLstToken implements LstToken {

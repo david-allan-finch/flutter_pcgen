@@ -19,10 +19,10 @@
 
 import 'package:flutter_pcgen/src/cdom/base/cdom_object.dart';
 import 'package:flutter_pcgen/src/rules/context/load_context.dart';
-import 'abstract_token.dart';
-import 'cdom_token.dart';
-import 'cdom_write_token.dart';
-import 'parse_result.dart';
+import 'package:flutter_pcgen/src/rules/persistence/token/abstract_token.dart';
+import 'package:flutter_pcgen/src/rules/persistence/token/cdom_token.dart';
+import 'package:flutter_pcgen/src/rules/persistence/token/cdom_write_token.dart';
+import 'package:flutter_pcgen/src/rules/persistence/token/parse_result.dart';
 
 /// Abstract base for tokens that store a free-form string in a CDOMObject's
 /// fact map (not the structured StringKey map).

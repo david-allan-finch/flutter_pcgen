@@ -17,7 +17,7 @@
 //
 // Translation of pcgen.core.SizeAdjustment
 import 'package:flutter_pcgen/src/cdom/enumeration/string_key.dart';
-import 'pcobject.dart';
+import 'package:flutter_pcgen/src/core/pcobject.dart';
 
 /// Represents a size category (Fine, Diminutive, Tiny, Small, Medium, Large, etc).
 ///

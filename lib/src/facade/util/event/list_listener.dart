@@ -2,7 +2,7 @@
 //
 // Translation of pcgen.facade.util.event.ListListener
 
-import 'list_event.dart';
+import 'package:flutter_pcgen/src/facade/util/event/list_event.dart';
 
 /// Listener for changes to a ListFacade.
 abstract interface class ListListener<E> {

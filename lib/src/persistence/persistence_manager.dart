@@ -18,7 +18,7 @@
 // Translation of pcgen.persistence.PersistenceManager
 import 'package:flutter_pcgen/src/core/game_mode.dart';
 import 'package:flutter_pcgen/src/core/settings_handler.dart';
-import 'system_loader.dart';
+import 'package:flutter_pcgen/src/persistence/system_loader.dart';
 
 // Singleton factory for accessing the system loader.
 final class PersistenceManager {

@@ -1,6 +1,6 @@
 import 'package:flutter_pcgen/src/base/lang/case_insensitive_string.dart';
 import 'package:flutter_pcgen/src/base/util/format_manager.dart';
-import 'scope_instance.dart';
+import 'package:flutter_pcgen/src/formula/base/scope_instance.dart';
 
 class VariableID<T> {
   final FormatManager<T> formatManager;

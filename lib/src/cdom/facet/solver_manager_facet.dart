@@ -3,8 +3,8 @@
 // Translation of pcgen.cdom.facet.SolverManagerFacet
 
 import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
-import 'base/abstract_item_facet.dart';
-import 'scope_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/base/abstract_item_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/scope_facet.dart';
 
 /// Stores the SolverManager for each Player Character (formula solver system).
 class SolverManagerFacet extends AbstractItemFacet<CharID, dynamic> {

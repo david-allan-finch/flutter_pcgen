@@ -3,8 +3,8 @@
 // Translation of pcgen.rules.persistence.token.CDOMSecondaryToken
 
 import 'package:flutter_pcgen/src/rules/context/load_context.dart';
-import 'c_d_o_m_sub_token.dart';
-import 'c_d_o_m_token.dart';
+import 'package:flutter_pcgen/src/rules/persistence/token/c_d_o_m_sub_token.dart';
+import 'package:flutter_pcgen/src/rules/persistence/token/c_d_o_m_token.dart';
 
 /// A sub-token (nested under a parent token name) that can also unparse.
 abstract interface class CDOMSecondaryToken<T>

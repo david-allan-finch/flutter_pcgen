@@ -1,4 +1,4 @@
-import 'map_to_list.dart';
+import 'package:flutter_pcgen/src/base/util/map_to_list.dart';
 
 abstract class AbstractMapToList<K, V> implements MapToList<K, V> {
   final Map<K, List<V>> _mapToList;

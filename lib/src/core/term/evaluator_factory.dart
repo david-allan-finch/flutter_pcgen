@@ -4,12 +4,12 @@
 
 import 'dart:collection';
 
-import 'term_evaluator.dart';
-import 'term_evaluator_builder.dart';
-import 'term_evaluator_builder_eq_var.dart';
-import 'term_evaluator_builder_pc_stat.dart';
-import 'term_evaluator_builder_pc_var.dart';
-import 'term_evaulator_exception.dart';
+import 'package:flutter_pcgen/src/core/term/term_evaluator.dart';
+import 'package:flutter_pcgen/src/core/term/term_evaluator_builder.dart';
+import 'package:flutter_pcgen/src/core/term/term_evaluator_builder_eq_var.dart';
+import 'package:flutter_pcgen/src/core/term/term_evaluator_builder_pc_stat.dart';
+import 'package:flutter_pcgen/src/core/term/term_evaluator_builder_pc_var.dart';
+import 'package:flutter_pcgen/src/core/term/term_evaulator_exception.dart';
 
 /// Factory that maps term strings to TermEvaluator instances.
 ///

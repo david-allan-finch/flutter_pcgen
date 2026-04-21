@@ -18,7 +18,7 @@
 // Translation of pcgen.cdom.facet.base.AbstractAssociationFacet
 import 'package:flutter_pcgen/src/cdom/base/pcgen_identifier.dart';
 import 'package:flutter_pcgen/src/cdom/facet/event/data_facet_change_event.dart';
-import 'abstract_scope_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/base/abstract_scope_facet.dart';
 
 // Facet that stores a single association per source object per IDT.
 abstract class AbstractAssociationFacet<IDT extends PCGenIdentifier, S, A>

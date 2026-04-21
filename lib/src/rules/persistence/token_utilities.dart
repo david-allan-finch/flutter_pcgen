@@ -3,8 +3,8 @@
 // Translation of pcgen.rules.persistence.TokenUtilities
 
 import 'package:flutter_pcgen/src/rules/context/load_context.dart';
-import 'token/c_d_o_m_token.dart';
-import 'token_library.dart';
+import 'package:flutter_pcgen/src/rules/persistence/token/c_d_o_m_token.dart';
+import 'package:flutter_pcgen/src/rules/persistence/token_library.dart';
 
 /// Utility methods for token lookup and reference construction.
 ///

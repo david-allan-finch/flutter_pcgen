@@ -18,7 +18,7 @@
 // Translation of pcgen.gui2.filter.FilterButton
 
 import 'package:flutter/material.dart';
-import 'displayable_filter.dart';
+import 'package:flutter_pcgen/src/gui2/filter/displayable_filter.dart';
 
 /// A toggle button that enables/disables a filter.
 class FilterButton<T> extends StatefulWidget {

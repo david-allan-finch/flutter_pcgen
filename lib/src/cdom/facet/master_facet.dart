@@ -7,8 +7,8 @@ import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/object_key.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/string_key.dart';
 import 'package:flutter_pcgen/src/core/character/follower.dart';
-import 'base/abstract_item_facet.dart';
-import 'model/companion_mod_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/base/abstract_item_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/model/companion_mod_facet.dart';
 
 /// Tracks the master [Follower] for a companion Player Character, and provides
 /// access to companion-modifier formulas from [CompanionModFacet].

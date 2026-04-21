@@ -17,7 +17,7 @@
 //
 // Translation of pcgen.gui3.dialog.OptionsPathDialogController
 
-import 'options_path_dialog_model.dart';
+import 'package:flutter_pcgen/src/gui3/dialog/options_path_dialog_model.dart';
 
 /// Controller for the Options Path dialog.
 class OptionsPathDialogController {

@@ -20,7 +20,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import 'common_menu_text.dart';
+import 'package:flutter_pcgen/src/gui2/tools/common_menu_text.dart';
 import 'icons.dart' as pcgen_icons;
 
 /// Modifier key combinations used in accelerator strings.

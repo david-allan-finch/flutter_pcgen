@@ -16,9 +16,9 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.base.AssociatedPrereqObject
-import 'associated_object.dart';
-import 'prereq_object.dart';
-import 'qualifying_object.dart';
+import 'package:flutter_pcgen/src/cdom/base/associated_object.dart';
+import 'package:flutter_pcgen/src/cdom/base/prereq_object.dart';
+import 'package:flutter_pcgen/src/cdom/base/qualifying_object.dart';
 
 // Combines AssociatedObject, PrereqObject, and QualifyingObject interfaces.
 abstract interface class AssociatedPrereqObject

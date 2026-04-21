@@ -2,10 +2,10 @@
 //
 // Translation of pcgen.core.doomsdaybook.VariableHashMap
 
-import 'data_element.dart';
-import 'data_value.dart';
-import 'operation.dart';
-import 'variable_exception.dart';
+import 'package:flutter_pcgen/src/core/doomsdaybook/data_element.dart';
+import 'package:flutter_pcgen/src/core/doomsdaybook/data_value.dart';
+import 'package:flutter_pcgen/src/core/doomsdaybook/operation.dart';
+import 'package:flutter_pcgen/src/core/doomsdaybook/variable_exception.dart';
 
 /// A Map<String, String> that also stores DataElements and variable operations
 /// for the doomsdaybook random name/text generation system.

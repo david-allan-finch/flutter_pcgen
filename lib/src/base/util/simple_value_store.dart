@@ -1,4 +1,4 @@
-import 'value_store.dart';
+import 'package:flutter_pcgen/src/base/util/value_store.dart';
 
 class SimpleValueStore implements ValueStore {
   final Map<String, Object?> _store = {};

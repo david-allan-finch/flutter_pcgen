@@ -32,12 +32,12 @@ import 'package:flutter_pcgen/src/cdom/formula/pcgen_scoped.dart';
 import 'package:flutter_pcgen/src/cdom/util/fact_set_key_map_to_list.dart';
 import 'package:flutter_pcgen/src/cdom/util/list_key_map_to_list.dart';
 import 'package:flutter_pcgen/src/cdom/util/map_key_map.dart';
-import 'bonus_container.dart';
-import 'concrete_prereq_object.dart';
-import 'loadable.dart';
-import 'reducible.dart';
-import 'var_container.dart';
-import 'var_holder.dart';
+import 'package:flutter_pcgen/src/cdom/base/bonus_container.dart';
+import 'package:flutter_pcgen/src/cdom/base/concrete_prereq_object.dart';
+import 'package:flutter_pcgen/src/cdom/base/loadable.dart';
+import 'package:flutter_pcgen/src/cdom/base/reducible.dart';
+import 'package:flutter_pcgen/src/cdom/base/var_container.dart';
+import 'package:flutter_pcgen/src/cdom/base/var_holder.dart';
 
 // The central abstract base class for all game objects.
 abstract class CDOMObject extends ConcretePrereqObject

@@ -16,8 +16,8 @@
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
 //
 // Translation of pcgen.cdom.base.Categorized
-import 'category.dart';
-import 'loadable.dart';
+import 'package:flutter_pcgen/src/cdom/base/category.dart';
+import 'package:flutter_pcgen/src/cdom/base/loadable.dart';
 
 /// Categorized represents an object which can possess a Category object.
 /// This Category is used for establishing unique identity of an object.

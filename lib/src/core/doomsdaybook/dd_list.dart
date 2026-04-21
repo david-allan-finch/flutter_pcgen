@@ -4,9 +4,9 @@
 
 import 'dart:math';
 
-import 'data_element.dart';
-import 'data_value.dart';
-import 'weighted_data_value.dart';
+import 'package:flutter_pcgen/src/core/doomsdaybook/data_element.dart';
+import 'package:flutter_pcgen/src/core/doomsdaybook/data_value.dart';
+import 'package:flutter_pcgen/src/core/doomsdaybook/weighted_data_value.dart';
 
 /// A DDList is a weighted list of WeightedDataValues. When getData() is called,
 /// it rolls a virtual die (summing all weights) and selects an entry by weighted

@@ -17,7 +17,7 @@
 //
 // Translation of pcgen.gui2.tabs.models.DeferredCharacterComboBoxModel
 
-import 'character_combo_box_model.dart';
+import 'package:flutter_pcgen/src/gui2/tabs/models/character_combo_box_model.dart';
 
 /// A CharacterComboBoxModel whose item list is populated lazily on first access.
 class DeferredCharacterComboBoxModel<T> extends CharacterComboBoxModel<T> {

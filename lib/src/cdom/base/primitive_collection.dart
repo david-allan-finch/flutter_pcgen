@@ -17,7 +17,7 @@
 //
 // Translation of pcgen.cdom.base.PrimitiveCollection
 import 'package:flutter_pcgen/src/cdom/enumeration/grouping_state.dart';
-import 'converter.dart';
+import 'package:flutter_pcgen/src/cdom/base/converter.dart';
 
 // PrimitiveCollection can resolve itself to a typed collection given a
 // PlayerCharacter and a Converter.

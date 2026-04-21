@@ -14,7 +14,7 @@
 // Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.facade.util.WriteableListFacade
-import 'list_facade.dart';
+import 'package:flutter_pcgen/src/facade/util/list_facade.dart';
 
 // Mutable version of ListFacade — supports add and remove.
 abstract interface class WriteableListFacade<E> implements ListFacade<E> {

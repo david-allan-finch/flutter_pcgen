@@ -18,7 +18,7 @@
 // Translation of pcgen.io.freemarker.EquipSetLoopDirective
 // Note: FreeMarker not available in Dart; stub only.
 
-import 'loop_directive.dart';
+import 'package:flutter_pcgen/src/io/freemarker/loop_directive.dart';
 
 class EquipSetLoopDirective extends LoopDirective {
   // TODO: implement equipment set loop for templates

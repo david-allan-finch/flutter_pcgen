@@ -16,8 +16,8 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.core.XPTable
-import 'level_info.dart';
-import 'pcobject.dart';
+import 'package:flutter_pcgen/src/core/level_info.dart';
+import 'package:flutter_pcgen/src/core/pcobject.dart';
 
 // Maps level strings to LevelInfo objects for an XP progression table.
 final class XPTable extends PObject {

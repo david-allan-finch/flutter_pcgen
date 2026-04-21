@@ -17,7 +17,7 @@
 //
 // Translation of pcgen.rules.persistence.token.AbstractToken
 
-import 'parse_result.dart';
+import 'package:flutter_pcgen/src/rules/persistence/token/parse_result.dart';
 
 /// Base class for all token implementations, providing common parsing utilities.
 ///

@@ -14,7 +14,7 @@
 // Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.grouping.GroupingScopeFilter
-import 'grouping_collection.dart';
+import 'package:flutter_pcgen/src/cdom/grouping/grouping_collection.dart';
 
 // Decorates a GroupingCollection to filter by PCGenScope name.
 class GroupingScopeFilter<T> implements GroupingCollection<T> {

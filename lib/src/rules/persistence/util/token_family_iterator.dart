@@ -4,7 +4,7 @@
 
 import 'package:flutter_pcgen/src/rules/persistence/token/c_d_o_m_primary_token.dart';
 import 'package:flutter_pcgen/src/rules/persistence/token/c_d_o_m_token.dart';
-import 'token_family.dart';
+import 'package:flutter_pcgen/src/rules/persistence/util/token_family.dart';
 
 /// Iterates [CDOMPrimaryToken]s for a given type across the type hierarchy
 /// within [TokenFamily.current].

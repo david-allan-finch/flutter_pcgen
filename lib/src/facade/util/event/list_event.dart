@@ -2,7 +2,7 @@
 //
 // Translation of pcgen.facade.util.event.ListEvent
 
-import 'facade_event.dart';
+import 'package:flutter_pcgen/src/facade/util/event/facade_event.dart';
 
 /// Event fired when a ListFacade changes.
 class ListEvent<E> extends FacadeEvent {

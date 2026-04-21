@@ -2,7 +2,7 @@
 //
 // Translation of pcgen.facade.util.event.MapListener
 
-import 'map_event.dart';
+import 'package:flutter_pcgen/src/facade/util/event/map_event.dart';
 
 /// Listener for changes to a MapFacade.
 abstract interface class MapListener<K, V> {

@@ -25,10 +25,10 @@ import 'package:flutter_pcgen/src/cdom/enumeration/object_key.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/string_key.dart';
 import 'package:flutter_pcgen/src/cdom/inst/pc_class_level.dart';
 import 'package:flutter_pcgen/src/util/enumeration/attack_type.dart';
-import 'pc_stat.dart';
-import 'pcobject.dart';
-import 'sub_class.dart';
-import 'substitution_class.dart';
+import 'package:flutter_pcgen/src/core/pc_stat.dart';
+import 'package:flutter_pcgen/src/core/pcobject.dart';
+import 'package:flutter_pcgen/src/core/sub_class.dart';
+import 'package:flutter_pcgen/src/core/substitution_class.dart';
 
 /// Represents a character class (e.g., Fighter, Wizard, Rogue).
 class PCClass extends PObject {

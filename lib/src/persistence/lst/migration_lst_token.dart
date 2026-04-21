@@ -3,7 +3,7 @@
 // Translation of pcgen.persistence.lst.MigrationLstToken
 
 import 'package:flutter_pcgen/src/core/system/migration_rule.dart';
-import 'lst_token.dart';
+import 'package:flutter_pcgen/src/persistence/lst/lst_token.dart';
 
 /// Interface for tokens handled by the MigrationLoader.
 abstract interface class MigrationLstToken implements LstToken {

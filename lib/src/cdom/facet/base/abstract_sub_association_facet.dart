@@ -18,8 +18,8 @@
 // Translation of pcgen.cdom.facet.base.AbstractSubAssociationFacet
 import 'package:flutter_pcgen/src/cdom/base/pcgen_identifier.dart';
 import 'package:flutter_pcgen/src/cdom/facet/event/data_facet_change_event.dart';
-import 'abstract_scope_facet.dart';
-import 'abstract_storage_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/base/abstract_scope_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/base/abstract_storage_facet.dart';
 
 // Facet storing (S1, S2) → A associations per IDT (one association per (S1,S2) pair).
 abstract class AbstractSubAssociationFacet<IDT extends PCGenIdentifier, S1, S2, A>

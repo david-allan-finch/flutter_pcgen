@@ -17,7 +17,7 @@
 //
 // Translation of pcgen.system.PCGenTaskEvent
 
-import 'progress_container.dart';
+import 'package:flutter_pcgen/src/system/progress_container.dart';
 
 class PCGenTaskEvent {
   final ProgressContainer source;

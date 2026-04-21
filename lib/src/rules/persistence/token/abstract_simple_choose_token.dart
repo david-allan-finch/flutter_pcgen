@@ -3,9 +3,9 @@
 // Translation of pcgen.rules.persistence.token.AbstractSimpleChooseToken
 
 import 'package:flutter_pcgen/src/rules/context/load_context.dart';
-import 'abstract_token_with_separator.dart';
-import 'cdom_secondary_token.dart';
-import 'parse_result.dart';
+import 'package:flutter_pcgen/src/rules/persistence/token/abstract_token_with_separator.dart';
+import 'package:flutter_pcgen/src/rules/persistence/token/cdom_secondary_token.dart';
+import 'package:flutter_pcgen/src/rules/persistence/token/parse_result.dart';
 
 /// Abstract base for simple CHOOSE sub-tokens whose element type [T] is a
 /// [Loadable] (but not necessarily a full CDOMObject).

@@ -18,7 +18,7 @@
 // Translation of pcgen.cdom.content.AbilitySelection
 import 'package:flutter_pcgen/src/cdom/base/cdom_object.dart';
 import 'package:flutter_pcgen/src/cdom/base/reducible.dart';
-import 'selection.dart';
+import 'package:flutter_pcgen/src/cdom/content/selection.dart';
 import 'package:flutter_pcgen/src/core/ability.dart';
 import 'package:flutter_pcgen/src/rules/context/load_context.dart';
 import 'package:flutter_pcgen/src/core/ability_utilities.dart';

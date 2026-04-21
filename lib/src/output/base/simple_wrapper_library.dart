@@ -17,7 +17,7 @@
 //
 // Translation of pcgen.output.base.SimpleWrapperLibrary
 
-import 'simple_object_wrapper.dart';
+import 'package:flutter_pcgen/src/output/base/simple_object_wrapper.dart';
 import 'package:flutter_pcgen/src/output/wrapper/string_wrapper.dart';
 import 'package:flutter_pcgen/src/output/wrapper/number_wrapper.dart';
 import 'package:flutter_pcgen/src/output/wrapper/boolean_wrapper.dart';

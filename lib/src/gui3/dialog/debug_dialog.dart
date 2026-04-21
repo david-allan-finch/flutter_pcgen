@@ -18,7 +18,7 @@
 // Translation of pcgen.gui3.dialog.DebugDialog
 
 import 'package:flutter/material.dart';
-import 'debug_dialog_controller.dart';
+import 'package:flutter_pcgen/src/gui3/dialog/debug_dialog_controller.dart';
 
 /// Debug/log viewer dialog showing PCGen log output.
 class DebugDialog extends StatelessWidget {

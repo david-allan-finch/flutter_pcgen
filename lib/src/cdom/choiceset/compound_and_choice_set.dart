@@ -18,7 +18,7 @@
 // Translation of pcgen.cdom.choiceset.CompoundAndChoiceSet
 import 'package:flutter_pcgen/src/cdom/base/constants.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/grouping_state.dart';
-import 'choice_set_utilities.dart';
+import 'package:flutter_pcgen/src/cdom/choiceset/choice_set_utilities.dart';
 
 // A PrimitiveChoiceSet that performs a logical AND (intersection) of multiple
 // underlying choice sets: only objects present in ALL sets are included.

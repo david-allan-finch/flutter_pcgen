@@ -18,8 +18,8 @@
 // Translation of pcgen.cdom.base.CDOMReference
 import 'package:flutter_pcgen/src/base/util/object_container.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/grouping_state.dart';
-import 'converter.dart';
-import 'primitive_collection.dart';
+import 'package:flutter_pcgen/src/cdom/base/converter.dart';
+import 'package:flutter_pcgen/src/cdom/base/primitive_collection.dart';
 
 /// A CDOMReference stores references to Objects. Often these are CDOMObjects,
 /// but that is not strictly required.

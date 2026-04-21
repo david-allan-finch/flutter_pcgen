@@ -5,8 +5,8 @@
 import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/object_key.dart';
 import 'package:flutter_pcgen/src/core/pc_class.dart';
-import 'player_character_tracking_facet.dart';
-import 'spell_list_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/player_character_tracking_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/spell_list_facet.dart';
 
 /// Manages Spell Lists granted to a Player Character via PCClass SPELLLIST.
 class ClassSpellListFacet {

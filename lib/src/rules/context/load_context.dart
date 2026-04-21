@@ -15,10 +15,10 @@ import 'package:flutter_pcgen/src/cdom/enumeration/data_set_id.dart';
 import 'package:flutter_pcgen/src/cdom/reference/reference_manufacturer.dart';
 import 'package:flutter_pcgen/src/cdom/reference/selection_creator.dart';
 import 'package:flutter_pcgen/src/formula/inst/nep_formula.dart';
-import 'abstract_list_context.dart';
-import 'abstract_object_context.dart';
+import 'package:flutter_pcgen/src/rules/context/abstract_list_context.dart';
+import 'package:flutter_pcgen/src/rules/context/abstract_object_context.dart';
 import 'runtime_reference_context.dart' show AbstractReferenceContext;
-import 'variable_context.dart';
+import 'package:flutter_pcgen/src/rules/context/variable_context.dart';
 
 // ---------------------------------------------------------------------------
 // Shared stub types referenced by LoadContext and LoadContextInst

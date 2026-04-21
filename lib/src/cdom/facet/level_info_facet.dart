@@ -4,7 +4,7 @@
 
 import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
 import 'package:flutter_pcgen/src/core/pclevelinfo/pc_level_info.dart';
-import 'base/abstract_list_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/base/abstract_list_facet.dart';
 
 /// Stores the [PCLevelInfo] objects for a Player Character in insertion order.
 /// The implicit index of each item represents its level.

@@ -20,8 +20,8 @@ import 'package:flutter_pcgen/src/cdom/base/associated_prereq_object.dart';
 import 'package:flutter_pcgen/src/cdom/base/cdom_list.dart';
 import 'package:flutter_pcgen/src/cdom/base/cdom_object.dart';
 import 'package:flutter_pcgen/src/cdom/base/cdom_reference.dart';
-import 'associated_changes.dart';
-import 'changes.dart';
+import 'package:flutter_pcgen/src/rules/context/associated_changes.dart';
+import 'package:flutter_pcgen/src/rules/context/changes.dart';
 
 abstract interface class ListCommitStrategy {
   /// Create a new AssociatedPrereqObject for the owner and link it to the

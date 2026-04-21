@@ -4,7 +4,7 @@
 
 import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
 import 'package:flutter_pcgen/src/core/kit.dart';
-import 'base/abstract_list_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/base/abstract_list_facet.dart';
 
 /// Tracks [Kit] objects possessed by a Player Character.
 class KitFacet extends AbstractListFacet<CharID, Kit> {

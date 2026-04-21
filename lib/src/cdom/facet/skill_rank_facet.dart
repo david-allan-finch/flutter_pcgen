@@ -5,7 +5,7 @@
 import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
 import 'package:flutter_pcgen/src/core/pc_class.dart';
 import 'package:flutter_pcgen/src/core/skill.dart';
-import 'base/abstract_storage_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/base/abstract_storage_facet.dart';
 
 /// Stores per-class skill rank assignments for each Skill on a Player Character.
 class SkillRankFacet extends AbstractStorageFacet<CharID> {

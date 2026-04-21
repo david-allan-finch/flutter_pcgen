@@ -11,7 +11,7 @@ import 'package:flutter_pcgen/src/cdom/facet/base/abstract_sourced_list_facet.da
 import 'package:flutter_pcgen/src/cdom/facet/event/data_facet_change_event.dart';
 import 'package:flutter_pcgen/src/cdom/facet/event/data_facet_change_listener.dart';
 import 'package:flutter_pcgen/src/cdom/facet/model/class_facet.dart';
-import 'has_any_favored_class_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/analysis/has_any_favored_class_facet.dart';
 
 /// Tracks favored PCClass objects granted via FAVOREDCLASS tokens.
 class FavoredClassFacet extends AbstractSourcedListFacet<CharID, PCClass>

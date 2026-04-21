@@ -2,7 +2,7 @@
 //
 // Translation of pcgen.core.doomsdaybook.DataValue
 
-import 'data_sub_value.dart';
+import 'package:flutter_pcgen/src/core/doomsdaybook/data_sub_value.dart';
 
 /// A value produced by a DataElement, optionally with a linked list of sub-values.
 class DataValue {

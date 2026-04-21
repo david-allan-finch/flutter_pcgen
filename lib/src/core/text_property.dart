@@ -16,7 +16,7 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.core.TextProperty
-import 'pcobject.dart';
+import 'package:flutter_pcgen/src/core/pcobject.dart';
 
 /// Abstract base class for text-based properties (SpecialAbility, SpecialProperty, etc).
 ///

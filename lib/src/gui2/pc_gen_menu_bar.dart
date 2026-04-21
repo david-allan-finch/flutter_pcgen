@@ -18,8 +18,8 @@
 // Translation of pcgen.gui2.PCGenMenuBar
 
 import 'package:flutter/material.dart';
-import 'ui_context.dart';
-import 'pc_gen_action_map.dart';
+import 'package:flutter_pcgen/src/gui2/ui_context.dart';
+import 'package:flutter_pcgen/src/gui2/pc_gen_action_map.dart';
 
 /// The menu bar displayed in PCGen's main window.
 class PCGenMenuBar extends StatefulWidget {

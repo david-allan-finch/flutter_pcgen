@@ -16,10 +16,10 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.base.CDOMObjectUtilities
-import 'cdom_object.dart';
-import 'loadable.dart';
-import 'persistent_transition_choice.dart';
-import 'transition_choice.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_object.dart';
+import 'package:flutter_pcgen/src/cdom/base/loadable.dart';
+import 'package:flutter_pcgen/src/cdom/base/persistent_transition_choice.dart';
+import 'package:flutter_pcgen/src/cdom/base/transition_choice.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/list_key.dart';
 
 // CDOMObjectUtilities provides static helpers for working with CDOMObjects,

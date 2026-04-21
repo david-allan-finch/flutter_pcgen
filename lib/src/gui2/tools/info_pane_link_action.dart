@@ -19,8 +19,8 @@
 
 import 'package:flutter/material.dart';
 
-import 'desktop_browser_launcher.dart';
-import 'info_pane.dart';
+import 'package:flutter_pcgen/src/gui2/tools/desktop_browser_launcher.dart';
+import 'package:flutter_pcgen/src/gui2/tools/info_pane.dart';
 
 /// Handles hyperlink taps inside an [InfoPane] by opening the URL in the
 /// system browser.

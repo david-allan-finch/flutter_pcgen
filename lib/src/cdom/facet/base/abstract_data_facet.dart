@@ -8,7 +8,7 @@
 import 'package:flutter_pcgen/src/cdom/base/pcgen_identifier.dart';
 import 'package:flutter_pcgen/src/cdom/facet/event/data_facet_change_event.dart';
 import 'package:flutter_pcgen/src/cdom/facet/event/data_facet_change_listener.dart';
-import 'abstract_storage_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/base/abstract_storage_facet.dart';
 
 // dynamic: CategorizedDataFacetChangeEvent, Category, Nature (not yet translated)
 

@@ -21,8 +21,8 @@ import 'package:flutter_pcgen/src/core/pc_class.dart';
 import 'package:flutter_pcgen/src/core/sub_class.dart';
 import 'package:flutter_pcgen/src/core/substitution_class.dart';
 import 'package:flutter_pcgen/src/rules/context/load_context.dart';
-import 'lst_object_file_loader.dart';
-import 'source_entry.dart';
+import 'package:flutter_pcgen/src/persistence/lst/lst_object_file_loader.dart';
+import 'package:flutter_pcgen/src/persistence/lst/source_entry.dart';
 
 /// Loads PCClass (and SubClass / SubstitutionClass) objects from LST files.
 ///

@@ -2,8 +2,8 @@
 //
 // Translation of pcgen.core.term.PCHasDeityTermEvaluator
 
-import 'base_pcd_term_evaluator.dart';
-import 'term_evaluator.dart';
+import 'package:flutter_pcgen/src/core/term/base_pcd_term_evaluator.dart';
+import 'package:flutter_pcgen/src/core/term/term_evaluator.dart';
 
 class PCHasDeityTermEvaluator extends BasePCDTermEvaluator implements TermEvaluator {
   final String deity;

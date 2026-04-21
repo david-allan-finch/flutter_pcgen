@@ -2,10 +2,10 @@
 //
 // Translation of pcgen.core.chooser.ChooserUtilities
 
-import 'ability_choose_controller.dart';
-import 'cdom_choice_manager.dart';
-import 'choice_manager_list.dart';
-import 'skill_choose_controller.dart';
+import 'package:flutter_pcgen/src/core/chooser/ability_choose_controller.dart';
+import 'package:flutter_pcgen/src/core/chooser/cdom_choice_manager.dart';
+import 'package:flutter_pcgen/src/core/chooser/choice_manager_list.dart';
+import 'package:flutter_pcgen/src/core/chooser/skill_choose_controller.dart';
 
 /// Utility methods for driving CHOOSE token interactions.
 class ChooserUtilities {

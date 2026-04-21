@@ -17,7 +17,7 @@
 //
 // Translation of pcgen.cdom.facet.event.ScopeFacetChangeListener
 import 'package:flutter_pcgen/src/cdom/base/pcgen_identifier.dart';
-import 'scope_facet_change_event.dart';
+import 'package:flutter_pcgen/src/cdom/facet/event/scope_facet_change_event.dart';
 
 abstract interface class ScopeFacetChangeListener<IDT extends PCGenIdentifier, S, T> {
   void dataAdded(ScopeFacetChangeEvent<IDT, S, T> dfce);

@@ -1,10 +1,10 @@
 import 'package:flutter_pcgen/src/base/util/format_manager.dart';
 import 'package:flutter_pcgen/src/formula/base/evaluation_manager.dart';
 import 'package:flutter_pcgen/src/formula/base/variable_id.dart';
-import 'modifier.dart';
-import 'process_step.dart';
-import 'solver.dart';
-import 'solver_manager.dart';
+import 'package:flutter_pcgen/src/formula/solver/modifier.dart';
+import 'package:flutter_pcgen/src/formula/solver/process_step.dart';
+import 'package:flutter_pcgen/src/formula/solver/solver.dart';
+import 'package:flutter_pcgen/src/formula/solver/solver_manager.dart';
 
 class SimpleSolverManager implements SolverManager {
   final Map<VariableID<dynamic>, Solver<dynamic>> _solvers = {};

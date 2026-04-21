@@ -2,7 +2,7 @@
 //
 // Translation of pcgen.persistence.lst.URIEntry
 
-import 'uri_factory.dart';
+import 'package:flutter_pcgen/src/persistence/lst/uri_factory.dart';
 
 /// Associates a URI (or deferred URIFactory) with a campaign name.
 class UriEntry {

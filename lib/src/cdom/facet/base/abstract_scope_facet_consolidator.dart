@@ -19,7 +19,7 @@
 import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
 import 'package:flutter_pcgen/src/cdom/facet/event/scope_facet_change_event.dart';
 import 'package:flutter_pcgen/src/cdom/facet/event/scope_facet_change_listener.dart';
-import 'abstract_list_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/base/abstract_list_facet.dart';
 
 // Consolidates scope-facet events into a flat list facet.
 abstract class AbstractScopeFacetConsolidator<S, D>

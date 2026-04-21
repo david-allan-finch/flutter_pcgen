@@ -19,7 +19,7 @@
 
 import 'package:flutter_pcgen/src/core/system/migration_rule.dart';
 import 'package:flutter_pcgen/src/rules/context/load_context.dart';
-import 'lst_line_file_loader.dart';
+import 'package:flutter_pcgen/src/persistence/lst/lst_line_file_loader.dart';
 
 /// Loads migration rules from migration.lst files.
 ///

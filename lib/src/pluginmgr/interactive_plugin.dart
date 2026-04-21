@@ -17,7 +17,7 @@
 //
 // Translation of pcgen.pluginmgr.InteractivePlugin
 
-import 'p_c_gen_message_handler.dart';
+import 'package:flutter_pcgen/src/pluginmgr/p_c_gen_message_handler.dart';
 
 /// Defines the interface for interactive UI plugins in PCGen.
 abstract interface class InteractivePlugin implements PCGenMessageHandler {

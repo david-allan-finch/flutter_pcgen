@@ -19,9 +19,9 @@
 // Translation of pcgen.system.Main
 
 import 'package:flutter_pcgen/src/pluginmgr/plugin_manager.dart';
-import 'character_manager.dart';
-import 'configuration_settings.dart';
-import 'facade_factory.dart';
+import 'package:flutter_pcgen/src/system/character_manager.dart';
+import 'package:flutter_pcgen/src/system/configuration_settings.dart';
+import 'package:flutter_pcgen/src/system/facade_factory.dart';
 
 /// Application entry point and initialization logic.
 final class Main {

@@ -16,7 +16,7 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.core.SkillComparator
-import 'skill.dart';
+import 'package:flutter_pcgen/src/core/skill.dart';
 
 // Sorts Skill objects by name or trained status, ascending or descending.
 class SkillComparator implements Comparator<Skill> {

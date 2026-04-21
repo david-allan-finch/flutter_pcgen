@@ -16,7 +16,7 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.rules.context.RuntimeListContext
-import 'list_commit_strategy.dart';
+import 'package:flutter_pcgen/src/rules/context/list_commit_strategy.dart';
 
 // stub: AbstractListContext not yet translated; RuntimeListContext holds commit strategy
 abstract class AbstractListContext {

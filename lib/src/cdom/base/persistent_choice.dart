@@ -16,8 +16,8 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.base.PersistentChoice
-import 'basic_choice.dart';
-import 'persistent_choice_actor.dart';
+import 'package:flutter_pcgen/src/cdom/base/basic_choice.dart';
+import 'package:flutter_pcgen/src/cdom/base/persistent_choice_actor.dart';
 
 // A BasicChoice that also supports encode/decode of choices for persistent storage.
 abstract interface class PersistentChoice<T> implements BasicChoice<T> {

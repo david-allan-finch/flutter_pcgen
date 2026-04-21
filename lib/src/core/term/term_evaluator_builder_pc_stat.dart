@@ -2,11 +2,11 @@
 //
 // Translation of pcgen.core.term.TermEvaluatorBuilderPCStat
 
-import 'pc_stat_base_term_evaluator.dart';
-import 'pc_stat_mod_term_evaluator.dart';
-import 'pc_stat_total_term_evaluator.dart';
-import 'term_evaluator.dart';
-import 'term_evaluator_builder.dart';
+import 'package:flutter_pcgen/src/core/term/pc_stat_base_term_evaluator.dart';
+import 'package:flutter_pcgen/src/core/term/pc_stat_mod_term_evaluator.dart';
+import 'package:flutter_pcgen/src/core/term/pc_stat_total_term_evaluator.dart';
+import 'package:flutter_pcgen/src/core/term/term_evaluator.dart';
+import 'package:flutter_pcgen/src/core/term/term_evaluator_builder.dart';
 
 /// A TermEvaluatorBuilder for PC stat references (e.g. "STR", "STRSCORE",
 /// "STR.BASE", "STRSCORE.BASE").

@@ -4,7 +4,7 @@
 // Output-layer facet — stores Freemarker/output actors for a DataSetID.
 
 import 'package:flutter_pcgen/src/cdom/enumeration/data_set_id.dart';
-import 'data_set_initialization_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/data_set_initialization_facet.dart';
 
 /// Stores output actors (for template rendering) indexed by DataSetID.
 /// This is an output-layer concern; not yet fully implemented.

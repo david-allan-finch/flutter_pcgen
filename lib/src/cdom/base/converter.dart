@@ -16,7 +16,7 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.base.Converter
-import 'primitive_filter.dart';
+import 'package:flutter_pcgen/src/cdom/base/primitive_filter.dart';
 
 // Converter transforms an ObjectContainer of B into a collection of R,
 // optionally filtered by a PrimitiveFilter.

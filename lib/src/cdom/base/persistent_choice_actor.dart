@@ -16,9 +16,9 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.base.PersistentChoiceActor
-import 'choice_actor.dart';
-import 'cdom_object.dart';
-import 'persistent.dart';
+import 'package:flutter_pcgen/src/cdom/base/choice_actor.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_object.dart';
+import 'package:flutter_pcgen/src/cdom/base/persistent.dart';
 
 // A ChoiceActor that can also restore/remove choices after persistent load.
 abstract interface class PersistentChoiceActor<T>

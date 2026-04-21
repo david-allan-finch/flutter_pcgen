@@ -16,7 +16,7 @@
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
 //
 // Translation of pcgen.cdom.facet.event.AssociationChangeListener
-import 'association_change_event.dart';
+import 'package:flutter_pcgen/src/cdom/facet/event/association_change_event.dart';
 
 abstract interface class AssociationChangeListener {
   void bonusChange(AssociationChangeEvent srce);

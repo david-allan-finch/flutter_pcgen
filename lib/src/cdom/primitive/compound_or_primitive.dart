@@ -18,7 +18,7 @@
 // Translation of pcgen.cdom.primitive.CompoundOrPrimitive
 import 'package:flutter_pcgen/src/cdom/enumeration/grouping_state.dart';
 import 'package:flutter_pcgen/src/core/player_character.dart';
-import 'primitive_utilities.dart';
+import 'package:flutter_pcgen/src/cdom/primitive/primitive_utilities.dart';
 
 // PrimitiveCollection that returns the union of multiple sub-collections.
 class CompoundOrPrimitive<T> {

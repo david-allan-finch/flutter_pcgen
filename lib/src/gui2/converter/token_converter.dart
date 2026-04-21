@@ -17,9 +17,9 @@
 //
 // Translation of pcgen.gui2.converter.TokenConverter
 
-import 'default_token_processor.dart';
-import 'event/token_process_event.dart';
-import 'event/token_processor_plugin.dart';
+import 'package:flutter_pcgen/src/gui2/converter/default_token_processor.dart';
+import 'package:flutter_pcgen/src/gui2/converter/event/token_process_event.dart';
+import 'package:flutter_pcgen/src/gui2/converter/event/token_processor_plugin.dart';
 
 /// Static registry and dispatcher for [TokenProcessorPlugin] instances.
 /// Plugins are registered with [addToTokenMap] and looked up per

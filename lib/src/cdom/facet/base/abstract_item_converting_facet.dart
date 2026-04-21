@@ -7,7 +7,7 @@
 
 import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
 import 'package:flutter_pcgen/src/cdom/facet/event/data_facet_change_event.dart';
-import 'abstract_data_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/base/abstract_data_facet.dart';
 
 /// Storage class for AbstractItemConvertingFacet: holds the converted destination
 /// object and the set of sources.

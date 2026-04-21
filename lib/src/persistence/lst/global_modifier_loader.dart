@@ -21,7 +21,7 @@
 // Translation of pcgen.persistence.lst.GlobalModifierLoader
 
 import 'package:flutter_pcgen/src/rules/context/load_context.dart';
-import 'lst_line_file_loader.dart';
+import 'package:flutter_pcgen/src/persistence/lst/lst_line_file_loader.dart';
 
 /// Loads global modifier definitions from a globalmodifier.lst file.
 ///

@@ -6,13 +6,13 @@ import 'package:flutter_pcgen/src/cdom/base/cdom_object.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/list_key.dart';
 import 'package:flutter_pcgen/src/core/bonus/bonus_obj.dart';
-import 'added_bonus_facet.dart';
-import 'base/abstract_list_facet.dart';
-import 'event/data_facet_change_event.dart';
-import 'event/data_facet_change_listener.dart';
-import 'model/race_facet.dart';
-import 'prerequisite_facet.dart';
-import 'saveable_bonus_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/added_bonus_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/base/abstract_list_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/event/data_facet_change_event.dart';
+import 'package:flutter_pcgen/src/cdom/facet/event/data_facet_change_listener.dart';
+import 'package:flutter_pcgen/src/cdom/facet/model/race_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/prerequisite_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/saveable_bonus_facet.dart';
 
 /// Tracks the active [BonusObj] objects on a Player Character, honoring
 /// prerequisites. Listens to CDOMObject additions/removals and evaluates

@@ -21,7 +21,7 @@ import 'package:flutter_pcgen/src/core/deity.dart';
 import 'package:flutter_pcgen/src/core/domain.dart';
 import 'package:flutter_pcgen/src/core/kit.dart';
 import 'package:flutter_pcgen/src/core/player_character.dart';
-import 'base_kit.dart';
+import 'package:flutter_pcgen/src/core/kit/base_kit.dart';
 
 class KitDeity extends BaseKit {
   CDOMSingleRef<Deity>? _theDeityRef;

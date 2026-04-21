@@ -19,9 +19,9 @@
 import 'package:flutter_pcgen/src/cdom/base/cdom_object.dart';
 import 'package:flutter_pcgen/src/rules/context/load_context.dart';
 import 'package:flutter_pcgen/src/persistence/persistence_layer_exception.dart';
-import 'campaign_source_entry.dart';
-import 'lst_file_loader.dart';
-import 'source_entry.dart';
+import 'package:flutter_pcgen/src/persistence/lst/campaign_source_entry.dart';
+import 'package:flutter_pcgen/src/persistence/lst/lst_file_loader.dart';
+import 'package:flutter_pcgen/src/persistence/lst/source_entry.dart';
 
 // Abstract base loader for CDOMObjects from LST files.
 // Handles .MOD / .COPY / .FORGET processing around a parseLine hook.

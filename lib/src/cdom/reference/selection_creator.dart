@@ -18,8 +18,8 @@
 // Translation of pcgen.cdom.reference.SelectionCreator
 import 'package:flutter_pcgen/src/cdom/base/class_identity.dart';
 import 'package:flutter_pcgen/src/cdom/base/loadable.dart';
-import 'cdom_group_ref.dart';
-import 'cdom_single_ref.dart';
+import 'package:flutter_pcgen/src/cdom/reference/cdom_group_ref.dart';
+import 'package:flutter_pcgen/src/cdom/reference/cdom_single_ref.dart';
 
 // A SelectionCreator can create various forms of CDOMReferences for a supported
 // type of object (as identified by its ClassIdentity).

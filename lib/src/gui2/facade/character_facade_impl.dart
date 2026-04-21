@@ -29,14 +29,14 @@ import 'package:flutter_pcgen/src/facade/core/temp_bonus_facade.dart';
 import 'package:flutter_pcgen/src/facade/util/list_facade.dart';
 import 'package:flutter_pcgen/src/facade/util/default_reference_facade.dart';
 import 'package:flutter_pcgen/src/facade/util/reference_facade.dart';
-import 'character_abilities.dart';
-import 'character_levels_facade_impl.dart';
-import 'description_facade_impl.dart';
-import 'equipment_list_facade_impl.dart';
-import 'equipment_set_facade_impl.dart';
-import 'companion_support_facade_impl.dart';
-import 'spell_support_facade_impl.dart';
-import 'temp_bonus_facade_impl.dart';
+import 'package:flutter_pcgen/src/gui2/facade/character_abilities.dart';
+import 'package:flutter_pcgen/src/gui2/facade/character_levels_facade_impl.dart';
+import 'package:flutter_pcgen/src/gui2/facade/description_facade_impl.dart';
+import 'package:flutter_pcgen/src/gui2/facade/equipment_list_facade_impl.dart';
+import 'package:flutter_pcgen/src/gui2/facade/equipment_set_facade_impl.dart';
+import 'package:flutter_pcgen/src/gui2/facade/companion_support_facade_impl.dart';
+import 'package:flutter_pcgen/src/gui2/facade/spell_support_facade_impl.dart';
+import 'package:flutter_pcgen/src/gui2/facade/temp_bonus_facade_impl.dart';
 
 /// Main implementation of CharacterFacade — the primary model object for an
 /// open character in the GUI. Wraps all character data and provides accessors

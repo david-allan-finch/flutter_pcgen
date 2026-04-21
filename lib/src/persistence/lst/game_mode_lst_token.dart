@@ -2,7 +2,7 @@
 //
 // Translation of pcgen.persistence.lst.GameModeLstToken
 
-import 'lst_token.dart';
+import 'package:flutter_pcgen/src/persistence/lst/lst_token.dart';
 
 /// Interface for tokens handled by the game-mode (miscinfo.lst) loader.
 abstract interface class GameModeLstToken implements LstToken {

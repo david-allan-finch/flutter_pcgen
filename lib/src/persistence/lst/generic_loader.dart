@@ -20,8 +20,8 @@
 import 'package:flutter_pcgen/src/cdom/base/cdom_object.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/object_key.dart';
 import 'package:flutter_pcgen/src/rules/context/load_context.dart';
-import 'lst_object_file_loader.dart';
-import 'source_entry.dart';
+import 'package:flutter_pcgen/src/persistence/lst/lst_object_file_loader.dart';
+import 'package:flutter_pcgen/src/persistence/lst/source_entry.dart';
 
 // Generic loader for CDOMObjects — creates an instance via [factory] then applies LST tokens.
 class GenericLoader<T extends CDOMObject> extends LstObjectFileLoader<T> {

@@ -16,7 +16,7 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.rules.persistence.token.CDOMSubToken
-import 'cdom_token.dart';
+import 'package:flutter_pcgen/src/rules/persistence/token/cdom_token.dart';
 
 /// A CDOMSubToken is a token that lives beneath a parent token.
 abstract interface class CDOMSubToken<T> implements CDOMToken<T> {

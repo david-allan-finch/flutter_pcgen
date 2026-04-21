@@ -21,7 +21,7 @@ import 'package:flutter_pcgen/src/cdom/reference/cdom_single_ref.dart';
 import 'package:flutter_pcgen/src/core/kit.dart';
 import 'package:flutter_pcgen/src/core/pc_template.dart';
 import 'package:flutter_pcgen/src/core/player_character.dart';
-import 'base_kit.dart';
+import 'package:flutter_pcgen/src/core/kit/base_kit.dart';
 
 class KitTemplate extends BaseKit {
   final HashMapToList<CDOMSingleRef<PCTemplate>, CDOMSingleRef<PCTemplate>> _templateList = HashMapToList();

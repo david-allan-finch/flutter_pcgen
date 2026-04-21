@@ -18,7 +18,7 @@
 // Translation of pcgen.gui3.preloader.PCGenPreloader
 
 import 'package:flutter/material.dart';
-import 'pc_gen_preloader_controller.dart';
+import 'package:flutter_pcgen/src/gui3/preloader/pc_gen_preloader_controller.dart';
 
 /// Splash/preloader screen shown while PCGen initializes.
 class PCGenPreloader extends StatefulWidget {

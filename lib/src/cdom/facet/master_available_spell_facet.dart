@@ -4,8 +4,8 @@
 
 import 'package:flutter_pcgen/src/cdom/enumeration/data_set_id.dart';
 import 'package:flutter_pcgen/src/cdom/helper/available_spell.dart';
-import 'base/abstract_list_facet.dart';
-import 'data_set_initialization_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/base/abstract_list_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/data_set_initialization_facet.dart';
 
 /// Caches all available spells from class/domain spell lists for a dataset.
 /// This is dataset-global (uses [DataSetID] not [CharID]).

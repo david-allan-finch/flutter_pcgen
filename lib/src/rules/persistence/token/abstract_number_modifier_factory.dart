@@ -2,7 +2,7 @@
 //
 // Translation of pcgen.rules.persistence.token.AbstractNumberModifierFactory
 
-import 'modifier_factory.dart';
+import 'package:flutter_pcgen/src/rules/persistence/token/modifier_factory.dart';
 
 /// A [ModifierFactory] / BasicCalculation for numeric variable types.
 ///

@@ -17,7 +17,7 @@
 //
 // Translation of pcgen.gui2.converter.event.TokenProcessorPlugin
 
-import 'token_processor.dart';
+import 'package:flutter_pcgen/src/gui2/converter/event/token_processor.dart';
 
 /// Extension of [TokenProcessor] that additionally declares which CDOMObject
 /// class and token name it handles.  Implementations are discovered and

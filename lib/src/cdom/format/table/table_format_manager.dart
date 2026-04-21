@@ -2,7 +2,7 @@
 //
 // Translation of pcgen.cdom.format.table.TableFormatManager
 
-import 'data_table.dart';
+import 'package:flutter_pcgen/src/cdom/format/table/data_table.dart';
 
 /// A FormatManager for DataTable objects, scoped to a specific lookup column format.
 class TableFormatManager {

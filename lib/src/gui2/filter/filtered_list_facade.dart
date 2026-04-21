@@ -18,7 +18,7 @@
 // Translation of pcgen.gui2.filter.FilteredListFacade
 
 import 'package:flutter/foundation.dart';
-import 'filter.dart';
+import 'package:flutter_pcgen/src/gui2/filter/filter.dart';
 import 'package:flutter_pcgen/src/facade/util/list_facade.dart';
 import 'package:flutter_pcgen/src/facade/util/event/list_listener.dart';
 import 'package:flutter_pcgen/src/facade/util/event/list_event.dart';

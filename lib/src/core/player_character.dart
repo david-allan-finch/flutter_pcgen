@@ -19,20 +19,20 @@ import 'package:flutter_pcgen/src/cdom/base/constants.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/integer_key.dart';
 import 'package:flutter_pcgen/src/util/enumeration/attack_type.dart';
 import 'package:flutter_pcgen/src/util/enumeration/load.dart';
-import 'ability.dart';
-import 'ability_category.dart';
-import 'campaign.dart';
-import 'deity.dart';
-import 'domain.dart';
-import 'equipment.dart';
-import 'language.dart';
-import 'pc_alignment.dart';
-import 'pc_check.dart';
-import 'pc_class.dart';
-import 'pc_template.dart';
-import 'pc_stat.dart';
-import 'race.dart';
-import 'skill.dart';
+import 'package:flutter_pcgen/src/core/ability.dart';
+import 'package:flutter_pcgen/src/core/ability_category.dart';
+import 'package:flutter_pcgen/src/core/campaign.dart';
+import 'package:flutter_pcgen/src/core/deity.dart';
+import 'package:flutter_pcgen/src/core/domain.dart';
+import 'package:flutter_pcgen/src/core/equipment.dart';
+import 'package:flutter_pcgen/src/core/language.dart';
+import 'package:flutter_pcgen/src/core/pc_alignment.dart';
+import 'package:flutter_pcgen/src/core/pc_check.dart';
+import 'package:flutter_pcgen/src/core/pc_class.dart';
+import 'package:flutter_pcgen/src/core/pc_template.dart';
+import 'package:flutter_pcgen/src/core/pc_stat.dart';
+import 'package:flutter_pcgen/src/core/race.dart';
+import 'package:flutter_pcgen/src/core/skill.dart';
 
 // ---------------------------------------------------------------------------
 // PCLevelInfo — data recorded per-level-up

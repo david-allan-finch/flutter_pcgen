@@ -9,7 +9,7 @@ import 'package:flutter_pcgen/src/cdom/facet/base/abstract_sourced_list_facet.da
 import 'package:flutter_pcgen/src/cdom/facet/cdom_object_source_facet.dart';
 import 'package:flutter_pcgen/src/cdom/facet/event/data_facet_change_event.dart';
 import 'package:flutter_pcgen/src/cdom/facet/event/data_facet_change_listener.dart';
-import 'load_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/analysis/load_facet.dart';
 
 /// Tracks Load values for Unencumbered movement locked on a Player Character.
 class UnencumberedLoadFacet extends AbstractSourcedListFacet<CharID, Load>

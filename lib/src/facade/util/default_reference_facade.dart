@@ -17,7 +17,7 @@
 //
 // Translation of pcgen.facade.util.DefaultReferenceFacade
 import 'package:flutter/foundation.dart' show ChangeNotifier;
-import 'reference_facade.dart';
+import 'package:flutter_pcgen/src/facade/util/reference_facade.dart';
 
 // Mutable, observable reference to a single value.
 // Extends ChangeNotifier so Flutter widgets can use addListener/removeListener

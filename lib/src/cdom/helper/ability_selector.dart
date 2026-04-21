@@ -25,7 +25,7 @@ import 'package:flutter_pcgen/src/cdom/content/cn_ability_factory.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/nature.dart';
 import 'package:flutter_pcgen/src/cdom/reference/cdom_single_ref.dart';
 import 'package:flutter_pcgen/src/core/ability_category.dart';
-import 'cn_ability_selection.dart';
+import 'package:flutter_pcgen/src/cdom/helper/cn_ability_selection.dart';
 
 // An AbilitySelector applies an AbilitySelection (category + nature + ability
 // chosen via CHOOSE) to a PlayerCharacter, as used in AUTO:FEAT|%LIST.

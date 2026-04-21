@@ -1,6 +1,6 @@
 // Translation of pcgen.output.channel.compat.GenderCompat
 
-import 'abstract_adapter.dart';
+import 'package:flutter_pcgen/src/output/compat/abstract_adapter.dart';
 
 /// GenderCompat provides a writeable reference for the character's gender channel.
 class GenderCompat extends AbstractAdapter<dynamic> {

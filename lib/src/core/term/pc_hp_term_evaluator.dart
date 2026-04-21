@@ -2,8 +2,8 @@
 //
 // Translation of pcgen.core.term.PCHPTermEvaluator
 
-import 'base_pc_term_evaluator.dart';
-import 'term_evaluator.dart';
+import 'package:flutter_pcgen/src/core/term/base_pc_term_evaluator.dart';
+import 'package:flutter_pcgen/src/core/term/term_evaluator.dart';
 
 /// Provides the internal variable HP: the character's maximum total hit points.
 class PCHPTermEvaluator extends BasePCTermEvaluator implements TermEvaluator {

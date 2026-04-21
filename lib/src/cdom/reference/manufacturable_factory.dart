@@ -18,10 +18,10 @@
 // Translation of pcgen.cdom.reference.ManufacturableFactory
 import 'package:flutter_pcgen/src/cdom/base/class_identity.dart';
 import 'package:flutter_pcgen/src/cdom/base/loadable.dart';
-import 'cdom_single_ref.dart';
-import 'reference_manufacturer.dart';
-import 'selection_creator.dart';
-import 'unconstructed_validator.dart';
+import 'package:flutter_pcgen/src/cdom/reference/cdom_single_ref.dart';
+import 'package:flutter_pcgen/src/cdom/reference/reference_manufacturer.dart';
+import 'package:flutter_pcgen/src/cdom/reference/selection_creator.dart';
+import 'package:flutter_pcgen/src/cdom/reference/unconstructed_validator.dart';
 
 // A ManufacturableFactory is a factory for Loadable objects, combining
 // SelectionCreator capability with direct object construction.

@@ -16,7 +16,7 @@
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
 //
 // Translation of pcgen.cdom.enumeration.CharID
-import 'data_set_id.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/data_set_id.dart';
 
 // A unique identifier for a PlayerCharacter. Used as a key in facet caches.
 final class CharID {

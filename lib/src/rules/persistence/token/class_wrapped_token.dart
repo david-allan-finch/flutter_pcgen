@@ -3,9 +3,9 @@
 // Translation of pcgen.rules.persistence.token.ClassWrappedToken
 
 import 'package:flutter_pcgen/src/rules/context/load_context.dart';
-import 'cdom_compatibility_token.dart';
-import 'cdom_token.dart';
-import 'parse_result.dart';
+import 'package:flutter_pcgen/src/rules/persistence/token/cdom_compatibility_token.dart';
+import 'package:flutter_pcgen/src/rules/persistence/token/cdom_token.dart';
+import 'package:flutter_pcgen/src/rules/persistence/token/parse_result.dart';
 
 /// Provides compatibility for CLASS tokens used on CLASSLEVEL lines.
 ///

@@ -7,10 +7,10 @@ import 'package:flutter_pcgen/src/cdom/enumeration/list_key.dart';
 import 'package:flutter_pcgen/src/core/pc_template.dart';
 import 'package:flutter_pcgen/src/core/settings_handler.dart';
 import 'package:flutter_pcgen/src/gui2/ui_property_context.dart';
-import 'event/data_facet_change_event.dart';
-import 'event/data_facet_change_listener.dart';
-import 'model/template_facet.dart';
-import 'player_character_tracking_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/event/data_facet_change_event.dart';
+import 'package:flutter_pcgen/src/cdom/facet/event/data_facet_change_listener.dart';
+import 'package:flutter_pcgen/src/cdom/facet/model/template_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/player_character_tracking_facet.dart';
 
 /// Applies ADDLEVEL token results when a [PCTemplate] is added/removed.
 class AddLevelFacet implements DataFacetChangeListener<CharID, PCTemplate> {

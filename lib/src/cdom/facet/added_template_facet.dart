@@ -7,12 +7,12 @@ import 'package:flutter_pcgen/src/cdom/base/cdom_reference.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/list_key.dart';
 import 'package:flutter_pcgen/src/core/pc_template.dart';
-import 'base/abstract_sourced_list_facet.dart';
-import 'cdom_object_consolidation_facet.dart';
-import 'event/data_facet_change_event.dart';
-import 'event/data_facet_change_listener.dart';
-import 'player_character_tracking_facet.dart';
-import 'prerequisite_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/base/abstract_sourced_list_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/cdom_object_consolidation_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/event/data_facet_change_event.dart';
+import 'package:flutter_pcgen/src/cdom/facet/event/data_facet_change_listener.dart';
+import 'package:flutter_pcgen/src/cdom/facet/player_character_tracking_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/prerequisite_facet.dart';
 
 /// Tracks [PCTemplate] objects added to a Player Character via TEMPLATE tokens.
 class AddedTemplateFacet extends AbstractSourcedListFacet<CharID, PCTemplate>

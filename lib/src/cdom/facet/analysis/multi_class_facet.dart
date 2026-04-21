@@ -5,8 +5,8 @@
 import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
 import 'package:flutter_pcgen/src/cdom/facet/model/class_facet.dart';
 import 'package:flutter_pcgen/src/cdom/facet/sub_class_facet.dart';
-import 'favored_class_facet.dart';
-import 'has_any_favored_class_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/analysis/favored_class_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/analysis/has_any_favored_class_facet.dart';
 
 /// Performs calculations related to multi-class characters (e.g. XP penalty multiplier).
 class MultiClassFacet {

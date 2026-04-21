@@ -17,11 +17,11 @@
 //
 // Translation of pcgen.cdom.base.BasicChooseInformation
 import 'package:flutter_pcgen/src/cdom/enumeration/grouping_state.dart';
-import 'choose_information.dart';
-import 'choose_driver.dart';
-import 'chooser.dart';
-import 'primitive_choice_set.dart';
-import 'choose_information_utilities.dart';
+import 'package:flutter_pcgen/src/cdom/base/choose_information.dart';
+import 'package:flutter_pcgen/src/cdom/base/choose_driver.dart';
+import 'package:flutter_pcgen/src/cdom/base/chooser.dart';
+import 'package:flutter_pcgen/src/cdom/base/primitive_choice_set.dart';
+import 'package:flutter_pcgen/src/cdom/base/choose_information_utilities.dart';
 
 // BasicChooseInformation holds a PrimitiveChoiceSet and a Chooser, implementing
 // the ChooseInformation contract for the CHOOSE token system.

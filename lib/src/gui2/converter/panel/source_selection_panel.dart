@@ -18,7 +18,7 @@
 // Translation of pcgen.gui2.converter.panel.SourceSelectionPanel
 
 import 'package:flutter/material.dart';
-import 'convert_sub_panel.dart';
+import 'package:flutter_pcgen/src/gui2/converter/panel/convert_sub_panel.dart';
 
 /// Wizard step: select the source directory containing the LST files to convert.
 class SourceSelectionPanel extends ConvertSubPanel {

@@ -17,7 +17,7 @@
 //
 // Translation of pcgen.cdom.helper.CNAbilitySelectionUtilities
 import 'package:flutter_pcgen/src/cdom/enumeration/object_key.dart';
-import 'cn_ability_selection.dart';
+import 'package:flutter_pcgen/src/cdom/helper/cn_ability_selection.dart';
 
 // Utility methods for checking whether two CNAbilitySelections can coexist on a PC.
 final class CNAbilitySelectionUtilities {

@@ -1,7 +1,7 @@
 import 'package:flutter_pcgen/src/base/util/format_manager.dart';
 import 'package:flutter_pcgen/src/formula/base/evaluation_manager.dart';
-import 'modifier.dart';
-import 'process_step.dart';
+import 'package:flutter_pcgen/src/formula/solver/modifier.dart';
+import 'package:flutter_pcgen/src/formula/solver/process_step.dart';
 
 class Solver<T> {
   final FormatManager<T> _formatManager;

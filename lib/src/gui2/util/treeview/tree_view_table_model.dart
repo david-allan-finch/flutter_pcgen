@@ -18,9 +18,9 @@
 // Translation of pcgen.gui2.util.treeview.TreeViewTableModel
 
 import 'package:flutter/foundation.dart';
-import 'tree_view.dart';
-import 'tree_view_path.dart';
-import 'data_view.dart';
+import 'package:flutter_pcgen/src/gui2/util/treeview/tree_view.dart';
+import 'package:flutter_pcgen/src/gui2/util/treeview/tree_view_path.dart';
+import 'package:flutter_pcgen/src/gui2/util/treeview/data_view.dart';
 import 'package:flutter_pcgen/src/facade/util/list_facade.dart';
 import 'package:flutter_pcgen/src/facade/util/event/list_listener.dart';
 import 'package:flutter_pcgen/src/facade/util/event/list_event.dart';

@@ -2,8 +2,8 @@
 //
 // Translation of pcgen.core.chooser.NoChoiceManager
 
-import 'choice_manager_list.dart';
-import 'choose_controller.dart';
+import 'package:flutter_pcgen/src/core/chooser/choice_manager_list.dart';
+import 'package:flutter_pcgen/src/core/chooser/choose_controller.dart';
 
 /// A [ChoiceManagerList] for CHOOSE tokens that take no user selection —
 /// they simply add or remove a fixed empty-string slot.

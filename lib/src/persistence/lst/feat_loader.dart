@@ -20,8 +20,8 @@
 import 'package:flutter_pcgen/src/core/ability.dart';
 import 'package:flutter_pcgen/src/core/ability_category.dart';
 import 'package:flutter_pcgen/src/rules/context/load_context.dart';
-import 'ability_loader.dart';
-import 'source_entry.dart';
+import 'package:flutter_pcgen/src/persistence/lst/ability_loader.dart';
+import 'package:flutter_pcgen/src/persistence/lst/source_entry.dart';
 
 /// Loads Feat objects from LST files.
 ///

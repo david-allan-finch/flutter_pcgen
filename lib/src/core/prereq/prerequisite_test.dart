@@ -2,8 +2,8 @@
 //
 // Translation of pcgen.core.prereq.PrerequisiteTest
 
-import 'prerequisite.dart';
-import 'prerequisite_exception.dart';
+import 'package:flutter_pcgen/src/core/prereq/prerequisite.dart';
+import 'package:flutter_pcgen/src/core/prereq/prerequisite_exception.dart';
 
 /// Interface for classes that can evaluate a specific kind of prerequisite.
 abstract interface class PrerequisiteTest {

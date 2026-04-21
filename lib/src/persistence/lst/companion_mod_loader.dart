@@ -19,8 +19,8 @@
 
 import 'package:flutter_pcgen/src/core/character/companion_mod.dart';
 import 'package:flutter_pcgen/src/rules/context/load_context.dart';
-import 'simple_loader.dart';
-import 'source_entry.dart';
+import 'package:flutter_pcgen/src/persistence/lst/simple_loader.dart';
+import 'package:flutter_pcgen/src/persistence/lst/source_entry.dart';
 
 /// Loads CompanionMod objects from LST files.
 ///

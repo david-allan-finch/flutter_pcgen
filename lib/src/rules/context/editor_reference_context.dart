@@ -19,7 +19,7 @@
 import 'package:flutter_pcgen/src/base/util/hash_map_to_list.dart';
 import 'package:flutter_pcgen/src/cdom/base/cdom_object.dart';
 import 'package:flutter_pcgen/src/cdom/base/loadable.dart';
-import 'runtime_reference_context.dart';
+import 'package:flutter_pcgen/src/rules/context/runtime_reference_context.dart';
 
 class EditorReferenceContext extends RuntimeReferenceContext {
   final HashMapToList<CDOMObject, CDOMObject> _copyMap = HashMapToList();

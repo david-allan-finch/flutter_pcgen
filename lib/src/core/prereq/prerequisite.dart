@@ -2,8 +2,8 @@
 //
 // Translation of pcgen.core.prereq.Prerequisite
 
-import 'prerequisite_exception.dart';
-import 'prerequisite_operator.dart';
+import 'package:flutter_pcgen/src/core/prereq/prerequisite_exception.dart';
+import 'package:flutter_pcgen/src/core/prereq/prerequisite_operator.dart';
 
 /// Storage format for all prerequisites. Populated by a parser, written out
 /// by a writer, and tested by a tester class.

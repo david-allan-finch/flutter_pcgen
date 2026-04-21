@@ -16,7 +16,7 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.base.BasicChoice
-import 'choice_actor.dart';
+import 'package:flutter_pcgen/src/cdom/base/choice_actor.dart';
 
 // Associates a ChoiceActor with a choice operation.
 abstract interface class BasicChoice<T> {

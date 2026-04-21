@@ -2,8 +2,8 @@
 //
 // Translation of pcgen.core.utils.ShowMessageDelegate
 
-import 'message_type.dart';
-import 'message_wrapper.dart';
+import 'package:flutter_pcgen/src/core/utils/message_type.dart';
+import 'package:flutter_pcgen/src/core/utils/message_wrapper.dart';
 
 typedef MessageObserver = void Function(MessageWrapper msg);
 

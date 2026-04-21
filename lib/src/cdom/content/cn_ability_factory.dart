@@ -18,7 +18,7 @@
 // Translation of pcgen.cdom.content.CNAbilityFactory
 import 'package:flutter_pcgen/src/cdom/base/category.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/nature.dart';
-import 'cn_ability.dart';
+import 'package:flutter_pcgen/src/cdom/content/cn_ability.dart';
 import 'package:flutter_pcgen/src/core/ability.dart';
 
 // Factory that interns CNAbility instances to avoid duplicates.

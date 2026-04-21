@@ -22,8 +22,8 @@ import 'package:flutter_pcgen/src/cdom/enumeration/list_key.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/object_key.dart';
 import 'package:flutter_pcgen/src/core/player_character.dart';
 import 'package:flutter_pcgen/src/core/pc_class.dart';
-import 'bonus_activation.dart';
-import 'spell_level.dart';
+import 'package:flutter_pcgen/src/core/analysis/bonus_activation.dart';
+import 'package:flutter_pcgen/src/core/analysis/spell_level.dart';
 
 // Applies or removes a Domain from a PlayerCharacter, including domain spells.
 final class DomainApplication {

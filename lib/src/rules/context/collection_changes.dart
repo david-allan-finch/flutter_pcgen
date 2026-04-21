@@ -16,7 +16,7 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.rules.context.CollectionChanges
-import 'changes.dart';
+import 'package:flutter_pcgen/src/rules/context/changes.dart';
 
 class CollectionChanges<T> implements Changes<T> {
   final List<T>? _positive;

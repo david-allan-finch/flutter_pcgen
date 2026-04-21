@@ -20,7 +20,7 @@ import 'package:flutter_pcgen/src/cdom/reference/cdom_single_ref.dart';
 import 'package:flutter_pcgen/src/core/kit.dart';
 import 'package:flutter_pcgen/src/core/player_character.dart';
 import 'package:flutter_pcgen/src/core/race.dart';
-import 'base_kit.dart';
+import 'package:flutter_pcgen/src/core/kit/base_kit.dart';
 
 class KitRace extends BaseKit {
   CDOMSingleRef<Race>? _theRace;

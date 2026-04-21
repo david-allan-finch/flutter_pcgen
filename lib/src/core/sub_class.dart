@@ -21,7 +21,7 @@ import 'package:flutter_pcgen/src/cdom/base/category.dart';
 import 'package:flutter_pcgen/src/cdom/base/loadable.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/integer_key.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/object_key.dart';
-import 'pc_class.dart';
+import 'package:flutter_pcgen/src/core/pc_class.dart';
 
 // A specialized variant of a PCClass with modified spell prohibition and cost.
 final class SubClass extends PCClass implements Categorized<SubClass> {

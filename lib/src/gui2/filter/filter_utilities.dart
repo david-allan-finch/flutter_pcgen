@@ -17,7 +17,7 @@
 //
 // Translation of pcgen.gui2.filter.FilterUtilities
 
-import 'filter.dart';
+import 'package:flutter_pcgen/src/gui2/filter/filter.dart';
 
 /// Utility methods for working with filters.
 class FilterUtilities {

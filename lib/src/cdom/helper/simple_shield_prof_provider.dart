@@ -17,7 +17,7 @@
 //
 // Translation of pcgen.cdom.helper.SimpleShieldProfProvider
 import 'package:flutter_pcgen/src/core/shield_prof.dart';
-import 'abstract_simple_prof_provider.dart';
+import 'package:flutter_pcgen/src/cdom/helper/abstract_simple_prof_provider.dart';
 
 // A SimpleShieldProfProvider grants proficiency for a single ShieldProf, and
 // also provides equipment-level resolution via getShieldProf().

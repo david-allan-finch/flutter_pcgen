@@ -16,7 +16,7 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.core.InstallableCampaign
-import 'campaign.dart';
+import 'package:flutter_pcgen/src/core/campaign.dart';
 
 /// A campaign that can be downloaded and installed via the PCGen installer.
 ///

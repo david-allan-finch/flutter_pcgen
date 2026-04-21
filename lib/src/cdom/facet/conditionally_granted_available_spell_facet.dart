@@ -3,8 +3,8 @@
 // Translation of pcgen.cdom.facet.ConditionallyGrantedAvailableSpellFacet
 
 import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
-import 'available_spell_facet.dart';
-import 'conditionally_available_spell_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/available_spell_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/conditionally_available_spell_facet.dart';
 
 /// Promotes qualified available spells from the conditional facet into the
 /// active [AvailableSpellFacet].

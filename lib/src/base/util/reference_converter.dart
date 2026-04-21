@@ -1,5 +1,5 @@
-import 'indirect.dart';
-import 'object_container.dart';
+import 'package:flutter_pcgen/src/base/util/indirect.dart';
+import 'package:flutter_pcgen/src/base/util/object_container.dart';
 
 abstract interface class ReferenceConverter<T> {
   T convert(String inputStr);

@@ -18,7 +18,7 @@
 // Translation of pcgen.gui2.converter.panel.CampaignPanel
 
 import 'package:flutter/material.dart';
-import 'convert_sub_panel.dart';
+import 'package:flutter_pcgen/src/gui2/converter/panel/convert_sub_panel.dart';
 
 /// Wizard step: select which campaigns (source sets) to convert.
 class CampaignPanel extends ConvertSubPanel {

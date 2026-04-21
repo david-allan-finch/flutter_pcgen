@@ -17,7 +17,7 @@
 //
 // Translation of pcgen.cdom.content.DatasetVariable
 import 'package:flutter_pcgen/src/base/util/format_manager.dart';
-import 'user_content.dart';
+import 'package:flutter_pcgen/src/cdom/content/user_content.dart';
 
 // A DatasetVariable is a variable in the formula system defined by data.
 // Legal names must start with a letter followed by word characters only.

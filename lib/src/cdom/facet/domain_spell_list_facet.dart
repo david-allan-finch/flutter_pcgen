@@ -5,10 +5,10 @@
 import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/object_key.dart';
 import 'package:flutter_pcgen/src/core/domain.dart';
-import 'event/data_facet_change_event.dart';
-import 'event/data_facet_change_listener.dart';
-import 'model/domain_facet.dart';
-import 'spell_list_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/event/data_facet_change_event.dart';
+import 'package:flutter_pcgen/src/cdom/facet/event/data_facet_change_listener.dart';
+import 'package:flutter_pcgen/src/cdom/facet/model/domain_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/spell_list_facet.dart';
 
 /// Tracks the Domain Spell Lists granted to a Player Character via Domain
 /// selections.

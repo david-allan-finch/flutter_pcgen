@@ -19,7 +19,7 @@
 //
 // Translation of pcgen.core.EquipmentUtilities
 import 'package:flutter_pcgen/src/cdom/enumeration/object_key.dart';
-import 'equipment.dart';
+import 'package:flutter_pcgen/src/core/equipment.dart';
 
 final class EquipmentUtilities {
   EquipmentUtilities._();

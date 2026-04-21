@@ -17,7 +17,7 @@
 //
 // Translation of pcgen.cdom.reference.Qualifier
 import 'package:flutter_pcgen/src/cdom/base/loadable.dart';
-import 'cdom_single_ref.dart';
+import 'package:flutter_pcgen/src/cdom/reference/cdom_single_ref.dart';
 
 // Identifies a specific Loadable instance to bypass prerequisites or establish
 // other relationships (e.g. QUALIFY token).

@@ -17,7 +17,7 @@
 //
 // Translation of pcgen.output.channel.compat.StatAdapter
 
-import 'abstract_adapter.dart';
+import 'package:flutter_pcgen/src/output/compat/abstract_adapter.dart';
 
 /// StatAdapter provides a writeable reference for a specific stat channel.
 class StatAdapter extends AbstractAdapter<int> {

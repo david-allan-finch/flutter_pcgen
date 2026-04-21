@@ -1,16 +1,16 @@
 import 'package:flutter_pcgen/src/base/util/typed_key.dart';
 import 'package:flutter_pcgen/src/base/util/format_manager.dart';
-import 'dependency_strategy.dart';
-import 'dynamic_manager.dart';
-import 'function_library.dart';
-import 'implemented_scope.dart';
-import 'indirect_dependency.dart';
-import 'operator_library.dart';
-import 'scope_instance.dart';
-import 'scope_instance_factory.dart';
-import 'scope_implementer.dart';
-import 'variable_library.dart';
-import 'variable_list.dart';
+import 'package:flutter_pcgen/src/formula/base/dependency_strategy.dart';
+import 'package:flutter_pcgen/src/formula/base/dynamic_manager.dart';
+import 'package:flutter_pcgen/src/formula/base/function_library.dart';
+import 'package:flutter_pcgen/src/formula/base/implemented_scope.dart';
+import 'package:flutter_pcgen/src/formula/base/indirect_dependency.dart';
+import 'package:flutter_pcgen/src/formula/base/operator_library.dart';
+import 'package:flutter_pcgen/src/formula/base/scope_instance.dart';
+import 'package:flutter_pcgen/src/formula/base/scope_instance_factory.dart';
+import 'package:flutter_pcgen/src/formula/base/scope_implementer.dart';
+import 'package:flutter_pcgen/src/formula/base/variable_library.dart';
+import 'package:flutter_pcgen/src/formula/base/variable_list.dart';
 
 class DependencyManager {
   static final TypedKey<List<String>> log = TypedKey();

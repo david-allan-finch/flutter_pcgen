@@ -16,8 +16,8 @@
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
 //
 // Translation of pcgen.cdom.inst.DynamicCategory
-import 'abstract_category.dart';
-import 'dynamic.dart';
+import 'package:flutter_pcgen/src/cdom/inst/abstract_category.dart';
+import 'package:flutter_pcgen/src/cdom/inst/dynamic.dart';
 
 // A non-hierarchical Category used to separate typed Dynamic objects.
 final class DynamicCategory extends AbstractCategory<Dynamic> {

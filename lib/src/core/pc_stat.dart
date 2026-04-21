@@ -19,7 +19,7 @@
 import 'package:flutter_pcgen/src/cdom/base/non_interactive.dart';
 import 'package:flutter_pcgen/src/cdom/base/sort_key_required.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/string_key.dart';
-import 'pcobject.dart';
+import 'package:flutter_pcgen/src/core/pcobject.dart';
 
 // Represents an ability score (STR, DEX, CON, etc.).
 final class PCStat extends PObject

@@ -3,16 +3,16 @@
 // Translation of pcgen.rules.persistence.TokenSupport
 
 import 'package:flutter_pcgen/src/rules/context/load_context.dart';
-import 'token/c_d_o_m_primary_token.dart';
-import 'token/c_d_o_m_secondary_token.dart';
-import 'token/c_d_o_m_token.dart';
-import 'token/complex_parse_result.dart';
-import 'token/deferred_token.dart';
-import 'token/parse_result.dart';
-import 'token_library.dart';
-import 'util/token_family.dart';
-import 'util/token_family_iterator.dart';
-import 'util/token_family_sub_iterator.dart';
+import 'package:flutter_pcgen/src/rules/persistence/token/c_d_o_m_primary_token.dart';
+import 'package:flutter_pcgen/src/rules/persistence/token/c_d_o_m_secondary_token.dart';
+import 'package:flutter_pcgen/src/rules/persistence/token/c_d_o_m_token.dart';
+import 'package:flutter_pcgen/src/rules/persistence/token/complex_parse_result.dart';
+import 'package:flutter_pcgen/src/rules/persistence/token/deferred_token.dart';
+import 'package:flutter_pcgen/src/rules/persistence/token/parse_result.dart';
+import 'package:flutter_pcgen/src/rules/persistence/token_library.dart';
+import 'package:flutter_pcgen/src/rules/persistence/util/token_family.dart';
+import 'package:flutter_pcgen/src/rules/persistence/util/token_family_iterator.dart';
+import 'package:flutter_pcgen/src/rules/persistence/util/token_family_sub_iterator.dart';
 
 /// Supports processing and unparsing of tokens for a given [LoadContext].
 ///

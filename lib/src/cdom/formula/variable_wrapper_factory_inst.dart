@@ -3,9 +3,9 @@
 // Translation of pcgen.cdom.formula.VariableWrapperFactoryInst
 
 import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
-import 'variable_utilities.dart';
-import 'variable_wrapper.dart';
-import 'variable_wrapper_factory.dart';
+import 'package:flutter_pcgen/src/cdom/formula/variable_utilities.dart';
+import 'package:flutter_pcgen/src/cdom/formula/variable_wrapper.dart';
+import 'package:flutter_pcgen/src/cdom/formula/variable_wrapper_factory.dart';
 
 /// Standard implementation of VariableWrapperFactory using facet lookups.
 class VariableWrapperFactoryInst implements VariableWrapperFactory {

@@ -3,12 +3,12 @@
 // Translation of pcgen.cdom.facet.ChooseDriverFacet
 
 import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
-import 'domain_selection_facet.dart';
-import 'event/scope_facet_change_event.dart';
-import 'event/scope_facet_change_listener.dart';
-import 'player_character_tracking_facet.dart';
-import 'race_selection_facet.dart';
-import 'template_selection_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/domain_selection_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/event/scope_facet_change_event.dart';
+import 'package:flutter_pcgen/src/cdom/facet/event/scope_facet_change_listener.dart';
+import 'package:flutter_pcgen/src/cdom/facet/player_character_tracking_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/race_selection_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/template_selection_facet.dart';
 
 /// Drives application/removal of CHOOSE token selections on CDOMObjects.
 class ChooseDriverFacet {

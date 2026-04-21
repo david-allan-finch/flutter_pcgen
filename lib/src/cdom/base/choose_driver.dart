@@ -16,8 +16,8 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.base.ChooseDriver
-import 'choose_selection_actor.dart';
-import 'choose_information.dart';
+import 'package:flutter_pcgen/src/cdom/base/choose_selection_actor.dart';
+import 'package:flutter_pcgen/src/cdom/base/choose_information.dart';
 
 // A ChooseDriver is an object that drives the CHOOSE mechanism (e.g. a
 // CDOMObject with a CHOOSE token). It provides all the information needed

@@ -20,8 +20,8 @@
 import 'package:flutter_pcgen/src/core/globals.dart';
 import 'package:flutter_pcgen/src/core/player_character.dart';
 import 'package:flutter_pcgen/src/core/skill.dart';
-import 'skill_info_utilities.dart';
-import 'skill_rank_control.dart';
+import 'package:flutter_pcgen/src/core/analysis/skill_info_utilities.dart';
+import 'package:flutter_pcgen/src/core/analysis/skill_rank_control.dart';
 
 abstract final class SkillModifier {
   static int modifier(Skill sk, PlayerCharacter aPC) {

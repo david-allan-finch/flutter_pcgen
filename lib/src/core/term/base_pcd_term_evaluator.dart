@@ -2,8 +2,8 @@
 //
 // Translation of pcgen.core.term.BasePCDTermEvaluator
 
-import 'base_pc_term_evaluator.dart';
-import 'term_util.dart';
+import 'package:flutter_pcgen/src/core/term/base_pc_term_evaluator.dart';
+import 'package:flutter_pcgen/src/core/term/term_util.dart';
 
 /// Abstract base for term evaluators that delegate to a CharacterDisplay
 /// rather than directly to PlayerCharacter.

@@ -2,7 +2,7 @@
 //
 // Translation of pcgen.persistence.lst.TokenStore
 
-import 'lst_token.dart';
+import 'package:flutter_pcgen/src/persistence/lst/lst_token.dart';
 
 /// A singleton store of LST tokens, organised by token-interface type.
 class TokenStore {

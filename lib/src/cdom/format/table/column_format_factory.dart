@@ -2,7 +2,7 @@
 //
 // Translation of pcgen.cdom.format.table.ColumnFormatFactory
 
-import 'column_format_manager.dart';
+import 'package:flutter_pcgen/src/cdom/format/table/column_format_manager.dart';
 
 /// Builds ColumnFormatManager objects for a given column sub-format name.
 class ColumnFormatFactory {

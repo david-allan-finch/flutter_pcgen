@@ -20,7 +20,7 @@ import 'package:flutter_pcgen/src/cdom/base/cdom_object.dart';
 import 'package:flutter_pcgen/src/cdom/base/cdom_reference.dart';
 import 'package:flutter_pcgen/src/cdom/base/concrete_prereq_object.dart';
 import 'package:flutter_pcgen/src/cdom/base/constants.dart';
-import 'prof_provider.dart';
+import 'package:flutter_pcgen/src/cdom/helper/prof_provider.dart';
 
 // An AbstractProfProvider holds proficiency references either as direct
 // objects or as Equipment TYPE references. Subclasses specify the proficiency

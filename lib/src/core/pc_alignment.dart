@@ -17,7 +17,7 @@
 //
 // Translation of pcgen.core.PCAlignment
 import 'package:flutter_pcgen/src/cdom/enumeration/string_key.dart';
-import 'pcobject.dart';
+import 'package:flutter_pcgen/src/core/pcobject.dart';
 
 // Represents an Alignment (LG, NG, CG, LN, TN, CN, LE, NE, CE).
 final class PCAlignment extends PObject {

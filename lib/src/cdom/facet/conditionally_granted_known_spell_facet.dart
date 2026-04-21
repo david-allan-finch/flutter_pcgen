@@ -3,8 +3,8 @@
 // Translation of pcgen.cdom.facet.ConditionallyGrantedKnownSpellFacet
 
 import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
-import 'conditionally_known_spell_facet.dart';
-import 'known_spell_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/conditionally_known_spell_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/known_spell_facet.dart';
 
 /// Promotes qualified known spells from the conditional facet into the active
 /// [KnownSpellFacet].

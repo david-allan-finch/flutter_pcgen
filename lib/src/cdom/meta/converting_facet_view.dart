@@ -16,7 +16,7 @@
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
 //
 // Translation of pcgen.cdom.meta.ConvertingFacetView
-import 'facet_view.dart';
+import 'package:flutter_pcgen/src/cdom/meta/facet_view.dart';
 
 // Holds a source-destination pair for ConvertingFacetView display.
 class SourceDest {

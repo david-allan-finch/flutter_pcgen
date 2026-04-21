@@ -9,7 +9,7 @@
 
 import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
 import 'package:flutter_pcgen/src/core/equipment.dart';
-import 'base/abstract_list_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/base/abstract_list_facet.dart';
 
 /// Contains the list of weapons that are Primary Weapons for a Player Character.
 class PrimaryWeaponFacet extends AbstractListFacet<CharID, Equipment> {

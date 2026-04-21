@@ -19,15 +19,15 @@
 // EquipmentList.dart
 // Translated from pcgen/core/EquipmentList.java
 
-import 'globals.dart';
-import 'equipment.dart';
-import 'equipment_modifier.dart';
-import 'player_character.dart';
-import 'size_adjustment.dart';
-import 'utils/core_utility.dart';
+import 'package:flutter_pcgen/src/core/globals.dart';
+import 'package:flutter_pcgen/src/core/equipment.dart';
+import 'package:flutter_pcgen/src/core/equipment_modifier.dart';
+import 'package:flutter_pcgen/src/core/player_character.dart';
+import 'package:flutter_pcgen/src/core/size_adjustment.dart';
+import 'package:flutter_pcgen/src/core/utils/core_utility.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/object_key.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/type.dart';
-import 'prereq/prereq_handler.dart';
+import 'package:flutter_pcgen/src/core/prereq/prereq_handler.dart';
 
 /// Equipment-related utility methods extracted from Globals.
 class EquipmentList {

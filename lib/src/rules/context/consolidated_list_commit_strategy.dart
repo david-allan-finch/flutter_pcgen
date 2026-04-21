@@ -8,12 +8,12 @@ import 'package:flutter_pcgen/src/cdom/base/cdom_reference.dart';
 import 'package:flutter_pcgen/src/cdom/base/master_list_interface.dart';
 import 'package:flutter_pcgen/src/cdom/base/simple_associated_object.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/association_key.dart';
-import 'associated_changes.dart';
-import 'associated_collection_changes.dart';
-import 'changes.dart';
-import 'collection_changes.dart';
-import 'list_changes.dart';
-import 'list_commit_strategy.dart';
+import 'package:flutter_pcgen/src/rules/context/associated_changes.dart';
+import 'package:flutter_pcgen/src/rules/context/associated_collection_changes.dart';
+import 'package:flutter_pcgen/src/rules/context/changes.dart';
+import 'package:flutter_pcgen/src/rules/context/collection_changes.dart';
+import 'package:flutter_pcgen/src/rules/context/list_changes.dart';
+import 'package:flutter_pcgen/src/rules/context/list_commit_strategy.dart';
 
 /// ConsolidatedListCommitStrategy implements both [ListCommitStrategy] and
 /// [MasterListInterface].  It stores list associations directly on the

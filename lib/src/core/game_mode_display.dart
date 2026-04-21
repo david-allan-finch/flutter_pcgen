@@ -16,7 +16,7 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.core.GameModeDisplay
-import 'game_mode.dart';
+import 'package:flutter_pcgen/src/core/game_mode.dart';
 
 // Wraps a GameMode for display/comparison in mode selection lists.
 final class GameModeDisplay implements Comparable<Object> {

@@ -19,7 +19,7 @@
 
 import 'package:flutter_pcgen/src/cdom/enumeration/list_key.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/object_key.dart';
-import 'pcobject.dart';
+import 'package:flutter_pcgen/src/core/pcobject.dart';
 
 /// Represents a skill (e.g., Acrobatics, Perception).
 final class Skill extends PObject {

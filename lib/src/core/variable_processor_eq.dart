@@ -16,9 +16,9 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.core.VariableProcessorEq
-import 'equipment.dart';
-import 'player_character.dart';
-import 'variable_processor.dart';
+import 'package:flutter_pcgen/src/core/equipment.dart';
+import 'package:flutter_pcgen/src/core/player_character.dart';
+import 'package:flutter_pcgen/src/core/variable_processor.dart';
 
 // Variable processor for equipment-scoped variables.
 class VariableProcessorEq extends VariableProcessor {

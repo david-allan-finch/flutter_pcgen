@@ -20,7 +20,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_pcgen/src/facade/core/character_facade.dart';
 import 'package:flutter_pcgen/src/system/character_manager.dart';
-import 'tabs/info_tabbed_pane.dart';
+import 'package:flutter_pcgen/src/gui2/tabs/info_tabbed_pane.dart';
 
 /// Tabbed pane for PCGen characters. Manages the set of open characters
 /// and notifies the frame and InfoTabbedPane when selection changes.

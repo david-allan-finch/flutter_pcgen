@@ -4,7 +4,7 @@
 
 import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
 import 'package:flutter_pcgen/src/core/bonus/bonus_obj.dart';
-import 'base/abstract_sourced_list_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/base/abstract_sourced_list_facet.dart';
 
 /// Tracks [BonusObj] objects that are "manually" applied to a Player Character
 /// and need to be saved to the PCG file.

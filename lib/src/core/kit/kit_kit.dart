@@ -19,7 +19,7 @@
 import 'package:flutter_pcgen/src/cdom/reference/cdom_single_ref.dart';
 import 'package:flutter_pcgen/src/core/kit.dart';
 import 'package:flutter_pcgen/src/core/player_character.dart';
-import 'base_kit.dart';
+import 'package:flutter_pcgen/src/core/kit/base_kit.dart';
 
 class KitKit extends BaseKit {
   final List<CDOMSingleRef<Kit>> _availableKits = [];

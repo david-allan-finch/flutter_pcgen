@@ -18,8 +18,8 @@
 // Translation of pcgen.persistence.lst.GenericLocalVariableLoader
 
 import 'package:flutter_pcgen/src/rules/context/load_context.dart';
-import 'lst_line_file_loader.dart';
-import 'source_entry.dart';
+import 'package:flutter_pcgen/src/persistence/lst/lst_line_file_loader.dart';
+import 'package:flutter_pcgen/src/persistence/lst/source_entry.dart';
 
 /// Loads local variable definitions from LST files for a specific scope.
 ///

@@ -2,9 +2,9 @@
 //
 // Translation of pcgen.core.prereq.AbstractPrerequisiteTest
 
-import 'prerequisite.dart';
-import 'prerequisite_exception.dart';
-import 'prerequisite_test.dart';
+import 'package:flutter_pcgen/src/core/prereq/prerequisite.dart';
+import 'package:flutter_pcgen/src/core/prereq/prerequisite_exception.dart';
+import 'package:flutter_pcgen/src/core/prereq/prerequisite_test.dart';
 
 /// Base class for PrerequisiteTest implementations. Provides default
 /// implementations that throw unless overridden by the subclass.

@@ -4,7 +4,7 @@
 
 import 'package:flutter_pcgen/src/core/prereq/prerequisite.dart';
 import 'package:flutter_pcgen/src/core/prereq/prerequisite_operator.dart';
-import 'prerequisite_parser_interface.dart';
+import 'package:flutter_pcgen/src/persistence/lst/prereq/prerequisite_parser_interface.dart';
 
 /// Singleton factory for parsing PRExxx prerequisite strings into Prerequisite objects.
 ///

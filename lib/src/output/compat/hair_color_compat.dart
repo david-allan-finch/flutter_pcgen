@@ -15,7 +15,7 @@
 //
 // Translation of pcgen.output.channel.compat.HairColorCompat
 
-import 'abstract_adapter.dart';
+import 'package:flutter_pcgen/src/output/compat/abstract_adapter.dart';
 
 /// HairColorCompat provides a writeable reference for the character's hair color channel.
 class HairColorCompat extends AbstractAdapter<String> {

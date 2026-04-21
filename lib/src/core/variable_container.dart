@@ -16,7 +16,7 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.core.VariableContainer
-import 'player_character.dart';
+import 'package:flutter_pcgen/src/core/player_character.dart';
 
 // Functional interface for objects that expose named variable values.
 abstract interface class VariableContainer {

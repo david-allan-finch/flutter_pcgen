@@ -17,9 +17,9 @@
 //
 // Translation of pcgen.gui2.util.treetable.SortableTreeTableModel
 
-import 'abstract_tree_table_model.dart';
-import 'sortable_tree_table_node.dart';
-import 'tree_table_node.dart';
+import 'package:flutter_pcgen/src/gui2/util/treetable/abstract_tree_table_model.dart';
+import 'package:flutter_pcgen/src/gui2/util/treetable/sortable_tree_table_node.dart';
+import 'package:flutter_pcgen/src/gui2/util/treetable/tree_table_node.dart';
 
 /// A tree table model that can sort its rows.
 abstract class SortableTreeTableModel extends AbstractTreeTableModel {

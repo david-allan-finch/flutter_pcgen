@@ -19,8 +19,8 @@
 
 import 'package:flutter/material.dart';
 
-import 'table/sortable_table_model.dart';
-import 'table/sortable_table_row_sorter.dart';
+import 'package:flutter_pcgen/src/gui2/util/table/sortable_table_model.dart';
+import 'package:flutter_pcgen/src/gui2/util/table/sortable_table_row_sorter.dart';
 
 /// Callback fired when the user double-taps a cell.
 typedef TableDoubleClickCallback = void Function(int row, int column, dynamic value);

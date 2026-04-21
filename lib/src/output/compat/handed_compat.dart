@@ -1,6 +1,6 @@
 // Translation of pcgen.output.channel.compat.HandedCompat
 
-import 'abstract_adapter.dart';
+import 'package:flutter_pcgen/src/output/compat/abstract_adapter.dart';
 
 /// HandedCompat provides a writeable reference for the character's handedness channel.
 class HandedCompat extends AbstractAdapter<dynamic> {

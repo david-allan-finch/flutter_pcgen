@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'gui2/pc_gen_frame.dart';
-import 'gui3/preloader/pc_gen_preloader.dart';
-import 'gui3/preloader/pc_gen_preloader_controller.dart';
-import 'gui2/ui_context.dart';
-import 'gui2/ui_property_context.dart';
+import 'package:flutter_pcgen/src/gui2/pc_gen_frame.dart';
+import 'package:flutter_pcgen/src/gui3/preloader/pc_gen_preloader.dart';
+import 'package:flutter_pcgen/src/gui3/preloader/pc_gen_preloader_controller.dart';
+import 'package:flutter_pcgen/src/gui2/ui_context.dart';
+import 'package:flutter_pcgen/src/gui2/ui_property_context.dart';
 
 class PCGenApp extends StatelessWidget {
   const PCGenApp({super.key});

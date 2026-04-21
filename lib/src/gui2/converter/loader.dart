@@ -17,7 +17,7 @@
 //
 // Translation of pcgen.gui2.converter.Loader
 
-import 'conversion_decider.dart';
+import 'package:flutter_pcgen/src/gui2/converter/conversion_decider.dart';
 
 /// Interface implemented by each LST file loader that knows how to process
 /// a particular type of game-data file during dataset conversion.

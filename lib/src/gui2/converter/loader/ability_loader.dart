@@ -18,7 +18,7 @@
 // Translation of pcgen.gui2.converter.loader.AbilityLoader
 
 import 'package:flutter_pcgen/src/gui2/converter/conversion_decider.dart';
-import 'basic_loader.dart';
+import 'package:flutter_pcgen/src/gui2/converter/loader/basic_loader.dart';
 
 /// Extends [BasicLoader] with extra pre-processing for Ability files:
 /// scans each line for a CATEGORY token and ensures the named

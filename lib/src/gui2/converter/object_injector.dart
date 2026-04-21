@@ -19,8 +19,8 @@
 
 import 'dart:io';
 
-import 'lst_converter.dart';
-import 'loader.dart';
+import 'package:flutter_pcgen/src/gui2/converter/lst_converter.dart';
+import 'package:flutter_pcgen/src/gui2/converter/loader.dart';
 
 /// Collects CDOMObjects that were injected during conversion and writes them
 /// into new LST files in the output directory, also updating the relevant PCC

@@ -2,9 +2,9 @@
 //
 // Translation of pcgen.core.term.EQAltPlusTotalTermEvaluator
 
-import 'base_eq_term_evaluator.dart';
-import 'term_evaluator.dart';
-import 'term_util.dart';
+import 'package:flutter_pcgen/src/core/term/base_eq_term_evaluator.dart';
+import 'package:flutter_pcgen/src/core/term/term_evaluator.dart';
+import 'package:flutter_pcgen/src/core/term/term_util.dart';
 
 /// Produces the ALTPLUSTOTAL token value: total plus modifier for the alternate head.
 class EQAltPlusTotalTermEvaluator extends BaseEQTermEvaluator implements TermEvaluator {

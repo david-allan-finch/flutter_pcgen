@@ -2,8 +2,8 @@
 //
 // Translation of pcgen.core.kit.KitTable
 
-import 'base_kit.dart';
-import 'kit_gear.dart';
+import 'package:flutter_pcgen/src/core/kit/base_kit.dart';
+import 'package:flutter_pcgen/src/core/kit/kit_gear.dart';
 
 /// A kit component that stores a random-roll table mapping numeric ranges
 /// to KitGear entries.

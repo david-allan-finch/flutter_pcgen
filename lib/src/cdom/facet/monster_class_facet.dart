@@ -6,14 +6,14 @@ import 'package:flutter_pcgen/src/cdom/base/cdom_object.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/object_key.dart';
 import 'package:flutter_pcgen/src/core/pc_class.dart';
-import 'analysis/level_facet.dart';
-import 'event/data_facet_change_event.dart';
-import 'event/data_facet_change_listener.dart';
-import 'formula_resolving_facet.dart';
-import 'level_info_facet.dart';
-import 'model/class_facet.dart';
-import 'model/race_facet.dart';
-import 'player_character_tracking_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/analysis/level_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/event/data_facet_change_event.dart';
+import 'package:flutter_pcgen/src/cdom/facet/event/data_facet_change_listener.dart';
+import 'package:flutter_pcgen/src/cdom/facet/formula_resolving_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/level_info_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/model/class_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/model/race_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/player_character_tracking_facet.dart';
 
 /// Applies MONSTERCLASS levels when a CDOMObject is added/removed from a PC.
 class MonsterClassFacet implements DataFacetChangeListener<CharID, CDOMObject> {

@@ -4,10 +4,10 @@
 
 import 'dart:math';
 
-import 'data_element.dart';
-import 'data_value.dart';
-import 'variable_hash_map.dart';
-import 'weighted_data_value.dart';
+import 'package:flutter_pcgen/src/core/doomsdaybook/data_element.dart';
+import 'package:flutter_pcgen/src/core/doomsdaybook/data_value.dart';
+import 'package:flutter_pcgen/src/core/doomsdaybook/variable_hash_map.dart';
+import 'package:flutter_pcgen/src/core/doomsdaybook/weighted_data_value.dart';
 
 /// A RuleSet is a weighted collection of DataElement keys. When evaluated, it
 /// randomly selects one key using weighted random selection and returns the

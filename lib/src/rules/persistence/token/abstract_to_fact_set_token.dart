@@ -3,9 +3,9 @@
 // Translation of pcgen.rules.persistence.token.AbstractToFactSetToken
 
 import 'package:flutter_pcgen/src/rules/context/load_context.dart';
-import 'abstract_non_empty_token.dart';
-import 'cdom_compatibility_token.dart';
-import 'parse_result.dart';
+import 'package:flutter_pcgen/src/rules/persistence/token/abstract_non_empty_token.dart';
+import 'package:flutter_pcgen/src/rules/persistence/token/cdom_compatibility_token.dart';
+import 'package:flutter_pcgen/src/rules/persistence/token/parse_result.dart';
 
 /// Converts a list (formerly a ListKey-based token) into a FACTSET.
 ///

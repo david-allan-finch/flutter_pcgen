@@ -18,7 +18,7 @@
 // Translation of pcgen.gui3.preferences.EquipmentPreferencesPanelController
 
 import 'package:flutter/material.dart';
-import 'equipment_preferences_model.dart';
+import 'package:flutter_pcgen/src/gui3/preferences/equipment_preferences_model.dart';
 
 /// Controller/widget for the Equipment preferences panel.
 class EquipmentPreferencesPanelController extends StatelessWidget {

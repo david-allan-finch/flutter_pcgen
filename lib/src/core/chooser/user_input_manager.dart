@@ -2,7 +2,7 @@
 //
 // Translation of pcgen.core.chooser.UserInputManager
 
-import 'cdom_choice_manager.dart';
+import 'package:flutter_pcgen/src/core/chooser/cdom_choice_manager.dart';
 
 /// A [CDOMChoiceManager] that prompts the user for free-text input rather
 /// than selecting from a pre-defined list.

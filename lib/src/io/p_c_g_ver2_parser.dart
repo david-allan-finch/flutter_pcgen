@@ -18,9 +18,9 @@
 // Translation of pcgen.io.PCGVer2Parser
 
 import 'package:flutter_pcgen/src/core/player_character.dart';
-import 'io_constants.dart';
-import 'p_c_g_parse_exception.dart';
-import 'p_c_g_parser.dart';
+import 'package:flutter_pcgen/src/io/io_constants.dart';
+import 'package:flutter_pcgen/src/io/p_c_g_parse_exception.dart';
+import 'package:flutter_pcgen/src/io/p_c_g_parser.dart';
 
 /// Parses PCGen PCG version 2 character files.
 ///

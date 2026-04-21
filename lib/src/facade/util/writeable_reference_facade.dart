@@ -16,7 +16,7 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.facade.util.WriteableReferenceFacade
-import 'reference_facade.dart';
+import 'package:flutter_pcgen/src/facade/util/reference_facade.dart';
 
 // Mutable version of ReferenceFacade.
 abstract interface class WriteableReferenceFacade<E> implements ReferenceFacade<E> {

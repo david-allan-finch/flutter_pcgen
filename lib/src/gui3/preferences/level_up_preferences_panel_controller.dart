@@ -18,7 +18,7 @@
 // Translation of pcgen.gui3.preferences.LevelUpPreferencesPanelController
 
 import 'package:flutter/material.dart';
-import 'level_up_preferences_model.dart';
+import 'package:flutter_pcgen/src/gui3/preferences/level_up_preferences_model.dart';
 
 /// Controller/widget for the Level Up preferences panel.
 class LevelUpPreferencesPanelController extends StatelessWidget {

@@ -14,8 +14,8 @@
 // Fifth Floor, Boston, MA 02110-1301, USA
 //
 // Translation of pcgen.cdom.base.LimitedVarHolder
-import 'limited_var_container.dart';
-import 'var_holder.dart';
+import 'package:flutter_pcgen/src/cdom/base/limited_var_container.dart';
+import 'package:flutter_pcgen/src/cdom/base/var_holder.dart';
 
 // LimitedVarHolder combines VarHolder and LimitedVarContainer.
 abstract interface class LimitedVarHolder

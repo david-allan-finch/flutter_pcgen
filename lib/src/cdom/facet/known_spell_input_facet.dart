@@ -11,11 +11,11 @@ import 'package:flutter_pcgen/src/cdom/helper/available_spell.dart';
 import 'package:flutter_pcgen/src/cdom/list/class_spell_list.dart';
 import 'package:flutter_pcgen/src/cdom/list/domain_spell_list.dart';
 import 'package:flutter_pcgen/src/core/spell/spell.dart';
-import 'cdom_object_consolidation_facet.dart';
-import 'conditionally_known_spell_facet.dart';
-import 'event/data_facet_change_event.dart';
-import 'event/data_facet_change_listener.dart';
-import 'known_spell_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/cdom_object_consolidation_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/conditionally_known_spell_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/event/data_facet_change_event.dart';
+import 'package:flutter_pcgen/src/cdom/facet/event/data_facet_change_listener.dart';
+import 'package:flutter_pcgen/src/cdom/facet/known_spell_facet.dart';
 
 /// Processes KNOWN spell entries on CDOMObjects and routes them to either
 /// [KnownSpellFacet] (unconditional) or [ConditionallyKnownSpellFacet]

@@ -1,5 +1,5 @@
-import 'edge.dart';
-import 'graph_change_listener.dart';
+import 'package:flutter_pcgen/src/base/graph/base/edge.dart';
+import 'package:flutter_pcgen/src/base/graph/base/graph_change_listener.dart';
 
 abstract interface class Graph<N, ET extends Edge<N>> {
   bool addNode(N v);

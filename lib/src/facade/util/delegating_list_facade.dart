@@ -16,8 +16,8 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.facade.util.DelegatingListFacade
-import 'abstract_list_facade.dart';
-import 'list_facade.dart';
+import 'package:flutter_pcgen/src/facade/util/abstract_list_facade.dart';
+import 'package:flutter_pcgen/src/facade/util/list_facade.dart';
 
 /// A [ListFacade] that delegates to another [ListFacade] and re-fires its
 /// events. Useful for swapping out the underlying list at runtime.

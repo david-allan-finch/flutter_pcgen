@@ -17,8 +17,8 @@
 //
 // Translation of pcgen.rules.context.EditorListContext
 import 'package:flutter_pcgen/src/cdom/base/cdom_object.dart';
-import 'list_commit_strategy.dart';
-import 'runtime_list_context.dart';
+import 'package:flutter_pcgen/src/rules/context/list_commit_strategy.dart';
+import 'package:flutter_pcgen/src/rules/context/runtime_list_context.dart';
 
 // stub: TrackingListCommitStrategy not yet translated
 class TrackingListCommitStrategy implements ListCommitStrategy {

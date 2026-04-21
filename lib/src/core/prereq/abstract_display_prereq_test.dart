@@ -2,9 +2,9 @@
 //
 // Translation of pcgen.core.prereq.AbstractDisplayPrereqTest
 
-import 'abstract_prerequisite_test.dart';
-import 'prerequisite.dart';
-import 'prerequisite_exception.dart';
+import 'package:flutter_pcgen/src/core/prereq/abstract_prerequisite_test.dart';
+import 'package:flutter_pcgen/src/core/prereq/prerequisite.dart';
+import 'package:flutter_pcgen/src/core/prereq/prerequisite_exception.dart';
 
 /// Transition base class that routes prerequisite testing through a
 /// CharacterDisplay instead of directly through PlayerCharacter.

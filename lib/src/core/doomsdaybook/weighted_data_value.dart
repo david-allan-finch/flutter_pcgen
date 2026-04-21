@@ -2,8 +2,8 @@
 //
 // Translation of pcgen.core.doomsdaybook.WeightedDataValue
 
-import 'data_sub_value.dart';
-import 'data_value.dart';
+import 'package:flutter_pcgen/src/core/doomsdaybook/data_sub_value.dart';
+import 'package:flutter_pcgen/src/core/doomsdaybook/data_value.dart';
 
 /// A DataValue with an associated weight for random selection.
 class WeightedDataValue extends DataValue {

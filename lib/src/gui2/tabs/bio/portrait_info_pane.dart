@@ -18,8 +18,8 @@
 // Translation of pcgen.gui2.tabs.bio.PortraitInfoPane
 
 import 'package:flutter/material.dart';
-import 'portrait_pane.dart';
-import 'thumbnail_pane.dart';
+import 'package:flutter_pcgen/src/gui2/tabs/bio/portrait_pane.dart';
+import 'package:flutter_pcgen/src/gui2/tabs/bio/thumbnail_pane.dart';
 
 /// Panel combining the full portrait display and thumbnail crop preview.
 class PortraitInfoPane extends StatefulWidget {

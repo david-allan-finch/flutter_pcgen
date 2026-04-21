@@ -17,7 +17,7 @@
 //
 // Translation of pcgen.core.PCCheck
 import 'package:flutter_pcgen/src/cdom/enumeration/string_key.dart';
-import 'pcobject.dart';
+import 'package:flutter_pcgen/src/core/pcobject.dart';
 
 // Represents a saving throw or other check (e.g., Fort, Ref, Will).
 final class PCCheck extends PObject {

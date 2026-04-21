@@ -2,8 +2,8 @@
 //
 // Translation of pcgen.core.term.EQCritMultTermEvaluator
 
-import 'base_eq_term_evaluator.dart';
-import 'term_evaluator.dart';
+import 'package:flutter_pcgen/src/core/term/base_eq_term_evaluator.dart';
+import 'package:flutter_pcgen/src/core/term/term_evaluator.dart';
 
 class EQCritMultTermEvaluator extends BaseEQTermEvaluator implements TermEvaluator {
   EQCritMultTermEvaluator(String expressionString) {

@@ -5,8 +5,8 @@
 import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
 import 'package:flutter_pcgen/src/cdom/inst/pc_class_level.dart';
 import 'package:flutter_pcgen/src/core/pc_class.dart';
-import 'model/class_facet.dart';
-import 'model/class_level_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/model/class_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/model/class_level_facet.dart';
 
 /// Listens for PCClass level changes and updates [ClassLevelFacet] to reflect
 /// the current set of active [PCClassLevel] objects.

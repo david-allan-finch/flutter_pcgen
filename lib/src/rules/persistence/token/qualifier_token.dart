@@ -17,7 +17,7 @@
 //
 // Translation of pcgen.rules.persistence.token.QualifierToken
 import 'package:flutter_pcgen/src/rules/context/load_context.dart';
-import 'cdom_token.dart';
+import 'package:flutter_pcgen/src/rules/persistence/token/cdom_token.dart';
 
 /// A QualifierToken selects and filters zero or more objects of a specific
 /// type. Typically used as part of a CHOOSE.

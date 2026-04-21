@@ -16,7 +16,7 @@
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
 //
 // Translation of pcgen.cdom.facet.event.SubScopeFacetChangeListener
-import 'sub_scope_facet_change_event.dart';
+import 'package:flutter_pcgen/src/cdom/facet/event/sub_scope_facet_change_event.dart';
 
 abstract interface class SubScopeFacetChangeListener<S1, S2, T> {
   void dataAdded(SubScopeFacetChangeEvent<S1, S2, T> dfce);

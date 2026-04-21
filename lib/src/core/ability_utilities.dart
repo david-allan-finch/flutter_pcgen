@@ -19,22 +19,22 @@
 // AbilityUtilities.dart
 // Translated from pcgen/core/AbilityUtilities.java
 
-import 'player_character.dart';
-import 'ability.dart';
-import 'ability_category.dart';
-import 'kit.dart';
-import 'globals.dart';
+import 'package:flutter_pcgen/src/core/player_character.dart';
+import 'package:flutter_pcgen/src/core/ability.dart';
+import 'package:flutter_pcgen/src/core/ability_category.dart';
+import 'package:flutter_pcgen/src/core/kit.dart';
+import 'package:flutter_pcgen/src/core/globals.dart';
 import 'package:flutter_pcgen/src/cdom/base/transition_choice.dart';
 import 'package:flutter_pcgen/src/cdom/base/user_selection.dart';
 import 'package:flutter_pcgen/src/cdom/content/cn_ability.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/list_key.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/object_key.dart';
 import 'package:flutter_pcgen/src/cdom/helper/cn_ability_selection.dart';
-import 'analysis/add_object_actions.dart';
-import 'chooser/choice_manager_list.dart';
-import 'chooser/chooser_utilities.dart';
-import 'utils/core_utility.dart';
-import 'utils/last_group_separator.dart';
+import 'package:flutter_pcgen/src/core/analysis/add_object_actions.dart';
+import 'package:flutter_pcgen/src/core/chooser/choice_manager_list.dart';
+import 'package:flutter_pcgen/src/core/chooser/chooser_utilities.dart';
+import 'package:flutter_pcgen/src/core/utils/core_utility.dart';
+import 'package:flutter_pcgen/src/core/utils/last_group_separator.dart';
 
 /// General utilities related to the Ability class.
 class AbilityUtilities {

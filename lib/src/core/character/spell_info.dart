@@ -18,7 +18,7 @@
 // Translation of pcgen.core.character.SpellInfo
 import 'package:flutter_pcgen/src/core/ability.dart';
 import 'package:flutter_pcgen/src/core/globals.dart';
-import 'character_spell.dart';
+import 'package:flutter_pcgen/src/core/character/character_spell.dart';
 
 // Helper class for CharacterSpell — stores book, level, times, and metamagic feats.
 final class SpellInfo implements Comparable<SpellInfo> {

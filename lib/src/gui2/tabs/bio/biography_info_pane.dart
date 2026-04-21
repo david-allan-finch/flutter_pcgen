@@ -18,7 +18,7 @@
 // Translation of pcgen.gui2.tabs.bio.BiographyInfoPane
 
 import 'package:flutter/material.dart';
-import 'bio_item.dart';
+import 'package:flutter_pcgen/src/gui2/tabs/bio/bio_item.dart';
 
 /// Panel showing character biography fields (name, age, gender, etc.).
 class BiographyInfoPane extends StatefulWidget {

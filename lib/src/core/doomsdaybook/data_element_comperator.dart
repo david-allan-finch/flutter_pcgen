@@ -3,7 +3,7 @@
 // Translation of pcgen.core.doomsdaybook.DataElementComperator
 // (preserving original "Comperator" spelling)
 
-import 'data_element.dart';
+import 'package:flutter_pcgen/src/core/doomsdaybook/data_element.dart';
 
 /// Comparator for DataElements, ordering by title (case-insensitive).
 class DataElementComperator implements Comparator<DataElement> {

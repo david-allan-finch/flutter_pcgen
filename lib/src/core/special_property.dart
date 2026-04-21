@@ -17,7 +17,7 @@
 //
 // Translation of pcgen.core.SpecialProperty
 import 'package:flutter_pcgen/src/cdom/prereq/prerequisite.dart';
-import 'text_property.dart';
+import 'package:flutter_pcgen/src/core/text_property.dart';
 
 /// Represents a Special Property (SPROP) in PCGen.
 ///

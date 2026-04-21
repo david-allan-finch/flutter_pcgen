@@ -18,7 +18,7 @@
 // Translation of pcgen.rules.persistence.token.ComplexParseResult
 import 'dart:developer' as developer;
 
-import 'parse_result.dart';
+import 'package:flutter_pcgen/src/rules/persistence/token/parse_result.dart';
 
 /// ParseResult implementation that supports multiple queued messages.
 class ComplexParseResult implements ParseResult {

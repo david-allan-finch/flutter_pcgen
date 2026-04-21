@@ -17,10 +17,10 @@
 //
 // Translation of pcgen.cdom.base.ConcreteTransitionChoice
 import 'package:flutter_pcgen/src/cdom/enumeration/association_list_key.dart';
-import 'cdom_object.dart';
-import 'choice_actor.dart';
-import 'selectable_set.dart';
-import 'transition_choice.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_object.dart';
+import 'package:flutter_pcgen/src/cdom/base/choice_actor.dart';
+import 'package:flutter_pcgen/src/cdom/base/selectable_set.dart';
+import 'package:flutter_pcgen/src/cdom/base/transition_choice.dart';
 
 // ConcreteTransitionChoice holds a SelectableSet and a formula for the count
 // of selections, driving a GUI chooser when needed.

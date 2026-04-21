@@ -17,8 +17,8 @@
 //
 // Translation of pcgen.cdom.enumeration.SourceFormat
 import 'package:flutter_pcgen/src/cdom/base/cdom_object.dart';
-import 'string_key.dart';
-import 'object_key.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/string_key.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/object_key.dart';
 
 // Controls how a data-source citation is formatted for display.
 enum SourceFormat {

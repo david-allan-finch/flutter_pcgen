@@ -20,20 +20,20 @@
 // Translated from pcgen/core/EquipmentChoice.java
 // FacetLibrary/EquipmentTypeFacet are stubbed.
 
-import 'globals.dart';
-import 'equipment.dart';
-import 'equipment_modifier.dart';
-import 'player_character.dart';
-import 'ability.dart';
-import 'ability_category.dart';
-import 'pc_stat.dart';
-import 'skill.dart';
+import 'package:flutter_pcgen/src/core/globals.dart';
+import 'package:flutter_pcgen/src/core/equipment.dart';
+import 'package:flutter_pcgen/src/core/equipment_modifier.dart';
+import 'package:flutter_pcgen/src/core/player_character.dart';
+import 'package:flutter_pcgen/src/core/ability.dart';
+import 'package:flutter_pcgen/src/core/ability_category.dart';
+import 'package:flutter_pcgen/src/core/pc_stat.dart';
+import 'package:flutter_pcgen/src/core/skill.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/formula_key.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/object_key.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/string_key.dart';
-import 'analysis/choose_activation.dart';
-import 'utils/delta.dart';
-import 'utils/signed_integer.dart';
+import 'package:flutter_pcgen/src/core/analysis/choose_activation.dart';
+import 'package:flutter_pcgen/src/core/utils/delta.dart';
+import 'package:flutter_pcgen/src/core/utils/signed_integer.dart';
 
 /// Holds the details of a choice or choices required for an Equipment.
 class EquipmentChoice {

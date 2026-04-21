@@ -17,7 +17,7 @@
 //
 // Translation of pcgen.gui2.tabs.models.BigDecimalFieldHandler
 
-import 'formatted_field_handler.dart';
+import 'package:flutter_pcgen/src/gui2/tabs/models/formatted_field_handler.dart';
 
 /// Formatted field handler for decimal number values (maps to Java BigDecimal).
 abstract class BigDecimalFieldHandler extends FormattedFieldHandler<double> {

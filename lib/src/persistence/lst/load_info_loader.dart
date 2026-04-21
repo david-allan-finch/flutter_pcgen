@@ -18,7 +18,7 @@
 //
 // Translation of pcgen.persistence.lst.LoadInfoLoader
 
-import 'lst_line_file_loader.dart';
+import 'package:flutter_pcgen/src/persistence/lst/lst_line_file_loader.dart';
 
 /// Loads encumbrance and load info from load.lst game mode files.
 ///

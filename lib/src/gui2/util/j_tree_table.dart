@@ -15,9 +15,9 @@
 
 import 'package:flutter/material.dart';
 
-import 'treetable/tree_table_model.dart';
-import 'treetable/tree_table_node.dart';
-import 'tree_column_cell_renderer.dart';
+import 'package:flutter_pcgen/src/gui2/util/treetable/tree_table_model.dart';
+import 'package:flutter_pcgen/src/gui2/util/treetable/tree_table_node.dart';
+import 'package:flutter_pcgen/src/gui2/util/tree_column_cell_renderer.dart';
 
 /// A combined tree-and-table widget. The first column renders as an
 /// expandable/collapsible tree; subsequent columns render plain cell data.

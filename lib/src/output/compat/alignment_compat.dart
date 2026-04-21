@@ -17,7 +17,7 @@
 //
 // Translation of pcgen.output.channel.compat.AlignmentCompat
 
-import 'abstract_adapter.dart';
+import 'package:flutter_pcgen/src/output/compat/abstract_adapter.dart';
 
 /// AlignmentCompat provides a writeable reference for the character's alignment channel.
 class AlignmentCompat extends AbstractAdapter<dynamic> {

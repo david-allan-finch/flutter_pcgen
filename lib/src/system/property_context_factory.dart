@@ -17,7 +17,7 @@
 //
 // Translation of pcgen.system.PropertyContextFactory
 
-import 'property_context.dart';
+import 'package:flutter_pcgen/src/system/property_context.dart';
 
 /// Creates and manages PropertyContext instances, loading/saving them
 /// from a specified directory.

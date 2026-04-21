@@ -5,7 +5,7 @@
 import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
 import 'package:flutter_pcgen/src/core/level_info.dart';
 import 'package:flutter_pcgen/src/core/xp_table.dart';
-import 'base/abstract_item_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/base/abstract_item_facet.dart';
 
 /// Tracks the [XPTable] assigned to a Player Character, providing level info
 /// lookups.

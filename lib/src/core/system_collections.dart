@@ -19,11 +19,11 @@
 // SystemCollections.dart
 // Translated from pcgen/core/SystemCollections.java
 
-import 'game_mode.dart';
-import 'game_mode_display.dart';
-import 'settings_handler.dart';
-import 'character/equip_slot.dart';
-import 'system/migration_rule.dart';
+import 'package:flutter_pcgen/src/core/game_mode.dart';
+import 'package:flutter_pcgen/src/core/game_mode_display.dart';
+import 'package:flutter_pcgen/src/core/settings_handler.dart';
+import 'package:flutter_pcgen/src/core/character/equip_slot.dart';
+import 'package:flutter_pcgen/src/core/system/migration_rule.dart';
 
 /// Contains lists of stuff loaded from system-wide lst files.
 class SystemCollections {

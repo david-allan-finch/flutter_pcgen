@@ -21,13 +21,13 @@
 // SpellSupportForPCClass.dart
 // Translated from pcgen/core/SpellSupportForPCClass.java
 
-import 'player_character.dart';
-import 'pc_class.dart';
-import 'pc_stat.dart';
-import 'globals.dart';
-import 'domain.dart';
-import 'character/character_spell.dart';
-import 'spell/spell.dart';
+import 'package:flutter_pcgen/src/core/player_character.dart';
+import 'package:flutter_pcgen/src/core/pc_class.dart';
+import 'package:flutter_pcgen/src/core/pc_stat.dart';
+import 'package:flutter_pcgen/src/core/globals.dart';
+import 'package:flutter_pcgen/src/core/domain.dart';
+import 'package:flutter_pcgen/src/core/character/character_spell.dart';
+import 'package:flutter_pcgen/src/core/spell/spell.dart';
 import 'package:flutter_pcgen/src/cdom/base/constants.dart';
 import 'package:flutter_pcgen/src/cdom/content/bonus_spell_info.dart';
 import 'package:flutter_pcgen/src/cdom/content/known_spell_identifier.dart';
@@ -36,8 +36,8 @@ import 'package:flutter_pcgen/src/cdom/enumeration/integer_key.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/list_key.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/object_key.dart';
 import 'package:flutter_pcgen/src/cdom/inst/pc_class_level.dart';
-import 'analysis/spell_count_calc.dart';
-import 'spell_progression_cache.dart';
+import 'package:flutter_pcgen/src/core/analysis/spell_count_calc.dart';
+import 'package:flutter_pcgen/src/core/spell_progression_cache.dart';
 
 class SpellSupportForPCClass {
   /// castForLevelMap: key = spell level, value = number of spells castable per day

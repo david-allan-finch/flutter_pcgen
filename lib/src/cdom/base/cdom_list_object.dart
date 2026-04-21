@@ -16,10 +16,10 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.base.CDOMListObject
-import 'cdom_list.dart';
-import 'cdom_object.dart';
-import 'concrete_prereq_object.dart';
-import 'loadable.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_list.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_object.dart';
+import 'package:flutter_pcgen/src/cdom/base/concrete_prereq_object.dart';
+import 'package:flutter_pcgen/src/cdom/base/loadable.dart';
 
 /// This is an abstract object intended to be used as a basis for "concrete"
 /// CDOMList objects.

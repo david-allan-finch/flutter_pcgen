@@ -2,7 +2,7 @@
 //
 // Translation of pcgen.persistence.lst.output.prereq.PrerequisiteWriterFactory
 
-import 'prerequisite_writer_interface.dart';
+import 'package:flutter_pcgen/src/persistence/lst/output/prereq/prerequisite_writer_interface.dart';
 
 /// Singleton factory that maps Prerequisite kind strings to their LST writers.
 class PrerequisiteWriterFactory {

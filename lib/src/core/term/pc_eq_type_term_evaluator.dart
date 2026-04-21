@@ -2,9 +2,9 @@
 //
 // Translation of pcgen.core.term.PCEqTypeTermEvaluator
 
-import 'base_pc_term_evaluator.dart';
-import 'term_evaluator.dart';
-import 'term_util.dart';
+import 'package:flutter_pcgen/src/core/term/base_pc_term_evaluator.dart';
+import 'package:flutter_pcgen/src/core/term/term_evaluator.dart';
+import 'package:flutter_pcgen/src/core/term/term_util.dart';
 
 class PCEqTypeTermEvaluator extends BasePCTermEvaluator implements TermEvaluator {
   static final RegExp _fpRegex = RegExp(

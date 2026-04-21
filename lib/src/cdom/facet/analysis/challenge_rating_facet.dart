@@ -8,7 +8,7 @@ import 'package:flutter_pcgen/src/cdom/facet/formula_resolving_facet.dart';
 import 'package:flutter_pcgen/src/cdom/facet/model/class_facet.dart';
 import 'package:flutter_pcgen/src/cdom/facet/model/race_facet.dart';
 import 'package:flutter_pcgen/src/cdom/facet/model/template_facet.dart';
-import 'level_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/analysis/level_facet.dart';
 
 /// Calculates the Challenge Rating of a Player Character.
 class ChallengeRatingFacet {

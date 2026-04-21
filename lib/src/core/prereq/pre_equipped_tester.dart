@@ -2,10 +2,10 @@
 //
 // Translation of pcgen.core.prereq.PreEquippedTester
 
-import 'abstract_prerequisite_test.dart';
-import 'prerequisite.dart';
-import 'prerequisite_exception.dart';
-import 'prerequisite_operator.dart';
+import 'package:flutter_pcgen/src/core/prereq/abstract_prerequisite_test.dart';
+import 'package:flutter_pcgen/src/core/prereq/prerequisite.dart';
+import 'package:flutter_pcgen/src/core/prereq/prerequisite_exception.dart';
+import 'package:flutter_pcgen/src/core/prereq/prerequisite_operator.dart';
 
 /// Abstract base for PREEQUIP-family testers. Handles the common logic of
 /// scanning a character's equipped items by location.

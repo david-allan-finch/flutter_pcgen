@@ -2,7 +2,7 @@
 //
 // Translation of pcgen.facade.util.event.ChangeListener
 
-import 'change_event.dart';
+import 'package:flutter_pcgen/src/facade/util/event/change_event.dart';
 
 /// Listener notified when an object changes.
 abstract interface class ChangeListener {

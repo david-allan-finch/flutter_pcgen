@@ -18,7 +18,7 @@
 // Translation of pcgen.io.filters.CharacterFilter
 
 import 'package:flutter_pcgen/src/core/player_character.dart';
-import 'output_filter.dart';
+import 'package:flutter_pcgen/src/io/filters/output_filter.dart';
 
 /// Filters characters based on a predicate function.
 class CharacterFilter implements OutputFilter {

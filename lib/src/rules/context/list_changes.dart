@@ -23,7 +23,7 @@ import 'package:flutter_pcgen/src/cdom/base/cdom_list.dart';
 import 'package:flutter_pcgen/src/cdom/base/cdom_object.dart';
 import 'package:flutter_pcgen/src/cdom/base/cdom_reference.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/association_key.dart';
-import 'associated_changes.dart';
+import 'package:flutter_pcgen/src/rules/context/associated_changes.dart';
 
 // TODO: ReferenceUtilities (REFERENCE_SORTER comparator) not yet translated.
 // The sorted TreeSet behaviour from Java is approximated with a plain List here;

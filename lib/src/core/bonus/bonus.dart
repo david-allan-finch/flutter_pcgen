@@ -16,7 +16,7 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.core.bonus.Bonus
-import 'bonus_obj.dart';
+import 'package:flutter_pcgen/src/core/bonus/bonus_obj.dart';
 
 // Re-export Bonus class (defined in bonus_obj.dart for co-location with BonusObj)
 export 'bonus_obj.dart' show Bonus, BonusObj, StackType;

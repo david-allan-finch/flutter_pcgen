@@ -19,7 +19,7 @@
 // Refactored out of PObject July 22, 2005
 //
 // Translation of pcgen.core.bonus.BonusUtilities
-import 'bonus_obj.dart';
+import 'package:flutter_pcgen/src/core/bonus/bonus_obj.dart';
 
 // Utility methods for working with BonusObj collections.
 abstract final class BonusUtilities {

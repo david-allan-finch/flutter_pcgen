@@ -2,8 +2,8 @@
 //
 // Translation of pcgen.core.term.PCSizeIntEQTermEvaluator
 
-import 'base_pc_term_evaluator.dart';
-import 'term_evaluator.dart';
+import 'package:flutter_pcgen/src/core/term/base_pc_term_evaluator.dart';
+import 'package:flutter_pcgen/src/core/term/term_evaluator.dart';
 
 class PCSizeIntEQTermEvaluator extends BasePCTermEvaluator implements TermEvaluator {
   final String source;

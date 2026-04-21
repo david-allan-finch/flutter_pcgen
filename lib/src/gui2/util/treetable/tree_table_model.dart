@@ -17,7 +17,7 @@
 //
 // Translation of pcgen.gui2.util.treetable.TreeTableModel
 
-import 'tree_table_node.dart';
+import 'package:flutter_pcgen/src/gui2/util/treetable/tree_table_node.dart';
 
 /// Model for a tree-table (combined tree and table view).
 abstract class TreeTableModel {

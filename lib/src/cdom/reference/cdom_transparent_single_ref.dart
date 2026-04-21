@@ -19,9 +19,9 @@
 import 'package:flutter_pcgen/src/cdom/base/cdom_reference.dart';
 import 'package:flutter_pcgen/src/cdom/base/loadable.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/grouping_state.dart';
-import 'cdom_single_ref.dart';
-import 'reference_manufacturer.dart';
-import 'transparent_reference.dart';
+import 'package:flutter_pcgen/src/cdom/reference/cdom_single_ref.dart';
+import 'package:flutter_pcgen/src/cdom/reference/reference_manufacturer.dart';
+import 'package:flutter_pcgen/src/cdom/reference/transparent_reference.dart';
 
 // A CDOMSingleRef that delegates to another CDOMSingleRef which is set at
 // resolve time. Can be re-resolved, making it usable across different

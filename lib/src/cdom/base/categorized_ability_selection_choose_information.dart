@@ -18,7 +18,7 @@
 // Translation of pcgen.cdom.base.CategorizedAbilitySelectionChooseInformation
 import 'package:flutter_pcgen/src/cdom/choiceset/collection_to_ability_selection.dart';
 import 'package:flutter_pcgen/src/cdom/content/ability_selection.dart';
-import 'basic_choose_information.dart';
+import 'package:flutter_pcgen/src/cdom/base/basic_choose_information.dart';
 
 // CategorizedAbilitySelectionChooseInformation extends BasicChooseInformation
 // to add awareness of an AbilityCategory for ability selection choices.

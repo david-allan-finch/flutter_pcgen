@@ -17,8 +17,8 @@
 import 'package:flutter_pcgen/src/cdom/enumeration/integer_key.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/list_key.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/object_key.dart';
-import 'ability_category.dart';
-import 'pcobject.dart';
+import 'package:flutter_pcgen/src/core/ability_category.dart';
+import 'package:flutter_pcgen/src/core/pcobject.dart';
 
 /// Definition and game rules for an Ability (feat, special ability, etc).
 final class Ability extends PObject {

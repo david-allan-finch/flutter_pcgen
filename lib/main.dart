@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:logging/logging.dart';
-import 'src/app.dart';
+import 'package:flutter_pcgen/src/app.dart';
 
 void main() {
   // Configure logging

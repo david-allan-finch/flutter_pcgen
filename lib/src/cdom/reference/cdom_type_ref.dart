@@ -19,7 +19,7 @@
 import 'package:flutter_pcgen/src/cdom/base/class_identity.dart';
 import 'package:flutter_pcgen/src/cdom/base/cdom_reference.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/grouping_state.dart';
-import 'cdom_group_ref.dart';
+import 'package:flutter_pcgen/src/cdom/reference/cdom_group_ref.dart';
 
 // A CDOMGroupRef that contains objects matching one or more TYPE tags.
 final class CDOMTypeRef<T> extends CDOMReference<T> implements CDOMGroupRef<T> {

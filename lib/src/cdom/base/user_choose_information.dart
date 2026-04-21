@@ -19,11 +19,11 @@
 import 'package:flutter_pcgen/src/core/player_character.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/association_list_key.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/grouping_state.dart';
-import 'choose_driver.dart';
-import 'choose_information.dart';
-import 'choose_information_utilities.dart';
-import 'chooser.dart';
-import 'choose_selection_actor.dart';
+import 'package:flutter_pcgen/src/cdom/base/choose_driver.dart';
+import 'package:flutter_pcgen/src/cdom/base/choose_information.dart';
+import 'package:flutter_pcgen/src/cdom/base/choose_information_utilities.dart';
+import 'package:flutter_pcgen/src/cdom/base/chooser.dart';
+import 'package:flutter_pcgen/src/cdom/base/choose_selection_actor.dart';
 
 // ChooseInformation that accepts free-text user input.
 class UserChooseInformation

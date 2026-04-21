@@ -18,8 +18,8 @@
 // Translation of pcgen.persistence.lst.LstLineFileLoader
 import 'package:flutter_pcgen/src/rules/context/load_context.dart';
 import 'package:flutter_pcgen/src/persistence/persistence_layer_exception.dart';
-import 'campaign_source_entry.dart';
-import 'lst_file_loader.dart';
+import 'package:flutter_pcgen/src/persistence/lst/campaign_source_entry.dart';
+import 'package:flutter_pcgen/src/persistence/lst/lst_file_loader.dart';
 
 // Base loader for non-CDOMObject LST data (system files: sizes, paper, etc.)
 // Unlike LstObjectFileLoader, does not handle .MOD/.COPY/.FORGET.

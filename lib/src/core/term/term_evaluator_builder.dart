@@ -2,8 +2,8 @@
 //
 // Translation of pcgen.core.term.TermEvaluatorBuilder
 
-import 'term_evaluator.dart';
-import 'term_evaulator_exception.dart';
+import 'package:flutter_pcgen/src/core/term/term_evaluator.dart';
+import 'package:flutter_pcgen/src/core/term/term_evaulator_exception.dart';
 
 /// Interface for objects that can construct a [TermEvaluator] from a
 /// matched pattern string.

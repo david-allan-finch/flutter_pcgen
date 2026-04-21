@@ -2,8 +2,8 @@
 //
 // Translation of pcgen.core.doomsdaybook.SpaceRule
 
-import 'data_element.dart';
-import 'data_value.dart';
+import 'package:flutter_pcgen/src/core/doomsdaybook/data_element.dart';
+import 'package:flutter_pcgen/src/core/doomsdaybook/data_value.dart';
 
 /// A DataElement that always returns a space character.
 class SpaceRule implements DataElement {

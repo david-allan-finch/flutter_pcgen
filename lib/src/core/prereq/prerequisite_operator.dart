@@ -2,7 +2,7 @@
 //
 // Translation of pcgen.core.prereq.PrerequisiteOperator
 
-import 'prerequisite_exception.dart';
+import 'package:flutter_pcgen/src/core/prereq/prerequisite_exception.dart';
 
 /// Comparison operator for prerequisites.
 enum PrerequisiteOperator {

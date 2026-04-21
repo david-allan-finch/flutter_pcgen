@@ -16,7 +16,7 @@
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
 //
 // Translation of pcgen.core.bonus.EquipBonus
-import 'bonus_obj.dart';
+import 'package:flutter_pcgen/src/core/bonus/bonus_obj.dart';
 
 // Pairs a BonusObj with an optional condition string for equipment-specific bonuses.
 class EquipBonus {

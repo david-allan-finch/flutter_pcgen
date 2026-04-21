@@ -20,7 +20,7 @@
 import 'package:flutter_pcgen/src/core/character/equip_slot.dart';
 import 'package:flutter_pcgen/src/core/game_mode.dart';
 import 'package:flutter_pcgen/src/core/system_collections.dart';
-import 'lst_line_file_loader.dart';
+import 'package:flutter_pcgen/src/persistence/lst/lst_line_file_loader.dart';
 
 /// Loads EquipSlot definitions from equipslot .lst files in the game mode.
 ///

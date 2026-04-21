@@ -19,14 +19,14 @@
 
 import 'dart:io';
 
-import 'conversion_decider.dart';
-import 'loader.dart';
-import 'loader/ability_loader.dart';
-import 'loader/basic_loader.dart';
-import 'loader/copy_loader.dart';
-import 'loader/equipment_loader.dart';
-import 'loader/pc_class_loader.dart';
-import 'loader/self_copy_loader.dart';
+import 'package:flutter_pcgen/src/gui2/converter/conversion_decider.dart';
+import 'package:flutter_pcgen/src/gui2/converter/loader.dart';
+import 'package:flutter_pcgen/src/gui2/converter/loader/ability_loader.dart';
+import 'package:flutter_pcgen/src/gui2/converter/loader/basic_loader.dart';
+import 'package:flutter_pcgen/src/gui2/converter/loader/copy_loader.dart';
+import 'package:flutter_pcgen/src/gui2/converter/loader/equipment_loader.dart';
+import 'package:flutter_pcgen/src/gui2/converter/loader/pc_class_loader.dart';
+import 'package:flutter_pcgen/src/gui2/converter/loader/self_copy_loader.dart';
 
 /// Observable orchestrator that drives the conversion of LST campaign files.
 /// Each registered [Loader] is asked to enumerate its files for a given

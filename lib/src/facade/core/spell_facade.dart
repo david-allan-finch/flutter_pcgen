@@ -18,7 +18,7 @@
 // Translation of pcgen.facade.core.SpellFacade
 import 'package:flutter_pcgen/src/core/character/character_spell.dart';
 import 'package:flutter_pcgen/src/core/character/spell_info.dart';
-import 'info_facade.dart';
+import 'package:flutter_pcgen/src/facade/core/info_facade.dart';
 
 // Facade interface for Spells visible in the UI.
 abstract interface class SpellFacade implements InfoFacade {

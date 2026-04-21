@@ -1,5 +1,5 @@
-import 'edge.dart';
-import 'graph.dart';
+import 'package:flutter_pcgen/src/base/graph/base/edge.dart';
+import 'package:flutter_pcgen/src/base/graph/base/graph.dart';
 
 abstract interface class DirectionalGraph<N, ET extends Edge<N>>
     implements Graph<N, ET> {

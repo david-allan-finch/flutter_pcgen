@@ -17,7 +17,7 @@
 //
 // Translation of pcgen.system.PCGenSettings
 
-import 'property_context.dart';
+import 'package:flutter_pcgen/src/system/property_context.dart';
 
 /// Application-level PCGen settings / options.
 final class PCGenSettings extends PropertyContext {

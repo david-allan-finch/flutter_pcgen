@@ -17,8 +17,8 @@
 //
 // Translation of pcgen.gui2.converter.DefaultTokenProcessor
 
-import 'event/token_process_event.dart';
-import 'event/token_processor.dart';
+import 'package:flutter_pcgen/src/gui2/converter/event/token_process_event.dart';
+import 'package:flutter_pcgen/src/gui2/converter/event/token_processor.dart';
 
 /// The default [TokenProcessor] used when no specialist plugin handles a token.
 /// Delegates to the load context to parse and re-unparse the token, producing

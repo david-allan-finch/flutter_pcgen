@@ -22,19 +22,19 @@
 
 import 'dart:io';
 
-import 'globals.dart';
-import 'settings_handler.dart';
-import 'equipment.dart';
-import 'race.dart';
-import 'pc_class.dart';
-import 'deity.dart';
-import 'domain.dart';
-import 'ability.dart';
-import 'ability_category.dart';
-import 'language.dart';
-import 'pc_template.dart';
-import 'spell/spell.dart';
-import 'campaign.dart';
+import 'package:flutter_pcgen/src/core/globals.dart';
+import 'package:flutter_pcgen/src/core/settings_handler.dart';
+import 'package:flutter_pcgen/src/core/equipment.dart';
+import 'package:flutter_pcgen/src/core/race.dart';
+import 'package:flutter_pcgen/src/core/pc_class.dart';
+import 'package:flutter_pcgen/src/core/deity.dart';
+import 'package:flutter_pcgen/src/core/domain.dart';
+import 'package:flutter_pcgen/src/core/ability.dart';
+import 'package:flutter_pcgen/src/core/ability_category.dart';
+import 'package:flutter_pcgen/src/core/language.dart';
+import 'package:flutter_pcgen/src/core/pc_template.dart';
+import 'package:flutter_pcgen/src/core/spell/spell.dart';
+import 'package:flutter_pcgen/src/core/campaign.dart';
 import 'package:flutter_pcgen/src/cdom/base/constants.dart';
 import 'package:flutter_pcgen/src/core/pcobject.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/string_key.dart';

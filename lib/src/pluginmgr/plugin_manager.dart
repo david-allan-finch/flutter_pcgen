@@ -17,9 +17,9 @@
 //
 // Translation of pcgen.pluginmgr.PluginManager
 
-import 'message_handler_manager.dart';
-import 'p_c_gen_message.dart';
-import 'p_c_gen_message_handler.dart';
+import 'package:flutter_pcgen/src/pluginmgr/message_handler_manager.dart';
+import 'package:flutter_pcgen/src/pluginmgr/p_c_gen_message.dart';
+import 'package:flutter_pcgen/src/pluginmgr/p_c_gen_message_handler.dart';
 
 /// Singleton plugin manager that dispatches messages to registered plugins.
 final class PluginManager {

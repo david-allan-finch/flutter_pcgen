@@ -2,7 +2,7 @@
 //
 // Translation of pcgen.core.kit.KitLevelAbility
 
-import 'base_kit.dart';
+import 'package:flutter_pcgen/src/core/kit/base_kit.dart';
 
 /// Applies a class feature (ADD choice) to a character via a kit.
 class KitLevelAbility extends BaseKit {

@@ -17,7 +17,7 @@
 //
 // Translation of pcgen.gui2.util.SortableModel
 
-import 'table/row.dart';
+import 'package:flutter_pcgen/src/gui2/util/table/row.dart';
 
 /// A model that can be sorted by a supplied [Comparator] over [Row] objects.
 abstract interface class SortableModel {

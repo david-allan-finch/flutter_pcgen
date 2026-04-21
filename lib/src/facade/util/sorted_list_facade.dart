@@ -18,8 +18,8 @@
 // Translation of pcgen.facade.util.SortedListFacade
 import 'package:flutter_pcgen/src/base/logging/pcgen_logging.dart';
 
-import 'abstract_list_facade.dart';
-import 'list_facade.dart';
+import 'package:flutter_pcgen/src/facade/util/abstract_list_facade.dart';
+import 'package:flutter_pcgen/src/facade/util/list_facade.dart';
 
 /// A [ListFacade] that presents elements from a delegate [ListFacade] in
 /// sorted order according to a [Comparator].

@@ -2,9 +2,9 @@
 //
 // Translation of pcgen.facade.core.UIDelegate
 
-import 'chooser_facade.dart';
-import 'equipment_builder_facade.dart';
-import 'spell_builder_facade.dart';
+import 'package:flutter_pcgen/src/facade/core/chooser_facade.dart';
+import 'package:flutter_pcgen/src/facade/core/equipment_builder_facade.dart';
+import 'package:flutter_pcgen/src/facade/core/spell_builder_facade.dart';
 
 enum CustomEquipResult { complete, cancelled }
 

@@ -16,8 +16,8 @@
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
 //
 // Translation of pcgen.cdom.base.Category
-import 'categorized.dart';
-import 'loadable.dart';
+import 'package:flutter_pcgen/src/cdom/base/categorized.dart';
+import 'package:flutter_pcgen/src/cdom/base/loadable.dart';
 
 // ClassIdentity stub - used until ClassIdentity is fully translated
 abstract interface class ClassIdentity<T> {

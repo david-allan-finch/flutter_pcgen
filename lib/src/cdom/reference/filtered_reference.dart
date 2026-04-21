@@ -18,8 +18,8 @@
 // Translation of pcgen.cdom.reference.FilteredReference
 import 'package:flutter_pcgen/src/cdom/base/cdom_reference.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/grouping_state.dart';
-import 'cdom_group_ref.dart';
-import 'cdom_single_ref.dart';
+import 'package:flutter_pcgen/src/cdom/reference/cdom_group_ref.dart';
+import 'package:flutter_pcgen/src/cdom/reference/cdom_single_ref.dart';
 
 // A CDOMGroupRef that returns all objects from a base group reference except
 // those matched by any of the prohibited single refs.

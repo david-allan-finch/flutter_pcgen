@@ -20,8 +20,8 @@ import 'package:flutter_pcgen/src/cdom/base/cdom_object.dart';
 import 'package:flutter_pcgen/src/core/ability_category.dart';
 import 'package:flutter_pcgen/src/base/formula/formula.dart';
 import 'package:flutter_pcgen/src/cdom/reference/cdom_single_ref.dart' show CDOMSingleRef;
-import 'nature.dart';
-import 'skill_cost.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/nature.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/skill_cost.dart';
 
 // Type-safe key for use with AssociatedObject; each constant identifies the
 // type of value stored under that key.

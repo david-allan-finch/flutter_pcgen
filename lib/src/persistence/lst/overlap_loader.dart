@@ -2,7 +2,7 @@
 //
 // Translation of pcgen.persistence.lst.OverlapLoader
 
-import 'simple_loader.dart';
+import 'package:flutter_pcgen/src/persistence/lst/simple_loader.dart';
 
 /// A SimpleLoader that uses constructNowIfNecessary instead of constructCDOMObject,
 /// allowing a second definition of the same object to overlap/extend the first.

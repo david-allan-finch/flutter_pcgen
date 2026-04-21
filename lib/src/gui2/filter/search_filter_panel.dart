@@ -18,8 +18,8 @@
 // Translation of pcgen.gui2.filter.SearchFilterPanel
 
 import 'package:flutter/material.dart';
-import 'filter.dart';
-import 'filter_utilities.dart';
+import 'package:flutter_pcgen/src/gui2/filter/filter.dart';
+import 'package:flutter_pcgen/src/gui2/filter/filter_utilities.dart';
 
 /// A search panel that creates a text-search filter on input.
 class SearchFilterPanel<T> extends StatefulWidget {

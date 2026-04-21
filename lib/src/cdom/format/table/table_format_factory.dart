@@ -2,7 +2,7 @@
 //
 // Translation of pcgen.cdom.format.table.TableFormatFactory
 
-import 'table_format_manager.dart';
+import 'package:flutter_pcgen/src/cdom/format/table/table_format_manager.dart';
 
 /// Builds TableFormatManager objects for a given lookup column sub-format name.
 class TableFormatFactory {

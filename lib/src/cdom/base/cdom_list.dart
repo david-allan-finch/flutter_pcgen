@@ -16,8 +16,8 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.base.CDOMList
-import 'cdom_object.dart';
-import 'prereq_object.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_object.dart';
+import 'package:flutter_pcgen/src/cdom/base/prereq_object.dart';
 
 /// A CDOMList is an identifier used to identify CDOMObject relationships.
 ///

@@ -21,9 +21,9 @@
 // GUI/Swing/JavaFX fields are stubbed with comments.
 // File I/O paths preserved as Strings.
 
-import 'game_mode.dart';
-import 'player_character.dart';
-import 'system_collections.dart';
+import 'package:flutter_pcgen/src/core/game_mode.dart';
+import 'package:flutter_pcgen/src/core/player_character.dart';
+import 'package:flutter_pcgen/src/core/system_collections.dart';
 
 /// Holds application-wide settings previously backed by Java Properties files.
 /// JavaFX BooleanProperty / IntegerProperty / ObjectProperty are replaced with

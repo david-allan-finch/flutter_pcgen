@@ -19,7 +19,7 @@
 import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
 import 'package:flutter_pcgen/src/cdom/facet/event/sub_scope_facet_change_event.dart';
 import 'package:flutter_pcgen/src/cdom/facet/event/sub_scope_facet_change_listener.dart';
-import 'abstract_storage_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/base/abstract_storage_facet.dart';
 
 // Facet keyed by (CharID, S1, S2) → objects T with multi-source tracking.
 abstract class AbstractSubScopeFacet<S1, S2, T>

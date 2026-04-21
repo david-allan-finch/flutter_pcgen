@@ -4,7 +4,7 @@
 
 import 'package:flutter_pcgen/src/core/prereq/prerequisite.dart';
 import 'package:flutter_pcgen/src/core/prereq/prerequisite_operator.dart';
-import 'abstract_prerequisite_parser.dart';
+import 'package:flutter_pcgen/src/persistence/lst/prereq/abstract_prerequisite_parser.dart';
 
 /// Parses prerequisites where the formula is a simple key string (e.g. PRERACE:Human).
 /// Sets key = formula and operator = EQ (optionally inverted).

@@ -17,7 +17,7 @@
 //
 // Translation of pcgen.io.exporttoken.FollowerToken
 
-import 'abstract_export_token.dart';
+import 'package:flutter_pcgen/src/io/exporttoken/abstract_export_token.dart';
 
 class FollowerToken extends AbstractExportToken {
   @override

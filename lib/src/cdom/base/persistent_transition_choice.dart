@@ -16,9 +16,9 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.base.PersistentTransitionChoice
-import 'cdom_object.dart';
-import 'persistent_choice.dart';
-import 'transition_choice.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_object.dart';
+import 'package:flutter_pcgen/src/cdom/base/persistent_choice.dart';
+import 'package:flutter_pcgen/src/cdom/base/transition_choice.dart';
 
 // A TransitionChoice that is saved/restored with a PlayerCharacter.
 abstract interface class PersistentTransitionChoice<T>

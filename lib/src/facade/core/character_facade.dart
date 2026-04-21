@@ -30,9 +30,9 @@ import 'package:flutter_pcgen/src/core/player_character.dart';
 import 'package:flutter_pcgen/src/core/qualified_object.dart';
 import 'package:flutter_pcgen/src/core/race.dart';
 import 'package:flutter_pcgen/src/facade/util/reference_facade.dart';
-import 'ability_facade.dart';
-import 'data_set_facade.dart';
-import 'equipment_facade.dart';
+import 'package:flutter_pcgen/src/facade/core/ability_facade.dart';
+import 'package:flutter_pcgen/src/facade/core/data_set_facade.dart';
+import 'package:flutter_pcgen/src/facade/core/equipment_facade.dart';
 
 // The primary facade interface between the core and UI layers for a character.
 // All mutable state goes through this interface to enable reactive UI updates.

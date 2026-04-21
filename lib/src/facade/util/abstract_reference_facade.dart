@@ -14,7 +14,7 @@
 // Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.facade.util.AbstractReferenceFacade
-import 'reference_facade.dart';
+import 'package:flutter_pcgen/src/facade/util/reference_facade.dart';
 
 /// Base class for [ReferenceFacade] implementations providing listener
 /// management and a fire helper method.

@@ -17,7 +17,7 @@
 //
 // Translation of pcgen.gui2.util.treeview.DefaultDataViewColumn
 
-import 'data_view_column.dart';
+import 'package:flutter_pcgen/src/gui2/util/treeview/data_view_column.dart';
 
 /// Default implementation of DataViewColumn.
 class DefaultDataViewColumn implements DataViewColumn {

@@ -8,7 +8,7 @@
 // Translation of pcgen.cdom.facet.PlayerCharacterTrackingFacet
 
 import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
-import 'base/abstract_storage_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/base/abstract_storage_facet.dart';
 
 /// This is a transition class, designed to allow things to be taken out of
 /// PlayerCharacter while a transition is made to the new facet system.

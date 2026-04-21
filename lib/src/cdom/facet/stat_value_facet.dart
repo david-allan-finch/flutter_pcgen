@@ -4,8 +4,8 @@
 
 import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
 import 'package:flutter_pcgen/src/core/pc_stat.dart';
-import 'base/abstract_scope_facet.dart';
-import 'event/scope_facet_change_event.dart';
+import 'package:flutter_pcgen/src/cdom/facet/base/abstract_scope_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/event/scope_facet_change_event.dart';
 
 /// Stores the base values of [PCStat] objects (e.g. Strength = 18) for each
 /// Player Character.

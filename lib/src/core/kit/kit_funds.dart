@@ -18,7 +18,7 @@
 // Translation of pcgen.core.kit.KitFunds
 import 'package:flutter_pcgen/src/core/kit.dart';
 import 'package:flutter_pcgen/src/core/player_character.dart';
-import 'base_kit.dart';
+import 'package:flutter_pcgen/src/core/kit/base_kit.dart';
 
 class KitFunds extends BaseKit {
   String _name = '';

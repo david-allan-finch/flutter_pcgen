@@ -19,7 +19,7 @@
 import 'package:flutter_pcgen/src/cdom/base/class_identity.dart';
 import 'package:flutter_pcgen/src/cdom/base/cdom_reference.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/grouping_state.dart';
-import 'cdom_single_ref.dart';
+import 'package:flutter_pcgen/src/cdom/reference/cdom_single_ref.dart';
 
 // A CDOMSingleRef for non-categorized objects, resolved by key name.
 class CDOMSimpleSingleRef<T> extends CDOMReference<T>

@@ -3,9 +3,9 @@
 // Translation of pcgen.cdom.formula.VariableChannelFactoryInst
 
 import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
-import 'variable_channel.dart';
-import 'variable_channel_factory.dart';
-import 'variable_utilities.dart';
+import 'package:flutter_pcgen/src/cdom/formula/variable_channel.dart';
+import 'package:flutter_pcgen/src/cdom/formula/variable_channel_factory.dart';
+import 'package:flutter_pcgen/src/cdom/formula/variable_utilities.dart';
 
 /// Standard implementation of VariableChannelFactory using facet lookups.
 class VariableChannelFactoryInst implements VariableChannelFactory {

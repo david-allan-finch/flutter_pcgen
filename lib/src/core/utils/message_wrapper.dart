@@ -2,7 +2,7 @@
 //
 // Translation of pcgen.core.utils.MessageWrapper
 
-import 'message_type.dart';
+import 'package:flutter_pcgen/src/core/utils/message_type.dart';
 
 /// Wraps a dialog message with its title, type, and optional parent widget.
 class MessageWrapper {

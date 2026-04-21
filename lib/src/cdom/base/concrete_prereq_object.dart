@@ -18,7 +18,7 @@
 // Translation of pcgen.cdom.base.ConcretePrereqObject
 import 'package:flutter_pcgen/src/base/util/list_set.dart';
 import 'package:flutter_pcgen/src/cdom/prereq/prerequisite.dart';
-import 'prereq_object.dart';
+import 'package:flutter_pcgen/src/cdom/base/prereq_object.dart';
 
 // Provides a quick foundation class that implements PrereqObject.
 class ConcretePrereqObject implements PrereqObject {

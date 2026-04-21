@@ -18,14 +18,14 @@
 // Translation of pcgen.cdom.base.CategorizedChooseInformation
 import 'package:flutter_pcgen/src/cdom/enumeration/grouping_state.dart';
 import 'package:flutter_pcgen/src/cdom/reference/cdom_single_ref.dart';
-import 'categorized.dart';
-import 'category.dart';
-import 'choose_driver.dart';
-import 'choose_information.dart';
-import 'chooser.dart';
-import 'categorized_chooser.dart';
-import 'primitive_choice_set.dart';
-import 'choose_information_utilities.dart';
+import 'package:flutter_pcgen/src/cdom/base/categorized.dart';
+import 'package:flutter_pcgen/src/cdom/base/category.dart';
+import 'package:flutter_pcgen/src/cdom/base/choose_driver.dart';
+import 'package:flutter_pcgen/src/cdom/base/choose_information.dart';
+import 'package:flutter_pcgen/src/cdom/base/chooser.dart';
+import 'package:flutter_pcgen/src/cdom/base/categorized_chooser.dart';
+import 'package:flutter_pcgen/src/cdom/base/primitive_choice_set.dart';
+import 'package:flutter_pcgen/src/cdom/base/choose_information_utilities.dart';
 
 // CategorizedChooseInformation is like BasicChooseInformation but is aware of
 // a Category, delegating to CategorizedChooser when decoding.

@@ -7,7 +7,7 @@
 
 import 'package:flutter_pcgen/src/cdom/base/pcgen_identifier.dart';
 import 'package:flutter_pcgen/src/cdom/facet/event/data_facet_change_event.dart';
-import 'abstract_data_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/base/abstract_data_facet.dart';
 
 /// A AbstractListFacet is a DataFacet that contains information about Objects
 /// that are contained in a Player Character when a Player Character may have

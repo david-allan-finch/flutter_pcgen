@@ -2,9 +2,9 @@
 //
 // Translation of pcgen.core.term.EQDamageDieTermEvaluator
 
-import 'base_eq_term_evaluator.dart';
-import 'term_evaluator.dart';
-import 'term_util.dart';
+import 'package:flutter_pcgen/src/core/term/base_eq_term_evaluator.dart';
+import 'package:flutter_pcgen/src/core/term/term_evaluator.dart';
+import 'package:flutter_pcgen/src/core/term/term_util.dart';
 
 class EQDamageDieTermEvaluator extends BaseEQTermEvaluator implements TermEvaluator {
   EQDamageDieTermEvaluator(String expressionString) {

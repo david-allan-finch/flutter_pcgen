@@ -5,15 +5,15 @@
 import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/formula_key.dart';
 import 'package:flutter_pcgen/src/core/pc_stat.dart';
-import 'analysis/non_stat_stat_facet.dart';
-import 'analysis/non_stat_to_stat_facet.dart';
-import 'analysis/stat_lock_facet.dart';
-import 'analysis/stat_max_value_facet.dart';
-import 'analysis/stat_min_value_facet.dart';
-import 'analysis/unlocked_stat_facet.dart';
-import 'bonus_checking_facet.dart';
-import 'stat_value_facet.dart';
-import 'variable_checking_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/analysis/non_stat_stat_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/analysis/non_stat_to_stat_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/analysis/stat_lock_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/analysis/stat_max_value_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/analysis/stat_min_value_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/analysis/unlocked_stat_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/bonus_checking_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/stat_value_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/variable_checking_facet.dart';
 
 /// Calculates the effective values of PCStat objects for a Player Character,
 /// taking into account locks, unlocks, bonuses, and min/max constraints.

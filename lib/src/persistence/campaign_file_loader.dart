@@ -25,9 +25,9 @@ import 'package:flutter_pcgen/src/system/p_c_gen_task.dart';
 import 'package:flutter_pcgen/src/system/configuration_settings.dart';
 import 'package:flutter_pcgen/src/system/p_c_gen_settings.dart';
 import 'package:flutter_pcgen/src/system/language_bundle.dart';
-import 'persistence_layer_exception.dart';
-import 'recursive_file_finder.dart';
-import 'lst/campaign_loader.dart';
+import 'package:flutter_pcgen/src/persistence/persistence_layer_exception.dart';
+import 'package:flutter_pcgen/src/persistence/recursive_file_finder.dart';
+import 'package:flutter_pcgen/src/persistence/lst/campaign_loader.dart';
 
 /// Loads campaign (.pcc) files from the data directory tree and initialises
 /// any inter-campaign dependencies (INFOTEXT, SUB-CAMPAIGN references).

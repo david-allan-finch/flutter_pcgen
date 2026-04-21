@@ -21,7 +21,7 @@ import 'package:flutter_pcgen/src/cdom/base/class_identity.dart';
 import 'package:flutter_pcgen/src/cdom/base/loadable.dart';
 import 'package:flutter_pcgen/src/cdom/reference/reference_manufacturer.dart';
 import 'package:flutter_pcgen/src/cdom/reference/unconstructed_validator.dart';
-import 'load_validator.dart';
+import 'package:flutter_pcgen/src/rules/context/load_validator.dart';
 import 'runtime_reference_context.dart' show AbstractReferenceContext;
 
 class ReferenceContextUtilities {

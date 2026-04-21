@@ -3,8 +3,8 @@
 // Translation of pcgen.rules.persistence.token.AbstractBasicCampaignToken
 
 import 'package:flutter_pcgen/src/rules/context/load_context.dart';
-import 'abstract_token_with_separator.dart';
-import 'parse_result.dart';
+import 'package:flutter_pcgen/src/rules/persistence/token/abstract_token_with_separator.dart';
+import 'package:flutter_pcgen/src/rules/persistence/token/parse_result.dart';
 
 /// Abstract base for Campaign-scoped tokens that store [CampaignSourceEntry]
 /// values in a [ListKey].

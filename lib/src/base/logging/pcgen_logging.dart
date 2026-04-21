@@ -1,5 +1,5 @@
 import 'package:logging/logging.dart';
-import 'severity.dart';
+import 'package:flutter_pcgen/src/base/logging/severity.dart';
 
 class PCGenLogging {
   static final Logger _logger = Logger('PCGen');

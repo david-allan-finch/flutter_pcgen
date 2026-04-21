@@ -16,7 +16,7 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.facade.util.DefaultMapFacade
-import 'abstract_map_facade.dart';
+import 'package:flutter_pcgen/src/facade/util/abstract_map_facade.dart';
 
 class DefaultMapFacade<K, V> extends AbstractMapFacade<K, V> {
   final Map<K, V> _map;

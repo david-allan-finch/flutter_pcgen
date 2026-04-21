@@ -17,7 +17,7 @@
 //
 // Translation of pcgen.facade.util.DefaultListFacade
 import 'dart:collection' show IterableBase;
-import 'list_facade.dart';
+import 'package:flutter_pcgen/src/facade/util/list_facade.dart';
 
 // Mutable, observable list for use in the facade layer.
 class DefaultListFacade<E> extends IterableBase<E> implements ListFacade<E> {

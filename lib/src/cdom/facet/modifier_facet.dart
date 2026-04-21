@@ -4,11 +4,11 @@
 
 import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
 import 'package:flutter_pcgen/src/cdom/formula/pcgen_scoped.dart';
-import 'event/data_facet_change_event.dart';
-import 'event/data_facet_change_listener.dart';
-import 'model/var_scoped_facet.dart';
-import 'scope_facet.dart';
-import 'solver_manager_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/event/data_facet_change_event.dart';
+import 'package:flutter_pcgen/src/cdom/facet/event/data_facet_change_listener.dart';
+import 'package:flutter_pcgen/src/cdom/facet/model/var_scoped_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/scope_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/solver_manager_facet.dart';
 
 /// Processes MODIFY: entries on CDOMObjects and applies them to the solver system.
 class ModifierFacet implements DataFacetChangeListener<CharID, PCGenScoped> {

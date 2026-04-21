@@ -18,14 +18,14 @@
 // Translation of pcgen.cdom.reference.CDOMFactory
 import 'package:flutter_pcgen/src/cdom/base/class_identity.dart';
 import 'package:flutter_pcgen/src/cdom/base/loadable.dart';
-import 'cdom_all_ref.dart';
-import 'cdom_group_ref.dart';
-import 'cdom_simple_single_ref.dart';
-import 'cdom_single_ref.dart';
-import 'cdom_type_ref.dart';
-import 'manufacturable_factory.dart';
-import 'reference_manufacturer.dart';
-import 'unconstructed_validator.dart';
+import 'package:flutter_pcgen/src/cdom/reference/cdom_all_ref.dart';
+import 'package:flutter_pcgen/src/cdom/reference/cdom_group_ref.dart';
+import 'package:flutter_pcgen/src/cdom/reference/cdom_simple_single_ref.dart';
+import 'package:flutter_pcgen/src/cdom/reference/cdom_single_ref.dart';
+import 'package:flutter_pcgen/src/cdom/reference/cdom_type_ref.dart';
+import 'package:flutter_pcgen/src/cdom/reference/manufacturable_factory.dart';
+import 'package:flutter_pcgen/src/cdom/reference/reference_manufacturer.dart';
+import 'package:flutter_pcgen/src/cdom/reference/unconstructed_validator.dart';
 
 // A ManufacturableFactory that builds CDOMReferences for a specific ClassIdentity.
 class CDOMFactory<T extends Loadable> implements ManufacturableFactory<T> {

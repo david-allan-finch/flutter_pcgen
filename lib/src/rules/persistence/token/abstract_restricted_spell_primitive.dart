@@ -3,7 +3,7 @@
 // Translation of pcgen.rules.persistence.token.AbstractRestrictedSpellPrimitive
 
 import 'package:flutter_pcgen/src/rules/context/load_context.dart';
-import 'primitive_token.dart';
+import 'package:flutter_pcgen/src/rules/persistence/token/primitive_token.dart';
 
 /// Abstract base for spell primitives that support optional level and known-only
 /// restrictions (LEVELMIN=, LEVELMAX=, KNOWN=YES/NO).

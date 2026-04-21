@@ -16,7 +16,7 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.util.enumeration.Visibility
-import 'view.dart';
+import 'package:flutter_pcgen/src/util/enumeration/view.dart';
 
 enum Visibility {
   hidden('No'),

@@ -18,7 +18,7 @@
 // Translation of pcgen.gui3.component.PCGenStatusBar (JavaFX version)
 
 import 'package:flutter/material.dart';
-import 'pc_gen_status_bar_model.dart';
+import 'package:flutter_pcgen/src/gui3/component/pc_gen_status_bar_model.dart';
 
 /// Status bar widget backed by PCGenStatusBarModel.
 class PCGenStatusBar extends StatelessWidget {

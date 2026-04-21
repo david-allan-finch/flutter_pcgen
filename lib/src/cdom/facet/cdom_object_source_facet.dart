@@ -4,8 +4,8 @@
 
 import 'package:flutter_pcgen/src/cdom/base/cdom_object.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
-import 'cdom_object_bridge.dart';
-import 'event/data_facet_change_listener.dart';
+import 'package:flutter_pcgen/src/cdom/facet/cdom_object_bridge.dart';
+import 'package:flutter_pcgen/src/cdom/facet/event/data_facet_change_listener.dart';
 
 /// Alternate listener source for [CDOMObjectBridge] events.
 ///

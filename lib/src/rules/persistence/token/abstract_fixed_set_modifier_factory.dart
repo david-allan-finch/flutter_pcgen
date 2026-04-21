@@ -2,7 +2,7 @@
 //
 // Translation of pcgen.rules.persistence.token.AbstractFixedSetModifierFactory
 
-import 'abstract_set_modifier_factory.dart';
+import 'package:flutter_pcgen/src/rules/persistence/token/abstract_set_modifier_factory.dart';
 
 /// A [AbstractSetModifierFactory] for format types that are *fixed* (i.e. fully
 /// determined by the instruction string without reference to other objects).

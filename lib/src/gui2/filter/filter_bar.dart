@@ -18,10 +18,10 @@
 // Translation of pcgen.gui2.filter.FilterBar
 
 import 'package:flutter/material.dart';
-import 'displayable_filter.dart';
-import 'filter.dart';
-import 'filter_button.dart';
-import 'search_filter_panel.dart';
+import 'package:flutter_pcgen/src/gui2/filter/displayable_filter.dart';
+import 'package:flutter_pcgen/src/gui2/filter/filter.dart';
+import 'package:flutter_pcgen/src/gui2/filter/filter_button.dart';
+import 'package:flutter_pcgen/src/gui2/filter/search_filter_panel.dart';
 
 /// A bar containing a search field and filter toggle buttons.
 class FilterBar<T> extends StatefulWidget {

@@ -2,8 +2,8 @@
 //
 // Translation of pcgen.persistence.lst.AbilityCategoryLoader
 
-import 'lst_line_file_loader.dart';
-import 'overlap_loader.dart';
+import 'package:flutter_pcgen/src/persistence/lst/lst_line_file_loader.dart';
+import 'package:flutter_pcgen/src/persistence/lst/overlap_loader.dart';
 
 /// Parses ABILITYCATEGORY lines from game-mode miscinfo.lst or campaign LST files.
 class AbilityCategoryLoader extends LstLineFileLoader {

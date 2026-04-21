@@ -4,12 +4,12 @@
 
 import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
 import 'package:flutter_pcgen/src/cdom/formula/pcgen_scoped.dart';
-import 'base/abstract_association_facet.dart';
-import 'event/data_facet_change_event.dart';
-import 'event/data_facet_change_listener.dart';
-import 'model/var_scoped_facet.dart';
-import 'scope_facet.dart';
-import 'solver_manager_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/base/abstract_association_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/event/data_facet_change_event.dart';
+import 'package:flutter_pcgen/src/cdom/facet/event/data_facet_change_listener.dart';
+import 'package:flutter_pcgen/src/cdom/facet/model/var_scoped_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/scope_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/solver_manager_facet.dart';
 
 /// Tracks MODIFYOTHER: entries and applies them to targets in the solver system.
 class RemoteModifierFacet

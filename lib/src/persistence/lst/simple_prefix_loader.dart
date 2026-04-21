@@ -2,7 +2,7 @@
 //
 // Translation of pcgen.persistence.lst.SimplePrefixLoader
 
-import 'simple_loader.dart';
+import 'package:flutter_pcgen/src/persistence/lst/simple_loader.dart';
 
 /// A SimpleLoader that requires the first token to start with a specific
 /// prefix key (e.g. "ABILITYCATEGORY:Name").

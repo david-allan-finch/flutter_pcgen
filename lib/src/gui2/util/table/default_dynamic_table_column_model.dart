@@ -17,7 +17,7 @@
 //
 // Translation of pcgen.gui2.util.table.DefaultDynamicTableColumnModel
 
-import 'dynamic_table_column_model.dart';
+import 'package:flutter_pcgen/src/gui2/util/table/dynamic_table_column_model.dart';
 
 /// Default implementation of DynamicTableColumnModel.
 class DefaultDynamicTableColumnModel implements DynamicTableColumnModel {

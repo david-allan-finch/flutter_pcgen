@@ -27,7 +27,7 @@ import 'package:flutter_pcgen/src/cdom/reference/manufacturable_factory.dart';
 import 'package:flutter_pcgen/src/cdom/reference/reference_manufacturer.dart';
 import 'package:flutter_pcgen/src/cdom/reference/unconstructed_listener.dart';
 import 'package:flutter_pcgen/src/cdom/reference/unconstructed_validator.dart';
-import 'tracking_reference_context.dart';
+import 'package:flutter_pcgen/src/rules/context/tracking_reference_context.dart';
 
 class TrackingManufacturer<T extends Loadable>
     implements ReferenceManufacturer<T> {

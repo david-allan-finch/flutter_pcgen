@@ -4,8 +4,8 @@
 
 import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
 import 'package:flutter_pcgen/src/core/skill.dart';
-import 'base/abstract_storage_facet.dart';
-import 'bonus_checking_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/base/abstract_storage_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/bonus_checking_facet.dart';
 
 /// Tracks SKILLRANK bonus changes and fires [SkillRankChangeEvent]s.
 class BonusSkillRankChangeFacet extends AbstractStorageFacet<CharID> {

@@ -2,8 +2,8 @@
 //
 // Translation of pcgen.core.prereq.PrerequisiteTestFactory
 
-import 'prerequisite.dart';
-import 'prerequisite_test.dart';
+import 'package:flutter_pcgen/src/core/prereq/prerequisite.dart';
+import 'package:flutter_pcgen/src/core/prereq/prerequisite_test.dart';
 
 /// Singleton factory that maps prerequisite kinds to their tester objects.
 class PrerequisiteTestFactory {

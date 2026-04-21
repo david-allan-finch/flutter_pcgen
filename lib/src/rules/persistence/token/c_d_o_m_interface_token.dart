@@ -2,8 +2,8 @@
 //
 // Translation of pcgen.rules.persistence.token.CDOMInterfaceToken
 
-import 'cdom_token.dart';
-import 'cdom_write_token.dart';
+import 'package:flutter_pcgen/src/rules/persistence/token/cdom_token.dart';
+import 'package:flutter_pcgen/src/rules/persistence/token/cdom_write_token.dart';
 
 /// A token that operates on an *interface* of an object rather than its direct
 /// class hierarchy.

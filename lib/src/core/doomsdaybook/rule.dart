@@ -2,9 +2,9 @@
 //
 // Translation of pcgen.core.doomsdaybook.Rule
 
-import 'data_element.dart';
-import 'data_value.dart';
-import 'variable_hash_map.dart';
+import 'package:flutter_pcgen/src/core/doomsdaybook/data_element.dart';
+import 'package:flutter_pcgen/src/core/doomsdaybook/data_value.dart';
+import 'package:flutter_pcgen/src/core/doomsdaybook/variable_hash_map.dart';
 
 /// A Rule is an ordered list of DataElement keys that, when evaluated, concatenates
 /// the results of each referenced element to form a single DataValue.

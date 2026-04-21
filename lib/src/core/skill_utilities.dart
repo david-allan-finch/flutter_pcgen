@@ -16,8 +16,8 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.core.SkillUtilities
-import 'level_info.dart';
-import 'player_character.dart';
+import 'package:flutter_pcgen/src/core/level_info.dart';
+import 'package:flutter_pcgen/src/core/player_character.dart';
 
 final class SkillUtilities {
   SkillUtilities._();

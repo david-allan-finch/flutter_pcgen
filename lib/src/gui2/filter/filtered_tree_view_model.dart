@@ -18,7 +18,7 @@
 // Translation of pcgen.gui2.filter.FilteredTreeViewModel
 
 import 'package:flutter/foundation.dart';
-import 'filter.dart';
+import 'package:flutter_pcgen/src/gui2/filter/filter.dart';
 import 'package:flutter_pcgen/src/gui2/util/treeview/tree_view.dart';
 import 'package:flutter_pcgen/src/gui2/util/treeview/tree_view_model.dart';
 import 'package:flutter_pcgen/src/facade/util/list_facade.dart';

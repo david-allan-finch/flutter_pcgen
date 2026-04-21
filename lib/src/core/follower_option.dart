@@ -18,7 +18,7 @@
 // Translation of pcgen.core.FollowerOption
 import 'package:flutter_pcgen/src/cdom/base/concrete_prereq_object.dart';
 import 'package:flutter_pcgen/src/cdom/base/cdom_reference.dart';
-import 'race.dart';
+import 'package:flutter_pcgen/src/core/race.dart';
 
 // A possible companion/follower choice with an optional level adjustment.
 class FollowerOption extends ConcretePrereqObject implements Comparable<FollowerOption> {

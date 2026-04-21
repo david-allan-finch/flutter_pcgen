@@ -16,10 +16,10 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.base.MasterListInterface
-import 'associated_prereq_object.dart';
-import 'cdom_list.dart';
-import 'cdom_object.dart';
-import 'cdom_reference.dart';
+import 'package:flutter_pcgen/src/cdom/base/associated_prereq_object.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_list.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_object.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_reference.dart';
 
 // MasterListInterface stores dataset-global associations between CDOMLists and
 // CDOMObjects (e.g. class spell lists from the CLASSES: token).

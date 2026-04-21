@@ -1,4 +1,4 @@
-import 'triple_key_map.dart';
+import 'package:flutter_pcgen/src/base/util/triple_key_map.dart';
 
 class TripleKeyMapToList<K1, K2, K3, V> {
   final TripleKeyMap<K1, K2, K3, List<V>> _map = TripleKeyMap();

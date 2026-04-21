@@ -24,7 +24,7 @@ import 'package:flutter_pcgen/src/core/equipment.dart';
 import 'package:flutter_pcgen/src/core/kit.dart';
 import 'package:flutter_pcgen/src/core/player_character.dart';
 import 'package:flutter_pcgen/src/core/size_adjustment.dart';
-import 'base_kit.dart';
+import 'package:flutter_pcgen/src/core/kit/base_kit.dart';
 
 // Kit task that adds equipment (gear) to a PC.
 final class KitGear extends BaseKit {

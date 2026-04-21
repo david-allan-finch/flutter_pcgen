@@ -4,7 +4,7 @@
 
 import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
 import 'package:flutter_pcgen/src/core/pc_class.dart';
-import 'base/abstract_association_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/base/abstract_association_facet.dart';
 
 /// Stores the number of Domain spells available to a given [PCClass] for a
 /// Player Character.

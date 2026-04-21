@@ -4,8 +4,8 @@
 
 import 'package:flutter_pcgen/src/core/prereq/prerequisite.dart';
 import 'package:flutter_pcgen/src/core/prereq/prerequisite_operator.dart';
-import 'abstract_prerequisite_parser.dart';
-import 'prerequisite_parser_interface.dart';
+import 'package:flutter_pcgen/src/persistence/lst/prereq/abstract_prerequisite_parser.dart';
+import 'package:flutter_pcgen/src/persistence/lst/prereq/prerequisite_parser_interface.dart';
 
 /// Abstract base for PRE parsers that handle list-style formulas
 /// (e.g. "1,Elf,Human" or "2,SKILL.Spellcraft=5,SKILL.Concentration=5").

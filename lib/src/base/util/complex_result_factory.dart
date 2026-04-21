@@ -1,5 +1,5 @@
-import 'complex_result.dart';
-import 'failure_result.dart';
+import 'package:flutter_pcgen/src/base/util/complex_result.dart';
+import 'package:flutter_pcgen/src/base/util/failure_result.dart';
 
 class _SuccessResult<T> implements ComplexResult<T> {
   final T _value;

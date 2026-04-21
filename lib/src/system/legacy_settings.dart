@@ -17,7 +17,7 @@
 //
 // Translation of pcgen.system.LegacySettings
 
-import 'property_context.dart';
+import 'package:flutter_pcgen/src/system/property_context.dart';
 
 /// Holds legacy/deprecated PCGen settings.
 final class LegacySettings extends PropertyContext {

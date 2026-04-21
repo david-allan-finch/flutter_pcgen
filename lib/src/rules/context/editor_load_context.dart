@@ -17,9 +17,9 @@
 //
 // Translation of pcgen.rules.context.EditorLoadContext
 import 'package:flutter_pcgen/src/cdom/base/cdom_object.dart';
-import 'editor_list_context.dart';
-import 'editor_object_context.dart';
-import 'editor_reference_context.dart';
+import 'package:flutter_pcgen/src/rules/context/editor_list_context.dart';
+import 'package:flutter_pcgen/src/rules/context/editor_object_context.dart';
+import 'package:flutter_pcgen/src/rules/context/editor_reference_context.dart';
 
 // stub: LoadContextInst not yet translated; minimal inline implementation.
 // Note: does not implement the existing thin LoadContext interface because

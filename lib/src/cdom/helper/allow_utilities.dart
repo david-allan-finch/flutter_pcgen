@@ -18,8 +18,8 @@ import 'package:flutter_pcgen/src/cdom/base/cdom_object.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/list_key.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/map_key.dart';
 import 'package:flutter_pcgen/src/core/player_character.dart';
-import 'info_boolean.dart';
-import 'info_utilities.dart';
+import 'package:flutter_pcgen/src/cdom/helper/info_boolean.dart';
+import 'package:flutter_pcgen/src/cdom/helper/info_utilities.dart';
 
 // Utilities for the ALLOW token — builds HTML text for allowed conditions.
 final class AllowUtilities {

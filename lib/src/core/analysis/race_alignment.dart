@@ -18,7 +18,7 @@
 // Translation of pcgen.core.analysis.RaceAlignment
 import 'package:flutter_pcgen/src/cdom/base/cdom_object.dart';
 import 'package:flutter_pcgen/src/core/pc_alignment.dart';
-import 'alignment_converter.dart';
+import 'package:flutter_pcgen/src/core/analysis/alignment_converter.dart';
 
 // Checks whether a race or other CDOMObject allows a given alignment.
 final class RaceAlignment {

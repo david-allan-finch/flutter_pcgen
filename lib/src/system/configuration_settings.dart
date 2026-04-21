@@ -17,7 +17,7 @@
 //
 // Translation of pcgen.system.ConfigurationSettings
 
-import 'property_context.dart';
+import 'package:flutter_pcgen/src/system/property_context.dart';
 
 /// Holds directory and other configuration settings for PCGen.
 class ConfigurationSettings extends PropertyContext {

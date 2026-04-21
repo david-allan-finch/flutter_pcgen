@@ -1,13 +1,13 @@
 import 'package:flutter_pcgen/src/base/util/typed_key.dart';
 import 'package:flutter_pcgen/src/base/util/format_manager.dart';
-import 'function_library.dart';
-import 'implemented_scope.dart';
-import 'operator_library.dart';
-import 'scope_instance.dart';
-import 'scope_instance_factory.dart';
-import 'scope_implementer.dart';
-import 'variable_library.dart';
-import 'variable_store.dart';
+import 'package:flutter_pcgen/src/formula/base/function_library.dart';
+import 'package:flutter_pcgen/src/formula/base/implemented_scope.dart';
+import 'package:flutter_pcgen/src/formula/base/operator_library.dart';
+import 'package:flutter_pcgen/src/formula/base/scope_instance.dart';
+import 'package:flutter_pcgen/src/formula/base/scope_instance_factory.dart';
+import 'package:flutter_pcgen/src/formula/base/scope_implementer.dart';
+import 'package:flutter_pcgen/src/formula/base/variable_library.dart';
+import 'package:flutter_pcgen/src/formula/base/variable_store.dart';
 
 class EvaluationManager {
   final Map<TypedKey<dynamic>, Object?> _map = {};

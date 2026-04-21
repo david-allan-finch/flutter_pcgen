@@ -1,4 +1,4 @@
-import 'complex_result.dart';
+import 'package:flutter_pcgen/src/base/util/complex_result.dart';
 
 class FailureResult<T> implements ComplexResult<T> {
   final String _message;

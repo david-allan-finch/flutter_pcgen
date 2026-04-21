@@ -19,9 +19,9 @@
 
 import 'package:flutter/material.dart';
 
-import 'table/dynamic_table_column_model.dart';
-import 'j_table_ex.dart';
-import 'j_table_menu_button.dart';
+import 'package:flutter_pcgen/src/gui2/util/table/dynamic_table_column_model.dart';
+import 'package:flutter_pcgen/src/gui2/util/j_table_ex.dart';
+import 'package:flutter_pcgen/src/gui2/util/j_table_menu_button.dart';
 
 /// A table with dynamically show/hide-able columns, managed via a corner
 /// drop-down button. Wraps [JTableEx] and adds column-visibility controls

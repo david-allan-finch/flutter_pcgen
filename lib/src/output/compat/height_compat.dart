@@ -15,7 +15,7 @@
 //
 // Translation of pcgen.output.channel.compat.HeightCompat
 
-import 'abstract_adapter.dart';
+import 'package:flutter_pcgen/src/output/compat/abstract_adapter.dart';
 
 /// HeightCompat provides a writeable reference for the character's height channel.
 class HeightCompat extends AbstractAdapter<int> {

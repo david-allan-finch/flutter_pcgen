@@ -28,7 +28,7 @@ import 'package:flutter_pcgen/src/cdom/enumeration/object_key.dart';
 import 'package:flutter_pcgen/src/cdom/reference/cdom_single_ref.dart';
 import 'package:flutter_pcgen/src/core/ability.dart';
 import 'package:flutter_pcgen/src/core/ability_category.dart';
-import 'cn_ability_selection.dart';
+import 'package:flutter_pcgen/src/cdom/helper/cn_ability_selection.dart';
 
 // An AbilityTargetSelector applies a specific Ability (known at construction)
 // with a runtime-chosen selection to a PlayerCharacter. Typically used by

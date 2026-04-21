@@ -2,25 +2,25 @@
 //
 // Translation of pcgen.core.term.TermEvaluatorBuilderEQVar
 
-import 'eq_accheck_term_evaluator.dart';
-import 'eq_alt_plus_total_term_evaluator.dart';
-import 'eq_base_cost_term_evaluator.dart';
-import 'eq_crit_mult_term_evaluator.dart';
-import 'eq_damage_dice_term_evaluator.dart';
-import 'eq_damage_die_term_evaluator.dart';
-import 'eq_equip_size_term_evaluator.dart';
-import 'eq_hands_term_evaluator.dart';
-import 'eq_head_plus_total_term_evaluator.dart';
-import 'eq_plus_total_term_evaluator.dart';
-import 'eq_race_reach_term_evaluator.dart';
-import 'eq_range_term_evaluator.dart';
-import 'eq_reach_mult_term_evaluator.dart';
-import 'eq_reach_term_evaluator.dart';
-import 'eq_size_term_evaluator.dart';
-import 'eq_spell_failure_term_evaluator.dart';
-import 'eq_weight_term_evaluator.dart';
-import 'term_evaluator.dart';
-import 'term_evaluator_builder.dart';
+import 'package:flutter_pcgen/src/core/term/eq_accheck_term_evaluator.dart';
+import 'package:flutter_pcgen/src/core/term/eq_alt_plus_total_term_evaluator.dart';
+import 'package:flutter_pcgen/src/core/term/eq_base_cost_term_evaluator.dart';
+import 'package:flutter_pcgen/src/core/term/eq_crit_mult_term_evaluator.dart';
+import 'package:flutter_pcgen/src/core/term/eq_damage_dice_term_evaluator.dart';
+import 'package:flutter_pcgen/src/core/term/eq_damage_die_term_evaluator.dart';
+import 'package:flutter_pcgen/src/core/term/eq_equip_size_term_evaluator.dart';
+import 'package:flutter_pcgen/src/core/term/eq_hands_term_evaluator.dart';
+import 'package:flutter_pcgen/src/core/term/eq_head_plus_total_term_evaluator.dart';
+import 'package:flutter_pcgen/src/core/term/eq_plus_total_term_evaluator.dart';
+import 'package:flutter_pcgen/src/core/term/eq_race_reach_term_evaluator.dart';
+import 'package:flutter_pcgen/src/core/term/eq_range_term_evaluator.dart';
+import 'package:flutter_pcgen/src/core/term/eq_reach_mult_term_evaluator.dart';
+import 'package:flutter_pcgen/src/core/term/eq_reach_term_evaluator.dart';
+import 'package:flutter_pcgen/src/core/term/eq_size_term_evaluator.dart';
+import 'package:flutter_pcgen/src/core/term/eq_spell_failure_term_evaluator.dart';
+import 'package:flutter_pcgen/src/core/term/eq_weight_term_evaluator.dart';
+import 'package:flutter_pcgen/src/core/term/term_evaluator.dart';
+import 'package:flutter_pcgen/src/core/term/term_evaluator_builder.dart';
 
 /// Enum of TermEvaluatorBuilders for Equipment-context term variables.
 enum TermEvaluatorBuilderEQVar implements TermEvaluatorBuilder {

@@ -18,8 +18,8 @@
 // Translation of pcgen.rules.context.RuntimeLoadContext
 import 'package:flutter_pcgen/src/cdom/base/cdom_object.dart';
 import 'package:flutter_pcgen/src/cdom/base/loadable.dart';
-import 'abstract_reference_context.dart';
-import 'load_context.dart';
+import 'package:flutter_pcgen/src/rules/context/abstract_reference_context.dart';
+import 'package:flutter_pcgen/src/rules/context/load_context.dart';
 
 // Runtime implementation of LoadContext for use during data loading.
 class RuntimeLoadContext implements LoadContext {

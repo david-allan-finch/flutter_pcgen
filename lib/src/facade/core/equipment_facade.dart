@@ -16,7 +16,7 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.facade.core.EquipmentFacade
-import 'info_facade.dart';
+import 'package:flutter_pcgen/src/facade/core/info_facade.dart';
 
 // Facade interface for Equipment items visible in the UI.
 abstract interface class EquipmentFacade implements InfoFacade {

@@ -17,7 +17,7 @@
 //
 // Translation of pcgen.io.exporttoken.AbilityListToken
 
-import 'abstract_export_token.dart';
+import 'package:flutter_pcgen/src/io/exporttoken/abstract_export_token.dart';
 
 /// Stub translation of AbilityListToken.
 class AbilityListToken extends AbstractExportToken {

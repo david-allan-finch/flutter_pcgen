@@ -2,9 +2,9 @@ import 'package:flutter_pcgen/src/base/util/format_manager.dart';
 import 'package:flutter_pcgen/src/base/util/basic_indirect.dart';
 import 'package:flutter_pcgen/src/base/util/indirect.dart';
 import 'package:flutter_pcgen/src/base/util/object_container.dart';
-import 'compound.dart';
-import 'direct_compound.dart';
-import 'secondary_definition.dart';
+import 'package:flutter_pcgen/src/base/format/compound/compound.dart';
+import 'package:flutter_pcgen/src/base/format/compound/direct_compound.dart';
+import 'package:flutter_pcgen/src/base/format/compound/secondary_definition.dart';
 
 class _CompoundContainer implements ObjectContainer<Compound> {
   final Compound _value;

@@ -18,7 +18,7 @@
 // Translation of pcgen.gui3.preferences.DisplayOptionsPreferencesPanelController
 
 import 'package:flutter/material.dart';
-import 'display_options_preferences_panel_model.dart';
+import 'package:flutter_pcgen/src/gui3/preferences/display_options_preferences_panel_model.dart';
 
 /// Controller/widget for the Display Options preferences panel.
 class DisplayOptionsPreferencesPanelController extends StatelessWidget {

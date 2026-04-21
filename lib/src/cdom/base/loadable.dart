@@ -16,7 +16,7 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.base.Loadable
-import 'identified.dart';
+import 'package:flutter_pcgen/src/cdom/base/identified.dart';
 
 // An object that PCGen can load from LST file storage.
 abstract interface class Loadable implements Identified {

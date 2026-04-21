@@ -18,7 +18,7 @@
 // Translation of pcgen.core.kit.KitSelect
 import 'package:flutter_pcgen/src/core/kit.dart';
 import 'package:flutter_pcgen/src/core/player_character.dart';
-import 'base_kit.dart';
+import 'package:flutter_pcgen/src/core/kit/base_kit.dart';
 
 final class KitSelect extends BaseKit {
   String? _formula; // formula string

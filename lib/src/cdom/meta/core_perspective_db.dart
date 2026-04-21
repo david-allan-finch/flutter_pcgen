@@ -16,13 +16,13 @@
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
 //
 // Translation of pcgen.cdom.meta.CorePerspectiveDB
-import 'converting_facet_view.dart';
-import 'core_perspective.dart';
-import 'facet_behavior.dart';
-import 'facet_view.dart';
-import 'list_facet_view.dart';
-import 'qualified_facet_view.dart';
-import 'single_source_list_facet_view.dart';
+import 'package:flutter_pcgen/src/cdom/meta/converting_facet_view.dart';
+import 'package:flutter_pcgen/src/cdom/meta/core_perspective.dart';
+import 'package:flutter_pcgen/src/cdom/meta/facet_behavior.dart';
+import 'package:flutter_pcgen/src/cdom/meta/facet_view.dart';
+import 'package:flutter_pcgen/src/cdom/meta/list_facet_view.dart';
+import 'package:flutter_pcgen/src/cdom/meta/qualified_facet_view.dart';
+import 'package:flutter_pcgen/src/cdom/meta/single_source_list_facet_view.dart';
 
 // Registry mapping CorePerspective + FacetBehavior → FacetView for display.
 final class CorePerspectiveDB {

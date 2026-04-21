@@ -6,12 +6,12 @@ import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
 import 'package:flutter_pcgen/src/core/age_set.dart';
 import 'package:flutter_pcgen/src/core/bio_set.dart';
 import 'package:flutter_pcgen/src/core/kit.dart';
-import 'base/abstract_storage_facet.dart';
-import 'event/data_facet_change_event.dart';
-import 'event/data_facet_change_listener.dart';
-import 'analysis/age_set_facet.dart';
-import 'model/bio_set_facet.dart';
-import 'player_character_tracking_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/base/abstract_storage_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/event/data_facet_change_event.dart';
+import 'package:flutter_pcgen/src/cdom/facet/event/data_facet_change_listener.dart';
+import 'package:flutter_pcgen/src/cdom/facet/analysis/age_set_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/model/bio_set_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/player_character_tracking_facet.dart';
 
 /// Manages AgeSet Kit selections for a Player Character.
 class AgeSetKitFacet extends AbstractStorageFacet<CharID>

@@ -17,7 +17,7 @@
 
 import 'package:flutter/material.dart';
 
-import 'installable.dart';
+import 'package:flutter_pcgen/src/gui2/util/installable.dart';
 
 /// A [ManagedField] manages a [TextEditingController] (Dart equivalent of
 /// JTextField) and is [Installable] — i.e. it can be connected to / disconnected

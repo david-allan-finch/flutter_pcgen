@@ -17,7 +17,7 @@
 //
 // Translation of pcgen.core.BodyStructure
 import 'package:flutter_pcgen/src/cdom/enumeration/type.dart' as cdom;
-import 'character/equip_slot.dart';
+import 'package:flutter_pcgen/src/core/character/equip_slot.dart';
 
 // Represents a part of a character's body that can hold equipment (Head, Torso, etc.).
 class BodyStructure {

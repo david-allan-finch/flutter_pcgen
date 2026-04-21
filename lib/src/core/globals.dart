@@ -16,11 +16,11 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.core.Globals
-import 'campaign.dart';
-import 'data_set.dart';
-import 'game_mode.dart';
-import 'pc_class.dart';
-import 'player_character.dart';
+import 'package:flutter_pcgen/src/core/campaign.dart';
+import 'package:flutter_pcgen/src/core/data_set.dart';
+import 'package:flutter_pcgen/src/core/game_mode.dart';
+import 'package:flutter_pcgen/src/core/pc_class.dart';
+import 'package:flutter_pcgen/src/core/player_character.dart';
 
 // Global singleton state for PCGen - mirrors pcgen.core.Globals.
 class Globals {

@@ -1,5 +1,5 @@
 import 'package:flutter_pcgen/src/base/util/format_manager.dart';
-import 'format_manager_library.dart';
+import 'package:flutter_pcgen/src/base/formatmanager/format_manager_library.dart';
 
 class SimpleFormatManagerLibrary implements FormatManagerLibrary {
   final Map<String, FormatManager<dynamic>> _managers = {};

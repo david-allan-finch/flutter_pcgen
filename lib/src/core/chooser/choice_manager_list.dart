@@ -2,7 +2,7 @@
 //
 // Translation of pcgen.core.chooser.ChoiceManagerList
 
-import 'choose_controller.dart';
+import 'package:flutter_pcgen/src/core/chooser/choose_controller.dart';
 
 /// Manages the choices available, selected, and application logic for a
 /// CHOOSE token on a CDOMObject.

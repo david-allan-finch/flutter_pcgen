@@ -28,9 +28,9 @@ import 'package:flutter_pcgen/src/cdom/enumeration/map_key.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/object_key.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/string_key.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/variable_key.dart';
-import 'changes.dart';
-import 'map_changes.dart';
-import 'pattern_changes.dart';
+import 'package:flutter_pcgen/src/rules/context/changes.dart';
+import 'package:flutter_pcgen/src/rules/context/map_changes.dart';
+import 'package:flutter_pcgen/src/rules/context/pattern_changes.dart';
 
 abstract interface class ObjectCommitStrategy {
   void putString(CDOMObject cdo, StringKey sk, String s);

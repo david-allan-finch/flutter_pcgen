@@ -2,7 +2,7 @@
 //
 // Translation of pcgen.core.term.BasePCCountAbilitiesTypeTermEvaluator
 
-import 'base_pc_count_abilities_term_evaluator.dart';
+import 'package:flutter_pcgen/src/core/term/base_pc_count_abilities_term_evaluator.dart';
 
 /// Abstract base for evaluators that count abilities filtered by type.
 abstract class BasePCCountAbilitiesTypeTermEvaluator extends BasePCCountAbilitiesTermEvaluator {

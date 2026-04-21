@@ -16,7 +16,7 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.rules.context.PCGenManagerFactory
-import 'load_context.dart';
+import 'package:flutter_pcgen/src/rules/context/load_context.dart';
 
 // stub: formula base types not yet translated to Dart
 // DependencyManager, EvaluationManager, FormulaManager, FormulaSemantics,

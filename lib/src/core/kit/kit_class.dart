@@ -24,7 +24,7 @@ import 'package:flutter_pcgen/src/core/pc_class.dart';
 import 'package:flutter_pcgen/src/core/player_character.dart';
 import 'package:flutter_pcgen/src/core/sub_class.dart';
 import 'package:flutter_pcgen/src/core/prereq/prereq_handler.dart';
-import 'base_kit.dart';
+import 'package:flutter_pcgen/src/core/kit/base_kit.dart';
 
 // Kit task that adds class levels to a PC, optionally setting a subclass.
 class KitClass extends BaseKit {

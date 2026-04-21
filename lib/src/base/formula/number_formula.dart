@@ -1,4 +1,4 @@
-import 'formula.dart';
+import 'package:flutter_pcgen/src/base/formula/formula.dart';
 
 // A Formula that represents a numeric constant.
 class NumberFormula implements Formula {

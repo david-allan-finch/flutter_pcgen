@@ -2,9 +2,9 @@
 //
 // Translation of pcgen.core.term.PCMovementTermEvaluator
 
-import 'base_pcd_term_evaluator.dart';
-import 'term_evaluator.dart';
-import 'term_util.dart';
+import 'package:flutter_pcgen/src/core/term/base_pcd_term_evaluator.dart';
+import 'package:flutter_pcgen/src/core/term/term_evaluator.dart';
+import 'package:flutter_pcgen/src/core/term/term_util.dart';
 
 class PCMovementTermEvaluator extends BasePCDTermEvaluator implements TermEvaluator {
   final String movement;

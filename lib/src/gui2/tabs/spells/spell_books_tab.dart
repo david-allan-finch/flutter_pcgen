@@ -18,7 +18,7 @@
 // Translation of pcgen.gui2.tabs.spells.SpellBooksTab
 
 import 'package:flutter/material.dart';
-import 'spell_tree_view_model.dart';
+import 'package:flutter_pcgen/src/gui2/tabs/spells/spell_tree_view_model.dart';
 
 /// Tab for managing spell books and the spells recorded in them.
 class SpellBooksTab extends StatefulWidget {

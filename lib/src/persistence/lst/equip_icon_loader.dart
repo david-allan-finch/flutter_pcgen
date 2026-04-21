@@ -17,7 +17,7 @@
 //
 // Translation of pcgen.persistence.lst.EquipIconLoader
 
-import 'lst_line_file_loader.dart';
+import 'package:flutter_pcgen/src/persistence/lst/lst_line_file_loader.dart';
 
 /// Loads equipment icon path mappings from equipicon .lst files.
 ///

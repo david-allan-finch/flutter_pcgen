@@ -17,7 +17,7 @@
 //
 // Translation of pcgen.gui2.util.treeview.TreeViewModel
 
-import 'tree_view.dart';
+import 'package:flutter_pcgen/src/gui2/util/treeview/tree_view.dart';
 import 'package:flutter_pcgen/src/facade/util/list_facade.dart';
 
 /// Model that manages a set of TreeViews and a backing ListFacade.

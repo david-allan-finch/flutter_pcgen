@@ -16,8 +16,8 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.base.Chooser
-import 'choose_driver.dart';
-import 'persistent.dart';
+import 'package:flutter_pcgen/src/cdom/base/choose_driver.dart';
+import 'package:flutter_pcgen/src/cdom/base/persistent.dart';
 
 // A Chooser can restore and remove choices for a PlayerCharacter, and is
 // saved with the character's persistent state.

@@ -2,9 +2,9 @@
 //
 // Translation of pcgen.cdom.formula.VariableWrapper
 
-import 'monitorable_variable_store.dart';
-import 'variable_change_event.dart';
-import 'variable_listener.dart';
+import 'package:flutter_pcgen/src/cdom/formula/monitorable_variable_store.dart';
+import 'package:flutter_pcgen/src/cdom/formula/variable_change_event.dart';
+import 'package:flutter_pcgen/src/cdom/formula/variable_listener.dart';
 
 /// A read-only wrapper around a variable backed by a SolverManager.
 /// Notifies listeners when the variable changes.

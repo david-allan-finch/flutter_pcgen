@@ -16,7 +16,7 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.base.QualifiedActor
-import 'qualifying_object.dart';
+import 'package:flutter_pcgen/src/cdom/base/qualifying_object.dart';
 
 // Functional interface for acting on a QualifyingObject with a source.
 abstract interface class QualifiedActor<T extends QualifyingObject, R> {

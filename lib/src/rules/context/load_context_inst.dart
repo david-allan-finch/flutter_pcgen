@@ -12,13 +12,13 @@ import 'package:flutter_pcgen/src/cdom/inst/object_cache.dart';
 import 'package:flutter_pcgen/src/cdom/reference/reference_manufacturer.dart';
 import 'package:flutter_pcgen/src/cdom/reference/selection_creator.dart';
 import 'package:flutter_pcgen/src/formula/inst/nep_formula.dart';
-import 'abstract_list_context.dart';
-import 'abstract_object_context.dart';
-import 'load_context.dart';
-import 'pcgen_manager_factory.dart';
-import 'reference_context_utilities.dart';
+import 'package:flutter_pcgen/src/rules/context/abstract_list_context.dart';
+import 'package:flutter_pcgen/src/rules/context/abstract_object_context.dart';
+import 'package:flutter_pcgen/src/rules/context/load_context.dart';
+import 'package:flutter_pcgen/src/rules/context/pcgen_manager_factory.dart';
+import 'package:flutter_pcgen/src/rules/context/reference_context_utilities.dart';
 import 'runtime_reference_context.dart' show AbstractReferenceContext;
-import 'variable_context.dart';
+import 'package:flutter_pcgen/src/rules/context/variable_context.dart';
 
 // ---------------------------------------------------------------------------
 // Stubs for types not yet fully translated

@@ -20,11 +20,11 @@ import 'package:flutter_pcgen/src/core/player_character.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/grouping_state.dart';
 import 'package:flutter_pcgen/src/cdom/helper/spell_level.dart';
 import 'package:flutter_pcgen/src/cdom/helper/spell_level_info.dart';
-import 'choose_driver.dart';
-import 'choose_information.dart';
-import 'choose_information_utilities.dart';
-import 'chooser.dart';
-import 'constants.dart';
+import 'package:flutter_pcgen/src/cdom/base/choose_driver.dart';
+import 'package:flutter_pcgen/src/cdom/base/choose_information.dart';
+import 'package:flutter_pcgen/src/cdom/base/choose_information_utilities.dart';
+import 'package:flutter_pcgen/src/cdom/base/chooser.dart';
+import 'package:flutter_pcgen/src/cdom/base/constants.dart';
 
 // ChooseInformation for spell-level selections.
 class SpellLevelChooseInformation implements ChooseInformation<SpellLevel> {

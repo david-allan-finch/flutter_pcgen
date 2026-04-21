@@ -4,8 +4,8 @@
 
 import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
 import 'package:flutter_pcgen/src/cdom/helper/cn_ability_selection.dart';
-import 'base/abstract_cnas_enforcing_facet.dart';
-import 'event/data_facet_change_event.dart';
+import 'package:flutter_pcgen/src/cdom/facet/base/abstract_cnas_enforcing_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/event/data_facet_change_event.dart';
 
 /// Tracks [CNAbilitySelection] objects directly granted to a Player Character
 /// (as opposed to conditionally or via a parent object).

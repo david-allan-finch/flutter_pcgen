@@ -20,13 +20,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 
-import 'character_info_tab.dart';
-import 'tab_title.dart';
-import 'todo_handler.dart';
-import 'summary/class_level_table_model.dart';
-import 'summary/info_pane_handler.dart';
-import 'summary/language_table_model.dart';
-import 'summary/stat_table_model.dart';
+import 'package:flutter_pcgen/src/gui2/tabs/character_info_tab.dart';
+import 'package:flutter_pcgen/src/gui2/tabs/tab_title.dart';
+import 'package:flutter_pcgen/src/gui2/tabs/todo_handler.dart';
+import 'package:flutter_pcgen/src/gui2/tabs/summary/class_level_table_model.dart';
+import 'package:flutter_pcgen/src/gui2/tabs/summary/info_pane_handler.dart';
+import 'package:flutter_pcgen/src/gui2/tabs/summary/language_table_model.dart';
+import 'package:flutter_pcgen/src/gui2/tabs/summary/stat_table_model.dart';
 
 /// The Summary tab — displays key character attributes, stats, class levels,
 /// languages and a character info HTML pane.

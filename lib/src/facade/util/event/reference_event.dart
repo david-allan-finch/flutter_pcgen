@@ -2,7 +2,7 @@
 //
 // Translation of pcgen.facade.util.event.ReferenceEvent
 
-import 'facade_event.dart';
+import 'package:flutter_pcgen/src/facade/util/event/facade_event.dart';
 
 /// Event fired when a ReferenceFacade's value changes.
 class ReferenceEvent<E> extends FacadeEvent {

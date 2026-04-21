@@ -4,7 +4,7 @@
 
 import 'package:flutter_pcgen/src/cdom/base/cdom_object.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
-import 'base/abstract_sourced_list_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/base/abstract_sourced_list_facet.dart';
 
 /// Breaks cycles in the facet graph by acting as the single underlying storage
 /// for both [CDOMObjectConsolidationFacet] and [CDOMObjectSourceFacet].

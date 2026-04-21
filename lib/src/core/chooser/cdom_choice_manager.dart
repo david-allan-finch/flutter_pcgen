@@ -2,8 +2,8 @@
 //
 // Translation of pcgen.core.chooser.CDOMChoiceManager
 
-import 'choice_manager_list.dart';
-import 'choose_controller.dart';
+import 'package:flutter_pcgen/src/core/chooser/choice_manager_list.dart';
+import 'package:flutter_pcgen/src/core/chooser/choose_controller.dart';
 
 /// Standard implementation of [ChoiceManagerList] backed by a [ChooseInformation].
 class CDOMChoiceManager<T> implements ChoiceManagerList<T> {

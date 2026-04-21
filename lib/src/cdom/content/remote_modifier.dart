@@ -16,7 +16,7 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.content.RemoteModifier
-import 'var_modifier.dart';
+import 'package:flutter_pcgen/src/cdom/content/var_modifier.dart';
 
 // A modifier applied to a variable on a remote object (MODIFYOTHER: token).
 class RemoteModifier<T> {

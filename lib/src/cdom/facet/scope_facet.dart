@@ -3,7 +3,7 @@
 // Translation of pcgen.cdom.facet.ScopeFacet
 
 import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
-import 'base/abstract_item_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/base/abstract_item_facet.dart';
 
 /// Stores the ScopeInstanceFactory for each Player Character, providing
 /// ScopeInstance lookups for the formula solver system.

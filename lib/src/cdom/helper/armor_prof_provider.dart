@@ -18,7 +18,7 @@
 // Translation of pcgen.cdom.helper.ArmorProfProvider
 import 'package:flutter_pcgen/src/cdom/base/cdom_reference.dart';
 import 'package:flutter_pcgen/src/core/armor_prof.dart';
-import 'abstract_prof_provider.dart';
+import 'package:flutter_pcgen/src/cdom/helper/abstract_prof_provider.dart';
 
 // An ArmorProfProvider grants armor proficiencies either by direct ArmorProf
 // reference or by Equipment TYPE (e.g. TYPE=Armor.Light).

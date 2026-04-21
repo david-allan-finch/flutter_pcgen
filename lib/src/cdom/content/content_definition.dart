@@ -19,7 +19,7 @@
 import 'package:flutter_pcgen/src/base/util/format_manager.dart';
 import 'package:flutter_pcgen/src/cdom/base/cdom_object.dart';
 import 'package:flutter_pcgen/src/cdom/base/loadable.dart';
-import 'user_content.dart';
+import 'package:flutter_pcgen/src/cdom/content/user_content.dart';
 
 // Visibility levels for ContentDefinition fields.
 enum Visibility {

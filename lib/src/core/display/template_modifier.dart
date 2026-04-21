@@ -2,7 +2,7 @@
 //
 // Translation of pcgen.core.display.TemplateModifier
 
-import 'non_ability_display.dart';
+import 'package:flutter_pcgen/src/core/display/non_ability_display.dart';
 
 /// Utilities for building modifier summary strings from PCTemplate objects.
 class TemplateModifier {

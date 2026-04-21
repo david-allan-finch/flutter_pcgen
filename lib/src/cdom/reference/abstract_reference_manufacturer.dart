@@ -5,11 +5,11 @@
 import 'package:flutter_pcgen/src/cdom/base/cdom_reference.dart';
 import 'package:flutter_pcgen/src/cdom/reference/cdom_single_ref.dart';
 import 'package:flutter_pcgen/src/cdom/base/loadable.dart';
-import 'cdom_all_ref.dart';
-import 'cdom_direct_single_ref.dart';
-import 'cdom_group_ref.dart';
-import 'cdom_simple_single_ref.dart';
-import 'cdom_type_ref.dart';
+import 'package:flutter_pcgen/src/cdom/reference/cdom_all_ref.dart';
+import 'package:flutter_pcgen/src/cdom/reference/cdom_direct_single_ref.dart';
+import 'package:flutter_pcgen/src/cdom/reference/cdom_group_ref.dart';
+import 'package:flutter_pcgen/src/cdom/reference/cdom_simple_single_ref.dart';
+import 'package:flutter_pcgen/src/cdom/reference/cdom_type_ref.dart';
 
 /// Abstract base for ReferenceManufacturer implementations.
 /// Manages construction, storage, and resolution of CDOMReferences.
