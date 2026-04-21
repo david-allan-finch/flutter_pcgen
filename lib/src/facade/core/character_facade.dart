@@ -45,6 +45,7 @@ abstract interface class CharacterFacade {
   void setPlayersName(String name);
   String getTabName();
   void setTabName(String name);
+  ReferenceFacade<String> getTabNameRef();
   String? getFilePath();
   void setFilePath(String? path);
   ReferenceFacade<String?> getFileRef();

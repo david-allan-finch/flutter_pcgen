@@ -16,12 +16,15 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.facade.util.DefaultReferenceFacade
+import 'package:flutter/foundation.dart' show ChangeNotifier;
 import 'reference_facade.dart';
 
 // Mutable, observable reference to a single value.
-class DefaultReferenceFacade<E> implements ReferenceFacade<E> {
+// Extends ChangeNotifier so Flutter widgets can use addListener/removeListener
+// directly, while also supporting the typed ReferenceChangeEvent API.
+class DefaultReferenceFacade<E> extends ChangeNotifier implements ReferenceFacade<E> {
   E? _object;
-  final List<void Function(ReferenceChangeEvent<E>)> _listeners = [];
+  final List<void Function(ReferenceChangeEvent<E>)> _referenceListeners = [];
 
   DefaultReferenceFacade([this._object]);
 
@@ -33,17 +36,18 @@ class DefaultReferenceFacade<E> implements ReferenceFacade<E> {
     final old = _object;
     _object = object;
     final event = ReferenceChangeEvent<E>(this, old, object);
-    for (final l in List.of(_listeners)) l(event);
+    for (final l in List.of(_referenceListeners)) l(event);
+    notifyListeners();
   }
 
   @override
   void addReferenceListener(void Function(ReferenceChangeEvent<E>) listener) {
-    _listeners.add(listener);
+    _referenceListeners.add(listener);
   }
 
   @override
   void removeReferenceListener(void Function(ReferenceChangeEvent<E>) listener) {
-    _listeners.remove(listener);
+    _referenceListeners.remove(listener);
   }
 
   @override

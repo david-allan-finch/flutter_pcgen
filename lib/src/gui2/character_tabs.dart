@@ -43,19 +43,19 @@ class CharacterTabsState extends State<CharacterTabs>
   void initState() {
     super.initState();
     _tabController = TabController(length: 0, vsync: this);
-    CharacterManager.getCharacters().addListListener(_onCharactersChanged);
+    CharacterManager.getCharacters().addListListener((_) => _onCharactersChanged());
     widget.frame.getSelectedCharacterRef().addListener(_onSelectedCharacterChanged);
   }
 
   @override
   void dispose() {
-    CharacterManager.getCharacters().removeListListener(_onCharactersChanged);
+    CharacterManager.getCharacters().removeListListener((_) => _onCharactersChanged());
     widget.frame.getSelectedCharacterRef().removeListener(_onSelectedCharacterChanged);
     _tabController.dispose();
     super.dispose();
   }
 
-  void _onCharactersChanged() {
+  void _onCharactersChanged([dynamic _]) {
     final list = CharacterManager.getCharacters();
     setState(() {
       _characters.clear();

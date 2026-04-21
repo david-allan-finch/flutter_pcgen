@@ -66,6 +66,7 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
   late final DefaultReferenceFacade<Object> _alignmentRef;
   late final DefaultReferenceFacade<Object> _deityRef;
   late final DefaultReferenceFacade<String> _nameRef;
+  late final DefaultReferenceFacade<String> _tabNameRef;
   late final DefaultReferenceFacade<String?> _fileRef;
 
   CharacterFacadeImpl(this._data) {
@@ -73,6 +74,7 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
     _alignmentRef = DefaultReferenceFacade(_data['alignment']);
     _deityRef = DefaultReferenceFacade(_data['deity']);
     _nameRef = DefaultReferenceFacade(_data['name'] as String? ?? '');
+    _tabNameRef = DefaultReferenceFacade(_data['tabName'] as String? ?? '');
     _fileRef = DefaultReferenceFacade(_data['fileName'] as String?);
     if (_equipmentSets.isEmpty) {
       _equipmentSets.add(EquipmentSetFacadeImpl('Default'));
@@ -92,6 +94,9 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
 
   @override
   String getTabName() => _str('tabName').isNotEmpty ? _str('tabName') : getDisplayName();
+
+  @override
+  ReferenceFacade<String> getTabNameRef() => _tabNameRef;
 
   @override
   void setName(String name) {
