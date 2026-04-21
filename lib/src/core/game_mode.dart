@@ -284,6 +284,27 @@ final class GameMode implements Comparable<Object> {
   // Deity
   // ---------------------------------------------------------------------------
 
+  // ---------------------------------------------------------------------------
+  // Skill costs
+  // ---------------------------------------------------------------------------
+
+  int _skillCostClass = 1;
+  int _skillCostCrossClass = 2;
+  int _skillCostExclusive = 0;
+
+  int get skillCostClass => _skillCostClass;
+  void setSkillCostClass(int v) { _skillCostClass = v; }
+
+  int get skillCostCrossClass => _skillCostCrossClass;
+  void setSkillCostCrossClass(int v) { _skillCostCrossClass = v; }
+
+  int get skillCostExclusive => _skillCostExclusive;
+  void setSkillCostExclusive(int v) { _skillCostExclusive = v; }
+
+  // ---------------------------------------------------------------------------
+  // Deity
+  // ---------------------------------------------------------------------------
+
   String getDeityTerm() => _deityTerm;
   void setDeityTerm(String term) { _deityTerm = term; }
 

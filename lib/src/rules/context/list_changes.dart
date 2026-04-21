@@ -94,7 +94,7 @@ class ListChanges<T extends CDOMObject>
     // populate a HashMapToList sorted by ReferenceUtilities.REFERENCE_SORTER.
     final MapToList<CDOMReference<T>, AssociatedPrereqObject> owned =
         HashMapToList();
-    if (owned.isEmpty) return null;
+    if (owned.isEmpty()) return null;
     return owned;
   }
 
@@ -106,7 +106,7 @@ class ListChanges<T extends CDOMObject>
     if (_negative == null) return owned;
     // When available: iterate mods, filter by AssociationKey.token == _tokenName,
     // populate owned; return null if empty.
-    if (owned.isEmpty) return null;
+    if (owned.isEmpty()) return null;
     return owned;
   }
 }
