@@ -14,7 +14,7 @@ class _BoolContainer implements ObjectContainer<bool> {
   String getLSTformat([bool useAny = false]) => _value ? 'TRUE' : 'FALSE';
 }
 
-class BooleanManager implements FormatManager<bool> {
+class BooleanManager extends FormatManager<bool> {
   const BooleanManager();
 
   @override

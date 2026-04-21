@@ -17,7 +17,7 @@ class _CompoundContainer implements ObjectContainer<Compound> {
   String getLSTformat([bool useAny = false]) => _value.toString();
 }
 
-class CompoundFormatManager implements FormatManager<Compound> {
+class CompoundFormatManager extends FormatManager<Compound> {
   final FormatManager<dynamic> _primaryFormat;
   final List<SecondaryDefinition> _secondaryDefs;
   final String _separator;

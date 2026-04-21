@@ -17,7 +17,7 @@ class _ArrayContainer<T> implements ObjectContainer<List<T>> {
       _value.map((v) => _componentFormat.unconvert(v)).join(',');
 }
 
-class ArrayFormatManager<T> implements FormatManager<List<T>> {
+class ArrayFormatManager<T> extends FormatManager<List<T>> {
   final FormatManager<T> _componentFormat;
   final String _separator;
 

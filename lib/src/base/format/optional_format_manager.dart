@@ -17,7 +17,7 @@ class _OptionalContainer<T> implements ObjectContainer<T?> {
       _value == null ? '' : _componentFormat.unconvert(_value!);
 }
 
-class OptionalFormatManager<T> implements FormatManager<T?> {
+class OptionalFormatManager<T> extends FormatManager<T?> {
   final FormatManager<T> _componentFormat;
 
   OptionalFormatManager(this._componentFormat);

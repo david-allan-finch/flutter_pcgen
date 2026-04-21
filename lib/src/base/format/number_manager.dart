@@ -15,7 +15,7 @@ class _NumberContainer implements ObjectContainer<num> {
   String getLSTformat([bool useAny = false]) => _value.toString();
 }
 
-class NumberManager implements FormatManager<num> {
+class NumberManager extends FormatManager<num> {
   const NumberManager();
 
   @override

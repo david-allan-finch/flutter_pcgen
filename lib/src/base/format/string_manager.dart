@@ -14,7 +14,7 @@ class _StringContainer implements ObjectContainer<String> {
   String getLSTformat([bool useAny = false]) => _value;
 }
 
-class StringManager implements FormatManager<String> {
+class StringManager extends FormatManager<String> {
   const StringManager();
 
   @override
