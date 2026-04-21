@@ -559,7 +559,7 @@ abstract class AbstractListContext {
   ) {
     final commit = getCommitStrategy();
     final mods = neg.getListMods(list as CDOMReference<CDOMList<CDOMObject>>);
-    for (final ref in mods) {
+    for (final ref in mods.keys) {
       for (final assoc in neg.getListAssociations(
           list as CDOMReference<CDOMList<CDOMObject>>, ref)) {
         final token = assoc.getAssociation(AssociationKey.token) as String;
@@ -580,7 +580,7 @@ abstract class AbstractListContext {
   ) {
     final commit = getCommitStrategy();
     final mods = pos.getListMods(list as CDOMReference<CDOMList<CDOMObject>>);
-    for (final ref in mods) {
+    for (final ref in mods.keys) {
       for (final assoc in pos.getListAssociations(
           list as CDOMReference<CDOMList<CDOMObject>>, ref)) {
         final token = assoc.getAssociation(AssociationKey.token) as String;

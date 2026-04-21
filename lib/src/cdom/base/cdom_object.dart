@@ -402,8 +402,13 @@ abstract class CDOMObject extends ConcretePrereqObject
 
   Iterable<dynamic> getModifiedLists() => _listAssocChar?.keys ?? const <dynamic>[];
 
+  /// Returns a map of ref → [AssociatedPrereqObject...] for [listKey].
   Map<dynamic, List<dynamic>> getListMods(dynamic listKey) =>
       _listAssocChar?[listKey] ?? {};
+
+  /// Returns the associated prereq objects for [listKey] and [ref].
+  List<dynamic> getListAssociations(dynamic listKey, dynamic ref) =>
+      _listAssocChar?[listKey]?[ref] ?? const [];
 
   // --- Clone support ---
 

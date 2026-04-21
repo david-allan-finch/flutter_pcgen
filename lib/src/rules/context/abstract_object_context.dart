@@ -144,7 +144,7 @@ class TrackingObjectCommitStrategy implements ObjectCommitStrategy {
 
   @override
   void putInteger(CDOMObject cdo, IntegerKey ik, int i) {
-    _getPositive(_sourceURI, cdo).putInteger(ik, i);
+    _getPositive(_sourceURI, cdo).putInt(ik, i);
   }
 
   @override
@@ -212,7 +212,7 @@ class TrackingObjectCommitStrategy implements ObjectCommitStrategy {
 
   @override
   int? getInteger(CDOMObject cdo, IntegerKey ik) {
-    return _getPositive(_extractURI, cdo).getInteger(ik);
+    return _getPositive(_extractURI, cdo).getInt(ik);
   }
 
   @override
@@ -256,8 +256,8 @@ class TrackingObjectCommitStrategy implements ObjectCommitStrategy {
     final hasClear =
         _globalClearFactSet[_extractURI]?[cdo]?.contains(lk) ?? false;
     return CollectionChanges(
-      _getPositive(_extractURI, cdo).getSetFor(lk),
-      _getNegative(_extractURI, cdo).getSetFor(lk),
+      _getPositive(_extractURI, cdo).getSetFor(lk) as List<Indirect<T>>?,
+      _getNegative(_extractURI, cdo).getSetFor(lk) as List<Indirect<T>>?,
       hasClear,
     );
   }
@@ -516,7 +516,7 @@ abstract class AbstractObjectContext implements ObjectCommitStrategy {
             commit.putString(cpo, key, pos.getString(key)!);
           }
           for (final key in pos.getIntegerKeys()) {
-            commit.putInteger(cpo, key, pos.getInteger(key)!);
+            commit.putInteger(cpo, key, pos.getInt(key)!);
           }
           for (final key in pos.getFormulaKeys()) {
             commit.putFormula(cpo, key, pos.getFormula(key));
@@ -560,27 +560,27 @@ abstract class AbstractObjectContext implements ObjectCommitStrategy {
   }
 
   void _removeListKey<T>(CDOMObject cdo, ListKey<T> key, CDOMObject neg) {
-    for (final obj in neg.getListFor(key)) {
+    for (final obj in neg.getSafeListFor(key)) {
       getCommitStrategy().removeFromList(cdo, key, obj);
     }
   }
 
   void _removeFactSetKey<T>(
       CDOMObject cdo, FactSetKey<T> key, CDOMObject neg) {
-    for (final obj in neg.getSetFor(key)) {
-      getCommitStrategy().removeFromSet(cdo, key, obj);
+    for (final obj in neg.getSafeSetFor(key)) {
+      getCommitStrategy().removeFromSet(cdo, key, obj as Indirect<T>);
     }
   }
 
   void _putListKey<T>(CDOMObject cdo, ListKey<T> key, CDOMObject pos) {
-    for (final obj in pos.getListFor(key)) {
+    for (final obj in pos.getSafeListFor(key)) {
       getCommitStrategy().addToList(cdo, key, obj);
     }
   }
 
   void _putFactSetKey<T>(CDOMObject cdo, FactSetKey<T> key, CDOMObject pos) {
-    for (final obj in pos.getSetFor(key)) {
-      getCommitStrategy().addToSet(cdo, key, obj);
+    for (final obj in pos.getSafeSetFor(key)) {
+      getCommitStrategy().addToSet(cdo, key, obj as Indirect<T>);
     }
   }
 
