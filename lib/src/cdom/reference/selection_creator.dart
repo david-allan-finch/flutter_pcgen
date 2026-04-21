@@ -16,8 +16,8 @@
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
 //
 // Translation of pcgen.cdom.reference.SelectionCreator
-import '../base/class_identity.dart';
-import '../base/loadable.dart';
+import 'package:flutter_pcgen/src/cdom/base/class_identity.dart';
+import 'package:flutter_pcgen/src/cdom/base/loadable.dart';
 import 'cdom_group_ref.dart';
 import 'cdom_single_ref.dart';
 

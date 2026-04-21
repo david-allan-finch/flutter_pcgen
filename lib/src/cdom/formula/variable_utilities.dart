@@ -2,8 +2,8 @@
 //
 // Translation of pcgen.cdom.formula.VariableUtilities
 
-import '../../formula/base/variable_id.dart';
-import '../enumeration/char_id.dart';
+import 'package:flutter_pcgen/src/formula/base/variable_id.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
 
 // TODO: Wire LoadContextFacet + ScopeFacet once those are translated.
 // Until then, this stub throws to flag unimplemented paths.

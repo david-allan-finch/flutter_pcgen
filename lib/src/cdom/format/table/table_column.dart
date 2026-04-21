@@ -2,7 +2,7 @@
 //
 // Translation of pcgen.cdom.format.table.TableColumn
 
-import '../../base/loadable.dart';
+import 'package:flutter_pcgen/src/cdom/base/loadable.dart';
 
 /// A TableColumn is a name/format pair indicating a column within a DataTable.
 class TableColumn implements Loadable {

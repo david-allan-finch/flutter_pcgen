@@ -16,7 +16,7 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.core.SpellProhibitor
-import '../cdom/base/concrete_prereq_object.dart';
+import 'package:flutter_pcgen/src/cdom/base/concrete_prereq_object.dart';
 
 // Defines what spells are prohibited for a class/subclass (by alignment, school, etc.).
 enum ProhibitedSpellType { alignment, school, subSchool, descriptor, spell }

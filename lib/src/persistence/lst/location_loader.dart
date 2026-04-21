@@ -17,7 +17,7 @@
 //
 // Translation of pcgen.persistence.lst.LocationLoader
 
-import '../../core/system_collections.dart';
+import 'package:flutter_pcgen/src/core/system_collections.dart';
 import 'lst_line_file_loader.dart';
 
 /// Loads location/birthplace/city lists from location .lst files.

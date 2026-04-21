@@ -2,8 +2,8 @@
 //
 // Translation of pcgen.cdom.facet.ConditionalTemplateFacet
 
-import '../enumeration/char_id.dart';
-import '../../core/pc_template.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
+import 'package:flutter_pcgen/src/core/pc_template.dart';
 import 'analysis/level_facet.dart';
 import 'base/abstract_list_facet.dart';
 import 'event/data_facet_change_event.dart';

@@ -2,7 +2,7 @@
 //
 // Translation of pcgen.persistence.lst.prereq.PrerequisiteParserInterface
 
-import '../../../core/prereq/prerequisite.dart';
+import 'package:flutter_pcgen/src/core/prereq/prerequisite.dart';
 
 /// Interface for classes that parse PRExxx prerequisite tokens from LST files.
 abstract interface class PrerequisiteParserInterface {

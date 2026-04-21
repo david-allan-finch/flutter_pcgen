@@ -17,26 +17,26 @@
 //
 // Translation of pcgen.gui2.facade.DelegatingDataSet
 
-import '../../core/ability_category.dart';
-import '../../core/body_structure.dart';
-import '../../core/campaign.dart';
-import '../../core/deity.dart';
-import '../../core/game_mode.dart';
-import '../../core/kit.dart';
-import '../../core/pc_alignment.dart';
-import '../../core/pc_class.dart';
-import '../../core/pc_stat.dart';
-import '../../core/pc_template.dart';
-import '../../core/race.dart';
-import '../../core/size_adjustment.dart';
-import '../../core/skill.dart';
-import '../../facade/core/ability_facade.dart';
-import '../../facade/core/data_set_facade.dart';
-import '../../facade/core/equipment_facade.dart';
-import '../../facade/core/gear_buy_sell_facade.dart';
-import '../../facade/util/delegating_list_facade.dart';
-import '../../facade/util/list_facade.dart';
-import '../../facade/util/map_facade.dart';
+import 'package:flutter_pcgen/src/core/ability_category.dart';
+import 'package:flutter_pcgen/src/core/body_structure.dart';
+import 'package:flutter_pcgen/src/core/campaign.dart';
+import 'package:flutter_pcgen/src/core/deity.dart';
+import 'package:flutter_pcgen/src/core/game_mode.dart';
+import 'package:flutter_pcgen/src/core/kit.dart';
+import 'package:flutter_pcgen/src/core/pc_alignment.dart';
+import 'package:flutter_pcgen/src/core/pc_class.dart';
+import 'package:flutter_pcgen/src/core/pc_stat.dart';
+import 'package:flutter_pcgen/src/core/pc_template.dart';
+import 'package:flutter_pcgen/src/core/race.dart';
+import 'package:flutter_pcgen/src/core/size_adjustment.dart';
+import 'package:flutter_pcgen/src/core/skill.dart';
+import 'package:flutter_pcgen/src/facade/core/ability_facade.dart';
+import 'package:flutter_pcgen/src/facade/core/data_set_facade.dart';
+import 'package:flutter_pcgen/src/facade/core/equipment_facade.dart';
+import 'package:flutter_pcgen/src/facade/core/gear_buy_sell_facade.dart';
+import 'package:flutter_pcgen/src/facade/util/delegating_list_facade.dart';
+import 'package:flutter_pcgen/src/facade/util/list_facade.dart';
+import 'package:flutter_pcgen/src/facade/util/map_facade.dart';
 
 /// Implements DataSetFacade by delegating to another DataSetFacade.
 ///

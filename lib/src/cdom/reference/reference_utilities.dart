@@ -2,8 +2,8 @@
 //
 // Translation of pcgen.cdom.reference.ReferenceUtilities
 
-import '../base/cdom_reference.dart';
-import '../base/cdom_single_ref.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_reference.dart';
+import 'package:flutter_pcgen/src/cdom/reference/cdom_single_ref.dart';
 
 /// Utility methods for working with CDOMReference objects.
 class ReferenceUtilities {

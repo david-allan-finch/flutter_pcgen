@@ -16,7 +16,7 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.rules.persistence.token.QualifierToken
-import '../../../rules/context/load_context.dart';
+import 'package:flutter_pcgen/src/rules/context/load_context.dart';
 import 'cdom_token.dart';
 
 /// A QualifierToken selects and filters zero or more objects of a specific

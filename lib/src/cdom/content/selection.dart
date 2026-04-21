@@ -16,7 +16,7 @@
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
 //
 // Translation of pcgen.cdom.content.Selection
-import '../base/cdom_object.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_object.dart';
 
 // Generic container pairing a CDOMObject with an optional selection string.
 class Selection<BT extends CdomObject, SEL> {

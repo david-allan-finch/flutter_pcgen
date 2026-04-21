@@ -17,9 +17,9 @@
 //
 // Translation of pcgen.rules.persistence.token.AbstractIntToken
 
-import '../../../cdom/base/cdom_object.dart';
-import '../../../cdom/enumeration/integer_key.dart';
-import '../../../rules/context/load_context.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_object.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/integer_key.dart';
+import 'package:flutter_pcgen/src/rules/context/load_context.dart';
 import 'abstract_token.dart';
 import 'cdom_token.dart';
 import 'cdom_write_token.dart';

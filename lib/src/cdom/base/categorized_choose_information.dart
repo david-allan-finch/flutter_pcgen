@@ -16,8 +16,8 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.base.CategorizedChooseInformation
-import '../enumeration/grouping_state.dart';
-import '../reference/cdom_single_ref.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/grouping_state.dart';
+import 'package:flutter_pcgen/src/cdom/reference/cdom_single_ref.dart';
 import 'categorized.dart';
 import 'category.dart';
 import 'choose_driver.dart';

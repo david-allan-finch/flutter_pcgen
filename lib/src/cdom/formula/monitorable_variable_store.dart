@@ -2,7 +2,7 @@
 //
 // Translation of pcgen.cdom.formula.MonitorableVariableStore
 
-import '../../formula/base/variable_id.dart';
+import 'package:flutter_pcgen/src/formula/base/variable_id.dart';
 
 // TODO: Translate VariableListener and full listener infrastructure.
 

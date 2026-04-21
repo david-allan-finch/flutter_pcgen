@@ -1,4 +1,4 @@
-import '../base/implemented_scope.dart';
+import 'package:flutter_pcgen/src/formula/base/implemented_scope.dart';
 
 class SimpleImplementedScope implements ImplementedScope {
   final String _name;

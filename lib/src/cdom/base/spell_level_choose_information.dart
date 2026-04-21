@@ -16,10 +16,10 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.base.SpellLevelChooseInformation
-import '../../core/player_character.dart';
-import '../enumeration/grouping_state.dart';
-import '../helper/spell_level.dart';
-import '../helper/spell_level_info.dart';
+import 'package:flutter_pcgen/src/core/player_character.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/grouping_state.dart';
+import 'package:flutter_pcgen/src/cdom/helper/spell_level.dart';
+import 'package:flutter_pcgen/src/cdom/helper/spell_level_info.dart';
 import 'choose_driver.dart';
 import 'choose_information.dart';
 import 'choose_information_utilities.dart';

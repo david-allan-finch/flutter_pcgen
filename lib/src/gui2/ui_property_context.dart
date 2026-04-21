@@ -18,7 +18,7 @@
 // Translation of pcgen.gui2.UIPropertyContext
 
 import 'dart:ui' show Color;
-import '../facade/core/character_facade.dart';
+import 'package:flutter_pcgen/src/facade/core/character_facade.dart';
 
 /// Holds UI-related user preferences such as screen position and colours.
 class UIPropertyContext {

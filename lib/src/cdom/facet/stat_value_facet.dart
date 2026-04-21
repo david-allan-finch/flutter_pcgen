@@ -2,8 +2,8 @@
 //
 // Translation of pcgen.cdom.facet.StatValueFacet
 
-import '../enumeration/char_id.dart';
-import '../../core/pc_stat.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
+import 'package:flutter_pcgen/src/core/pc_stat.dart';
 import 'base/abstract_scope_facet.dart';
 import 'event/scope_facet_change_event.dart';
 

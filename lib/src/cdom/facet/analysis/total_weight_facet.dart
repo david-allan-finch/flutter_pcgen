@@ -16,7 +16,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
  */
 
-import '../../enumeration/char_id.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
 
 /// TotalWeightFacet performs calculations related to the total weight of
 /// Equipment carried by a Player Character (does not include the body weight).

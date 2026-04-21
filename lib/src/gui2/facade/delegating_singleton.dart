@@ -15,8 +15,8 @@
 //
 // Translation of pcgen.gui2.facade.DelegatingSingleton
 
-import '../../facade/util/abstract_list_facade.dart';
-import '../../facade/util/reference_facade.dart';
+import 'package:flutter_pcgen/src/facade/util/abstract_list_facade.dart';
+import 'package:flutter_pcgen/src/facade/util/reference_facade.dart';
 
 /// Wraps a ReferenceFacade to allow that singleton object reference to instead
 /// appear as a ListFacade.

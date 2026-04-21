@@ -4,7 +4,7 @@
 
 import 'dart:collection';
 
-import '../../persistence/lst/prereq/prerequisite_parser_interface.dart';
+import 'package:flutter_pcgen/src/persistence/lst/prereq/prerequisite_parser_interface.dart';
 import 'token/c_d_o_m_compatibility_token.dart';
 import 'token/c_d_o_m_interface_token.dart';
 import 'token/c_d_o_m_primary_token.dart';

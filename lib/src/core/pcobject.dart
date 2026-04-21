@@ -1,8 +1,8 @@
-import '../cdom/base/cdom_object.dart';
-import '../cdom/enumeration/list_key.dart';
-import '../cdom/enumeration/object_key.dart';
-import '../cdom/enumeration/string_key.dart';
-import '../cdom/enumeration/type.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_object.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/list_key.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/object_key.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/string_key.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/type.dart';
 
 // Base class for several objects in the PCGen database.
 class PObject extends CDOMObject implements Comparable<Object> {

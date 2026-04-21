@@ -16,14 +16,14 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.core.kit.KitClass
-import '../../base/formula/formula.dart';
-import '../../cdom/base/cdom_reference.dart';
-import '../../cdom/reference/cdom_single_ref.dart';
-import '../../core/kit.dart';
-import '../../core/pc_class.dart';
-import '../../core/player_character.dart';
-import '../../core/sub_class.dart';
-import '../../core/prereq/prereq_handler.dart';
+import 'package:flutter_pcgen/src/base/formula/formula.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_reference.dart';
+import 'package:flutter_pcgen/src/cdom/reference/cdom_single_ref.dart';
+import 'package:flutter_pcgen/src/core/kit.dart';
+import 'package:flutter_pcgen/src/core/pc_class.dart';
+import 'package:flutter_pcgen/src/core/player_character.dart';
+import 'package:flutter_pcgen/src/core/sub_class.dart';
+import 'package:flutter_pcgen/src/core/prereq/prereq_handler.dart';
 import 'base_kit.dart';
 
 // Kit task that adds class levels to a PC, optionally setting a subclass.

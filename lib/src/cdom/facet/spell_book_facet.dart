@@ -2,9 +2,9 @@
 //
 // Translation of pcgen.cdom.facet.SpellBookFacet
 
-import '../enumeration/char_id.dart';
-import '../../core/character/spell_book.dart';
-import '../../core/equipment.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
+import 'package:flutter_pcgen/src/core/character/spell_book.dart';
+import 'package:flutter_pcgen/src/core/equipment.dart';
 import 'base/abstract_storage_facet.dart';
 import 'equipment_facet.dart';
 import 'event/data_facet_change_event.dart';

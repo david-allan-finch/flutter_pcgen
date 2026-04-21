@@ -17,8 +17,8 @@
 //
 // Translation of pcgen.output.wrapper.OrderedPairWrapper
 
-import '../base/simple_object_wrapper.dart';
-import '../model/ordered_pair_model.dart';
+import 'package:flutter_pcgen/src/output/base/simple_object_wrapper.dart';
+import 'package:flutter_pcgen/src/output/model/ordered_pair_model.dart';
 
 /// Wraps OrderedPair objects into output models.
 class OrderedPairWrapper implements SimpleObjectWrapper {

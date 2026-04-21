@@ -16,7 +16,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
  */
 
-import '../../enumeration/char_id.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
 
 /// NonProficiencyPenaltyFacet is a Facet that calculates the Non-Proficiency
 /// Penalty assessed when a Player Character is not proficient with a Weapon.

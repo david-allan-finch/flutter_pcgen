@@ -16,9 +16,9 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.choiceset.ReferenceChoiceSet
-import '../base/cdom_reference.dart';
-import '../base/constants.dart';
-import '../enumeration/grouping_state.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_reference.dart';
+import 'package:flutter_pcgen/src/cdom/base/constants.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/grouping_state.dart';
 
 // A PrimitiveChoiceSet whose contents are defined by a collection of
 // CDOMReferences. The contents are fixed and do not vary by PlayerCharacter.

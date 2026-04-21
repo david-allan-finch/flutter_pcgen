@@ -16,10 +16,10 @@
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
 //
 // Translation of pcgen.cdom.content.CNAbility
-import '../../core/ability.dart';
-import '../base/category.dart';
-import '../base/concrete_prereq_object.dart';
-import '../enumeration/nature.dart';
+import 'package:flutter_pcgen/src/core/ability.dart';
+import 'package:flutter_pcgen/src/cdom/base/category.dart';
+import 'package:flutter_pcgen/src/cdom/base/concrete_prereq_object.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/nature.dart';
 
 // An CNAbility represents a categorized Ability with a Nature (automatic, virtual, normal).
 class CNAbility extends ConcretePrereqObject implements Comparable<CNAbility> {

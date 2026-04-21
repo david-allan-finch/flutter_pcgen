@@ -19,8 +19,8 @@
 // Translated from PCGen Java source to Dart.
 // Source: pcgen/cdom/facet/input/ClassSkillListFacet.java
 
-import '../../../enumeration/char_id.dart';
-import '../base/abstract_scope_facet.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
+import 'package:flutter_pcgen/src/cdom/facet/base/abstract_scope_facet.dart';
 
 /// ClassSkillListFacet stores the ClassSkillList choices for a PCClass of a
 /// Player Character.

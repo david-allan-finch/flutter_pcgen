@@ -16,7 +16,7 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.core.ShieldProf
-import '../cdom/base/ungranted.dart';
+import 'package:flutter_pcgen/src/cdom/base/ungranted.dart';
 import 'pcobject.dart';
 
 // Represents a shield proficiency that a character may possess.

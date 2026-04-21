@@ -1,7 +1,7 @@
-import '../util/format_manager.dart';
-import '../util/basic_indirect.dart';
-import '../util/indirect.dart';
-import '../util/object_container.dart';
+import 'package:flutter_pcgen/src/base/util/format_manager.dart';
+import 'package:flutter_pcgen/src/base/util/basic_indirect.dart';
+import 'package:flutter_pcgen/src/base/util/indirect.dart';
+import 'package:flutter_pcgen/src/base/util/object_container.dart';
 
 class _StringContainer implements ObjectContainer<String> {
   final String _value;

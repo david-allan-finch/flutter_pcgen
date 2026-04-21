@@ -2,10 +2,10 @@
 //
 // Translation of pcgen.cdom.facet.HiddenTypeFacet
 
-import '../enumeration/data_set_id.dart';
-import '../enumeration/list_key.dart';
-import '../enumeration/type.dart';
-import '../../core/campaign.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/data_set_id.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/list_key.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/type.dart';
+import 'package:flutter_pcgen/src/core/campaign.dart';
 import 'base/abstract_scope_facet.dart';
 
 // TODO: wire DataSetInitializationFacet.addDataSetInitializedFacet once translated.

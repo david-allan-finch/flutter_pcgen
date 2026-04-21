@@ -2,9 +2,9 @@
 //
 // Translation of pcgen.rules.persistence.CDOMControlLoader
 
-import '../../cdom/base/loadable.dart' show Loadable;
-import '../../persistence/lst/lst_line_file_loader.dart';
-import '../../rules/context/load_context.dart';
+import 'package:flutter_pcgen/src/cdom/base/loadable.dart' show Loadable;
+import 'package:flutter_pcgen/src/persistence/lst/lst_line_file_loader.dart';
+import 'package:flutter_pcgen/src/rules/context/load_context.dart';
 import 'c_d_o_m_sub_line_loader.dart';
 
 /// Loads DATACONTROL LST files (FACT, FACTSET, DEFAULTVARIABLEVALUE, etc.).

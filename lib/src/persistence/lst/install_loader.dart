@@ -17,7 +17,7 @@
 //
 // Translation of pcgen.persistence.lst.InstallLoader
 
-import '../../core/installable_campaign.dart';
+import 'package:flutter_pcgen/src/core/installable_campaign.dart';
 import 'lst_line_file_loader.dart';
 
 /// Loads install.lst files from a campaign directory.

@@ -17,7 +17,7 @@
 //
 // Translation of pcgen.output.actor.IntegerKeyActor
 
-import '../base/output_actor.dart';
+import 'package:flutter_pcgen/src/output/base/output_actor.dart';
 
 /// OutputActor that reads an IntegerKey value from an object.
 class IntegerKeyActor implements OutputActor<dynamic> {

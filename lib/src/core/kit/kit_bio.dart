@@ -16,8 +16,8 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.core.kit.KitBio
-import '../kit.dart';
-import '../player_character.dart';
+import 'package:flutter_pcgen/src/core/kit.dart';
+import 'package:flutter_pcgen/src/core/player_character.dart';
 import 'base_kit.dart';
 
 class KitBio extends BaseKit {

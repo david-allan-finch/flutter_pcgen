@@ -25,11 +25,11 @@ import 'pc_gen_menu_bar.dart';
 import 'pc_gen_status_bar.dart';
 import 'character_tabs.dart';
 import 'info_guide_pane.dart';
-import '../facade/core/character_facade.dart';
-import '../facade/core/source_selection_facade.dart';
-import '../facade/core/data_set_facade.dart';
-import '../facade/util/default_reference_facade.dart';
-import '../system/character_manager.dart';
+import 'package:flutter_pcgen/src/facade/core/character_facade.dart';
+import 'package:flutter_pcgen/src/facade/core/source_selection_facade.dart';
+import 'package:flutter_pcgen/src/facade/core/data_set_facade.dart';
+import 'package:flutter_pcgen/src/facade/util/default_reference_facade.dart';
+import 'package:flutter_pcgen/src/system/character_manager.dart';
 
 /// The main window for PCGen. Also responsible for global UI functions
 /// such as message dialogs.

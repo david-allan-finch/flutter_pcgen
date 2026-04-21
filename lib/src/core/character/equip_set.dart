@@ -14,8 +14,8 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.core.character.EquipSet
-import '../equipment.dart';
-import '../player_character.dart';
+import 'package:flutter_pcgen/src/core/equipment.dart';
+import 'package:flutter_pcgen/src/core/player_character.dart';
 
 // An equipment set node — each piece of equipped gear with hierarchical path IDs.
 // Path format: "0.1.3" where 0=root, 1=parent id, 3=this id.

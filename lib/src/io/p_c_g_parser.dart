@@ -17,7 +17,7 @@
 //
 // Translation of pcgen.io.PCGParser
 
-import '../core/player_character.dart';
+import 'package:flutter_pcgen/src/core/player_character.dart';
 import 'p_c_g_parse_exception.dart';
 
 /// Abstract base for PCG file parsers.

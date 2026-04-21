@@ -2,7 +2,7 @@
 //
 // Translation of pcgen.cdom.facet.LoadContextFacet
 
-import '../enumeration/data_set_id.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/data_set_id.dart';
 import 'base/abstract_item_facet.dart';
 import 'data_set_initialization_facet.dart';
 

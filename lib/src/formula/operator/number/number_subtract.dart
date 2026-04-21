@@ -1,7 +1,7 @@
-import '../../../base/util/format_manager.dart';
-import '../../../base/format/number_manager.dart';
-import '../../base/operator_action.dart';
-import '../../parse/operator.dart';
+import 'package:flutter_pcgen/src/base/util/format_manager.dart';
+import 'package:flutter_pcgen/src/base/format/number_manager.dart';
+import 'package:flutter_pcgen/src/formula/base/operator_action.dart';
+import 'package:flutter_pcgen/src/formula/parse/operator.dart';
 
 class NumberSubtract implements OperatorAction {
   static const NumberManager _manager = NumberManager();

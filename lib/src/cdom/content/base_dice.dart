@@ -16,8 +16,8 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.content.BaseDice
-import '../../core/roll_info.dart';
-import '../base/loadable.dart';
+import 'package:flutter_pcgen/src/core/roll_info.dart';
+import 'package:flutter_pcgen/src/cdom/base/loadable.dart';
 
 // Defines how a die type changes as size adjustments are applied.
 class BaseDice implements Loadable {

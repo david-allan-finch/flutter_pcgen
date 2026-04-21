@@ -20,8 +20,8 @@
 // Translated from PCGen Java source to Dart.
 // Source: pcgen/cdom/facet/input/AutoLanguageListFacet.java
 
-import '../../../enumeration/char_id.dart';
-import '../base/abstract_sourced_list_facet.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
+import 'package:flutter_pcgen/src/cdom/facet/base/abstract_sourced_list_facet.dart';
 
 /// AutoLanguageListFacet is a Facet that tracks the Languages that have been
 /// granted to a Player Character through the AUTO:LANG|%LIST token.

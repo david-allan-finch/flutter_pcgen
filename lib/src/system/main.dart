@@ -18,7 +18,7 @@
 //
 // Translation of pcgen.system.Main
 
-import '../pluginmgr/plugin_manager.dart';
+import 'package:flutter_pcgen/src/pluginmgr/plugin_manager.dart';
 import 'character_manager.dart';
 import 'configuration_settings.dart';
 import 'facade_factory.dart';

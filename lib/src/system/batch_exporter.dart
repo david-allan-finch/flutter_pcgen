@@ -19,9 +19,9 @@
 
 import 'dart:io';
 
-import '../core/player_character.dart';
-import '../facade/core/character_facade.dart';
-import '../io/export_handler.dart';
+import 'package:flutter_pcgen/src/core/player_character.dart';
+import 'package:flutter_pcgen/src/facade/core/character_facade.dart';
+import 'package:flutter_pcgen/src/io/export_handler.dart';
 
 /// Exports characters to output sheets in batch (non-interactive) mode.
 ///

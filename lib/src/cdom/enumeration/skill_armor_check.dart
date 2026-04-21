@@ -16,7 +16,7 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.enumeration.SkillArmorCheck
-import '../../core/player_character.dart';
+import 'package:flutter_pcgen/src/core/player_character.dart';
 
 // Method of calculating Armor Check Penalty for a skill.
 enum SkillArmorCheck {

@@ -16,8 +16,8 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.list.VisionList
-import '../base/cdom_list_object.dart';
-import '../../core/vision.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_list_object.dart';
+import 'package:flutter_pcgen/src/core/vision.dart';
 
 // A CDOMListObject for Vision objects.
 class VisionList extends CDOMListObject<Vision> {

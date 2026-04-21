@@ -18,7 +18,7 @@
 // Translation of pcgen.gui3.preferences.ColorsPreferencesPanelController
 
 import 'package:flutter/material.dart';
-import '../utilty/color_utilty.dart';
+import 'package:flutter_pcgen/src/gui3/utilty/color_utilty.dart';
 
 /// Controller/widget for the Colors preferences panel.
 class ColorsPreferencesPanelController extends StatefulWidget {

@@ -16,7 +16,7 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.base.PCGenIdentifier
-import '../enumeration/data_set_id.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/data_set_id.dart';
 
 // PCGenIdentifier represents a typed identifier (e.g. CharID) that carries its
 // owning DataSetID.

@@ -16,7 +16,7 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.persistence.SystemLoader
-import '../core/game_mode.dart';
+import 'package:flutter_pcgen/src/core/game_mode.dart';
 
 // Abstract factory interface for loading PCGen system files.
 abstract interface class SystemLoader {

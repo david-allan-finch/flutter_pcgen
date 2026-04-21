@@ -4,10 +4,10 @@
 
 import 'dart:collection';
 
-import '../../../persistence/lst/prereq/prerequisite_parser_interface.dart';
-import '../token/c_d_o_m_secondary_token.dart';
-import '../token/c_d_o_m_token.dart';
-import '../token/deferred_token.dart';
+import 'package:flutter_pcgen/src/persistence/lst/prereq/prerequisite_parser_interface.dart';
+import 'package:flutter_pcgen/src/rules/persistence/token/c_d_o_m_secondary_token.dart';
+import 'package:flutter_pcgen/src/rules/persistence/token/c_d_o_m_token.dart';
+import 'package:flutter_pcgen/src/rules/persistence/token/deferred_token.dart';
 import 'revision.dart';
 
 /// Organises token implementations by the PCGen [Revision] for which they apply.

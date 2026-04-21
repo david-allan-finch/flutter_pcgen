@@ -16,15 +16,15 @@
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
 //
 // Translation of pcgen.cdom.helper.AbilitySelector
-import '../base/choose_driver.dart';
-import '../base/choose_selection_actor.dart';
-import '../base/concrete_prereq_object.dart';
-import '../base/qualifying_object.dart';
-import '../content/ability_selection.dart';
-import '../content/cn_ability_factory.dart';
-import '../enumeration/nature.dart';
-import '../reference/cdom_single_ref.dart';
-import '../../core/ability_category.dart';
+import 'package:flutter_pcgen/src/cdom/base/choose_driver.dart';
+import 'package:flutter_pcgen/src/cdom/base/choose_selection_actor.dart';
+import 'package:flutter_pcgen/src/cdom/base/concrete_prereq_object.dart';
+import 'package:flutter_pcgen/src/cdom/base/qualifying_object.dart';
+import 'package:flutter_pcgen/src/cdom/content/ability_selection.dart';
+import 'package:flutter_pcgen/src/cdom/content/cn_ability_factory.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/nature.dart';
+import 'package:flutter_pcgen/src/cdom/reference/cdom_single_ref.dart';
+import 'package:flutter_pcgen/src/core/ability_category.dart';
 import 'cn_ability_selection.dart';
 
 // An AbilitySelector applies an AbilitySelection (category + nature + ability

@@ -16,7 +16,7 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.inst.ObjectCache
-import '../base/cdom_object.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_object.dart';
 
 // Cache of information for a PlayerCharacter. Never has a type.
 class ObjectCache extends CDOMObject {

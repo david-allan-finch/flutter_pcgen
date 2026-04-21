@@ -16,8 +16,8 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.core.analysis.AlignmentConverter
-import '../../globals.dart';
-import '../pc_alignment.dart';
+import 'package:flutter_pcgen/src/core/globals.dart';
+import 'package:flutter_pcgen/src/core/pc_alignment.dart';
 
 // Converts an alignment key string to a PCAlignment object.
 final class AlignmentConverter {

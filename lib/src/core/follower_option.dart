@@ -16,8 +16,8 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.core.FollowerOption
-import '../cdom/base/concrete_prereq_object.dart';
-import '../cdom/reference/cdom_reference.dart';
+import 'package:flutter_pcgen/src/cdom/base/concrete_prereq_object.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_reference.dart';
 import 'race.dart';
 
 // A possible companion/follower choice with an optional level adjustment.

@@ -16,9 +16,9 @@
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
 //
 // Translation of pcgen.cdom.reference.CDOMSimpleSingleRef
-import '../base/class_identity.dart';
-import '../base/cdom_reference.dart';
-import '../enumeration/grouping_state.dart';
+import 'package:flutter_pcgen/src/cdom/base/class_identity.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_reference.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/grouping_state.dart';
 import 'cdom_single_ref.dart';
 
 // A CDOMSingleRef for non-categorized objects, resolved by key name.

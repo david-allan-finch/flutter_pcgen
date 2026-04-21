@@ -1,8 +1,8 @@
-import '../base/edge.dart';
-import '../base/graph.dart';
-import '../base/graph_change_listener.dart';
-import '../base/node_change_event.dart';
-import '../base/edge_change_event.dart';
+import 'package:flutter_pcgen/src/base/graph/base/edge.dart';
+import 'package:flutter_pcgen/src/base/graph/base/graph.dart';
+import 'package:flutter_pcgen/src/base/graph/base/graph_change_listener.dart';
+import 'package:flutter_pcgen/src/base/graph/base/node_change_event.dart';
+import 'package:flutter_pcgen/src/base/graph/base/edge_change_event.dart';
 
 abstract class AbstractListMapGraph<N, ET extends Edge<N>>
     implements Graph<N, ET> {

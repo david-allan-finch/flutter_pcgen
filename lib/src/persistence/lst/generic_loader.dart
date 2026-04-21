@@ -17,9 +17,9 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.persistence.lst.GenericLoader
-import '../../cdom/base/cdom_object.dart';
-import '../../cdom/enumeration/object_key.dart';
-import '../../rules/context/load_context.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_object.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/object_key.dart';
+import 'package:flutter_pcgen/src/rules/context/load_context.dart';
 import 'lst_object_file_loader.dart';
 import 'source_entry.dart';
 

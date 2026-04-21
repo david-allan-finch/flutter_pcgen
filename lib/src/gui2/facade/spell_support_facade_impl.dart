@@ -18,8 +18,8 @@
 // Translation of pcgen.gui2.facade.SpellSupportFacadeImpl
 
 import 'package:flutter/foundation.dart';
-import '../../facade/core/spell_support_facade.dart';
-import '../../facade/util/list_facade.dart';
+import 'package:flutter_pcgen/src/facade/core/spell_support_facade.dart';
+import 'package:flutter_pcgen/src/facade/util/list_facade.dart';
 
 /// Implementation of SpellSupportFacade managing a character's spell lists.
 class SpellSupportFacadeImpl extends ChangeNotifier implements SpellSupportFacade {

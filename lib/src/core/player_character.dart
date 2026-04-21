@@ -15,10 +15,10 @@
 //
 // Translation of pcgen.core.PlayerCharacter
 
-import '../cdom/base/constants.dart';
-import '../cdom/enumeration/integer_key.dart';
-import '../util/enumeration/attack_type.dart';
-import '../util/enumeration/load.dart';
+import 'package:flutter_pcgen/src/cdom/base/constants.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/integer_key.dart';
+import 'package:flutter_pcgen/src/util/enumeration/attack_type.dart';
+import 'package:flutter_pcgen/src/util/enumeration/load.dart';
 import 'ability.dart';
 import 'ability_category.dart';
 import 'campaign.dart';

@@ -16,10 +16,10 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.core.SubClass
-import '../cdom/base/categorized.dart';
-import '../cdom/base/category.dart';
-import '../cdom/enumeration/integer_key.dart';
-import '../cdom/enumeration/object_key.dart';
+import 'package:flutter_pcgen/src/cdom/base/categorized.dart';
+import 'package:flutter_pcgen/src/cdom/base/category.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/integer_key.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/object_key.dart';
 import 'pc_class.dart';
 
 // A specialized variant of a PCClass with modified spell prohibition and cost.

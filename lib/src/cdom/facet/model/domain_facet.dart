@@ -5,8 +5,8 @@
 // Software Foundation; either version 2.1 of the License, or (at your option)
 // any later version.
 
-import '../../../enumeration/char_id.dart';
-import '../base/abstract_single_source_list_facet.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
+import 'package:flutter_pcgen/src/cdom/facet/base/abstract_single_source_list_facet.dart';
 
 // stub: CorePerspectiveDB.register(CorePerspective.DOMAIN, FacetBehavior.MODEL, this)
 // stub: OutputDB.register("domains", this)

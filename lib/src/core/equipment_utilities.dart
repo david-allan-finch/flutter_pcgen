@@ -18,7 +18,7 @@
 //  Refactored from PlayerCharacter, created on April 21, 2001, 2:15 PM
 //
 // Translation of pcgen.core.EquipmentUtilities
-import '../cdom/enumeration/object_key.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/object_key.dart';
 import 'equipment.dart';
 
 final class EquipmentUtilities {

@@ -2,9 +2,9 @@
 //
 // Translation of pcgen.cdom.facet.SpellListFacet
 
-import '../base/cdom_list.dart';
-import '../enumeration/char_id.dart';
-import '../../core/spell/spell.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_list.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
+import 'package:flutter_pcgen/src/core/spell/spell.dart';
 import 'base/abstract_sourced_list_facet.dart';
 
 /// Maintains the list of spell lists for a Player Character.

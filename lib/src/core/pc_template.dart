@@ -2,11 +2,11 @@
 //
 // Translation of pcgen.core.PCTemplate
 
-import '../cdom/enumeration/integer_key.dart';
-import '../cdom/enumeration/list_key.dart';
-import '../cdom/enumeration/object_key.dart';
-import '../util/enumeration/view.dart';
-import '../util/enumeration/visibility.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/integer_key.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/list_key.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/object_key.dart';
+import 'package:flutter_pcgen/src/util/enumeration/view.dart';
+import 'package:flutter_pcgen/src/util/enumeration/visibility.dart';
 import 'pcobject.dart';
 
 // The CDOMObject for Templates.

@@ -16,9 +16,9 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.base.ChoiceSet
-import '../enumeration/grouping_state.dart';
-import '../enumeration/nature.dart';
-import '../reference/cdom_single_ref.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/grouping_state.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/nature.dart';
+import 'package:flutter_pcgen/src/cdom/reference/cdom_single_ref.dart';
 import 'concrete_prereq_object.dart';
 import 'primitive_choice_set.dart';
 import 'selectable_set.dart';

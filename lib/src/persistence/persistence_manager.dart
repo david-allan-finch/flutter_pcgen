@@ -16,8 +16,8 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.persistence.PersistenceManager
-import '../core/game_mode.dart';
-import '../core/settings_handler.dart';
+import 'package:flutter_pcgen/src/core/game_mode.dart';
+import 'package:flutter_pcgen/src/core/settings_handler.dart';
 import 'system_loader.dart';
 
 // Singleton factory for accessing the system loader.

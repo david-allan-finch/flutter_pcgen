@@ -2,7 +2,7 @@
 //
 // Translation of pcgen.cdom.util.ControlUtilities
 
-import '../enumeration/object_key.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/object_key.dart';
 
 /// Convenience methods for working with Code Controls.
 class ControlUtilities {

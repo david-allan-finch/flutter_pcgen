@@ -16,15 +16,15 @@
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
 //
 // Translation of pcgen.cdom.helper.CNAbilitySelection
-import '../base/cdom_object.dart';
-import '../base/concrete_prereq_object.dart';
-import '../base/qualifying_object.dart';
-import '../base/reducible.dart';
-import '../content/cn_ability.dart';
-import '../content/cn_ability_factory.dart';
-import '../enumeration/nature.dart';
-import '../../core/ability.dart';
-import '../../rules/context/load_context.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_object.dart';
+import 'package:flutter_pcgen/src/cdom/base/concrete_prereq_object.dart';
+import 'package:flutter_pcgen/src/cdom/base/qualifying_object.dart';
+import 'package:flutter_pcgen/src/cdom/base/reducible.dart';
+import 'package:flutter_pcgen/src/cdom/content/cn_ability.dart';
+import 'package:flutter_pcgen/src/cdom/content/cn_ability_factory.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/nature.dart';
+import 'package:flutter_pcgen/src/core/ability.dart';
+import 'package:flutter_pcgen/src/rules/context/load_context.dart';
 
 // Pairs a CNAbility with an optional selection string.
 class CnAbilitySelection extends ConcretePrereqObject implements QualifyingObject, Reducible {

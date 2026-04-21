@@ -16,8 +16,8 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.enumeration.EqModNameOpt
-import '../../core/equipment.dart';
-import '../../core/equipment_modifier.dart';
+import 'package:flutter_pcgen/src/core/equipment.dart';
+import 'package:flutter_pcgen/src/core/equipment_modifier.dart';
 
 // Controls how an EquipmentModifier's name appears in the equipment's extended name.
 enum EqModNameOpt {

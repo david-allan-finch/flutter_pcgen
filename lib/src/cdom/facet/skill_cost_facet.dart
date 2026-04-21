@@ -2,10 +2,10 @@
 //
 // Translation of pcgen.cdom.facet.SkillCostFacet
 
-import '../enumeration/char_id.dart';
-import '../enumeration/skill_cost.dart';
-import '../../core/pc_class.dart';
-import '../../core/skill.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/skill_cost.dart';
+import 'package:flutter_pcgen/src/core/pc_class.dart';
+import 'package:flutter_pcgen/src/core/skill.dart';
 import 'base/abstract_sub_scope_facet.dart';
 import 'event/sub_scope_facet_change_event.dart';
 import 'event/sub_scope_facet_change_listener.dart';

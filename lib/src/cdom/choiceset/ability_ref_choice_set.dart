@@ -16,13 +16,13 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.choiceset.AbilityRefChoiceSet
-import '../base/cdom_reference.dart';
-import '../base/constants.dart';
-import '../content/cn_ability_factory.dart';
-import '../enumeration/grouping_state.dart';
-import '../enumeration/nature.dart';
-import '../helper/cn_ability_selection.dart';
-import '../reference/cdom_single_ref.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_reference.dart';
+import 'package:flutter_pcgen/src/cdom/base/constants.dart';
+import 'package:flutter_pcgen/src/cdom/content/cn_ability_factory.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/grouping_state.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/nature.dart';
+import 'package:flutter_pcgen/src/cdom/helper/cn_ability_selection.dart';
+import 'package:flutter_pcgen/src/cdom/reference/cdom_single_ref.dart';
 
 // A PrimitiveChoiceSet for CNAbilitySelection objects built from a set of
 // CDOMReferences to Ability objects, a category, and a nature.

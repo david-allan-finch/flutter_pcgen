@@ -18,7 +18,7 @@
 // Translation of pcgen.gui2.dialog.ChooserDialog
 
 import 'package:flutter/material.dart';
-import '../../facade/core/chooser_facade.dart';
+import 'package:flutter_pcgen/src/facade/core/chooser_facade.dart';
 
 /// Dialog for making selections from a list of available items.
 class ChooserDialog extends StatefulWidget {

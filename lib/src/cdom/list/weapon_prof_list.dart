@@ -16,8 +16,8 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.list.WeaponProfList
-import '../base/cdom_list_object.dart';
-import '../../core/weapon_prof.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_list_object.dart';
+import 'package:flutter_pcgen/src/core/weapon_prof.dart';
 
 // A named list of weapon proficiencies.
 class WeaponProfList extends CDOMListObject<WeaponProf> {

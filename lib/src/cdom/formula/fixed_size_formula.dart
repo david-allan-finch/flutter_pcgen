@@ -2,8 +2,8 @@
 //
 // Translation of pcgen.cdom.formula.FixedSizeFormula
 
-import '../base/cdom_single_ref.dart';
-import '../enumeration/integer_key.dart';
+import 'package:flutter_pcgen/src/cdom/reference/cdom_single_ref.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/integer_key.dart';
 
 /// A Formula that always resolves to the SIZEORDER of a fixed SizeAdjustment.
 class FixedSizeFormula {

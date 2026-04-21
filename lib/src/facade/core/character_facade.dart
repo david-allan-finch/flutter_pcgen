@@ -16,19 +16,19 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.facade.core.CharacterFacade
-import '../../core/ability.dart';
-import '../../core/ability_category.dart';
-import '../../core/deity.dart';
-import '../../core/domain.dart';
-import '../../core/gear_buy_sell_scheme.dart';
-import '../../core/language.dart';
-import '../../core/pc_alignment.dart';
-import '../../core/pc_class.dart';
-import '../../core/pc_stat.dart';
-import '../../core/pc_template.dart';
-import '../../core/player_character.dart';
-import '../../core/qualified_object.dart';
-import '../../core/race.dart';
+import 'package:flutter_pcgen/src/core/ability.dart';
+import 'package:flutter_pcgen/src/core/ability_category.dart';
+import 'package:flutter_pcgen/src/core/deity.dart';
+import 'package:flutter_pcgen/src/core/domain.dart';
+import 'package:flutter_pcgen/src/core/gear_buy_sell_scheme.dart';
+import 'package:flutter_pcgen/src/core/language.dart';
+import 'package:flutter_pcgen/src/core/pc_alignment.dart';
+import 'package:flutter_pcgen/src/core/pc_class.dart';
+import 'package:flutter_pcgen/src/core/pc_stat.dart';
+import 'package:flutter_pcgen/src/core/pc_template.dart';
+import 'package:flutter_pcgen/src/core/player_character.dart';
+import 'package:flutter_pcgen/src/core/qualified_object.dart';
+import 'package:flutter_pcgen/src/core/race.dart';
 import 'ability_facade.dart';
 import 'data_set_facade.dart';
 import 'equipment_facade.dart';

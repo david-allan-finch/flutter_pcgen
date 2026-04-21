@@ -19,11 +19,11 @@
 
 import 'dart:io';
 
-import '../core/game_mode.dart';
-import '../core/system_collections.dart';
-import '../system/p_c_gen_task.dart';
-import '../system/configuration_settings.dart';
-import '../system/language_bundle.dart';
+import 'package:flutter_pcgen/src/core/game_mode.dart';
+import 'package:flutter_pcgen/src/core/system_collections.dart';
+import 'package:flutter_pcgen/src/system/p_c_gen_task.dart';
+import 'package:flutter_pcgen/src/system/configuration_settings.dart';
+import 'package:flutter_pcgen/src/system/language_bundle.dart';
 import 'persistence_layer_exception.dart';
 import 'lst/game_mode_loader.dart';
 import 'lst/stats_and_checks_loader.dart';

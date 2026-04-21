@@ -16,11 +16,11 @@
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
 //
 // Translation of pcgen.cdom.choiceset.AbilityFromClassChoiceSet
-import '../content/cn_ability_factory.dart';
-import '../enumeration/grouping_state.dart';
-import '../enumeration/nature.dart';
-import '../helper/cn_ability_selection.dart';
-import '../reference/cdom_single_ref.dart';
+import 'package:flutter_pcgen/src/cdom/content/cn_ability_factory.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/grouping_state.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/nature.dart';
+import 'package:flutter_pcgen/src/cdom/helper/cn_ability_selection.dart';
+import 'package:flutter_pcgen/src/cdom/reference/cdom_single_ref.dart';
 
 // A PrimitiveChoiceSet for CNAbilitySelection objects drawn from a specific
 // PCClass. Intended for use during object removal (e.g., REMOVE:FEAT|Class.???),

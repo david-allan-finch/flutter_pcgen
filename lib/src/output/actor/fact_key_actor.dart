@@ -17,7 +17,7 @@
 //
 // Translation of pcgen.output.actor.FactKeyActor
 
-import '../base/output_actor.dart';
+import 'package:flutter_pcgen/src/output/base/output_actor.dart';
 
 /// OutputActor that reads a Fact key value from an object.
 class FactKeyActor<T> implements OutputActor<dynamic> {

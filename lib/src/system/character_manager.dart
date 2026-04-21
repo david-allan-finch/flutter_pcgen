@@ -17,12 +17,12 @@
 //
 // Translation of pcgen.system.CharacterManager
 
-import '../core/player_character.dart';
-import '../facade/core/character_facade.dart';
-import '../facade/core/data_set_facade.dart';
-import '../facade/core/source_selection_facade.dart';
-import '../facade/core/ui_delegate.dart';
-import '../facade/util/default_list_facade.dart';
+import 'package:flutter_pcgen/src/core/player_character.dart';
+import 'package:flutter_pcgen/src/facade/core/character_facade.dart';
+import 'package:flutter_pcgen/src/facade/core/data_set_facade.dart';
+import 'package:flutter_pcgen/src/facade/core/source_selection_facade.dart';
+import 'package:flutter_pcgen/src/facade/core/ui_delegate.dart';
+import 'package:flutter_pcgen/src/facade/util/default_list_facade.dart';
 
 /// Manages currently-open characters in PCGen.
 ///

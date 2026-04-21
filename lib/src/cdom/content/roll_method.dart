@@ -16,7 +16,7 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.content.RollMethod
-import '../base/loadable.dart';
+import 'package:flutter_pcgen/src/cdom/base/loadable.dart';
 
 // Defines a dice roll method for character creation (e.g., "4d6 drop lowest").
 class RollMethod implements Loadable {

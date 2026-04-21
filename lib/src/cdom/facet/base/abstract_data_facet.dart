@@ -5,9 +5,9 @@
 // Software Foundation; either version 2.1 of the License, or (at your option)
 // any later version.
 
-import '../../base/pc_gen_identifier.dart';
-import '../event/data_facet_change_event.dart';
-import '../event/data_facet_change_listener.dart';
+import 'package:flutter_pcgen/src/cdom/base/pcgen_identifier.dart';
+import 'package:flutter_pcgen/src/cdom/facet/event/data_facet_change_event.dart';
+import 'package:flutter_pcgen/src/cdom/facet/event/data_facet_change_listener.dart';
 import 'abstract_storage_facet.dart';
 
 // dynamic: CategorizedDataFacetChangeEvent, Category, Nature (not yet translated)

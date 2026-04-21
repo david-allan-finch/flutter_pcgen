@@ -16,7 +16,7 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.util.ListKeyMapToList
-import '../enumeration/list_key.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/list_key.dart';
 
 // A map of lists keyed by ListKey.
 class ListKeyMapToList {

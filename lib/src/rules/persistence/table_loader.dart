@@ -2,8 +2,8 @@
 //
 // Translation of pcgen.rules.persistence.TableLoader
 
-import '../../persistence/lst/lst_line_file_loader.dart';
-import '../../rules/context/load_context.dart';
+import 'package:flutter_pcgen/src/persistence/lst/lst_line_file_loader.dart';
+import 'package:flutter_pcgen/src/rules/context/load_context.dart';
 
 /// Loads CSV-like table LST files into DataTable objects.
 ///

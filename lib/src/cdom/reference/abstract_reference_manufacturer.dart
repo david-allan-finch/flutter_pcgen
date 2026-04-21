@@ -2,9 +2,9 @@
 //
 // Translation of pcgen.cdom.reference.AbstractReferenceManufacturer
 
-import '../base/cdom_reference.dart';
-import '../base/cdom_single_ref.dart';
-import '../base/loadable.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_reference.dart';
+import 'package:flutter_pcgen/src/cdom/reference/cdom_single_ref.dart';
+import 'package:flutter_pcgen/src/cdom/base/loadable.dart';
 import 'cdom_all_ref.dart';
 import 'cdom_direct_single_ref.dart';
 import 'cdom_group_ref.dart';

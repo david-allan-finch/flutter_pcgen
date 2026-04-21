@@ -17,9 +17,9 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.core.analysis.AddObjectActions
-import '../../../cdom/base/cdom_object.dart';
-import '../../../cdom/enumeration/list_key.dart';
-import '../../player_character.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_object.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/list_key.dart';
+import 'package:flutter_pcgen/src/core/player_character.dart';
 
 // Utility methods for applying CDOMObject additions/kit choices to a PC.
 final class AddObjectActions {

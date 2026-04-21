@@ -1,13 +1,13 @@
 // Translated from pcgen/rules/context/ConsolidatedListCommitStrategy.java
 // Copyright 2008 (C) Tom Parker <thpr@users.sourceforge.net> - LGPL 2.1+
 
-import '../../cdom/base/associated_prereq_object.dart';
-import '../../cdom/base/cdom_list.dart';
-import '../../cdom/base/cdom_object.dart';
-import '../../cdom/base/cdom_reference.dart';
-import '../../cdom/base/master_list_interface.dart';
-import '../../cdom/base/simple_associated_object.dart';
-import '../../cdom/enumeration/association_key.dart';
+import 'package:flutter_pcgen/src/cdom/base/associated_prereq_object.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_list.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_object.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_reference.dart';
+import 'package:flutter_pcgen/src/cdom/base/master_list_interface.dart';
+import 'package:flutter_pcgen/src/cdom/base/simple_associated_object.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/association_key.dart';
 import 'associated_changes.dart';
 import 'associated_collection_changes.dart';
 import 'changes.dart';

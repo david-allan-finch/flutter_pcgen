@@ -17,8 +17,8 @@
 //
 // Translation of pcgen.gui2.converter.loader.SelfCopyLoader
 
-import '../conversion_decider.dart';
-import '../loader.dart';
+import 'package:flutter_pcgen/src/gui2/converter/conversion_decider.dart';
+import 'package:flutter_pcgen/src/gui2/converter/loader.dart';
 
 /// A [Loader] that copies lines verbatim and returns the campaign's own PCC
 /// file as the single entry in [getFiles].  Used to ensure the campaign

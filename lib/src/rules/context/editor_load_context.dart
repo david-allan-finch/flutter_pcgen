@@ -16,7 +16,7 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.rules.context.EditorLoadContext
-import '../../cdom/base/cdom_object.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_object.dart';
 import 'editor_list_context.dart';
 import 'editor_object_context.dart';
 import 'editor_reference_context.dart';

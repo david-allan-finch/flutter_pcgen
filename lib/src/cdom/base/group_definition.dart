@@ -16,7 +16,7 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.base.GroupDefinition
-import '../enumeration/grouping_state.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/grouping_state.dart';
 
 // A GroupDefinition is a factory that can produce named ObjectContainers
 // (groups of objects). Used for dynamic groupings based on FACT/FACTSET data.

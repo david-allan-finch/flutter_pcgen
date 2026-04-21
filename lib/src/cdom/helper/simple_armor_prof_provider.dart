@@ -16,7 +16,7 @@
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
 //
 // Translation of pcgen.cdom.helper.SimpleArmorProfProvider
-import '../../core/armor_prof.dart';
+import 'package:flutter_pcgen/src/core/armor_prof.dart';
 import 'abstract_simple_prof_provider.dart';
 
 // A SimpleArmorProfProvider grants proficiency for a single ArmorProf, and

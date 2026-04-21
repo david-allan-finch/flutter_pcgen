@@ -2,9 +2,9 @@
 //
 // Translation of pcgen.cdom.facet.analysis.ArmorClassFacet
 
-import '../../enumeration/char_id.dart';
-import '../prerequisite_facet.dart';
-import '../player_character_tracking_facet.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
+import 'package:flutter_pcgen/src/cdom/facet/prerequisite_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/player_character_tracking_facet.dart';
 
 /// Calculates the Armor Class (types of armor class) of a Player Character.
 /// AC types are defined in the game mode; none are hardcoded here.

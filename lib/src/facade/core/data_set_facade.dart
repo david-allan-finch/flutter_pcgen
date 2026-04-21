@@ -16,17 +16,17 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.facade.core.DataSetFacade
-import '../../core/ability_category.dart';
-import '../../core/campaign.dart';
-import '../../core/deity.dart';
-import '../../core/game_mode.dart';
-import '../../core/kit.dart';
-import '../../core/pc_alignment.dart';
-import '../../core/pc_class.dart';
-import '../../core/pc_stat.dart';
-import '../../core/pc_template.dart';
-import '../../core/race.dart';
-import '../../core/skill.dart';
+import 'package:flutter_pcgen/src/core/ability_category.dart';
+import 'package:flutter_pcgen/src/core/campaign.dart';
+import 'package:flutter_pcgen/src/core/deity.dart';
+import 'package:flutter_pcgen/src/core/game_mode.dart';
+import 'package:flutter_pcgen/src/core/kit.dart';
+import 'package:flutter_pcgen/src/core/pc_alignment.dart';
+import 'package:flutter_pcgen/src/core/pc_class.dart';
+import 'package:flutter_pcgen/src/core/pc_stat.dart';
+import 'package:flutter_pcgen/src/core/pc_template.dart';
+import 'package:flutter_pcgen/src/core/race.dart';
+import 'package:flutter_pcgen/src/core/skill.dart';
 import 'ability_facade.dart';
 import 'equipment_facade.dart';
 

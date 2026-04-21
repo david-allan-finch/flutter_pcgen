@@ -17,7 +17,7 @@
 //
 // Translation of pcgen.output.actor.StringKeyActor
 
-import '../base/output_actor.dart';
+import 'package:flutter_pcgen/src/output/base/output_actor.dart';
 
 /// OutputActor that reads a StringKey value from an object.
 class StringKeyActor implements OutputActor<dynamic> {

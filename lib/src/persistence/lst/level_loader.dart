@@ -17,8 +17,8 @@
 //
 // Translation of pcgen.persistence.lst.LevelLoader
 
-import '../../core/game_mode.dart';
-import '../../core/level_info.dart';
+import 'package:flutter_pcgen/src/core/game_mode.dart';
+import 'package:flutter_pcgen/src/core/level_info.dart';
 
 /// Parses lines from a level.lst game mode file.
 ///

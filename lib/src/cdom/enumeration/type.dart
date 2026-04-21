@@ -16,7 +16,7 @@
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
 //
 // Translation of pcgen.cdom.enumeration.Type
-import '../../base/util/case_insensitive_map.dart';
+import 'package:flutter_pcgen/src/base/util/case_insensitive_map.dart';
 
 // Typesafe constant for Types applied to CDOMObjects.
 class Type implements Comparable<Type> {

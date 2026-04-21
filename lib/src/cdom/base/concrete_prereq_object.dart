@@ -16,8 +16,8 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.base.ConcretePrereqObject
-import '../../base/util/list_set.dart';
-import '../prereq/prerequisite.dart';
+import 'package:flutter_pcgen/src/base/util/list_set.dart';
+import 'package:flutter_pcgen/src/cdom/prereq/prerequisite.dart';
 import 'prereq_object.dart';
 
 // Provides a quick foundation class that implements PrereqObject.

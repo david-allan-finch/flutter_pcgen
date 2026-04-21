@@ -2,8 +2,8 @@
 //
 // Translation of pcgen.cdom.facet.EquipmentTypeFacet
 
-import '../enumeration/data_set_id.dart';
-import '../enumeration/type.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/data_set_id.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/type.dart';
 import 'base/abstract_list_facet.dart';
 
 // TODO: wire DataSetInitializationFacet.addDataSetInitializedFacet once translated.

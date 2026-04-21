@@ -16,8 +16,8 @@
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
 //
 // Translation of pcgen.cdom.enumeration.SubClassCategory
-import '../inst/abstract_category.dart';
-import '../../core/sub_class.dart';
+import 'package:flutter_pcgen/src/cdom/inst/abstract_category.dart';
+import 'package:flutter_pcgen/src/core/sub_class.dart';
 
 // Type-safe constant that also acts as a Category<SubClass>.
 final class SubClassCategory extends AbstractCategory<SubClass> {

@@ -2,12 +2,12 @@
 //
 // Translation of pcgen.cdom.facet.AutoLanguageFacet
 
-import '../base/cdom_object.dart';
-import '../base/cdom_reference.dart';
-import '../enumeration/char_id.dart';
-import '../enumeration/list_key.dart';
-import '../../core/language.dart';
-import '../../core/qualified_object.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_object.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_reference.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/list_key.dart';
+import 'package:flutter_pcgen/src/core/language.dart';
+import 'package:flutter_pcgen/src/core/qualified_object.dart';
 import 'base/abstract_qualified_list_facet.dart';
 import 'auto_language_unconditional_facet.dart';
 import 'event/data_facet_change_event.dart';

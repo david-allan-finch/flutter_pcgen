@@ -16,11 +16,11 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.choiceset.SpellReferenceChoiceSet
-import '../base/cdom_list_object.dart';
-import '../base/cdom_reference.dart';
-import '../base/constants.dart';
-import '../enumeration/grouping_state.dart';
-import '../list/domain_spell_list.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_list_object.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_reference.dart';
+import 'package:flutter_pcgen/src/cdom/base/constants.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/grouping_state.dart';
+import 'package:flutter_pcgen/src/cdom/list/domain_spell_list.dart';
 
 // A PrimitiveChoiceSet for CDOMListObject<Spell> objects, built from a
 // collection of CDOMReferences to spell lists. DomainSpellList references are

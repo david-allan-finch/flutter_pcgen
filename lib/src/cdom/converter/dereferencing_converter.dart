@@ -16,7 +16,7 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.converter.DereferencingConverter
-import '../../core/player_character.dart';
+import 'package:flutter_pcgen/src/core/player_character.dart';
 
 // A Converter that resolves an ObjectContainer to its contained objects,
 // optionally filtered by a PrimitiveFilter.

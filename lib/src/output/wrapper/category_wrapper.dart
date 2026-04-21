@@ -17,8 +17,8 @@
 //
 // Translation of pcgen.output.wrapper.CategoryWrapper
 
-import '../base/simple_object_wrapper.dart';
-import '../model/category_model.dart';
+import 'package:flutter_pcgen/src/output/base/simple_object_wrapper.dart';
+import 'package:flutter_pcgen/src/output/model/category_model.dart';
 
 /// Wraps Category objects into output models.
 class CategoryWrapper implements SimpleObjectWrapper {

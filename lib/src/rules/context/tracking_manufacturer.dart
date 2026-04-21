@@ -16,17 +16,17 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.rules.context.TrackingManufacturer
-import '../../base/util/format_manager.dart';
-import '../../base/util/indirect.dart';
-import '../../cdom/base/cdom_reference.dart';
-import '../../cdom/base/class_identity.dart';
-import '../../cdom/base/loadable.dart';
-import '../../cdom/reference/cdom_group_ref.dart';
-import '../../cdom/reference/cdom_single_ref.dart';
-import '../../cdom/reference/manufacturable_factory.dart';
-import '../../cdom/reference/reference_manufacturer.dart';
-import '../../cdom/reference/unconstructed_listener.dart';
-import '../../cdom/reference/unconstructed_validator.dart';
+import 'package:flutter_pcgen/src/base/util/format_manager.dart';
+import 'package:flutter_pcgen/src/base/util/indirect.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_reference.dart';
+import 'package:flutter_pcgen/src/cdom/base/class_identity.dart';
+import 'package:flutter_pcgen/src/cdom/base/loadable.dart';
+import 'package:flutter_pcgen/src/cdom/reference/cdom_group_ref.dart';
+import 'package:flutter_pcgen/src/cdom/reference/cdom_single_ref.dart';
+import 'package:flutter_pcgen/src/cdom/reference/manufacturable_factory.dart';
+import 'package:flutter_pcgen/src/cdom/reference/reference_manufacturer.dart';
+import 'package:flutter_pcgen/src/cdom/reference/unconstructed_listener.dart';
+import 'package:flutter_pcgen/src/cdom/reference/unconstructed_validator.dart';
 import 'tracking_reference_context.dart';
 
 class TrackingManufacturer<T extends Loadable>

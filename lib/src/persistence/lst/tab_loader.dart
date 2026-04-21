@@ -17,7 +17,7 @@
 //
 // Translation of pcgen.persistence.lst.TabLoader
 
-import '../../rules/context/load_context.dart';
+import 'package:flutter_pcgen/src/rules/context/load_context.dart';
 import 'simple_loader.dart';
 
 /// Loads TabInfo objects from tab .lst files in the game mode directory.

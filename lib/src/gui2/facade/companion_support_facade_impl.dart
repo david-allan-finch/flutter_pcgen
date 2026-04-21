@@ -18,8 +18,8 @@
 // Translation of pcgen.gui2.facade.CompanionSupportFacadeImpl
 
 import 'package:flutter/foundation.dart';
-import '../../facade/core/companion_support_facade.dart';
-import '../../facade/util/list_facade.dart';
+import 'package:flutter_pcgen/src/facade/core/companion_support_facade.dart';
+import 'package:flutter_pcgen/src/facade/util/list_facade.dart';
 
 /// Implementation of CompanionSupportFacade — manages character companions.
 class CompanionSupportFacadeImpl extends ChangeNotifier

@@ -2,16 +2,16 @@
 //
 // Translation of pcgen.cdom.facet.analysis.ListSkillCostFacet
 
-import '../../base/cdom_object.dart';
-import '../../enumeration/association_key.dart';
-import '../../enumeration/char_id.dart';
-import '../../enumeration/skill_cost.dart';
-import '../../../core/skill.dart';
-import '../../list/class_skill_list.dart';
-import '../base/abstract_sub_scope_facet.dart';
-import '../event/data_facet_change_event.dart';
-import '../event/data_facet_change_listener.dart';
-import '../model/race_facet.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_object.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/association_key.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/skill_cost.dart';
+import 'package:flutter_pcgen/src/core/skill.dart';
+import 'package:flutter_pcgen/src/cdom/list/class_skill_list.dart';
+import 'package:flutter_pcgen/src/cdom/facet/base/abstract_sub_scope_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/event/data_facet_change_event.dart';
+import 'package:flutter_pcgen/src/cdom/facet/event/data_facet_change_listener.dart';
+import 'package:flutter_pcgen/src/cdom/facet/model/race_facet.dart';
 
 /// Processes SkillCosts associated with the MONCSKILL and MONCCSKILL tokens.
 class ListSkillCostFacet extends AbstractSubScopeFacet<ClassSkillList, SkillCost, Skill>

@@ -16,7 +16,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
  */
 
-import '../../enumeration/char_id.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
 
 /// SubRaceFacet is a Facet that returns information about the SubRace of a
 /// Player Character.

@@ -2,10 +2,10 @@
 //
 // Translation of pcgen.cdom.facet.AppliedBonusFacet
 
-import '../base/cdom_object.dart';
-import '../enumeration/char_id.dart';
-import '../enumeration/list_key.dart';
-import '../../core/bonus/bonus_obj.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_object.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/list_key.dart';
+import 'package:flutter_pcgen/src/core/bonus/bonus_obj.dart';
 import 'added_bonus_facet.dart';
 import 'base/abstract_list_facet.dart';
 import 'event/data_facet_change_event.dart';

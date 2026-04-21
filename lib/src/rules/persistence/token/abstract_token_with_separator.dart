@@ -2,7 +2,7 @@
 //
 // Translation of pcgen.rules.persistence.token.AbstractTokenWithSeparator
 
-import '../../../rules/context/load_context.dart';
+import 'package:flutter_pcgen/src/rules/context/load_context.dart';
 import 'abstract_non_empty_token.dart';
 import 'parse_result.dart';
 

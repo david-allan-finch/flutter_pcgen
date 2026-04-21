@@ -19,10 +19,10 @@
 // Translated from PCGen Java source to Dart.
 // Source: pcgen/cdom/facet/input/DynamicFacet.java
 
-import '../../../enumeration/char_id.dart';
-import '../base/abstract_scope_facet.dart';
-import '../event/data_facet_change_event.dart';
-import '../event/data_facet_change_listener.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
+import 'package:flutter_pcgen/src/cdom/facet/base/abstract_scope_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/event/data_facet_change_event.dart';
+import 'package:flutter_pcgen/src/cdom/facet/event/data_facet_change_listener.dart';
 
 /// DynamicFacet is a Facet that tracks all Dynamic Objects that have been
 /// granted to a Player Character.

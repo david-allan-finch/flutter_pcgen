@@ -17,7 +17,7 @@
 //
 // Translation of pcgen.io.ExportHandler
 
-import '../core/player_character.dart';
+import 'package:flutter_pcgen/src/core/player_character.dart';
 import 'export_exception.dart';
 import 'exporttoken/token.dart';
 

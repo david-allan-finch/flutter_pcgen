@@ -17,11 +17,11 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.core.analysis.SkillInfoUtilities
-import '../../cdom/enumeration/type.dart';
-import '../globals.dart';
-import '../pc_stat.dart';
-import '../player_character.dart';
-import '../skill.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/type.dart';
+import 'package:flutter_pcgen/src/core/globals.dart';
+import 'package:flutter_pcgen/src/core/pc_stat.dart';
+import 'package:flutter_pcgen/src/core/player_character.dart';
+import 'package:flutter_pcgen/src/core/skill.dart';
 
 abstract final class SkillInfoUtilities {
   // Get the key stat abbreviation for a skill.

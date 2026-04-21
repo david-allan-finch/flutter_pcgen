@@ -14,8 +14,8 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.core.RuleCheck
-import '../cdom/base/loadable.dart';
-import '../cdom/reference/cdom_single_ref.dart';
+import 'package:flutter_pcgen/src/cdom/base/loadable.dart';
+import 'package:flutter_pcgen/src/cdom/reference/cdom_single_ref.dart';
 
 // Represents a game-rule option (e.g. "Allow HP to be 1 on first level").
 // RULECHECK entries in game mode files are loaded into these objects.

@@ -16,10 +16,10 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.choiceset.SpellCasterChoiceSet
-import '../base/constants.dart';
-import '../enumeration/fact_key.dart';
-import '../enumeration/grouping_state.dart';
-import '../reference/cdom_group_ref.dart';
+import 'package:flutter_pcgen/src/cdom/base/constants.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/fact_key.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/grouping_state.dart';
+import 'package:flutter_pcgen/src/cdom/reference/cdom_group_ref.dart';
 
 // stub: ChoiceSet base class (not yet translated)
 class _ChoiceSetBase {

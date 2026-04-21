@@ -17,7 +17,7 @@
 //
 // Translation of pcgen.output.actor.FactSetKeyActor
 
-import '../base/output_actor.dart';
+import 'package:flutter_pcgen/src/output/base/output_actor.dart';
 
 /// OutputActor that reads a FactSet key (list) value from an object.
 class FactSetKeyActor<T> implements OutputActor<dynamic> {

@@ -7,7 +7,7 @@
 
 // Translation of pcgen.cdom.facet.TargetTrackingFacet
 
-import '../enumeration/char_id.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
 import 'base/abstract_association_facet.dart';
 
 /// Tracks the association between AbilitySelection (dynamic) and

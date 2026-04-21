@@ -2,8 +2,8 @@
 //
 // Translation of pcgen.cdom.facet.ObjectAdditionFacet
 
-import '../base/cdom_object.dart';
-import '../enumeration/char_id.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_object.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
 import 'cdom_object_consolidation_facet.dart';
 import 'event/data_facet_change_event.dart';
 import 'event/data_facet_change_listener.dart';

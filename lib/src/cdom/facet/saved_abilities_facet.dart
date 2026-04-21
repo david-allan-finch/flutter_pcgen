@@ -7,7 +7,7 @@
 
 // Translation of pcgen.cdom.facet.SavedAbilitiesFacet
 
-import '../enumeration/char_id.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
 import 'base/abstract_list_facet.dart';
 
 /// Tracks saved CNAbilitySelection objects for a Player Character.

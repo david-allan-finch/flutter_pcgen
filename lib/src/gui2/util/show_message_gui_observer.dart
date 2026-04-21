@@ -19,9 +19,9 @@
 //
 // Translation of pcgen.gui2.util.ShowMessageGuiObserver
 
-import '../../core/utils/message_type.dart';
-import '../../core/utils/message_wrapper.dart';
-import '../../facade/core/ui_delegate.dart';
+import 'package:flutter_pcgen/src/core/utils/message_type.dart';
+import 'package:flutter_pcgen/src/core/utils/message_wrapper.dart';
+import 'package:flutter_pcgen/src/facade/core/ui_delegate.dart';
 
 /// Observes a stream of [MessageWrapper] objects and delegates display to the
 /// [UIDelegate] using the appropriate severity method.

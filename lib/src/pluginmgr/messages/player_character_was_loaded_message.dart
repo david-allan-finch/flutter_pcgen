@@ -17,8 +17,8 @@
 //
 // Translation of pcgen.pluginmgr.messages.PlayerCharacterWasLoadedMessage
 
-import '../../core/player_character.dart';
-import '../p_c_gen_message.dart';
+import 'package:flutter_pcgen/src/core/player_character.dart';
+import 'package:flutter_pcgen/src/pluginmgr/p_c_gen_message.dart';
 
 /// Message that a character was opened in PCGen.
 class PlayerCharacterWasLoadedMessage extends PCGenMessage {

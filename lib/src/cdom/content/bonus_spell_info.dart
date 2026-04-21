@@ -16,7 +16,7 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.content.BonusSpellInfo
-import '../base/loadable.dart';
+import 'package:flutter_pcgen/src/cdom/base/loadable.dart';
 
 // Defines how many bonus spells a caster gets per spell level based on stat score.
 class BonusSpellInfo implements Loadable {

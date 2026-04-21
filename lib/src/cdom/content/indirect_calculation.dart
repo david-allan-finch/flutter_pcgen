@@ -14,7 +14,7 @@
 // Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.content.IndirectCalculation
-import '../../base/util/indirect.dart';
+import 'package:flutter_pcgen/src/base/util/indirect.dart';
 
 // An IndirectCalculation wraps an Indirect object and a BasicCalculation,
 // applying the calculation's operation using the indirect's resolved value.

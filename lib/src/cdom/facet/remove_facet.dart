@@ -2,10 +2,10 @@
 //
 // Translation of pcgen.cdom.facet.RemoveFacet
 
-import '../base/cdom_object.dart';
-import '../base/persistent_transition_choice.dart';
-import '../enumeration/char_id.dart';
-import '../enumeration/list_key.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_object.dart';
+import 'package:flutter_pcgen/src/cdom/base/persistent_transition_choice.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/list_key.dart';
 import 'event/data_facet_change_event.dart';
 import 'event/data_facet_change_listener.dart';
 import 'model/class_level_facet.dart';

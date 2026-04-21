@@ -16,11 +16,11 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.core.analysis.SpellLevel
-import '../../cdom/base/cdom_list.dart';
-import '../domain.dart';
-import '../pc_class.dart';
-import '../player_character.dart';
-import '../spell.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_list.dart';
+import 'package:flutter_pcgen/src/core/domain.dart';
+import 'package:flutter_pcgen/src/core/pc_class.dart';
+import 'package:flutter_pcgen/src/core/player_character.dart';
+import 'package:flutter_pcgen/src/core/spell/spell.dart';
 
 abstract final class SpellLevel {
   // Returns true if the spell is available at levelMatch from any of the given lists.

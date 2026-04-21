@@ -1,5 +1,5 @@
-import '../base/variable_id.dart';
-import '../base/writeable_variable_store.dart';
+import 'package:flutter_pcgen/src/formula/base/variable_id.dart';
+import 'package:flutter_pcgen/src/formula/base/writeable_variable_store.dart';
 
 class SimpleVariableStore implements WriteableVariableStore {
   final Map<VariableID<dynamic>, dynamic> _store = {};

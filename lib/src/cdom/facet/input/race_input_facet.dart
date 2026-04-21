@@ -19,7 +19,7 @@
 // Translated from PCGen Java source to Dart.
 // Source: pcgen/cdom/facet/input/RaceInputFacet.java
 
-import '../../../enumeration/char_id.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
 
 /// RaceInputFacet is a Facet that tracks the Race of a Player Character.
 class RaceInputFacet {

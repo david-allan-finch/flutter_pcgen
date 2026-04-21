@@ -17,11 +17,11 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.core.analysis.DomainApplication
-import '../../../cdom/enumeration/integer_key.dart';
-import '../../../cdom/enumeration/list_key.dart';
-import '../../../cdom/enumeration/object_key.dart';
-import '../../player_character.dart';
-import '../../pc_class.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/integer_key.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/list_key.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/object_key.dart';
+import 'package:flutter_pcgen/src/core/player_character.dart';
+import 'package:flutter_pcgen/src/core/pc_class.dart';
 import 'bonus_activation.dart';
 import 'spell_level.dart';
 

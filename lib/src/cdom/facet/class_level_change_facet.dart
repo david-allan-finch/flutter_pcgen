@@ -2,9 +2,9 @@
 //
 // Translation of pcgen.cdom.facet.ClassLevelChangeFacet
 
-import '../enumeration/char_id.dart';
-import '../inst/pc_class_level.dart';
-import '../../core/pc_class.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
+import 'package:flutter_pcgen/src/cdom/inst/pc_class_level.dart';
+import 'package:flutter_pcgen/src/core/pc_class.dart';
 import 'model/class_facet.dart';
 import 'model/class_level_facet.dart';
 

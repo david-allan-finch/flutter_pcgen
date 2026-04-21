@@ -2,8 +2,8 @@
 //
 // Translation of pcgen.rules.persistence.token.CDOMWriteToken
 
-import '../../../persistence/lst/lst_token.dart';
-import '../../../rules/context/load_context.dart';
+import 'package:flutter_pcgen/src/persistence/lst/lst_token.dart';
+import 'package:flutter_pcgen/src/rules/context/load_context.dart';
 
 /// A token that can serialize an object back to LST string fragments.
 abstract interface class CDOMWriteToken<T> implements LstToken {

@@ -1,18 +1,18 @@
 // Translated from pcgen/rules/context/AbstractObjectContext.java
 // Copyright 2007 (C) Tom Parker <thpr@users.sourceforge.net> - LGPL 2.1+
 
-import '../../base/util/indirect.dart';
-import '../../cdom/base/cdom_object.dart';
-import '../../cdom/base/concrete_prereq_object.dart';
-import '../../cdom/enumeration/fact_key.dart';
-import '../../cdom/enumeration/fact_set_key.dart';
-import '../../cdom/enumeration/formula_key.dart';
-import '../../cdom/enumeration/integer_key.dart';
-import '../../cdom/enumeration/list_key.dart';
-import '../../cdom/enumeration/map_key.dart';
-import '../../cdom/enumeration/object_key.dart';
-import '../../cdom/enumeration/string_key.dart';
-import '../../cdom/enumeration/variable_key.dart';
+import 'package:flutter_pcgen/src/base/util/indirect.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_object.dart';
+import 'package:flutter_pcgen/src/cdom/base/concrete_prereq_object.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/fact_key.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/fact_set_key.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/formula_key.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/integer_key.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/list_key.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/map_key.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/object_key.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/string_key.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/variable_key.dart';
 import 'changes.dart';
 import 'collection_changes.dart';
 import 'list_changes.dart';

@@ -2,9 +2,9 @@
 //
 // Translation of pcgen.cdom.facet.StartingLanguageFacet
 
-import '../base/cdom_object.dart';
-import '../enumeration/char_id.dart';
-import '../../core/language.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_object.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
+import 'package:flutter_pcgen/src/core/language.dart';
 import 'base/abstract_sourced_list_facet.dart';
 import 'event/data_facet_change_event.dart';
 import 'event/data_facet_change_listener.dart';

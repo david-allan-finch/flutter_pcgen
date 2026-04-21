@@ -2,7 +2,7 @@
 //
 // Translation of pcgen.rules.persistence.token.AbstractSpellListToken
 
-import '../../../rules/context/load_context.dart';
+import 'package:flutter_pcgen/src/rules/context/load_context.dart';
 import 'abstract_token_with_separator.dart';
 
 /// Abstract base for tokens that manage spell lists (used by class and domain

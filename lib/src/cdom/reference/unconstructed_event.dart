@@ -16,7 +16,7 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.reference.UnconstructedEvent
-import '../base/cdom_reference.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_reference.dart';
 
 // Issued when an unconstructed reference is found during data load and was not
 // permitted by an UnconstructedValidator.

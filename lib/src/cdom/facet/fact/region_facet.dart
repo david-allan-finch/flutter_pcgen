@@ -19,9 +19,9 @@
 // Translated from PCGen Java source to Dart.
 // Source: pcgen/cdom/facet/fact/RegionFacet.java
 
-import '../../../enumeration/char_id.dart';
-import '../event/data_facet_change_event.dart';
-import '../event/data_facet_change_listener.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
+import 'package:flutter_pcgen/src/cdom/facet/event/data_facet_change_event.dart';
+import 'package:flutter_pcgen/src/cdom/facet/event/data_facet_change_listener.dart';
 
 /// RegionCacheInfo is the data structure used by RegionFacet to store a
 /// Player Character's Region and SubRegion if they are directly set by a user.

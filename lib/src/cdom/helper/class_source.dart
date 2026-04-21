@@ -16,8 +16,8 @@
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
 //
 // Translation of pcgen.cdom.helper.ClassSource
-import '../base/identified.dart';
-import '../../core/pc_class.dart';
+import 'package:flutter_pcgen/src/cdom/base/identified.dart';
+import 'package:flutter_pcgen/src/core/pc_class.dart';
 
 // Associates a PCClass with a caster level for domain source tracking.
 class ClassSource implements Identified {

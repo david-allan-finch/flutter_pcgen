@@ -2,10 +2,10 @@
 //
 // Translation of pcgen.cdom.facet.AgeSetKitFacet
 
-import '../enumeration/char_id.dart';
-import '../../core/age_set.dart';
-import '../../core/bio_set.dart';
-import '../../core/kit.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
+import 'package:flutter_pcgen/src/core/age_set.dart';
+import 'package:flutter_pcgen/src/core/bio_set.dart';
+import 'package:flutter_pcgen/src/core/kit.dart';
 import 'base/abstract_storage_facet.dart';
 import 'event/data_facet_change_event.dart';
 import 'event/data_facet_change_listener.dart';

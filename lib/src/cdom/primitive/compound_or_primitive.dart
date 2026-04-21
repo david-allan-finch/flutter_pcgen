@@ -16,8 +16,8 @@
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
 //
 // Translation of pcgen.cdom.primitive.CompoundOrPrimitive
-import '../enumeration/grouping_state.dart';
-import '../../core/player_character.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/grouping_state.dart';
+import 'package:flutter_pcgen/src/core/player_character.dart';
 import 'primitive_utilities.dart';
 
 // PrimitiveCollection that returns the union of multiple sub-collections.

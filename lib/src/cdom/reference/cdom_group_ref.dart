@@ -16,7 +16,7 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.reference.CDOMGroupRef
-import '../base/cdom_reference.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_reference.dart';
 
 // A reference to a group of CDOMObjects (e.g., all Weapons, all Armor).
 abstract interface class CDOMGroupRef<T> implements CDOMReference<T> {

@@ -17,8 +17,8 @@
 //
 // Translation of pcgen.output.wrapper.CDOMReferenceWrapper
 
-import '../base/p_c_gen_object_wrapper.dart';
-import '../base/simple_wrapper_library.dart';
+import 'package:flutter_pcgen/src/output/base/p_c_gen_object_wrapper.dart';
+import 'package:flutter_pcgen/src/output/base/simple_wrapper_library.dart';
 
 /// Wraps CDOMReference objects (resolves them and wraps the resolved object).
 class CDOMReferenceWrapper implements PCGenObjectWrapper {

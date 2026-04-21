@@ -16,7 +16,7 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.inst.GlobalModifiers
-import '../base/cdom_object.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_object.dart';
 
 // Cache of global default modifiers. Never has a type.
 class GlobalModifiers extends CDOMObject {

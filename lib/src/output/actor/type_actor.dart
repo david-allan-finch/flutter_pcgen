@@ -17,7 +17,7 @@
 //
 // Translation of pcgen.output.actor.TypeActor
 
-import '../base/output_actor.dart';
+import 'package:flutter_pcgen/src/output/base/output_actor.dart';
 
 /// OutputActor that returns the type list of an object as a dot-separated string.
 class TypeActor implements OutputActor<dynamic> {

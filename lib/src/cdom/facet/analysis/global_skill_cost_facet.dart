@@ -2,16 +2,16 @@
 //
 // Translation of pcgen.cdom.facet.analysis.GlobalSkillCostFacet
 
-import '../../base/cdom_object.dart';
-import '../../base/cdom_reference.dart';
-import '../../enumeration/char_id.dart';
-import '../../enumeration/list_key.dart';
-import '../../enumeration/skill_cost.dart';
-import '../../../core/skill.dart';
-import '../base/abstract_scope_facet.dart';
-import '../cdom_object_consolidation_facet.dart';
-import '../event/data_facet_change_event.dart';
-import '../event/data_facet_change_listener.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_object.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_reference.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/list_key.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/skill_cost.dart';
+import 'package:flutter_pcgen/src/core/skill.dart';
+import 'package:flutter_pcgen/src/cdom/facet/base/abstract_scope_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/cdom_object_consolidation_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/event/data_facet_change_event.dart';
+import 'package:flutter_pcgen/src/cdom/facet/event/data_facet_change_listener.dart';
 
 /// Tracks global CSKILL/CCSKILL entries from CDOMObjects for a Player Character.
 class GlobalSkillCostFacet extends AbstractScopeFacet<CharID, SkillCost, Skill>

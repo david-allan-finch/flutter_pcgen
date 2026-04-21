@@ -1,7 +1,7 @@
-import '../base/identified.dart';
-import '../base/implemented_scope.dart';
-import '../base/scope_instance.dart';
-import '../base/var_scoped.dart';
+import 'package:flutter_pcgen/src/formula/base/identified.dart';
+import 'package:flutter_pcgen/src/formula/base/implemented_scope.dart';
+import 'package:flutter_pcgen/src/formula/base/scope_instance.dart';
+import 'package:flutter_pcgen/src/formula/base/var_scoped.dart';
 
 class SimpleScopeInstance implements ScopeInstance {
   final ImplementedScope _scope;

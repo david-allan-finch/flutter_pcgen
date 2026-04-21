@@ -17,7 +17,7 @@
 //
 // Translation of pcgen.output.channel.ChannelCompatibility
 
-import '../compat/abstract_adapter.dart';
+import 'package:flutter_pcgen/src/output/compat/abstract_adapter.dart';
 
 /// ChannelCompatibility provides access to writeable references for
 /// character channel data (e.g. stats, alignment, gender).

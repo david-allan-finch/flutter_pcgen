@@ -16,9 +16,9 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.list.ClassSkillList
-import '../base/cdom_list_object.dart';
-import '../enumeration/type.dart' as cdom;
-import '../../core/skill.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_list_object.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/type.dart' as cdom;
+import 'package:flutter_pcgen/src/core/skill.dart';
 
 // A named list of skills associated with a PCClass.
 class ClassSkillList extends CDOMListObject<Skill> {

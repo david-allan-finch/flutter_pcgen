@@ -2,7 +2,7 @@
 //
 // Translation of pcgen.core.system.LoadInfo
 
-import '../../cdom/loadable.dart';
+import 'package:flutter_pcgen/src/cdom/base/loadable.dart';
 
 /// Stores load-related information for a game mode: strength-to-load mapping,
 /// size multipliers, and load type multipliers.

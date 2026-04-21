@@ -16,7 +16,7 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.rules.persistence.token.PostDeferredToken
-import '../../../rules/context/load_context.dart';
+import 'package:flutter_pcgen/src/rules/context/load_context.dart';
 
 /// A PostDeferredToken is processed after LST file load is complete AND after
 /// references are resolved.

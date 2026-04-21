@@ -2,9 +2,9 @@
 //
 // Translation of pcgen.cdom.facet.AbilitySelectionApplication
 
-import '../enumeration/char_id.dart';
-import '../enumeration/object_key.dart';
-import '../helper/cn_ability_selection.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/object_key.dart';
+import 'package:flutter_pcgen/src/cdom/helper/cn_ability_selection.dart';
 import 'event/data_facet_change_event.dart';
 import 'event/data_facet_change_listener.dart';
 import 'player_character_tracking_facet.dart';

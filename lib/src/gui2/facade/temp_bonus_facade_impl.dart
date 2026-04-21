@@ -18,8 +18,8 @@
 // Translation of pcgen.gui2.facade.TempBonusFacadeImpl
 
 import 'package:flutter/foundation.dart';
-import '../../facade/core/temp_bonus_facade.dart';
-import '../../facade/util/list_facade.dart';
+import 'package:flutter_pcgen/src/facade/core/temp_bonus_facade.dart';
+import 'package:flutter_pcgen/src/facade/util/list_facade.dart';
 import 'temp_bonus_helper.dart';
 
 /// Implementation of TempBonusFacade managing temporary bonuses on a character.

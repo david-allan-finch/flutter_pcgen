@@ -2,9 +2,9 @@
 //
 // Translation of pcgen.cdom.facet.BonusCheckingFacet
 
-import '../base/cdom_object.dart';
-import '../enumeration/char_id.dart';
-import '../../core/bonus/bonus_obj.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_object.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
+import 'package:flutter_pcgen/src/core/bonus/bonus_obj.dart';
 import 'player_character_tracking_facet.dart';
 
 /// A transition-class facet that provides access to bonus values on a Player

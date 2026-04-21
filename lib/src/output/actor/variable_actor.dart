@@ -17,7 +17,7 @@
 //
 // Translation of pcgen.output.actor.VariableActor
 
-import '../base/output_actor.dart';
+import 'package:flutter_pcgen/src/output/base/output_actor.dart';
 
 /// OutputActor that evaluates a variable expression on an object.
 class VariableActor implements OutputActor<dynamic> {

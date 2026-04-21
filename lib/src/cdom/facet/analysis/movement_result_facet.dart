@@ -2,13 +2,13 @@
 //
 // Translation of pcgen.cdom.facet.analysis.MovementResultFacet
 
-import '../../enumeration/char_id.dart';
-import '../base/abstract_storage_facet.dart';
-import '../bonus_checking_facet.dart';
-import '../equipment_facet.dart';
-import '../formula_resolving_facet.dart';
-import '../model/race_facet.dart';
-import '../model/template_facet.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
+import 'package:flutter_pcgen/src/cdom/facet/base/abstract_storage_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/bonus_checking_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/equipment_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/formula_resolving_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/model/race_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/model/template_facet.dart';
 import 'base_movement_facet.dart';
 import 'load_facet.dart';
 import 'move_clone_facet.dart';

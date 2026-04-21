@@ -16,13 +16,13 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.rules.context.TrackingReferenceContext
-import '../../base/util/double_key_map_to_list.dart';
-import '../../cdom/base/cdom_reference.dart';
-import '../../cdom/base/loadable.dart';
-import '../../cdom/reference/manufacturable_factory.dart';
-import '../../cdom/reference/reference_manufacturer.dart';
-import '../../cdom/reference/unconstructed_event.dart';
-import '../../cdom/reference/unconstructed_listener.dart';
+import 'package:flutter_pcgen/src/base/util/double_key_map_to_list.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_reference.dart';
+import 'package:flutter_pcgen/src/cdom/base/loadable.dart';
+import 'package:flutter_pcgen/src/cdom/reference/manufacturable_factory.dart';
+import 'package:flutter_pcgen/src/cdom/reference/reference_manufacturer.dart';
+import 'package:flutter_pcgen/src/cdom/reference/unconstructed_event.dart';
+import 'package:flutter_pcgen/src/cdom/reference/unconstructed_listener.dart';
 import 'runtime_reference_context.dart';
 import 'tracking_manufacturer.dart';
 

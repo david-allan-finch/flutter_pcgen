@@ -17,9 +17,9 @@
 //
 // Translation of pcgen.persistence.lst.PointBuyLoader
 
-import '../../core/point_buy_cost.dart';
-import '../../core/point_buy_method.dart';
-import '../../rules/context/load_context.dart';
+import 'package:flutter_pcgen/src/core/point_buy_cost.dart';
+import 'package:flutter_pcgen/src/core/point_buy_method.dart';
+import 'package:flutter_pcgen/src/rules/context/load_context.dart';
 import 'simple_loader.dart';
 
 /// Loads PointBuyMethod and PointBuyCost objects from a pointbuy.lst file.

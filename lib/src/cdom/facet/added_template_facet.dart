@@ -2,11 +2,11 @@
 //
 // Translation of pcgen.cdom.facet.AddedTemplateFacet
 
-import '../base/cdom_object.dart';
-import '../base/cdom_reference.dart';
-import '../enumeration/char_id.dart';
-import '../enumeration/list_key.dart';
-import '../../core/pc_template.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_object.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_reference.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/list_key.dart';
+import 'package:flutter_pcgen/src/core/pc_template.dart';
 import 'base/abstract_sourced_list_facet.dart';
 import 'cdom_object_consolidation_facet.dart';
 import 'event/data_facet_change_event.dart';

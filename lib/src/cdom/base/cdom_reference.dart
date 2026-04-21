@@ -16,7 +16,7 @@
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
 //
 // Translation of pcgen.cdom.base.CDOMReference
-import '../enumeration/grouping_state.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/grouping_state.dart';
 
 // Stub interfaces for types not yet translated
 abstract interface class ObjectContainer<T> {

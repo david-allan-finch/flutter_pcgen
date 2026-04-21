@@ -2,8 +2,8 @@
 //
 // Translation of pcgen.persistence.lst.output.prereq.AbstractPrerequisiteWriter
 
-import '../../../../core/prereq/prerequisite.dart';
-import '../../../../core/prereq/prerequisite_operator.dart';
+import 'package:flutter_pcgen/src/core/prereq/prerequisite.dart';
+import 'package:flutter_pcgen/src/core/prereq/prerequisite_operator.dart';
 
 /// Base class for Prerequisite LST serialisers. Provides operator validation.
 class AbstractPrerequisiteWriter {

@@ -2,9 +2,9 @@
 //
 // Translation of pcgen.cdom.facet.analysis.MultiClassFacet
 
-import '../../enumeration/char_id.dart';
-import '../model/class_facet.dart';
-import '../sub_class_facet.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
+import 'package:flutter_pcgen/src/cdom/facet/model/class_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/sub_class_facet.dart';
 import 'favored_class_facet.dart';
 import 'has_any_favored_class_facet.dart';
 

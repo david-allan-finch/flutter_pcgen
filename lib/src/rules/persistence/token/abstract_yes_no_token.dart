@@ -17,9 +17,9 @@
 //
 // Translation of pcgen.rules.persistence.token.AbstractYesNoToken
 
-import '../../../cdom/base/cdom_object.dart';
-import '../../../cdom/enumeration/object_key.dart';
-import '../../../rules/context/load_context.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_object.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/object_key.dart';
+import 'package:flutter_pcgen/src/rules/context/load_context.dart';
 import 'abstract_non_empty_token.dart';
 import 'cdom_write_token.dart';
 import 'parse_result.dart';

@@ -16,9 +16,9 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.core.Campaign
-import '../cdom/enumeration/integer_key.dart';
-import '../cdom/enumeration/list_key.dart';
-import '../cdom/enumeration/string_key.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/integer_key.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/list_key.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/string_key.dart';
 import 'pcobject.dart';
 
 // Represents a campaign/source book that can be loaded.

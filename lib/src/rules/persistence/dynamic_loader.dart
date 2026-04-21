@@ -2,8 +2,8 @@
 //
 // Translation of pcgen.rules.persistence.DynamicLoader
 
-import '../../persistence/lst/simple_loader.dart';
-import '../../rules/context/load_context.dart';
+import 'package:flutter_pcgen/src/persistence/lst/simple_loader.dart';
+import 'package:flutter_pcgen/src/rules/context/load_context.dart';
 
 /// Loads DYNAMIC LST files into [Dynamic]-category objects.
 ///

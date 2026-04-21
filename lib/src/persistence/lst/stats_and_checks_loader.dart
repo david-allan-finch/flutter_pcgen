@@ -17,11 +17,11 @@
 //
 // Translation of pcgen.persistence.lst.StatsAndChecksLoader
 
-import '../../core/pc_alignment.dart';
-import '../../core/pc_check.dart';
-import '../../core/pc_stat.dart';
-import '../../cdom/content/bonus_spell_info.dart';
-import '../../rules/context/load_context.dart';
+import 'package:flutter_pcgen/src/core/pc_alignment.dart';
+import 'package:flutter_pcgen/src/core/pc_check.dart';
+import 'package:flutter_pcgen/src/core/pc_stat.dart';
+import 'package:flutter_pcgen/src/cdom/content/bonus_spell_info.dart';
+import 'package:flutter_pcgen/src/rules/context/load_context.dart';
 
 /// Loads statsandchecks.lst files from a game mode directory.
 ///

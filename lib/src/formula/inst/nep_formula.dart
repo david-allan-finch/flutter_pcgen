@@ -1,7 +1,7 @@
-import '../../base/util/format_manager.dart';
-import '../base/evaluation_manager.dart';
-import '../parse/node.dart';
-import '../visitor/evaluate_visitor.dart';
+import 'package:flutter_pcgen/src/base/util/format_manager.dart';
+import 'package:flutter_pcgen/src/formula/base/evaluation_manager.dart';
+import 'package:flutter_pcgen/src/formula/parse/node.dart';
+import 'package:flutter_pcgen/src/formula/visitor/evaluate_visitor.dart';
 
 // NEPFormula - a parsed formula ready for evaluation.
 // NEP = "New Expression Parser"

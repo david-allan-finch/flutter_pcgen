@@ -17,12 +17,12 @@
 //
 // Translation of pcgen.core.Equipment
 
-import '../cdom/base/constants.dart';
-import '../cdom/enumeration/integer_key.dart';
-import '../cdom/enumeration/list_key.dart';
-import '../cdom/enumeration/object_key.dart';
-import '../cdom/enumeration/string_key.dart';
-import '../cdom/enumeration/type.dart';
+import 'package:flutter_pcgen/src/cdom/base/constants.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/integer_key.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/list_key.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/object_key.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/string_key.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/type.dart';
 import 'pcobject.dart';
 
 // ---------------------------------------------------------------------------

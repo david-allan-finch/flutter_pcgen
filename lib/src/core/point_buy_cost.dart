@@ -16,8 +16,8 @@
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
 //
 // Translation of pcgen.core.PointBuyCost
-import '../cdom/base/concrete_prereq_object.dart';
-import '../cdom/base/loadable.dart';
+import 'package:flutter_pcgen/src/cdom/base/concrete_prereq_object.dart';
+import 'package:flutter_pcgen/src/cdom/base/loadable.dart';
 
 // Represents the cost (in points) to purchase a specific stat value in
 // point-buy character creation.

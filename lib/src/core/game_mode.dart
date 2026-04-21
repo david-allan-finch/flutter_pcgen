@@ -17,9 +17,9 @@
 //
 // Translation of pcgen.core.GameMode
 
-import '../cdom/base/constants.dart';
-import '../cdom/enumeration/type.dart';
-import '../rules/context/load_context.dart';
+import 'package:flutter_pcgen/src/cdom/base/constants.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/type.dart';
+import 'package:flutter_pcgen/src/rules/context/load_context.dart';
 
 // ---------------------------------------------------------------------------
 // XPTable — experience point table

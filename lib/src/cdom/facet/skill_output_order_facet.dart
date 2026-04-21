@@ -7,7 +7,7 @@
 
 // Translation of pcgen.cdom.facet.SkillOutputOrderFacet
 
-import '../enumeration/char_id.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
 import 'base/abstract_association_facet.dart';
 
 /// Stores the order for Skills and how they should be output for a Player

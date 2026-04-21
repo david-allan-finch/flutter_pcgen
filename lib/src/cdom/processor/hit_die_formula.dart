@@ -16,8 +16,8 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.processor.HitDieFormula
-import '../content/hit_die.dart';
-import '../content/processor.dart';
+import 'package:flutter_pcgen/src/cdom/content/hit_die.dart';
+import 'package:flutter_pcgen/src/cdom/content/processor.dart';
 
 // A Processor that applies a ReferenceFormula to modify a HitDie's die value.
 class HitDieFormula implements Processor<HitDie> {

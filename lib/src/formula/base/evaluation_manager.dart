@@ -1,5 +1,5 @@
-import '../../../base/util/typed_key.dart';
-import '../../../base/util/format_manager.dart';
+import 'package:flutter_pcgen/src/base/util/typed_key.dart';
+import 'package:flutter_pcgen/src/base/util/format_manager.dart';
 import 'function_library.dart';
 import 'implemented_scope.dart';
 import 'operator_library.dart';

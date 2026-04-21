@@ -16,9 +16,9 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.list.AbilityList
-import '../base/cdom_list_object.dart';
-import '../enumeration/nature.dart';
-import '../../core/ability.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_list_object.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/nature.dart';
+import 'package:flutter_pcgen/src/core/ability.dart';
 
 // A CDOMListObject for Ability objects, keyed by category and nature.
 class AbilityList extends CDOMListObject<Ability> {

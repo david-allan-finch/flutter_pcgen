@@ -16,7 +16,7 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.reference.Qualifier
-import '../base/loadable.dart';
+import 'package:flutter_pcgen/src/cdom/base/loadable.dart';
 import 'cdom_single_ref.dart';
 
 // Identifies a specific Loadable instance to bypass prerequisites or establish

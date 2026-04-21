@@ -17,7 +17,7 @@
 //
 // Translation of pcgen.output.actor.OutputNameActor
 
-import '../base/output_actor.dart';
+import 'package:flutter_pcgen/src/output/base/output_actor.dart';
 
 /// OutputActor that returns the output name of an object
 /// (falls back to display name if no output name is set).

@@ -19,7 +19,7 @@
 // Refactored out of PObject July 22, 2005
 //
 // Translation of pcgen.core.prereq.PrerequisiteUtilities
-import '../../cdom/prereq/prerequisite.dart';
+import 'package:flutter_pcgen/src/cdom/prereq/prerequisite.dart';
 
 /// Utility class related to Prerequisite objects.
 ///

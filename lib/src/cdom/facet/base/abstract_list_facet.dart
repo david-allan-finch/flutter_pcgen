@@ -5,8 +5,8 @@
 // Software Foundation; either version 2.1 of the License, or (at your option)
 // any later version.
 
-import '../../base/pc_gen_identifier.dart';
-import '../event/data_facet_change_event.dart';
+import 'package:flutter_pcgen/src/cdom/base/pcgen_identifier.dart';
+import 'package:flutter_pcgen/src/cdom/facet/event/data_facet_change_event.dart';
 import 'abstract_data_facet.dart';
 
 /// A AbstractListFacet is a DataFacet that contains information about Objects

@@ -19,13 +19,13 @@
 
 import 'package:flutter/foundation.dart';
 
-import '../../facade/util/delegating_list_facade.dart';
-import '../../facade/util/list_facade.dart';
-import '../../facade/util/reference_facade.dart';
-import '../../facade/util/event/list_event.dart';
-import '../../facade/util/event/list_listener.dart';
-import '../../facade/util/event/reference_event.dart';
-import '../../facade/util/event/reference_listener.dart';
+import 'package:flutter_pcgen/src/facade/util/delegating_list_facade.dart';
+import 'package:flutter_pcgen/src/facade/util/list_facade.dart';
+import 'package:flutter_pcgen/src/facade/util/reference_facade.dart';
+import 'package:flutter_pcgen/src/facade/util/event/list_event.dart';
+import 'package:flutter_pcgen/src/facade/util/event/list_listener.dart';
+import 'package:flutter_pcgen/src/facade/util/event/reference_event.dart';
+import 'package:flutter_pcgen/src/facade/util/event/reference_listener.dart';
 
 /// A combo-box model backed by a [ListFacade] and a [ReferenceFacade].
 /// Notifies listeners when the underlying list or selected reference changes.

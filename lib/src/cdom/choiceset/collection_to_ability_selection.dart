@@ -16,9 +16,9 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.choiceset.CollectionToAbilitySelection
-import '../base/cdom_reference.dart';
-import '../content/ability_selection.dart';
-import '../enumeration/grouping_state.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_reference.dart';
+import 'package:flutter_pcgen/src/cdom/content/ability_selection.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/grouping_state.dart';
 
 // Wraps a PrimitiveCollection of Ability objects and provides AbilitySelection
 // objects, expanding MULT:YES abilities to all available sub-choices.

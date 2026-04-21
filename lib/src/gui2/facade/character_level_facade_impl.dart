@@ -17,7 +17,7 @@
 //
 // Translation of pcgen.gui2.facade.CharacterLevelFacadeImpl
 
-import '../../facade/core/character_level_facade.dart';
+import 'package:flutter_pcgen/src/facade/core/character_level_facade.dart';
 
 /// Concrete implementation of CharacterLevelFacade wrapping a PCGen character level.
 class CharacterLevelFacadeImpl implements CharacterLevelFacade {

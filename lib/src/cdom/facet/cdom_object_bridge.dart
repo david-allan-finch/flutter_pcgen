@@ -2,8 +2,8 @@
 //
 // Translation of pcgen.cdom.facet.CDOMObjectBridge
 
-import '../base/cdom_object.dart';
-import '../enumeration/char_id.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_object.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
 import 'base/abstract_sourced_list_facet.dart';
 
 /// Breaks cycles in the facet graph by acting as the single underlying storage

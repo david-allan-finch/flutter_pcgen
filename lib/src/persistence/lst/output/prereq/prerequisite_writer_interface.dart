@@ -2,8 +2,8 @@
 //
 // Translation of pcgen.persistence.lst.output.prereq.PrerequisiteWriterInterface
 
-import '../../../../core/prereq/prerequisite.dart';
-import '../../../../core/prereq/prerequisite_operator.dart';
+import 'package:flutter_pcgen/src/core/prereq/prerequisite.dart';
+import 'package:flutter_pcgen/src/core/prereq/prerequisite_operator.dart';
 
 /// Interface for classes that serialize a Prerequisite back to LST string format.
 abstract interface class PrerequisiteWriterInterface {

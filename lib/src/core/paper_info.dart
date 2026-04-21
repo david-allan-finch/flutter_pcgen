@@ -17,8 +17,8 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.core.PaperInfo
-import '../cdom/base/loadable.dart';
-import '../cdom/base/sort_key_required.dart';
+import 'package:flutter_pcgen/src/cdom/base/loadable.dart';
+import 'package:flutter_pcgen/src/cdom/base/sort_key_required.dart';
 
 // Holds page-size and margin info for a paper type used in character output.
 final class PaperInfo implements Loadable, SortKeyRequired {

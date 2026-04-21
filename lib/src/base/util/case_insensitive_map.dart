@@ -1,4 +1,4 @@
-import '../lang/case_insensitive_string.dart';
+import 'package:flutter_pcgen/src/base/lang/case_insensitive_string.dart';
 
 // A Map that compares String keys case-insensitively.
 class CaseInsensitiveMap<V> {

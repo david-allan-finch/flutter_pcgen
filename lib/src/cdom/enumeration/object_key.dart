@@ -16,7 +16,7 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.enumeration.ObjectKey
-import '../../base/util/case_insensitive_map.dart';
+import 'package:flutter_pcgen/src/base/util/case_insensitive_map.dart';
 
 // Typesafe key for typed Object storage in CDOMObject.
 class ObjectKey<T> {

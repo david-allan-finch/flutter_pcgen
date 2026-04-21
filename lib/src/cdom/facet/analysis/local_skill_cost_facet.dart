@@ -2,22 +2,22 @@
 //
 // Translation of pcgen.cdom.facet.analysis.LocalSkillCostFacet
 
-import '../../base/cdom_object.dart';
-import '../../base/cdom_reference.dart';
-import '../../enumeration/char_id.dart';
-import '../../enumeration/list_key.dart';
-import '../../enumeration/object_key.dart';
-import '../../enumeration/skill_cost.dart';
-import '../../../core/domain.dart';
-import '../../../core/pc_class.dart';
-import '../../../core/skill.dart';
-import '../../inst/pc_class_level.dart';
-import '../base/abstract_sub_scope_facet.dart';
-import '../event/data_facet_change_event.dart';
-import '../event/data_facet_change_listener.dart';
-import '../model/class_facet.dart';
-import '../model/class_level_facet.dart';
-import '../model/domain_facet.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_object.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_reference.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/list_key.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/object_key.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/skill_cost.dart';
+import 'package:flutter_pcgen/src/core/domain.dart';
+import 'package:flutter_pcgen/src/core/pc_class.dart';
+import 'package:flutter_pcgen/src/core/skill.dart';
+import 'package:flutter_pcgen/src/cdom/inst/pc_class_level.dart';
+import 'package:flutter_pcgen/src/cdom/facet/base/abstract_sub_scope_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/event/data_facet_change_event.dart';
+import 'package:flutter_pcgen/src/cdom/facet/event/data_facet_change_listener.dart';
+import 'package:flutter_pcgen/src/cdom/facet/model/class_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/model/class_level_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/model/domain_facet.dart';
 
 /// Tracks local CSKILL/CCSKILL costs assigned per PCClass.
 class LocalSkillCostFacet extends AbstractSubScopeFacet<PCClass, SkillCost, Skill>

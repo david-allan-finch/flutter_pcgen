@@ -19,7 +19,7 @@
 // Translated from PCGen Java source to Dart.
 // Source: pcgen/cdom/facet/fact/FactFacet.java
 
-import '../../../enumeration/char_id.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
 
 /// FactFacet stores basic String information about a Player Character.
 class FactFacet {

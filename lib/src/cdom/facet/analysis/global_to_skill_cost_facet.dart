@@ -2,16 +2,16 @@
 //
 // Translation of pcgen.cdom.facet.analysis.GlobalToSkillCostFacet
 
-import '../../enumeration/char_id.dart';
-import '../../enumeration/skill_cost.dart';
-import '../../../core/pc_class.dart';
-import '../../../core/skill.dart';
-import '../base/abstract_sub_scope_facet.dart';
-import '../event/data_facet_change_event.dart';
-import '../event/data_facet_change_listener.dart';
-import '../event/scope_facet_change_event.dart';
-import '../event/scope_facet_change_listener.dart';
-import '../model/class_facet.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/skill_cost.dart';
+import 'package:flutter_pcgen/src/core/pc_class.dart';
+import 'package:flutter_pcgen/src/core/skill.dart';
+import 'package:flutter_pcgen/src/cdom/facet/base/abstract_sub_scope_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/event/data_facet_change_event.dart';
+import 'package:flutter_pcgen/src/cdom/facet/event/data_facet_change_listener.dart';
+import 'package:flutter_pcgen/src/cdom/facet/event/scope_facet_change_event.dart';
+import 'package:flutter_pcgen/src/cdom/facet/event/scope_facet_change_listener.dart';
+import 'package:flutter_pcgen/src/cdom/facet/model/class_facet.dart';
 
 /// Routes global skill cost entries (from CSKILL/CCSKILL tokens) to each PCClass.
 class GlobalToSkillCostFacet extends AbstractSubScopeFacet<PCClass, SkillCost, Skill>

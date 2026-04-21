@@ -17,10 +17,10 @@
 //
 // Translation of pcgen.system.FacadeFactory
 
-import '../facade/core/game_mode_display_facade.dart';
-import '../facade/core/source_selection_facade.dart';
-import '../facade/util/default_list_facade.dart';
-import '../facade/util/default_reference_facade.dart';
+import 'package:flutter_pcgen/src/facade/core/game_mode_display_facade.dart';
+import 'package:flutter_pcgen/src/facade/core/source_selection_facade.dart';
+import 'package:flutter_pcgen/src/facade/util/default_list_facade.dart';
+import 'package:flutter_pcgen/src/facade/util/default_reference_facade.dart';
 
 /// Factory providing access to game-mode and source-selection facades.
 final class FacadeFactory {

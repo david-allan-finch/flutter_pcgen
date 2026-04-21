@@ -20,7 +20,7 @@
 //
 // Translation of pcgen.persistence.lst.VariableLoader
 
-import '../../rules/context/load_context.dart';
+import 'package:flutter_pcgen/src/rules/context/load_context.dart';
 import 'campaign_source_entry.dart';
 import 'lst_file_loader.dart';
 import 'lst_utils.dart';

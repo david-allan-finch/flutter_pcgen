@@ -1,6 +1,6 @@
 // Translation of pcgen.io.PCGenExportHandler
 
-import '../core/player_character.dart';
+import 'package:flutter_pcgen/src/core/player_character.dart';
 import 'export_exception.dart';
 import 'export_handler.dart';
 

@@ -17,8 +17,8 @@
 //
 // Translation of pcgen.gui2.facade.TodoFacadeImpl
 
-import '../../facade/core/todo_facade.dart';
-import '../../util/enumeration/tab.dart';
+import 'package:flutter_pcgen/src/facade/core/todo_facade.dart';
+import 'package:flutter_pcgen/src/util/enumeration/tab.dart';
 
 /// Represents a task to be done for a character.
 class TodoFacadeImpl implements TodoFacade, Comparable<TodoFacade> {

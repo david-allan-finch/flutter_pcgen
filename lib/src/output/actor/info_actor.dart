@@ -17,7 +17,7 @@
 //
 // Translation of pcgen.output.actor.InfoActor
 
-import '../base/output_actor.dart';
+import 'package:flutter_pcgen/src/output/base/output_actor.dart';
 
 /// OutputActor that reads an INFO value from an object.
 class InfoActor implements OutputActor<dynamic> {

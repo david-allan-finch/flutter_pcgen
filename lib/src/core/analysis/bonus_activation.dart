@@ -17,8 +17,8 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.core.analysis.BonusActivation
-import '../../../cdom/base/cdom_object.dart';
-import '../../player_character.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_object.dart';
+import 'package:flutter_pcgen/src/core/player_character.dart';
 
 // Activates or deactivates bonuses on a PlayerCharacter for a given CDOMObject.
 final class BonusActivation {

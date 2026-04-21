@@ -17,8 +17,8 @@
 //
 // Translation of pcgen.output.wrapper.EnumWrapper
 
-import '../base/simple_object_wrapper.dart';
-import '../base/simple_wrapper_library.dart';
+import 'package:flutter_pcgen/src/output/base/simple_object_wrapper.dart';
+import 'package:flutter_pcgen/src/output/base/simple_wrapper_library.dart';
 
 /// Wraps Enum objects into output models (via toString).
 class EnumWrapper implements SimpleObjectWrapper {

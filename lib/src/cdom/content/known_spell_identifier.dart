@@ -16,11 +16,11 @@
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
 //
 // Translation of pcgen.cdom.content.KnownSpellIdentifier
-import '../../core/player_character.dart';
-import '../../core/spell.dart';
-import '../base/cdom_reference.dart';
-import '../base/concrete_prereq_object.dart';
-import '../list/class_spell_list.dart';
+import 'package:flutter_pcgen/src/core/player_character.dart';
+import 'package:flutter_pcgen/src/core/spell/spell.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_reference.dart';
+import 'package:flutter_pcgen/src/cdom/base/concrete_prereq_object.dart';
+import 'package:flutter_pcgen/src/cdom/list/class_spell_list.dart';
 
 // Identifies Spell objects that are known at a specific spell level.
 class KnownSpellIdentifier extends ConcretePrereqObject {

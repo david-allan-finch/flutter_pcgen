@@ -16,7 +16,7 @@
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
 //
 // Translation of pcgen.cdom.helper.SAtoStringProcessor
-import '../../core/player_character.dart';
+import 'package:flutter_pcgen/src/core/player_character.dart';
 
 // Converts a SpecialAbility to its parsed text string for a PlayerCharacter.
 class SAtoStringProcessor {

@@ -16,9 +16,9 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.core.kit.KitSkillAdd
-import '../../core/language.dart';
-import '../../core/pc_class.dart';
-import '../../core/skill.dart';
+import 'package:flutter_pcgen/src/core/language.dart';
+import 'package:flutter_pcgen/src/core/pc_class.dart';
+import 'package:flutter_pcgen/src/core/skill.dart';
 
 // Transfer object recording skill rank additions for a kit.
 class KitSkillAdd {

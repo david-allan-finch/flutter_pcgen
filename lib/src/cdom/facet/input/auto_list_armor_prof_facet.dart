@@ -19,7 +19,7 @@
 // Translated from PCGen Java source to Dart.
 // Source: pcgen/cdom/facet/input/AutoListArmorProfFacet.java
 
-import '../../../enumeration/char_id.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
 
 /// AutoListArmorProfFacet is a Facet that tracks the ArmorProfs that have been
 /// granted to a Player Character by AUTO:ARMORPROF|%LIST and converts them to

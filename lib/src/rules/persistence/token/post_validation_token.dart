@@ -16,7 +16,7 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.rules.persistence.token.PostValidationToken
-import '../../../rules/context/load_context.dart';
+import 'package:flutter_pcgen/src/rules/context/load_context.dart';
 
 /// A PostValidationToken is processed after LST file load is complete and
 /// after references are resolved. It operates on ALL objects of a given type.

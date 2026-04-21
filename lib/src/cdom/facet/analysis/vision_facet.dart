@@ -2,17 +2,17 @@
 //
 // Translation of pcgen.cdom.facet.analysis.VisionFacet
 
-import '../../base/cdom_object.dart';
-import '../../enumeration/char_id.dart';
-import '../../../core/qualified_object.dart';
-import '../../../core/vision.dart';
-import '../base/abstract_sourced_list_facet.dart';
-import '../bonus_checking_facet.dart';
-import '../cdom_object_consolidation_facet.dart';
-import '../event/data_facet_change_event.dart';
-import '../event/data_facet_change_listener.dart';
-import '../formula_resolving_facet.dart';
-import '../prerequisite_facet.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_object.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
+import 'package:flutter_pcgen/src/core/qualified_object.dart';
+import 'package:flutter_pcgen/src/core/vision.dart';
+import 'package:flutter_pcgen/src/cdom/facet/base/abstract_sourced_list_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/bonus_checking_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/cdom_object_consolidation_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/event/data_facet_change_event.dart';
+import 'package:flutter_pcgen/src/cdom/facet/event/data_facet_change_listener.dart';
+import 'package:flutter_pcgen/src/cdom/facet/formula_resolving_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/prerequisite_facet.dart';
 
 /// Tracks Vision objects contained in a Player Character.
 class VisionFacet extends AbstractSourcedListFacet<CharID, QualifiedObject<Vision>>

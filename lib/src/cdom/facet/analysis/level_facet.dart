@@ -2,9 +2,9 @@
 //
 // Translation of pcgen.cdom.facet.analysis.LevelFacet
 
-import '../../enumeration/char_id.dart';
-import '../base/abstract_storage_facet.dart';
-import '../model/class_facet.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
+import 'package:flutter_pcgen/src/cdom/facet/base/abstract_storage_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/model/class_facet.dart';
 
 /// Stores level information (monster vs non-monster levels) for a PC.
 /// Also fires [LevelChangeEvent]s when the total level changes.

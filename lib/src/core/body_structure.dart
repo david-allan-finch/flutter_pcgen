@@ -16,7 +16,7 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.core.BodyStructure
-import '../cdom/enumeration/type.dart' as cdom;
+import 'package:flutter_pcgen/src/cdom/enumeration/type.dart' as cdom;
 import 'character/equip_slot.dart';
 
 // Represents a part of a character's body that can hold equipment (Head, Torso, etc.).

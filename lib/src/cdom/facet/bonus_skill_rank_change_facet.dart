@@ -2,8 +2,8 @@
 //
 // Translation of pcgen.cdom.facet.BonusSkillRankChangeFacet
 
-import '../enumeration/char_id.dart';
-import '../../core/skill.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
+import 'package:flutter_pcgen/src/core/skill.dart';
 import 'base/abstract_storage_facet.dart';
 import 'bonus_checking_facet.dart';
 

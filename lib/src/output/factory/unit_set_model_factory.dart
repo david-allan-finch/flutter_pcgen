@@ -17,8 +17,8 @@
 //
 // Translation of pcgen.output.factory.UnitSetModelFactory
 
-import '../base/mode_model_factory.dart';
-import '../model/unit_set_model.dart';
+import 'package:flutter_pcgen/src/output/base/mode_model_factory.dart';
+import 'package:flutter_pcgen/src/output/model/unit_set_model.dart';
 
 /// A ModeModelFactory that produces UnitSetModel for the current GameMode.
 class UnitSetModelFactory implements ModeModelFactory {

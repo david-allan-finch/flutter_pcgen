@@ -16,11 +16,11 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.core.kit.KitDeity
-import '../../cdom/base/cdom_single_ref.dart';
-import '../deity.dart';
-import '../domain.dart';
-import '../kit.dart';
-import '../player_character.dart';
+import 'package:flutter_pcgen/src/cdom/reference/cdom_single_ref.dart';
+import 'package:flutter_pcgen/src/core/deity.dart';
+import 'package:flutter_pcgen/src/core/domain.dart';
+import 'package:flutter_pcgen/src/core/kit.dart';
+import 'package:flutter_pcgen/src/core/player_character.dart';
 import 'base_kit.dart';
 
 class KitDeity extends BaseKit {

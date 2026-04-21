@@ -16,8 +16,8 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.core.analysis.EqModAttachment
-import '../../../cdom/enumeration/list_key.dart';
-import '../../../cdom/enumeration/string_key.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/list_key.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/string_key.dart';
 
 // Attaches EqModRefs to an Equipment's modifier lists during finalisation.
 final class EqModAttachment {

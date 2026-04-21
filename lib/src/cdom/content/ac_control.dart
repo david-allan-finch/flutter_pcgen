@@ -16,7 +16,7 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.content.ACControl
-import '../base/concrete_prereq_object.dart';
+import 'package:flutter_pcgen/src/cdom/base/concrete_prereq_object.dart';
 
 // Stores an AC (Armor Class) control type; used to track how AC is calculated.
 class ACControl extends ConcretePrereqObject {

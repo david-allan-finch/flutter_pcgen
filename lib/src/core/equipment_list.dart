@@ -25,8 +25,8 @@ import 'equipment_modifier.dart';
 import 'player_character.dart';
 import 'size_adjustment.dart';
 import 'utils/core_utility.dart';
-import '../cdom/enumeration/object_key.dart';
-import '../cdom/enumeration/type.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/object_key.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/type.dart';
 import 'prereq/prereq_handler.dart';
 
 /// Equipment-related utility methods extracted from Globals.

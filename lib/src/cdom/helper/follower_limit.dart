@@ -16,9 +16,9 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.helper.FollowerLimit
-import '../../base/formula/formula.dart';
-import '../list/companion_list.dart';
-import '../reference/cdom_single_ref.dart';
+import 'package:flutter_pcgen/src/base/formula/formula.dart';
+import 'package:flutter_pcgen/src/cdom/list/companion_list.dart';
+import 'package:flutter_pcgen/src/cdom/reference/cdom_single_ref.dart';
 
 // Represents an upper bound (as a Formula) on companions in a CompanionList.
 class FollowerLimit {

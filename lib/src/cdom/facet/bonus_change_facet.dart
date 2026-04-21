@@ -2,7 +2,7 @@
 //
 // Translation of pcgen.cdom.facet.BonusChangeFacet
 
-import '../enumeration/char_id.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
 import 'base/abstract_storage_facet.dart';
 import 'bonus_checking_facet.dart';
 

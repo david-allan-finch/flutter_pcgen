@@ -18,9 +18,9 @@
 // Translation of pcgen.gui2.tabs.equip.EquipmentTreeTableModel
 
 import 'package:flutter/foundation.dart';
-import '../../util/treetable/abstract_tree_table_model.dart';
-import '../../util/treetable/default_sortable_tree_table_node.dart';
-import '../../util/treetable/sortable_tree_table_node.dart';
+import 'package:flutter_pcgen/src/gui2/util/treetable/abstract_tree_table_model.dart';
+import 'package:flutter_pcgen/src/gui2/util/treetable/default_sortable_tree_table_node.dart';
+import 'package:flutter_pcgen/src/gui2/util/treetable/sortable_tree_table_node.dart';
 
 /// Tree table model for equipped items, organized by location/slot.
 class EquipmentTreeTableModel extends AbstractTreeTableModel with ChangeNotifier {

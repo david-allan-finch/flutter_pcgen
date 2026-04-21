@@ -16,7 +16,7 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.content.ProcessCalculation
-import '../../base/util/format_manager.dart';
+import 'package:flutter_pcgen/src/base/util/format_manager.dart';
 
 // A ProcessCalculation wraps a direct object and a BasicCalculation, applying
 // the calculation's operation using the stored object as the operand.

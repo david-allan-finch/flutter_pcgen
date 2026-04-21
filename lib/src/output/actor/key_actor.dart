@@ -17,7 +17,7 @@
 //
 // Translation of pcgen.output.actor.KeyActor
 
-import '../base/output_actor.dart';
+import 'package:flutter_pcgen/src/output/base/output_actor.dart';
 
 /// OutputActor that returns the key name of an object.
 class KeyActor implements OutputActor<dynamic> {

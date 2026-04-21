@@ -15,9 +15,9 @@
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
 //
 // Translation of pcgen.core.AgeSet
-import '../cdom/base/bonus_container.dart';
-import '../cdom/base/loadable.dart';
-import '../cdom/base/transition_choice.dart';
+import 'package:flutter_pcgen/src/cdom/base/bonus_container.dart';
+import 'package:flutter_pcgen/src/cdom/base/loadable.dart';
+import 'package:flutter_pcgen/src/cdom/base/transition_choice.dart';
 import 'bonus/bonus_obj.dart';
 import 'kit.dart';
 

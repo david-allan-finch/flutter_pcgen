@@ -14,8 +14,8 @@
 // Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.helper.InfoUtilities
-import '../base/cdom_object.dart';
-import '../enumeration/map_key.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_object.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/map_key.dart';
 
 // Utilities for INFOVARS token evaluation.
 final class InfoUtilities {

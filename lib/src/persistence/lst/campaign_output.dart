@@ -18,8 +18,8 @@
 // Translation of pcgen.persistence.lst.CampaignOutput
 
 import 'dart:io';
-import '../../core/campaign.dart';
-import '../../rules/context/load_context.dart';
+import 'package:flutter_pcgen/src/core/campaign.dart';
+import 'package:flutter_pcgen/src/rules/context/load_context.dart';
 
 /// Utility class (no instances) that writes a Campaign back out to a .pcc file.
 ///

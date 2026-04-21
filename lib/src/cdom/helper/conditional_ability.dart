@@ -16,9 +16,9 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.helper.ConditionalAbility
-import '../base/associated_prereq_object.dart';
-import '../base/cdom_object.dart';
-import '../../core/ability.dart';
+import 'package:flutter_pcgen/src/cdom/base/associated_prereq_object.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_object.dart';
+import 'package:flutter_pcgen/src/core/ability.dart';
 
 // Holds an Ability, its AssociatedPrereqObject, and its parent CDOMObject.
 class ConditionalAbility {

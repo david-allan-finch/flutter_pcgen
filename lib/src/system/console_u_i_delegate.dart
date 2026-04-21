@@ -17,7 +17,7 @@
 //
 // Translation of pcgen.system.ConsoleUIDelegate
 
-import '../facade/core/ui_delegate.dart';
+import 'package:flutter_pcgen/src/facade/core/ui_delegate.dart';
 
 /// A minimal UIDelegate that logs to the console (no GUI).
 class ConsoleUIDelegate implements UIDelegate {

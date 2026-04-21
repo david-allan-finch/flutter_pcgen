@@ -17,8 +17,8 @@
 //
 // Translation of pcgen.output.wrapper.TypeSafeConstantWrapper
 
-import '../base/simple_object_wrapper.dart';
-import '../base/simple_wrapper_library.dart';
+import 'package:flutter_pcgen/src/output/base/simple_object_wrapper.dart';
+import 'package:flutter_pcgen/src/output/base/simple_wrapper_library.dart';
 
 /// Wraps TypeSafeConstant objects into output models (via toString).
 class TypeSafeConstantWrapper implements SimpleObjectWrapper {

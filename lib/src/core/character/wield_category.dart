@@ -16,10 +16,10 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.core.character.WieldCategory
-import '../../cdom/base/loadable.dart';
-import '../../cdom/reference/cdom_single_ref.dart';
-import '../equipment.dart';
-import '../player_character.dart';
+import 'package:flutter_pcgen/src/cdom/base/loadable.dart';
+import 'package:flutter_pcgen/src/cdom/reference/cdom_single_ref.dart';
+import 'package:flutter_pcgen/src/core/equipment.dart';
+import 'package:flutter_pcgen/src/core/player_character.dart';
 
 // Defines how a weapon is wielded (e.g. Light, One-Handed, Two-Handed, Too Large).
 final class WieldCategory implements Loadable {

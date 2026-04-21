@@ -15,7 +15,7 @@
 //
 // Translation of pcgen.system.RecentFileList
 
-import '../facade/util/abstract_list_facade.dart';
+import 'package:flutter_pcgen/src/facade/util/abstract_list_facade.dart';
 
 /// Maintains a bounded list of recently-opened character files.
 class RecentFileList extends AbstractListFacade<String> {

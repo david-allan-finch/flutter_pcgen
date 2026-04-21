@@ -16,7 +16,7 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.reference.TransparentReference
-import '../base/loadable.dart';
+import 'package:flutter_pcgen/src/cdom/base/loadable.dart';
 import 'reference_manufacturer.dart';
 
 // A TransparentReference is a CDOMReference that can be re-resolved using a

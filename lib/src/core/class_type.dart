@@ -16,7 +16,7 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.core.ClassType
-import '../cdom/base/loadable.dart';
+import 'package:flutter_pcgen/src/cdom/base/loadable.dart';
 
 // Configuration for a class type (Base, Monster, Prestige, etc.).
 final class ClassType implements Loadable {

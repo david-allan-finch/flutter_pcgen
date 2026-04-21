@@ -16,8 +16,8 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.reference.TransparentFactory
-import '../base/class_identity.dart';
-import '../base/loadable.dart';
+import 'package:flutter_pcgen/src/cdom/base/class_identity.dart';
+import 'package:flutter_pcgen/src/cdom/base/loadable.dart';
 import 'cdom_group_ref.dart';
 import 'cdom_single_ref.dart';
 import 'cdom_transparent_all_ref.dart';

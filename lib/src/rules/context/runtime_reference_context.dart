@@ -16,14 +16,14 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.rules.context.RuntimeReferenceContext
-import '../../base/util/case_insensitive_map.dart';
-import '../../cdom/base/cdom_object.dart';
-import '../../cdom/base/class_identity.dart';
-import '../../cdom/base/loadable.dart';
-import '../../cdom/reference/cdom_factory.dart';
-import '../../cdom/reference/manufacturable_factory.dart';
-import '../../cdom/reference/reference_manufacturer.dart';
-import '../../cdom/reference/unconstructed_validator.dart';
+import 'package:flutter_pcgen/src/base/util/case_insensitive_map.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_object.dart';
+import 'package:flutter_pcgen/src/cdom/base/class_identity.dart';
+import 'package:flutter_pcgen/src/cdom/base/loadable.dart';
+import 'package:flutter_pcgen/src/cdom/reference/cdom_factory.dart';
+import 'package:flutter_pcgen/src/cdom/reference/manufacturable_factory.dart';
+import 'package:flutter_pcgen/src/cdom/reference/reference_manufacturer.dart';
+import 'package:flutter_pcgen/src/cdom/reference/unconstructed_validator.dart';
 
 // stub: BasicClassIdentity not yet translated
 class BasicClassIdentity {

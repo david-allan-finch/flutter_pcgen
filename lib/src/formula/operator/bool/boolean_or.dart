@@ -1,7 +1,7 @@
-import '../../../base/util/format_manager.dart';
-import '../../../base/format/boolean_manager.dart';
-import '../../base/operator_action.dart';
-import '../../parse/operator.dart';
+import 'package:flutter_pcgen/src/base/util/format_manager.dart';
+import 'package:flutter_pcgen/src/base/format/boolean_manager.dart';
+import 'package:flutter_pcgen/src/formula/base/operator_action.dart';
+import 'package:flutter_pcgen/src/formula/parse/operator.dart';
 
 class BooleanOr implements OperatorAction {
   static const BooleanManager _manager = BooleanManager();

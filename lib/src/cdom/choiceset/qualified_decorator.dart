@@ -16,7 +16,7 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.choiceset.QualifiedDecorator
-import '../enumeration/grouping_state.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/grouping_state.dart';
 
 // Decorates a PrimitiveChoiceSet to restrict its items to those for which the
 // PlayerCharacter meets the prerequisites defined by each item itself.

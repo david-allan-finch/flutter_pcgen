@@ -16,7 +16,7 @@
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
 //
 // Translation of pcgen.cdom.facet.event.SubScopeFacetChangeEvent
-import '../../../enumeration/char_id.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
 
 // Event fired when a two-scope facet's data changes.
 class SubScopeFacetChangeEvent<S1, S2, T> {

@@ -17,9 +17,9 @@
 //
 // Translation of pcgen.core.Domain
 
-import '../cdom/enumeration/formula_key.dart';
-import '../cdom/enumeration/list_key.dart';
-import '../cdom/enumeration/object_key.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/formula_key.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/list_key.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/object_key.dart';
 import 'pcobject.dart';
 
 /// Represents a divine domain (e.g., Fire, War, Protection).

@@ -16,9 +16,9 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.rules.context.EditorReferenceContext
-import '../../base/util/hash_map_to_list.dart';
-import '../../cdom/base/cdom_object.dart';
-import '../../cdom/base/loadable.dart';
+import 'package:flutter_pcgen/src/base/util/hash_map_to_list.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_object.dart';
+import 'package:flutter_pcgen/src/cdom/base/loadable.dart';
 import 'runtime_reference_context.dart';
 
 class EditorReferenceContext extends RuntimeReferenceContext {

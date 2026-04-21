@@ -2,9 +2,9 @@
 //
 // Translation of pcgen.cdom.facet.StatCalcFacet
 
-import '../enumeration/char_id.dart';
-import '../enumeration/formula_key.dart';
-import '../../core/pc_stat.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/formula_key.dart';
+import 'package:flutter_pcgen/src/core/pc_stat.dart';
 import 'analysis/non_stat_stat_facet.dart';
 import 'analysis/non_stat_to_stat_facet.dart';
 import 'analysis/stat_lock_facet.dart';

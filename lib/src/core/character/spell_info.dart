@@ -16,8 +16,8 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.core.character.SpellInfo
-import '../ability.dart';
-import '../globals.dart';
+import 'package:flutter_pcgen/src/core/ability.dart';
+import 'package:flutter_pcgen/src/core/globals.dart';
 import 'character_spell.dart';
 
 // Helper class for CharacterSpell — stores book, level, times, and metamagic feats.

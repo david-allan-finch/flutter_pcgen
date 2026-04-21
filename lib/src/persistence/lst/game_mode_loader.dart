@@ -17,7 +17,7 @@
 //
 // Translation of pcgen.persistence.lst.GameModeLoader
 
-import '../../core/game_mode.dart';
+import 'package:flutter_pcgen/src/core/game_mode.dart';
 
 /// Utility class (no instances) that parses individual lines from game mode
 /// configuration files (miscinfo.lst, statsandchecks.lst, etc.).

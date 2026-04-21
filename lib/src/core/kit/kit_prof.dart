@@ -16,10 +16,10 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.core.kit.KitProf
-import '../../cdom/reference/cdom_single_ref.dart';
-import '../../core/kit.dart';
-import '../../core/player_character.dart';
-import '../../core/weapon_prof.dart';
+import 'package:flutter_pcgen/src/cdom/reference/cdom_single_ref.dart';
+import 'package:flutter_pcgen/src/core/kit.dart';
+import 'package:flutter_pcgen/src/core/player_character.dart';
+import 'package:flutter_pcgen/src/core/weapon_prof.dart';
 import 'base_kit.dart';
 
 // Kit task that grants weapon proficiencies to a PC.

@@ -2,8 +2,8 @@
 //
 // Translation of pcgen.cdom.facet.EquippedEquipmentFacet
 
-import '../enumeration/char_id.dart';
-import '../../core/equipment.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
+import 'package:flutter_pcgen/src/core/equipment.dart';
 import 'base/abstract_data_facet.dart';
 import 'equipment_facet.dart';
 import 'event/data_facet_change_event.dart';

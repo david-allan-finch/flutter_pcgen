@@ -16,7 +16,7 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.core.character.Follower
-import '../race.dart';
+import 'package:flutter_pcgen/src/core/race.dart';
 
 // Represents a companion/familiar/mount linked to a PlayerCharacter.
 final class Follower implements Comparable<Object> {

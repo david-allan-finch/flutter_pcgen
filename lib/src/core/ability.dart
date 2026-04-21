@@ -14,9 +14,9 @@
 // 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.core.Ability
-import '../cdom/enumeration/integer_key.dart';
-import '../cdom/enumeration/list_key.dart';
-import '../cdom/enumeration/object_key.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/integer_key.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/list_key.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/object_key.dart';
 import 'ability_category.dart';
 import 'pcobject.dart';
 

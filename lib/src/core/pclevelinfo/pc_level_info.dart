@@ -16,9 +16,9 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.core.pclevelinfo.PCLevelInfo
-import '../pc_class.dart';
-import '../pc_stat.dart';
-import '../player_character.dart';
+import 'package:flutter_pcgen/src/core/pc_class.dart';
+import 'package:flutter_pcgen/src/core/pc_stat.dart';
+import 'package:flutter_pcgen/src/core/player_character.dart';
 import 'pc_level_info_stat.dart';
 
 // Represents the data kept about a level that a PC has added.

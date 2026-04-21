@@ -2,7 +2,7 @@
 //
 // Translation of pcgen.rules.persistence.token.PreCompatibilityToken
 
-import '../../../rules/context/load_context.dart';
+import 'package:flutter_pcgen/src/rules/context/load_context.dart';
 import 'cdom_primary_token.dart';
 import 'cdom_secondary_token.dart';
 import 'parse_result.dart';

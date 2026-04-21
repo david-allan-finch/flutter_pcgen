@@ -17,8 +17,8 @@
 //
 // Translation of pcgen.persistence.lst.BioSetLoader
 
-import '../../core/age_set.dart';
-import '../../core/bio_set.dart';
+import 'package:flutter_pcgen/src/core/age_set.dart';
+import 'package:flutter_pcgen/src/core/bio_set.dart';
 
 /// Loads biosettings .lst files into a [BioSet].
 ///

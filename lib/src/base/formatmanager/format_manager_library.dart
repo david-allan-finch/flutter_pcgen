@@ -1,4 +1,4 @@
-import '../util/format_manager.dart';
+import 'package:flutter_pcgen/src/base/util/format_manager.dart';
 
 abstract interface class FormatManagerLibrary {
   FormatManager<dynamic>? getFormatManager(String formatName);

@@ -16,9 +16,9 @@
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
 //
 // Translation of pcgen.cdom.helper.AvailableSpell
-import '../base/cdom_list.dart';
-import '../base/concrete_prereq_object.dart';
-import '../../core/spell/spell.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_list.dart';
+import 'package:flutter_pcgen/src/cdom/base/concrete_prereq_object.dart';
+import 'package:flutter_pcgen/src/core/spell/spell.dart';
 
 // Associates a spell with a spell list and level — used to track available spells.
 class AvailableSpell extends ConcretePrereqObject {

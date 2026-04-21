@@ -16,8 +16,8 @@
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
 //
 // Translation of pcgen.cdom.facet.base.AbstractAssociationFacet
-import '../../base/pcgen_identifier.dart';
-import '../event/data_facet_change_event.dart';
+import 'package:flutter_pcgen/src/cdom/base/pcgen_identifier.dart';
+import 'package:flutter_pcgen/src/cdom/facet/event/data_facet_change_event.dart';
 import 'abstract_scope_facet.dart';
 
 // Facet that stores a single association per source object per IDT.

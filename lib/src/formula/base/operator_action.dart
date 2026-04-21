@@ -1,5 +1,5 @@
-import '../../../base/util/format_manager.dart';
-import '../parse/operator.dart';
+import 'package:flutter_pcgen/src/base/util/format_manager.dart';
+import 'package:flutter_pcgen/src/formula/parse/operator.dart';
 
 abstract interface class OperatorAction {
   Operator getOperator();

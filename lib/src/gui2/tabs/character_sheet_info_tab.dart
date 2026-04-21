@@ -18,7 +18,7 @@
 // Translation of pcgen.gui2.tabs.CharacterSheetInfoTab
 
 import 'package:flutter/material.dart';
-import '../csheet/character_sheet_panel.dart';
+import 'package:flutter_pcgen/src/gui2/csheet/character_sheet_panel.dart';
 
 /// Tab panel that shows the rendered character sheet.
 class CharacterSheetInfoTab extends StatefulWidget {

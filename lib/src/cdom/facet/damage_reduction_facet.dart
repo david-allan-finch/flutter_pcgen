@@ -2,10 +2,10 @@
 //
 // Translation of pcgen.cdom.facet.DamageReductionFacet
 
-import '../base/cdom_object.dart';
-import '../content/damage_reduction.dart';
-import '../enumeration/char_id.dart';
-import '../enumeration/list_key.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_object.dart';
+import 'package:flutter_pcgen/src/cdom/content/damage_reduction.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/list_key.dart';
 import 'base/abstract_sourced_list_facet.dart';
 import 'bonus_checking_facet.dart';
 import 'cdom_object_consolidation_facet.dart';

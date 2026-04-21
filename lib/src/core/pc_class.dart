@@ -19,12 +19,12 @@
 
 import 'dart:collection';
 
-import '../cdom/enumeration/integer_key.dart';
-import '../cdom/enumeration/list_key.dart';
-import '../cdom/enumeration/object_key.dart';
-import '../cdom/enumeration/string_key.dart';
-import '../cdom/inst/pc_class_level.dart';
-import '../util/enumeration/attack_type.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/integer_key.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/list_key.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/object_key.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/string_key.dart';
+import 'package:flutter_pcgen/src/cdom/inst/pc_class_level.dart';
+import 'package:flutter_pcgen/src/util/enumeration/attack_type.dart';
 import 'pc_stat.dart';
 import 'pcobject.dart';
 import 'sub_class.dart';

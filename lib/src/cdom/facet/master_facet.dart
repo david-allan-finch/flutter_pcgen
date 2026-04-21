@@ -2,11 +2,11 @@
 //
 // Translation of pcgen.cdom.facet.MasterFacet
 
-import '../base/constants.dart';
-import '../enumeration/char_id.dart';
-import '../enumeration/object_key.dart';
-import '../enumeration/string_key.dart';
-import '../../core/character/follower.dart';
+import 'package:flutter_pcgen/src/cdom/base/constants.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/object_key.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/string_key.dart';
+import 'package:flutter_pcgen/src/core/character/follower.dart';
 import 'base/abstract_item_facet.dart';
 import 'model/companion_mod_facet.dart';
 

@@ -2,7 +2,7 @@
 //
 // Translation of pcgen.cdom.facet.SolverManagerFacet
 
-import '../enumeration/char_id.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
 import 'base/abstract_item_facet.dart';
 import 'scope_facet.dart';
 

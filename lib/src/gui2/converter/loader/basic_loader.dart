@@ -17,10 +17,10 @@
 //
 // Translation of pcgen.gui2.converter.loader.BasicLoader
 
-import '../conversion_decider.dart';
-import '../loader.dart';
-import '../token_converter.dart';
-import '../event/token_process_event.dart';
+import 'package:flutter_pcgen/src/gui2/converter/conversion_decider.dart';
+import 'package:flutter_pcgen/src/gui2/converter/loader.dart';
+import 'package:flutter_pcgen/src/gui2/converter/token_converter.dart';
+import 'package:flutter_pcgen/src/gui2/converter/event/token_process_event.dart';
 
 /// Generic loader that processes LST files for a single CDOMObject type [T].
 /// Each tab-separated field after the object name is processed as a token.

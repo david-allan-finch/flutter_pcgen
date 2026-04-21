@@ -17,9 +17,9 @@
 //
 // Translation of pcgen.gui2.facade.TodoManager
 
-import '../../facade/core/todo_facade.dart';
-import '../../facade/util/default_list_facade.dart';
-import '../../facade/util/list_facade.dart';
+import 'package:flutter_pcgen/src/facade/core/todo_facade.dart';
+import 'package:flutter_pcgen/src/facade/util/default_list_facade.dart';
+import 'package:flutter_pcgen/src/facade/util/list_facade.dart';
 
 /// Tracks an unordered list of user tasks.
 /// Each task is a TodoFacade instance with enough information to direct the

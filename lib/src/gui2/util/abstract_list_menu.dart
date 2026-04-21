@@ -19,9 +19,9 @@
 
 import 'package:flutter/material.dart';
 
-import '../../facade/util/list_facade.dart';
-import '../../facade/util/event/list_event.dart';
-import '../../facade/util/event/list_listener.dart';
+import 'package:flutter_pcgen/src/facade/util/list_facade.dart';
+import 'package:flutter_pcgen/src/facade/util/event/list_event.dart';
+import 'package:flutter_pcgen/src/facade/util/event/list_listener.dart';
 
 /// A [PopupMenuButton]-style menu that is dynamically populated from a
 /// [ListFacade]. Subclasses implement [createMenuItem] to produce the

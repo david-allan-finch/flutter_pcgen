@@ -7,8 +7,8 @@
 
 // Translation of pcgen.cdom.facet.SecondaryWeaponFacet
 
-import '../enumeration/char_id.dart';
-import '../../core/equipment.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
+import 'package:flutter_pcgen/src/core/equipment.dart';
 import 'base/abstract_list_facet.dart';
 
 /// Contains the list of weapons that are Secondary Weapons for a Player Character.

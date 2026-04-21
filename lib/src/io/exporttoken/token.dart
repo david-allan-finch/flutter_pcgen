@@ -17,7 +17,7 @@
 //
 // Translation of pcgen.io.exporttoken.Token
 
-import '../../core/player_character.dart';
+import 'package:flutter_pcgen/src/core/player_character.dart';
 
 /// Base interface for export template tokens.
 abstract interface class Token {

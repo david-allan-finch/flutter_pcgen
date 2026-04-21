@@ -2,7 +2,7 @@
 //
 // Translation of pcgen.cdom.facet.ChooseDriverFacet
 
-import '../enumeration/char_id.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
 import 'domain_selection_facet.dart';
 import 'event/scope_facet_change_event.dart';
 import 'event/scope_facet_change_listener.dart';

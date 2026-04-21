@@ -17,7 +17,7 @@
 //
 // Translation of pcgen.gui2.converter.event.TokenProcessEvent
 
-import '../conversion_decider.dart';
+import 'package:flutter_pcgen/src/gui2/converter/conversion_decider.dart';
 
 /// Event carrying all context needed to process a single LST token during
 /// data conversion.  The processor appends its output via [append] and calls

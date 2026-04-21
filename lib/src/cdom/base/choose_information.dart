@@ -16,7 +16,7 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.base.ChooseInformation
-import '../enumeration/grouping_state.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/grouping_state.dart';
 
 // Holds the set of choices and related metadata for the CHOOSE system.
 // Encodes/decodes to persistent LST strings.

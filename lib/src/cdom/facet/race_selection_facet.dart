@@ -7,7 +7,7 @@
 
 // Translation of pcgen.cdom.facet.RaceSelectionFacet
 
-import '../enumeration/char_id.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
 import 'base/abstract_association_facet.dart';
 
 /// Tracks the Race of a Player Character with the CHOOSE selection that was

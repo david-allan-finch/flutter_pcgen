@@ -18,7 +18,7 @@
 
 // @deprecated due to HANDS CodeControl
 
-import '../../enumeration/char_id.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
 
 /// HandsFacet is a Facet that tracks the number of Hands possessed by a Player
 /// Character.

@@ -2,9 +2,9 @@
 //
 // Translation of pcgen.cdom.facet.ClassSpellListFacet
 
-import '../enumeration/char_id.dart';
-import '../enumeration/object_key.dart';
-import '../../core/pc_class.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/object_key.dart';
+import 'package:flutter_pcgen/src/core/pc_class.dart';
 import 'player_character_tracking_facet.dart';
 import 'spell_list_facet.dart';
 

@@ -17,10 +17,10 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.core.kit.BaseKit
-import '../../cdom/base/concrete_prereq_object.dart';
-import '../../cdom/base/loadable.dart';
-import '../kit.dart';
-import '../player_character.dart';
+import 'package:flutter_pcgen/src/cdom/base/concrete_prereq_object.dart';
+import 'package:flutter_pcgen/src/cdom/base/loadable.dart';
+import 'package:flutter_pcgen/src/core/kit.dart';
+import 'package:flutter_pcgen/src/core/player_character.dart';
 
 class OptionBound {
   final String min; // formula string

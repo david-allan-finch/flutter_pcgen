@@ -16,8 +16,8 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.content.DefaultVarValue
-import '../../base/util/format_manager.dart';
-import '../../base/util/indirect.dart';
+import 'package:flutter_pcgen/src/base/util/format_manager.dart';
+import 'package:flutter_pcgen/src/base/util/indirect.dart';
 import 'user_content.dart';
 
 // DefaultVarValue is a shell object used during LST loading to carry the

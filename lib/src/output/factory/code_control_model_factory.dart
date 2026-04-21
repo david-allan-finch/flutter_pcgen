@@ -1,7 +1,7 @@
 // Translation of pcgen.output.factory.CodeControlModelFactory
 
-import '../base/mode_model_factory.dart';
-import '../model/code_control_model.dart';
+import 'package:flutter_pcgen/src/output/base/mode_model_factory.dart';
+import 'package:flutter_pcgen/src/output/model/code_control_model.dart';
 
 /// A ModeModelFactory that produces CodeControlModel for the current GameMode.
 class CodeControlModelFactory implements ModeModelFactory {

@@ -17,9 +17,9 @@
 //
 // Translation of pcgen.gui2.tabs.spells.SpellNodeDataView
 
-import '../../util/treeview/data_view.dart';
-import '../../util/treeview/data_view_column.dart';
-import '../../util/treeview/default_data_view_column.dart';
+import 'package:flutter_pcgen/src/gui2/util/treeview/data_view.dart';
+import 'package:flutter_pcgen/src/gui2/util/treeview/data_view_column.dart';
+import 'package:flutter_pcgen/src/gui2/util/treeview/default_data_view_column.dart';
 
 /// DataView implementation for spell nodes in the spell tree table.
 class SpellNodeDataView implements DataView<Map<String, dynamic>> {

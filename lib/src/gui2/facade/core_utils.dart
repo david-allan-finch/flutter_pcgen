@@ -17,9 +17,9 @@
 //
 // Translation of pcgen.gui2.facade.CoreUtils
 
-import '../../core/player_character.dart';
-import '../../facade/core/core_view_node_facade.dart';
-import '../../util/logging.dart';
+import 'package:flutter_pcgen/src/core/player_character.dart';
+import 'package:flutter_pcgen/src/facade/core/core_view_node_facade.dart';
+import 'package:flutter_pcgen/src/base/logging/pcgen_logging.dart';
 
 /// Utility class for core debug view operations.
 final class CoreUtils {

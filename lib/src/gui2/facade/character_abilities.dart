@@ -18,7 +18,7 @@
 // Translation of pcgen.gui2.facade.CharacterAbilities
 
 import 'package:flutter/foundation.dart';
-import '../../facade/util/list_facade.dart';
+import 'package:flutter_pcgen/src/facade/util/list_facade.dart';
 
 /// Manages ability score data for a character — the facade layer for
 /// reading and writing ability scores (STR, DEX, CON, INT, WIS, CHA).

@@ -18,7 +18,7 @@
 // Translation of pcgen.io.freemarker.CharacterExportAction
 // Note: FreeMarker template engine is not available in Dart; stub only.
 
-import '../../core/player_character.dart';
+import 'package:flutter_pcgen/src/core/player_character.dart';
 
 class CharacterExportAction {
   final PlayerCharacter pc;

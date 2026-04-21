@@ -16,8 +16,8 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.list.LanguageList
-import '../base/cdom_list_object.dart';
-import '../../core/language.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_list_object.dart';
+import 'package:flutter_pcgen/src/core/language.dart';
 
 // A CDOMListObject for Language objects.
 class LanguageList extends CDOMListObject<Language> {

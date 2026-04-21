@@ -16,12 +16,12 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.content.AbilitySelection
-import '../base/cdom_object.dart';
-import '../base/reducible.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_object.dart';
+import 'package:flutter_pcgen/src/cdom/base/reducible.dart';
 import 'selection.dart';
-import '../../core/ability.dart';
-import '../../rules/context/load_context.dart';
-import '../../core/ability_utilities.dart';
+import 'package:flutter_pcgen/src/core/ability.dart';
+import 'package:flutter_pcgen/src/rules/context/load_context.dart';
+import 'package:flutter_pcgen/src/core/ability_utilities.dart';
 
 // Pairs an Ability with an optional choice string; used with CHOOSE tokens.
 class AbilitySelection extends Selection<Ability, String> implements Comparable<AbilitySelection>, Reducible {

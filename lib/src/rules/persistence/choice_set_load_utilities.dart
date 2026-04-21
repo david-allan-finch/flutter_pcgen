@@ -2,7 +2,7 @@
 //
 // Translation of pcgen.rules.persistence.ChoiceSetLoadUtilities
 
-import '../../rules/context/load_context.dart';
+import 'package:flutter_pcgen/src/rules/context/load_context.dart';
 import 'token_library.dart';
 import 'token_utilities.dart';
 

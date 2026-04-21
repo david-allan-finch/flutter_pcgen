@@ -19,7 +19,7 @@
 // Translated from PCGen Java source to Dart.
 // Source: pcgen/cdom/facet/input/DomainInputFacet.java
 
-import '../../../enumeration/char_id.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
 
 /// DomainInputFacet is a Facet that handles addition of Domains to a Player
 /// Character.

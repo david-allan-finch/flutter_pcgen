@@ -16,8 +16,8 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.core.analysis.RaceUtilities
-import '../globals.dart';
-import '../race.dart';
+import 'package:flutter_pcgen/src/core/globals.dart';
+import 'package:flutter_pcgen/src/core/race.dart';
 
 abstract final class RaceUtilities {
   // Get the unselected Race (the placeholder race used before selection).

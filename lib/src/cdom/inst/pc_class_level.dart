@@ -16,8 +16,8 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.inst.PCClassLevel
-import '../base/cdom_object.dart';
-import '../enumeration/string_key.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_object.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/string_key.dart';
 
 // Represents items gained at a specific level of a PCClass.
 final class PCClassLevel extends CDOMObject {

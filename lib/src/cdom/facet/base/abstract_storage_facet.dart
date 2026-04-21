@@ -5,7 +5,7 @@
 // Software Foundation; either version 2.1 of the License, or (at your option)
 // any later version.
 
-import '../../base/pc_gen_identifier.dart';
+import 'package:flutter_pcgen/src/cdom/base/pcgen_identifier.dart';
 
 /// A DoubleKeyMap replacement: stores cache keyed by (PCGenIdentifier, runtimeType).
 /// In Dart we use a Map<PCGenIdentifier, Map<Type, Object>> at the class level.

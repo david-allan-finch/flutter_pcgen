@@ -16,13 +16,13 @@
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
 //
 // Translation of pcgen.cdom.helper.WeaponProfProvider
-import '../base/concrete_prereq_object.dart';
-import '../base/constants.dart';
-import '../base/qualifying_object.dart';
-import '../enumeration/char_id.dart';
-import '../reference/cdom_single_ref.dart';
-import '../reference/cdom_group_ref.dart';
-import '../../core/weapon_prof.dart';
+import 'package:flutter_pcgen/src/cdom/base/concrete_prereq_object.dart';
+import 'package:flutter_pcgen/src/cdom/base/constants.dart';
+import 'package:flutter_pcgen/src/cdom/base/qualifying_object.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
+import 'package:flutter_pcgen/src/cdom/reference/cdom_single_ref.dart';
+import 'package:flutter_pcgen/src/cdom/reference/cdom_group_ref.dart';
+import 'package:flutter_pcgen/src/core/weapon_prof.dart';
 
 // A WeaponProfProvider stores weapon proficiency grants either as direct
 // WeaponProf references, TYPE-based group references, or an ALL reference.

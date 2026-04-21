@@ -2,7 +2,7 @@
 //
 // Translation of pcgen.rules.persistence.util.TokenFamilySubIterator
 
-import '../token/c_d_o_m_secondary_token.dart';
+import 'package:flutter_pcgen/src/rules/persistence/token/c_d_o_m_secondary_token.dart';
 import 'token_family.dart';
 
 /// Iterates [CDOMSecondaryToken]s for a given parent-token name across the

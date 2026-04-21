@@ -18,9 +18,9 @@
 // Translation of pcgen.gui2.util.FacadeListModel
 
 import 'package:flutter/foundation.dart';
-import '../../facade/util/list_facade.dart';
-import '../../facade/util/event/list_event.dart';
-import '../../facade/util/event/list_listener.dart';
+import 'package:flutter_pcgen/src/facade/util/list_facade.dart';
+import 'package:flutter_pcgen/src/facade/util/event/list_event.dart';
+import 'package:flutter_pcgen/src/facade/util/event/list_listener.dart';
 
 /// A ChangeNotifier list model backed by a ListFacade.
 /// Notifies listeners whenever the underlying list changes.

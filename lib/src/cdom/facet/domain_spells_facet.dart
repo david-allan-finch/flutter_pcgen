@@ -2,12 +2,12 @@
 //
 // Translation of pcgen.cdom.facet.DomainSpellsFacet
 
-import '../base/cdom_list.dart';
-import '../enumeration/char_id.dart';
-import '../../core/domain.dart';
-import '../../core/pc_class.dart';
-import '../../core/spell.dart';
-import '../../core/analysis/domain_application.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_list.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
+import 'package:flutter_pcgen/src/core/domain.dart';
+import 'package:flutter_pcgen/src/core/pc_class.dart';
+import 'package:flutter_pcgen/src/core/spell/spell.dart';
+import 'package:flutter_pcgen/src/core/analysis/domain_application.dart';
 import 'base/abstract_sourced_list_facet.dart';
 import 'event/data_facet_change_event.dart';
 import 'event/data_facet_change_listener.dart';

@@ -17,7 +17,7 @@
 //
 // Translation of pcgen.output.actor.ListKeyActor
 
-import '../base/output_actor.dart';
+import 'package:flutter_pcgen/src/output/base/output_actor.dart';
 
 /// OutputActor that reads a ListKey value (list) from an object.
 class ListKeyActor<T> implements OutputActor<dynamic> {

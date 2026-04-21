@@ -16,7 +16,7 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.core.SizeAdjustment
-import '../cdom/enumeration/string_key.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/string_key.dart';
 import 'pcobject.dart';
 
 /// Represents a size category (Fine, Diminutive, Tiny, Small, Medium, Large, etc).

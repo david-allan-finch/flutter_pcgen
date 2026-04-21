@@ -16,8 +16,8 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.core.BenefitFormatting
-import '../cdom/content/cn_ability.dart';
-import '../cdom/enumeration/list_key.dart';
+import 'package:flutter_pcgen/src/cdom/content/cn_ability.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/list_key.dart';
 import 'description.dart';
 import 'player_character.dart';
 import 'pcobject.dart';

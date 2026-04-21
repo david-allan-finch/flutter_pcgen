@@ -18,7 +18,7 @@
 // Translation of pcgen.gui2.util.StatusWorker
 
 import 'dart:async';
-import '../pc_gen_status_bar.dart';
+import 'package:flutter_pcgen/src/gui2/pc_gen_status_bar.dart';
 
 typedef PCGenTask = dynamic;
 

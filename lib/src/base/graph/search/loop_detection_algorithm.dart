@@ -1,6 +1,6 @@
-import '../base/directional_graph.dart';
-import '../base/directional_graph_edge.dart';
-import '../base/edge.dart';
+import 'package:flutter_pcgen/src/base/graph/base/directional_graph.dart';
+import 'package:flutter_pcgen/src/base/graph/base/directional_graph_edge.dart';
+import 'package:flutter_pcgen/src/base/graph/base/edge.dart';
 
 class LoopDetectionAlgorithm<N, ET extends Edge<N>> {
   final DirectionalGraph<N, ET> _graph;

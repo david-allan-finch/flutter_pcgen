@@ -17,8 +17,8 @@
 //
 // Translation of pcgen.gui2.tabs.ability.AbilityTreeViews
 
-import '../../util/treeview/tree_view.dart';
-import '../../util/treeview/tree_view_path.dart';
+import 'package:flutter_pcgen/src/gui2/util/treeview/tree_view.dart';
+import 'package:flutter_pcgen/src/gui2/util/treeview/tree_view_path.dart';
 
 /// Predefined tree view strategies for abilities.
 class AbilityTreeViews {

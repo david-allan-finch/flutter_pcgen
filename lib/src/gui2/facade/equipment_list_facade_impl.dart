@@ -18,8 +18,8 @@
 // Translation of pcgen.gui2.facade.EquipmentListFacadeImpl
 
 import 'package:flutter/foundation.dart';
-import '../../facade/core/equipment_list_facade.dart';
-import '../../facade/util/list_facade.dart';
+import 'package:flutter_pcgen/src/facade/core/equipment_list_facade.dart';
+import 'package:flutter_pcgen/src/facade/util/list_facade.dart';
 
 /// Implementation of EquipmentListFacade — the full list of equipment owned by a character.
 class EquipmentListFacadeImpl extends ChangeNotifier implements EquipmentListFacade {

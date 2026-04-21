@@ -16,13 +16,13 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.rules.context.ListChanges
-import '../../base/util/map_to_list.dart';
-import '../../base/util/hash_map_to_list.dart';
-import '../../cdom/base/associated_prereq_object.dart';
-import '../../cdom/base/cdom_list.dart';
-import '../../cdom/base/cdom_object.dart';
-import '../../cdom/base/cdom_reference.dart';
-import '../../cdom/enumeration/association_key.dart';
+import 'package:flutter_pcgen/src/base/util/map_to_list.dart';
+import 'package:flutter_pcgen/src/base/util/hash_map_to_list.dart';
+import 'package:flutter_pcgen/src/cdom/base/associated_prereq_object.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_list.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_object.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_reference.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/association_key.dart';
 import 'associated_changes.dart';
 
 // TODO: ReferenceUtilities (REFERENCE_SORTER comparator) not yet translated.

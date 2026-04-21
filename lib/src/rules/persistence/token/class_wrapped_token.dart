@@ -2,7 +2,7 @@
 //
 // Translation of pcgen.rules.persistence.token.ClassWrappedToken
 
-import '../../../rules/context/load_context.dart';
+import 'package:flutter_pcgen/src/rules/context/load_context.dart';
 import 'cdom_compatibility_token.dart';
 import 'cdom_token.dart';
 import 'parse_result.dart';

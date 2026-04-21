@@ -2,13 +2,13 @@
 //
 // Translation of pcgen.cdom.facet.analysis.LegalDeityFacet
 
-import '../../base/cdom_reference.dart';
-import '../../enumeration/char_id.dart';
-import '../../enumeration/list_key.dart';
-import '../../../core/deity.dart';
-import '../../../core/pc_class.dart';
-import '../model/class_facet.dart';
-import '../prerequisite_facet.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_reference.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/list_key.dart';
+import 'package:flutter_pcgen/src/core/deity.dart';
+import 'package:flutter_pcgen/src/core/pc_class.dart';
+import 'package:flutter_pcgen/src/cdom/facet/model/class_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/prerequisite_facet.dart';
 
 /// Tracks which Deity objects the Player Character may select.
 class LegalDeityFacet {

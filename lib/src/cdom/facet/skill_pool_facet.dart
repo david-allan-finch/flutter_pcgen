@@ -7,7 +7,7 @@
 
 // Translation of pcgen.cdom.facet.SkillPoolFacet
 
-import '../enumeration/char_id.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
 import 'base/abstract_association_facet.dart';
 
 /// Stores the number of Skill Points associated to a specific PCClass for a

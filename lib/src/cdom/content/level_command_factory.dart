@@ -16,9 +16,9 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.content.LevelCommandFactory
-import '../../core/pc_class.dart';
-import '../base/concrete_prereq_object.dart';
-import '../base/cdom_single_ref.dart';
+import 'package:flutter_pcgen/src/core/pc_class.dart';
+import 'package:flutter_pcgen/src/cdom/base/concrete_prereq_object.dart';
+import 'package:flutter_pcgen/src/cdom/reference/cdom_single_ref.dart';
 
 // Identifies a PCClass to be applied with a given number of levels to a PC.
 class LevelCommandFactory extends ConcretePrereqObject implements Comparable<LevelCommandFactory> {

@@ -16,21 +16,21 @@
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
 //
 // Translation of pcgen.cdom.base.CDOMObject
-import '../../base/util/indirect.dart';
-import '../../base/util/object_container.dart';
-import '../enumeration/fact_key.dart';
-import '../enumeration/fact_set_key.dart';
-import '../enumeration/formula_key.dart';
-import '../enumeration/integer_key.dart';
-import '../enumeration/list_key.dart';
-import '../enumeration/map_key.dart';
-import '../enumeration/object_key.dart';
-import '../enumeration/string_key.dart';
-import '../enumeration/variable_key.dart';
-import '../formula/pcgen_scoped.dart';
-import '../util/fact_set_key_map_to_list.dart';
-import '../util/list_key_map_to_list.dart';
-import '../util/map_key_map.dart';
+import 'package:flutter_pcgen/src/base/util/indirect.dart';
+import 'package:flutter_pcgen/src/base/util/object_container.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/fact_key.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/fact_set_key.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/formula_key.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/integer_key.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/list_key.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/map_key.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/object_key.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/string_key.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/variable_key.dart';
+import 'package:flutter_pcgen/src/cdom/formula/pcgen_scoped.dart';
+import 'package:flutter_pcgen/src/cdom/util/fact_set_key_map_to_list.dart';
+import 'package:flutter_pcgen/src/cdom/util/list_key_map_to_list.dart';
+import 'package:flutter_pcgen/src/cdom/util/map_key_map.dart';
 import 'bonus_container.dart';
 import 'concrete_prereq_object.dart';
 import 'loadable.dart';

@@ -5,8 +5,8 @@
 // Software Foundation; either version 2.1 of the License, or (at your option)
 // any later version.
 
-import '../../enumeration/char_id.dart';
-import '../event/data_facet_change_event.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
+import 'package:flutter_pcgen/src/cdom/facet/event/data_facet_change_event.dart';
 import 'abstract_data_facet.dart';
 
 /// Storage class for AbstractItemConvertingFacet: holds the converted destination

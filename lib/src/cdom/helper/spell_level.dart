@@ -15,8 +15,8 @@
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
 //
 // Translation of pcgen.cdom.helper.SpellLevel
-import '../../core/pc_class.dart';
-import '../../rules/context/load_context.dart';
+import 'package:flutter_pcgen/src/core/pc_class.dart';
+import 'package:flutter_pcgen/src/rules/context/load_context.dart';
 
 // Associates a spell level with a PCClass; used in spell level choices.
 class SpellLevel implements Comparable<SpellLevel> {

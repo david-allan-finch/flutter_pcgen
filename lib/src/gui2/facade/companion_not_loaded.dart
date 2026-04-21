@@ -17,10 +17,10 @@
 //
 // Translation of pcgen.gui2.facade.CompanionNotLoaded
 
-import '../../core/race.dart';
-import '../../facade/core/companion_facade.dart';
-import '../../facade/util/default_reference_facade.dart';
-import '../../facade/util/reference_facade.dart';
+import 'package:flutter_pcgen/src/core/race.dart';
+import 'package:flutter_pcgen/src/facade/core/companion_facade.dart';
+import 'package:flutter_pcgen/src/facade/util/default_reference_facade.dart';
+import 'package:flutter_pcgen/src/facade/util/reference_facade.dart';
 
 /// Represents a character's companion (familiar, animal companion, mount etc)
 /// that is not currently loaded.

@@ -16,7 +16,7 @@
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
 //
 // Translation of pcgen.cdom.helper.AbstractSimpleProfProvider
-import '../base/cdom_object.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_object.dart';
 import 'prof_provider.dart';
 
 // An AbstractSimpleProfProvider grants proficiency based on a single

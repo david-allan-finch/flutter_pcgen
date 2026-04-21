@@ -16,9 +16,9 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.content.ContentDefinition
-import '../../base/util/format_manager.dart';
-import '../base/cdom_object.dart';
-import '../base/loadable.dart';
+import 'package:flutter_pcgen/src/base/util/format_manager.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_object.dart';
+import 'package:flutter_pcgen/src/cdom/base/loadable.dart';
 import 'user_content.dart';
 
 // Visibility levels for ContentDefinition fields.

@@ -2,7 +2,7 @@
 //
 // Translation of pcgen.cdom.formula.VariableWrapperFactory
 
-import '../../enumeration/char_id.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
 import 'variable_wrapper.dart';
 
 /// Factory interface for creating VariableWrapper objects.

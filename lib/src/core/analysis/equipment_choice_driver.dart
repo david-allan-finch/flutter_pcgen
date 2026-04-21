@@ -17,8 +17,8 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.core.analysis.EquipmentChoiceDriver
-import '../../../cdom/enumeration/string_key.dart';
-import '../../player_character.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/string_key.dart';
+import 'package:flutter_pcgen/src/core/player_character.dart';
 
 // Drives the equipment-modifier choice UI for adding/removing EquipmentModifiers.
 final class EquipmentChoiceDriver {

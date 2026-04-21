@@ -16,7 +16,7 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.processor.ContextProcessor
-import '../content/processor.dart';
+import 'package:flutter_pcgen/src/cdom/content/processor.dart';
 
 // A Processor that conditionally applies an underlying Processor based on context.
 class ContextProcessor<T, R> implements Processor<T> {

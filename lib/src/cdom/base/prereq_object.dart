@@ -17,7 +17,7 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.base.PrereqObject
-import '../prereq/prerequisite.dart';
+import 'package:flutter_pcgen/src/cdom/prereq/prerequisite.dart';
 
 // An object that contains a list of Prerequisites.
 abstract interface class PrereqObject {

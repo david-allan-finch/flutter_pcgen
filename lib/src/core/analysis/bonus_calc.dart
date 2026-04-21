@@ -16,11 +16,11 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.core.analysis.BonusCalc
-import '../equipment.dart';
-import '../p_object.dart';
-import '../pc_stat.dart';
-import '../player_character.dart';
-import '../bonus/bonus_obj.dart';
+import 'package:flutter_pcgen/src/core/equipment.dart';
+import 'package:flutter_pcgen/src/core/pcobject.dart';
+import 'package:flutter_pcgen/src/core/pc_stat.dart';
+import 'package:flutter_pcgen/src/core/player_character.dart';
+import 'package:flutter_pcgen/src/core/bonus/bonus_obj.dart';
 
 // Utility class for computing bonus values from BONUS: tags.
 abstract final class BonusCalc {

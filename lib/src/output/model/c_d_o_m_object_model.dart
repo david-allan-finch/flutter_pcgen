@@ -17,7 +17,7 @@
 //
 // Translation of pcgen.output.model.CDOMObjectModel
 
-import '../base/output_actor.dart';
+import 'package:flutter_pcgen/src/output/base/output_actor.dart';
 
 /// Output model wrapping a CDOMObject. Provides hash-model access to actors
 /// registered for the object's type.

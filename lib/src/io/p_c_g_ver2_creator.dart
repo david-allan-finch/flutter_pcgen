@@ -17,7 +17,7 @@
 //
 // Translation of pcgen.io.PCGVer2Creator
 
-import '../core/player_character.dart';
+import 'package:flutter_pcgen/src/core/player_character.dart';
 import 'io_constants.dart';
 
 /// Serialises a [PlayerCharacter] to PCGen PCG v2 file format.

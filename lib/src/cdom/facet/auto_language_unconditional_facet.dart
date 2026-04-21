@@ -2,8 +2,8 @@
 //
 // Translation of pcgen.cdom.facet.AutoLanguageUnconditionalFacet
 
-import '../enumeration/char_id.dart';
-import '../../core/language.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
+import 'package:flutter_pcgen/src/core/language.dart';
 import 'base/abstract_sourced_list_facet.dart';
 import 'model/language_facet.dart';
 

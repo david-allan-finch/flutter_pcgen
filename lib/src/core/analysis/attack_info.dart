@@ -16,8 +16,8 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.core.analysis.AttackInfo
-import '../player_character.dart';
-import '../display/character_display.dart';
+import 'package:flutter_pcgen/src/core/player_character.dart';
+import 'package:flutter_pcgen/src/core/display/character_display.dart';
 
 enum AttackType { melee, ranged, grapple, unarmed }
 

@@ -16,9 +16,9 @@
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
 //
 // Translation of pcgen.cdom.facet.base.AbstractScopeFacet
-import '../../base/pcgen_identifier.dart';
-import '../event/scope_facet_change_event.dart';
-import '../event/scope_facet_change_listener.dart';
+import 'package:flutter_pcgen/src/cdom/base/pcgen_identifier.dart';
+import 'package:flutter_pcgen/src/cdom/facet/event/scope_facet_change_event.dart';
+import 'package:flutter_pcgen/src/cdom/facet/event/scope_facet_change_listener.dart';
 import 'abstract_storage_facet.dart';
 
 // Facet keyed by (IDT, scope S) → objects T with multi-source tracking.

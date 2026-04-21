@@ -16,7 +16,7 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.core.character.EquipSlot
-import '../globals.dart';
+import 'package:flutter_pcgen/src/core/globals.dart';
 
 // Defines an equipment slot (Neck, Body, Fingers, etc.) and what it can hold.
 // Format: EQSLOT:Neck  CONTAINS:PERIAPT,AMULET=1  NUMBER:HEAD

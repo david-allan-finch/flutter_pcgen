@@ -2,9 +2,9 @@
 //
 // Translation of pcgen.cdom.facet.VariableStoreFacet
 
-import '../enumeration/char_id.dart';
-import '../formula/monitorable_variable_store.dart';
-import '../../formula/base/variable_id.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
+import 'package:flutter_pcgen/src/cdom/formula/monitorable_variable_store.dart';
+import 'package:flutter_pcgen/src/formula/base/variable_id.dart';
 import 'base/abstract_item_facet.dart';
 
 /// Stores the [MonitorableVariableStore] (results of the new formula system

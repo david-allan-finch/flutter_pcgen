@@ -16,9 +16,9 @@
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
 //
 // Translation of pcgen.cdom.reference.CDOMCompoundOrReference
-import '../base/cdom_reference.dart';
-import '../base/class_identity.dart';
-import '../enumeration/grouping_state.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_reference.dart';
+import 'package:flutter_pcgen/src/cdom/base/class_identity.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/grouping_state.dart';
 import 'cdom_group_ref.dart';
 
 // A CDOMGroupRef that joins one or more CDOMReferences with logical OR:

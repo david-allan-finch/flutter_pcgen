@@ -2,7 +2,7 @@
 //
 // Translation of pcgen.cdom.formula.VariableChannelFactory
 
-import '../../enumeration/char_id.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
 import 'variable_channel.dart';
 
 /// Factory interface for creating VariableChannel objects.

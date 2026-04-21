@@ -17,9 +17,9 @@
 //
 // Translation of pcgen.persistence.lst.FeatLoader
 
-import '../../core/ability.dart';
-import '../../core/ability_category.dart';
-import '../../rules/context/load_context.dart';
+import 'package:flutter_pcgen/src/core/ability.dart';
+import 'package:flutter_pcgen/src/core/ability_category.dart';
+import 'package:flutter_pcgen/src/rules/context/load_context.dart';
 import 'ability_loader.dart';
 import 'source_entry.dart';
 

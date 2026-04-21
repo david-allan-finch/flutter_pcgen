@@ -2,10 +2,10 @@
 //
 // Translation of pcgen.cdom.facet.MonsterClassFacet
 
-import '../base/cdom_object.dart';
-import '../enumeration/char_id.dart';
-import '../enumeration/object_key.dart';
-import '../../core/pc_class.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_object.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/object_key.dart';
+import 'package:flutter_pcgen/src/core/pc_class.dart';
 import 'analysis/level_facet.dart';
 import 'event/data_facet_change_event.dart';
 import 'event/data_facet_change_listener.dart';

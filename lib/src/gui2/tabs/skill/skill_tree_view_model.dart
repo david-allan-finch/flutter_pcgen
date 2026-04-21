@@ -18,8 +18,8 @@
 // Translation of pcgen.gui2.tabs.skill.SkillTreeViewModel
 
 import 'package:flutter/foundation.dart';
-import '../../util/treeview/tree_view.dart';
-import '../../util/treeview/tree_view_path.dart';
+import 'package:flutter_pcgen/src/gui2/util/treeview/tree_view.dart';
+import 'package:flutter_pcgen/src/gui2/util/treeview/tree_view_path.dart';
 
 /// Tree view model for skills, supporting grouping by name, type, or cost.
 class SkillTreeViewModel extends ChangeNotifier {

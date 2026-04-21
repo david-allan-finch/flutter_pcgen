@@ -2,7 +2,7 @@
 //
 // Translation of pcgen.rules.persistence.CDOMSubLineLoader
 
-import '../../rules/context/load_context.dart';
+import 'package:flutter_pcgen/src/rules/context/load_context.dart';
 
 /// Generic loader for a named prefix within a multi-section LST file.
 ///

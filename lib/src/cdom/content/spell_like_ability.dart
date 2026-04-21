@@ -16,8 +16,8 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.content.SpellLikeAbility
-import '../../core/spell.dart';
-import '../base/concrete_prereq_object.dart';
+import 'package:flutter_pcgen/src/core/spell/spell.dart';
+import 'package:flutter_pcgen/src/cdom/base/concrete_prereq_object.dart';
 
 // Represents a spell-like ability with cast times, caster level, DC, and book info.
 class SpellLikeAbility extends ConcretePrereqObject {

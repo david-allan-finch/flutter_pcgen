@@ -2,17 +2,17 @@
 //
 // Translation of pcgen.cdom.facet.analysis.ListToSkillCostFacet
 
-import '../../enumeration/char_id.dart';
-import '../../enumeration/skill_cost.dart';
-import '../../../core/pc_class.dart';
-import '../../../core/skill.dart';
-import '../../list/class_skill_list.dart';
-import '../base/abstract_sub_scope_facet.dart';
-import '../event/scope_facet_change_event.dart';
-import '../event/scope_facet_change_listener.dart';
-import '../event/sub_scope_facet_change_event.dart';
-import '../event/sub_scope_facet_change_listener.dart';
-import '../model/skill_list_facet.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/skill_cost.dart';
+import 'package:flutter_pcgen/src/core/pc_class.dart';
+import 'package:flutter_pcgen/src/core/skill.dart';
+import 'package:flutter_pcgen/src/cdom/list/class_skill_list.dart';
+import 'package:flutter_pcgen/src/cdom/facet/base/abstract_sub_scope_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/event/scope_facet_change_event.dart';
+import 'package:flutter_pcgen/src/cdom/facet/event/scope_facet_change_listener.dart';
+import 'package:flutter_pcgen/src/cdom/facet/event/sub_scope_facet_change_event.dart';
+import 'package:flutter_pcgen/src/cdom/facet/event/sub_scope_facet_change_listener.dart';
+import 'package:flutter_pcgen/src/cdom/facet/model/skill_list_facet.dart';
 
 /// Maps MONCSKILL/MONCCSKILL skills to SkillCost per PCClass.
 class ListToSkillCostFacet extends AbstractSubScopeFacet<PCClass, SkillCost, Skill>

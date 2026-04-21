@@ -1,6 +1,6 @@
-import '../base/formula_function.dart';
-import '../base/function_library.dart';
-import '../base/writeable_function_library.dart';
+import 'package:flutter_pcgen/src/formula/base/formula_function.dart';
+import 'package:flutter_pcgen/src/formula/base/function_library.dart';
+import 'package:flutter_pcgen/src/formula/base/writeable_function_library.dart';
 
 class SimpleFunctionLibrary implements WriteableFunctionLibrary {
   final Map<String, FormulaFunction> _functions = {};

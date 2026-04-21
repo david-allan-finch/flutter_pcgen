@@ -17,8 +17,8 @@
 //
 // Translation of pcgen.persistence.lst.CompanionModLoader
 
-import '../../core/character/companion_mod.dart';
-import '../../rules/context/load_context.dart';
+import 'package:flutter_pcgen/src/core/character/companion_mod.dart';
+import 'package:flutter_pcgen/src/rules/context/load_context.dart';
 import 'simple_loader.dart';
 import 'source_entry.dart';
 

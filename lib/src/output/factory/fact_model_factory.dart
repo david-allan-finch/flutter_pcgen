@@ -17,8 +17,8 @@
 //
 // Translation of pcgen.output.factory.FactModelFactory
 
-import '../base/model_factory.dart';
-import '../model/fact_facet_model.dart';
+import 'package:flutter_pcgen/src/output/base/model_factory.dart';
+import 'package:flutter_pcgen/src/output/model/fact_facet_model.dart';
 
 /// A ModelFactory that wraps a FactFacet and produces FactFacetModel objects.
 class FactModelFactory implements ModelFactory {

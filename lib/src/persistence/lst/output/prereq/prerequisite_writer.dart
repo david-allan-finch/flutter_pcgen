@@ -2,7 +2,7 @@
 //
 // Translation of pcgen.persistence.lst.output.prereq.PrerequisiteWriter
 
-import '../../../../core/prereq/prerequisite.dart';
+import 'package:flutter_pcgen/src/core/prereq/prerequisite.dart';
 import 'prerequisite_writer_factory.dart';
 
 /// Serialises Prerequisite objects back to their LST string representation.

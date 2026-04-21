@@ -16,7 +16,7 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.reference.UnconstructedValidator
-import '../base/class_identity.dart';
+import 'package:flutter_pcgen/src/cdom/base/class_identity.dart';
 
 // Indicates what behaviors are allowed for a given class/ClassIdentity,
 // such as unconstructed references and duplicates.

@@ -17,8 +17,8 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.core.bonus.BonusPair
-import '../../cdom/base/cdom_object.dart';
-import '../player_character.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_object.dart';
+import 'package:flutter_pcgen/src/core/player_character.dart';
 
 // Represents a resolved bonus key → formula pair, used during bonus calculation.
 class BonusPair {

@@ -19,9 +19,9 @@
 // Copyright 2006 Aaron Divinsky <boomer70@yahoo.com>
 //
 // Translation of pcgen.core.QualifiedObject
-import '../cdom/base/concrete_prereq_object.dart';
-import '../cdom/base/cdom_object.dart';
-import '../cdom/prereq/prerequisite.dart';
+import 'package:flutter_pcgen/src/cdom/base/concrete_prereq_object.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_object.dart';
+import 'package:flutter_pcgen/src/cdom/prereq/prerequisite.dart';
 import 'player_character.dart';
 
 // Associates an object with a set of prerequisites — the object is only

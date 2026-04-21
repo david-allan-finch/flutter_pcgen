@@ -16,7 +16,7 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.core.SpecialProperty
-import '../cdom/prereq/prerequisite.dart';
+import 'package:flutter_pcgen/src/cdom/prereq/prerequisite.dart';
 import 'text_property.dart';
 
 /// Represents a Special Property (SPROP) in PCGen.

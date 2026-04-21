@@ -2,8 +2,8 @@
 //
 // Translation of pcgen.core.character.CompanionMod
 
-import '../pcobject.dart';
-import '../categorized.dart';
+import 'package:flutter_pcgen/src/core/pcobject.dart';
+import 'package:flutter_pcgen/src/cdom/base/categorized.dart';
 
 /// Represents a companion modifier that can be applied to a companion
 /// character based on race or class level of the owner.

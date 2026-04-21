@@ -16,9 +16,9 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.list.ClassSpellList
-import '../base/cdom_list_object.dart';
-import '../enumeration/type.dart' as cdom;
-import '../../core/spell/spell.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_list_object.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/type.dart' as cdom;
+import 'package:flutter_pcgen/src/core/spell/spell.dart';
 
 // A named list of spells associated with a PCClass.
 class ClassSpellList extends CDOMListObject<Spell> {

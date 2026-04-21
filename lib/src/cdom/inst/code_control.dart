@@ -16,7 +16,7 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.inst.CodeControl
-import '../base/cdom_object.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_object.dart';
 
 // Holds code-control settings loaded from LST data.
 final class CodeControl extends CDOMObject {

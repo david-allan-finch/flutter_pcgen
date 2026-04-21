@@ -2,7 +2,7 @@
 //
 // Translation of pcgen.persistence.lst.prereq.AbstractPrerequisiteParser
 
-import '../../../core/prereq/prerequisite.dart';
+import 'package:flutter_pcgen/src/core/prereq/prerequisite.dart';
 import 'prerequisite_parser_interface.dart';
 
 /// Abstract base for prerequisite parsers. Validates the kind against

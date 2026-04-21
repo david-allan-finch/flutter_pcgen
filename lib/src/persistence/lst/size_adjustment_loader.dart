@@ -18,8 +18,8 @@
 //
 // Translation of pcgen.persistence.lst.SizeAdjustmentLoader
 
-import '../../core/size_adjustment.dart';
-import '../../rules/context/load_context.dart';
+import 'package:flutter_pcgen/src/core/size_adjustment.dart';
+import 'package:flutter_pcgen/src/rules/context/load_context.dart';
 import 'lst_line_file_loader.dart';
 
 /// Loads SizeAdjustment objects from a size.lst game mode file.

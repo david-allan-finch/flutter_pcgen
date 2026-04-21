@@ -15,7 +15,7 @@
 //
 // Translation of pcgen.output.factory.ChannelFactory
 
-import '../base/model_factory.dart';
+import 'package:flutter_pcgen/src/output/base/model_factory.dart';
 
 /// A ModelFactory that produces output from a channel variable (CControl).
 class ChannelFactory implements ModelFactory {

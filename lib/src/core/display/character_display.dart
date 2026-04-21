@@ -5,7 +5,7 @@
 // Read-only view of a PlayerCharacter's data, routed through facets keyed on
 // CharID. Each method delegates to the appropriate facet singleton.
 
-import '../../enumeration/char_id.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
 
 /// A read-only facade for a character's data. Prerequisite tests and display
 /// utilities use this class instead of directly accessing PlayerCharacter.

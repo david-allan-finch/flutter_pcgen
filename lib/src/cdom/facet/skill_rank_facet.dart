@@ -2,9 +2,9 @@
 //
 // Translation of pcgen.cdom.facet.SkillRankFacet
 
-import '../enumeration/char_id.dart';
-import '../../core/pc_class.dart';
-import '../../core/skill.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
+import 'package:flutter_pcgen/src/core/pc_class.dart';
+import 'package:flutter_pcgen/src/core/skill.dart';
 import 'base/abstract_storage_facet.dart';
 
 /// Stores per-class skill rank assignments for each Skill on a Player Character.

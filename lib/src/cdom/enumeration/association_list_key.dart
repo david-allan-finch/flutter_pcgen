@@ -16,7 +16,7 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.enumeration.AssociationListKey
-import '../../base/util/fixed_string_list.dart';
+import 'package:flutter_pcgen/src/base/util/fixed_string_list.dart';
 
 // Type-safe list key for use with AssociatedObject.
 final class AssociationListKey<T> {

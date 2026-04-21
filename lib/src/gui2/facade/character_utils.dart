@@ -17,14 +17,14 @@
 //
 // Translation of pcgen.gui2.facade.CharacterUtils
 
-import '../../core/equipment.dart';
-import '../../core/player_character.dart';
-import '../../core/size_adjustment.dart';
-import '../../core/globals.dart';
-import '../../core/rule_constants.dart';
-import '../../core/equipment_list.dart';
-import '../../system/language_bundle.dart';
-import '../../util/logging.dart';
+import 'package:flutter_pcgen/src/core/equipment.dart';
+import 'package:flutter_pcgen/src/core/player_character.dart';
+import 'package:flutter_pcgen/src/core/size_adjustment.dart';
+import 'package:flutter_pcgen/src/core/globals.dart';
+import 'package:flutter_pcgen/src/core/rule_constants.dart';
+import 'package:flutter_pcgen/src/core/equipment_list.dart';
+import 'package:flutter_pcgen/src/system/language_bundle.dart';
+import 'package:flutter_pcgen/src/base/logging/pcgen_logging.dart';
 
 /// Utility class for character-related operations.
 final class CharacterUtils {

@@ -5,7 +5,7 @@
 // Software Foundation; either version 2.1 of the License, or (at your option)
 // any later version.
 
-import '../../../enumeration/char_id.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
 
 // stub: OutputDB.register("weaponprofs", this)
 // dynamic: WeaponProf, Equipment, WeaponProfFacet, AutoWeaponProfFacet,

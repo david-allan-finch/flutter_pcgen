@@ -16,9 +16,9 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.core.analysis.SubstitutionLevelSupport
-import '../../pc_class.dart';
-import '../../player_character.dart';
-import '../substitution_class.dart';
+import 'package:flutter_pcgen/src/core/pc_class.dart';
+import 'package:flutter_pcgen/src/core/player_character.dart';
+import 'package:flutter_pcgen/src/core/substitution_class.dart';
 
 // Handles application and qualification checking for substitution class levels.
 final class SubstitutionLevelSupport {

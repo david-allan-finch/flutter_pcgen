@@ -2,7 +2,7 @@
 //
 // Translation of pcgen.cdom.facet.ConditionallyGrantedAvailableSpellFacet
 
-import '../enumeration/char_id.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
 import 'available_spell_facet.dart';
 import 'conditionally_available_spell_facet.dart';
 

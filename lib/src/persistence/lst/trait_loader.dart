@@ -17,7 +17,7 @@
 //
 // Translation of pcgen.persistence.lst.TraitLoader
 
-import '../../core/system_collections.dart';
+import 'package:flutter_pcgen/src/core/system_collections.dart';
 import 'lst_line_file_loader.dart';
 
 /// Loads trait/speech/phrase/phobia/interests/hair-style lists from .lst files.

@@ -21,9 +21,9 @@ import 'package:flutter/foundation.dart';
 import 'tree_view.dart';
 import 'tree_view_path.dart';
 import 'data_view.dart';
-import '../../facade/util/list_facade.dart';
-import '../../facade/util/event/list_listener.dart';
-import '../../facade/util/event/list_event.dart';
+import 'package:flutter_pcgen/src/facade/util/list_facade.dart';
+import 'package:flutter_pcgen/src/facade/util/event/list_listener.dart';
+import 'package:flutter_pcgen/src/facade/util/event/list_event.dart';
 
 /// A ChangeNotifier model that combines a TreeView (hierarchy strategy)
 /// with a DataView (column data) over a ListFacade.

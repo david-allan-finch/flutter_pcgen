@@ -14,7 +14,7 @@
 // Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.core.MoveClone
-import '../cdom/enumeration/movement_type.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/movement_type.dart';
 
 // Represents a movement type that is cloned from another type,
 // with a formula-based conversion factor.

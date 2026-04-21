@@ -14,13 +14,13 @@
 // Fifth Floor, Boston, MA 02110-1301, USA
 //
 // Translation of pcgen.cdom.inst.Dynamic
-import '../../formula/base/var_scoped.dart';
-import '../base/categorized.dart';
-import '../base/category.dart';
-import '../base/loadable.dart';
-import '../base/var_holder.dart';
-import '../content/remote_modifier.dart';
-import '../content/var_modifier.dart';
+import 'package:flutter_pcgen/src/formula/base/var_scoped.dart';
+import 'package:flutter_pcgen/src/cdom/base/categorized.dart';
+import 'package:flutter_pcgen/src/cdom/base/category.dart';
+import 'package:flutter_pcgen/src/cdom/base/loadable.dart';
+import 'package:flutter_pcgen/src/cdom/base/var_holder.dart';
+import 'package:flutter_pcgen/src/cdom/content/remote_modifier.dart';
+import 'package:flutter_pcgen/src/cdom/content/var_modifier.dart';
 
 // A Dynamic is a data-driven object with no hard-coded behaviors.
 // It behaves as defined by the game data, backed by a variable holder.

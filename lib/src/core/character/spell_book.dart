@@ -16,7 +16,7 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.core.character.SpellBook
-import '../equipment.dart';
+import 'package:flutter_pcgen/src/core/equipment.dart';
 
 // Contains details of a prepared spell list or spell book.
 class SpellBook {

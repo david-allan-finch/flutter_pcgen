@@ -5,16 +5,16 @@
 // stub has been replaced by this complete translation so that LoadContextInst
 // can implement it faithfully.
 
-import '../../base/util/format_manager.dart';
-import '../../cdom/base/cdom_object.dart';
-import '../../cdom/base/cdom_reference.dart';
-import '../../cdom/base/group_definition.dart';
-import '../../cdom/base/loadable.dart';
-import '../../cdom/base/primitive_collection.dart';
-import '../../cdom/enumeration/data_set_id.dart';
-import '../../cdom/reference/reference_manufacturer.dart';
-import '../../cdom/reference/selection_creator.dart';
-import '../../formula/inst/nep_formula.dart';
+import 'package:flutter_pcgen/src/base/util/format_manager.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_object.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_reference.dart';
+import 'package:flutter_pcgen/src/cdom/base/group_definition.dart';
+import 'package:flutter_pcgen/src/cdom/base/loadable.dart';
+import 'package:flutter_pcgen/src/cdom/base/primitive_collection.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/data_set_id.dart';
+import 'package:flutter_pcgen/src/cdom/reference/reference_manufacturer.dart';
+import 'package:flutter_pcgen/src/cdom/reference/selection_creator.dart';
+import 'package:flutter_pcgen/src/formula/inst/nep_formula.dart';
 import 'abstract_list_context.dart';
 import 'abstract_object_context.dart';
 import 'runtime_reference_context.dart' show AbstractReferenceContext;

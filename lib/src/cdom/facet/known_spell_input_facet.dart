@@ -2,15 +2,15 @@
 //
 // Translation of pcgen.cdom.facet.KnownSpellInputFacet
 
-import '../base/cdom_list.dart';
-import '../base/cdom_object.dart';
-import '../base/cdom_reference.dart';
-import '../enumeration/association_key.dart';
-import '../enumeration/char_id.dart';
-import '../helper/available_spell.dart';
-import '../list/class_spell_list.dart';
-import '../list/domain_spell_list.dart';
-import '../../core/spell/spell.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_list.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_object.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_reference.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/association_key.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
+import 'package:flutter_pcgen/src/cdom/helper/available_spell.dart';
+import 'package:flutter_pcgen/src/cdom/list/class_spell_list.dart';
+import 'package:flutter_pcgen/src/cdom/list/domain_spell_list.dart';
+import 'package:flutter_pcgen/src/core/spell/spell.dart';
 import 'cdom_object_consolidation_facet.dart';
 import 'conditionally_known_spell_facet.dart';
 import 'event/data_facet_change_event.dart';

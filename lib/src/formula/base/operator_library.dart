@@ -1,7 +1,7 @@
-import '../../../base/util/format_manager.dart';
+import 'package:flutter_pcgen/src/base/util/format_manager.dart';
 import 'operator_action.dart';
 import 'unary_action.dart';
-import '../parse/operator.dart';
+import 'package:flutter_pcgen/src/formula/parse/operator.dart';
 
 abstract interface class OperatorLibrary {
   void addAction(OperatorAction action);

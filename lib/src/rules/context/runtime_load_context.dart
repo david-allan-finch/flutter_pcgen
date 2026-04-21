@@ -16,8 +16,8 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.rules.context.RuntimeLoadContext
-import '../../cdom/base/cdom_object.dart';
-import '../../cdom/base/loadable.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_object.dart';
+import 'package:flutter_pcgen/src/cdom/base/loadable.dart';
 import 'abstract_reference_context.dart';
 import 'load_context.dart';
 

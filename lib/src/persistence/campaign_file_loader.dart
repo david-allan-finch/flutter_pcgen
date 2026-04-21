@@ -19,12 +19,12 @@
 
 import 'dart:io';
 
-import '../core/campaign.dart';
-import '../core/globals.dart';
-import '../system/p_c_gen_task.dart';
-import '../system/configuration_settings.dart';
-import '../system/p_c_gen_settings.dart';
-import '../system/language_bundle.dart';
+import 'package:flutter_pcgen/src/core/campaign.dart';
+import 'package:flutter_pcgen/src/core/globals.dart';
+import 'package:flutter_pcgen/src/system/p_c_gen_task.dart';
+import 'package:flutter_pcgen/src/system/configuration_settings.dart';
+import 'package:flutter_pcgen/src/system/p_c_gen_settings.dart';
+import 'package:flutter_pcgen/src/system/language_bundle.dart';
 import 'persistence_layer_exception.dart';
 import 'recursive_file_finder.dart';
 import 'lst/campaign_loader.dart';

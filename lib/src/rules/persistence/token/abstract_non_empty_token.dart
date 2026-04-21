@@ -17,7 +17,7 @@
 //
 // Translation of pcgen.rules.persistence.token.AbstractNonEmptyToken
 
-import '../../../rules/context/load_context.dart';
+import 'package:flutter_pcgen/src/rules/context/load_context.dart';
 import 'abstract_token.dart';
 import 'cdom_token.dart';
 import 'parse_result.dart';

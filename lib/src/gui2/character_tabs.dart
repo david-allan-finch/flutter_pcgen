@@ -18,8 +18,8 @@
 // Translation of pcgen.gui2.CharacterTabs
 
 import 'package:flutter/material.dart';
-import '../facade/core/character_facade.dart';
-import '../system/character_manager.dart';
+import 'package:flutter_pcgen/src/facade/core/character_facade.dart';
+import 'package:flutter_pcgen/src/system/character_manager.dart';
 import 'tabs/info_tabbed_pane.dart';
 
 /// Tabbed pane for PCGen characters. Manages the set of open characters

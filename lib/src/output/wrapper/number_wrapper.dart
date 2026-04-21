@@ -17,8 +17,8 @@
 //
 // Translation of pcgen.output.wrapper.NumberWrapper
 
-import '../base/simple_object_wrapper.dart';
-import '../model/number_model.dart';
+import 'package:flutter_pcgen/src/output/base/simple_object_wrapper.dart';
+import 'package:flutter_pcgen/src/output/model/number_model.dart';
 
 /// Wraps Number objects into output models.
 class NumberWrapper implements SimpleObjectWrapper {

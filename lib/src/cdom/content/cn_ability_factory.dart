@@ -16,10 +16,10 @@
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
 //
 // Translation of pcgen.cdom.content.CNAbilityFactory
-import '../base/category.dart';
-import '../enumeration/nature.dart';
+import 'package:flutter_pcgen/src/cdom/base/category.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/nature.dart';
 import 'cn_ability.dart';
-import '../../core/ability.dart';
+import 'package:flutter_pcgen/src/core/ability.dart';
 
 // Factory that interns CNAbility instances to avoid duplicates.
 abstract final class CNAbilityFactory {

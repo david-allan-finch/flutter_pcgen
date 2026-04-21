@@ -16,7 +16,7 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.base.AssociationSupport
-import '../enumeration/association_key.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/association_key.dart';
 import 'associated_object.dart';
 
 // Delegate helper that implements AssociatedObject using a HashMap.

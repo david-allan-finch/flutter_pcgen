@@ -17,7 +17,7 @@
 //
 // Translation of pcgen.output.actor.EqTypeActor
 
-import '../base/output_actor.dart';
+import 'package:flutter_pcgen/src/output/base/output_actor.dart';
 
 /// OutputActor that returns the type(s) of an equipment object.
 class EqTypeActor implements OutputActor<dynamic> {

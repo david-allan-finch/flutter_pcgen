@@ -19,11 +19,11 @@
 
 import 'package:flutter/foundation.dart';
 import 'filter.dart';
-import '../util/treeview/tree_view.dart';
-import '../util/treeview/tree_view_model.dart';
-import '../facade/util/list_facade.dart';
-import '../facade/util/event/list_listener.dart';
-import '../facade/util/event/list_event.dart';
+import 'package:flutter_pcgen/src/gui2/util/treeview/tree_view.dart';
+import 'package:flutter_pcgen/src/gui2/util/treeview/tree_view_model.dart';
+import 'package:flutter_pcgen/src/facade/util/list_facade.dart';
+import 'package:flutter_pcgen/src/facade/util/event/list_listener.dart';
+import 'package:flutter_pcgen/src/facade/util/event/list_event.dart';
 
 /// A TreeViewModel that wraps another and applies a filter.
 class FilteredTreeViewModel<T> extends ChangeNotifier

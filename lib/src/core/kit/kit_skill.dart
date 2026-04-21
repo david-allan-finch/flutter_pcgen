@@ -16,18 +16,18 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.core.kit.KitSkill
-import '../../cdom/base/cdom_reference.dart';
-import '../../cdom/reference/cdom_single_ref.dart';
-import '../../core/kit.dart';
-import '../../core/language.dart';
-import '../../core/pc_class.dart';
-import '../../core/player_character.dart';
-import '../../core/rule_constants.dart';
-import '../../core/globals.dart';
-import '../../core/skill.dart';
-import '../../core/analysis/skill_rank_control.dart';
-import '../../core/pclevelinfo/pc_level_info.dart';
-import '../../base/logging/logging.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_reference.dart';
+import 'package:flutter_pcgen/src/cdom/reference/cdom_single_ref.dart';
+import 'package:flutter_pcgen/src/core/kit.dart';
+import 'package:flutter_pcgen/src/core/language.dart';
+import 'package:flutter_pcgen/src/core/pc_class.dart';
+import 'package:flutter_pcgen/src/core/player_character.dart';
+import 'package:flutter_pcgen/src/core/rule_constants.dart';
+import 'package:flutter_pcgen/src/core/globals.dart';
+import 'package:flutter_pcgen/src/core/skill.dart';
+import 'package:flutter_pcgen/src/core/analysis/skill_rank_control.dart';
+import 'package:flutter_pcgen/src/core/pclevelinfo/pc_level_info.dart';
+import 'package:flutter_pcgen/src/base/logging/pcgen_logging.dart';
 import 'base_kit.dart';
 import 'kit_skill_add.dart';
 

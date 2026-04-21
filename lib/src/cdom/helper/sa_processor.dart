@@ -16,8 +16,8 @@
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
 //
 // Translation of pcgen.cdom.helper.SAProcessor
-import '../../core/player_character.dart';
-import '../../core/special_ability.dart';
+import 'package:flutter_pcgen/src/core/player_character.dart';
+import 'package:flutter_pcgen/src/core/special_ability.dart';
 
 // Processes a SpecialAbility, resolving %CHOICE substitutions from the PC.
 class SAProcessor {

@@ -2,7 +2,7 @@
 //
 // Translation of pcgen.rules.persistence.token.AbstractPCQualifierToken
 
-import '../../../rules/context/load_context.dart';
+import 'package:flutter_pcgen/src/rules/context/load_context.dart';
 import 'qualifier_token.dart';
 
 /// A [QualifierToken] that implements the "PC" qualifier for a specific type of

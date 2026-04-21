@@ -2,10 +2,10 @@
 //
 // Translation of pcgen.cdom.facet.TemplateFeatFacet
 
-import '../enumeration/char_id.dart';
-import '../enumeration/object_key.dart';
-import '../helper/cn_ability_selection.dart';
-import '../../core/pc_template.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/object_key.dart';
+import 'package:flutter_pcgen/src/cdom/helper/cn_ability_selection.dart';
+import 'package:flutter_pcgen/src/core/pc_template.dart';
 import 'base/abstract_sourced_list_facet.dart';
 import 'event/data_facet_change_event.dart';
 import 'event/data_facet_change_listener.dart';

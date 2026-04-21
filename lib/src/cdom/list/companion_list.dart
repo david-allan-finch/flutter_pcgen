@@ -16,9 +16,9 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.list.CompanionList
-import '../base/category.dart';
-import '../base/cdom_list_object.dart';
-import '../../core/race.dart';
+import 'package:flutter_pcgen/src/cdom/base/category.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_list_object.dart';
+import 'package:flutter_pcgen/src/core/race.dart';
 
 // A typed list of companion races (Familiar, Mount, Follower, etc.).
 class CompanionList extends CDOMListObject<Race> implements Category<dynamic> {

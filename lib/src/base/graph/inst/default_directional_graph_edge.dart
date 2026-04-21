@@ -1,4 +1,4 @@
-import '../base/directional_graph_edge.dart';
+import 'package:flutter_pcgen/src/base/graph/base/directional_graph_edge.dart';
 
 class DefaultDirectionalGraphEdge<N> implements DirectionalGraphEdge<N> {
   final N _source;

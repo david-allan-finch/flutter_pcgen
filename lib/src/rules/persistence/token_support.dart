@@ -2,7 +2,7 @@
 //
 // Translation of pcgen.rules.persistence.TokenSupport
 
-import '../../rules/context/load_context.dart';
+import 'package:flutter_pcgen/src/rules/context/load_context.dart';
 import 'token/c_d_o_m_primary_token.dart';
 import 'token/c_d_o_m_secondary_token.dart';
 import 'token/c_d_o_m_token.dart';

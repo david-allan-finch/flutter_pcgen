@@ -19,7 +19,7 @@
 // Translated from PCGen Java source to Dart.
 // Source: pcgen/cdom/facet/input/AutoListShieldProfFacet.java
 
-import '../../../enumeration/char_id.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
 
 /// AutoListShieldProfFacet is a Facet that tracks the ShieldProfs that have been
 /// granted to a Player Character by AUTO:SHIELDPROF|%LIST and converts them to

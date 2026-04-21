@@ -17,8 +17,8 @@
 //
 // Translation of pcgen.output.wrapper.AgeSetWrapper
 
-import '../base/simple_object_wrapper.dart';
-import '../model/age_set_model.dart';
+import 'package:flutter_pcgen/src/output/base/simple_object_wrapper.dart';
+import 'package:flutter_pcgen/src/output/model/age_set_model.dart';
 
 /// Wraps AgeSet objects into output models.
 class AgeSetWrapper implements SimpleObjectWrapper {

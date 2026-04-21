@@ -15,8 +15,8 @@
 //
 // Translation of pcgen.gui2.facade.UnitSetWrappedReference
 
-import '../../facade/util/abstract_reference_facade.dart';
-import '../../facade/util/writeable_reference_facade.dart';
+import 'package:flutter_pcgen/src/facade/util/abstract_reference_facade.dart';
+import 'package:flutter_pcgen/src/facade/util/writeable_reference_facade.dart';
 
 /// A decorator for a WriteableReferenceFacade that converts an underlying value
 /// into a value that is converted to the current unit set.

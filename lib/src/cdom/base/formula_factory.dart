@@ -16,9 +16,9 @@
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
 //
 // Translation of pcgen.cdom.base.FormulaFactory
-import '../../base/formula/formula.dart';
-import '../../base/formula/number_formula.dart';
-import '../../base/formula/string_formula.dart';
+import 'package:flutter_pcgen/src/base/formula/formula.dart';
+import 'package:flutter_pcgen/src/base/formula/number_formula.dart';
+import 'package:flutter_pcgen/src/base/formula/string_formula.dart';
 
 // Factory for creating Formula objects.
 class FormulaFactory {

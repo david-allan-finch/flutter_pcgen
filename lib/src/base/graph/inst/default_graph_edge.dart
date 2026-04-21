@@ -1,4 +1,4 @@
-import '../base/graph_edge.dart';
+import 'package:flutter_pcgen/src/base/graph/base/graph_edge.dart';
 
 class DefaultGraphEdge<N> implements GraphEdge<N> {
   final N _node1;

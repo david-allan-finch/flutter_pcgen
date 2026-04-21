@@ -16,7 +16,7 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.content.VarModifier
-import '../../formula/solver/modifier.dart';
+import 'package:flutter_pcgen/src/formula/solver/modifier.dart';
 
 // A modifier applied to a variable (MODIFY: token).
 class VarModifier<T> {

@@ -17,7 +17,7 @@
 //
 // Translation of pcgen.io.filters.PatternFilter
 
-import '../../core/player_character.dart';
+import 'package:flutter_pcgen/src/core/player_character.dart';
 import 'output_filter.dart';
 
 /// Filters characters by matching a regex pattern against some string property.

@@ -16,8 +16,8 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.list.SpellList
-import '../base/cdom_list_object.dart';
-import '../../core/spell/spell.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_list_object.dart';
+import 'package:flutter_pcgen/src/core/spell/spell.dart';
 
 // A CDOMListObject for Spell objects.
 class SpellList extends CDOMListObject<Spell> {

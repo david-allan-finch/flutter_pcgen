@@ -17,8 +17,8 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.core.analysis.StatAnalysis
-import '../pc_stat.dart';
-import '../player_character.dart';
+import 'package:flutter_pcgen/src/core/pc_stat.dart';
+import 'package:flutter_pcgen/src/core/player_character.dart';
 
 abstract final class StatAnalysis {
   // Retrieve a correctly calculated attribute value where one or more types are excluded.

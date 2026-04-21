@@ -16,8 +16,8 @@
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
 //
 // Translation of pcgen.cdom.helper.EqModRef
-import '../reference/cdom_single_ref.dart';
-import '../../core/equipment_modifier.dart';
+import 'package:flutter_pcgen/src/cdom/reference/cdom_single_ref.dart';
+import 'package:flutter_pcgen/src/core/equipment_modifier.dart';
 
 // A reference to a specific EquipmentModifier with optional choice associations.
 class EqModRef {

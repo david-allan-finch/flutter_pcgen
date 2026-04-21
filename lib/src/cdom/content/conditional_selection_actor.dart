@@ -16,9 +16,9 @@
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
 //
 // Translation of pcgen.cdom.content.ConditionalSelectionActor
-import '../base/choose_selection_actor.dart';
-import '../base/concrete_prereq_object.dart';
-import '../base/choose_driver.dart';
+import 'package:flutter_pcgen/src/cdom/base/choose_selection_actor.dart';
+import 'package:flutter_pcgen/src/cdom/base/concrete_prereq_object.dart';
+import 'package:flutter_pcgen/src/cdom/base/choose_driver.dart';
 
 // A ConditionalSelectionActor decorates a ChooseSelectionActor to make
 // application conditional on Prerequisites. Removal is always unconditional.

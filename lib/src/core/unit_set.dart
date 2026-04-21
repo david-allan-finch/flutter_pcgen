@@ -17,7 +17,7 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.core.UnitSet
-import '../cdom/base/loadable.dart';
+import 'package:flutter_pcgen/src/cdom/base/loadable.dart';
 
 // Represents a measurement unit set (e.g. Imperial or Metric) from game mode.
 // Handles conversion and display formatting for distance, height, and weight.

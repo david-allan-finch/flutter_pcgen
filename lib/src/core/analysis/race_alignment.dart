@@ -16,8 +16,8 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.core.analysis.RaceAlignment
-import '../../../cdom/base/cdom_object.dart';
-import '../pc_alignment.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_object.dart';
+import 'package:flutter_pcgen/src/core/pc_alignment.dart';
 import 'alignment_converter.dart';
 
 // Checks whether a race or other CDOMObject allows a given alignment.

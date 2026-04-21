@@ -16,8 +16,8 @@
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
 //
 // Translation of pcgen.cdom.inst.AbstractCategory
-import '../base/categorized.dart';
-import '../base/category.dart';
+import 'package:flutter_pcgen/src/cdom/base/categorized.dart';
+import 'package:flutter_pcgen/src/cdom/base/category.dart';
 
 // Base class for Category objects that categorize Categorized objects.
 abstract class AbstractCategory<T extends Categorized<T>> implements Category<T> {

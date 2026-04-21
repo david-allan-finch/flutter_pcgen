@@ -17,7 +17,7 @@
 //
 // Translation of pcgen.output.actor.DisplayNameActor
 
-import '../base/output_actor.dart';
+import 'package:flutter_pcgen/src/output/base/output_actor.dart';
 
 /// OutputActor that returns the display name of an object.
 class DisplayNameActor implements OutputActor<dynamic> {

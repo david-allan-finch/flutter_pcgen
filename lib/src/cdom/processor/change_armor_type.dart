@@ -16,7 +16,7 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.processor.ChangeArmorType
-import '../content/processor.dart';
+import 'package:flutter_pcgen/src/cdom/content/processor.dart';
 
 // A Processor that remaps an armor type string to a different type.
 class ChangeArmorType implements Processor<String> {

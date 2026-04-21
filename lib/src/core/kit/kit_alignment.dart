@@ -16,10 +16,10 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.core.kit.KitAlignment
-import '../../cdom/base/cdom_single_ref.dart';
-import '../kit.dart';
-import '../pc_alignment.dart';
-import '../player_character.dart';
+import 'package:flutter_pcgen/src/cdom/reference/cdom_single_ref.dart';
+import 'package:flutter_pcgen/src/core/kit.dart';
+import 'package:flutter_pcgen/src/core/pc_alignment.dart';
+import 'package:flutter_pcgen/src/core/player_character.dart';
 import 'base_kit.dart';
 
 class KitAlignment extends BaseKit {

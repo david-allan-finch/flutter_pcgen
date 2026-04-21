@@ -19,7 +19,7 @@
 // Translated from PCGen Java source to Dart.
 // Source: pcgen/cdom/facet/input/MasterUsableSkillFacet.java
 
-import '../base/abstract_sourced_list_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/base/abstract_sourced_list_facet.dart';
 
 /// MasterUsableSkillFacet stores the set of Skills that are usable untrained
 /// and not exclusive, as determined from the loaded data set.

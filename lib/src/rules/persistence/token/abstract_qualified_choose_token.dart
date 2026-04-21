@@ -2,7 +2,7 @@
 //
 // Translation of pcgen.rules.persistence.token.AbstractQualifiedChooseToken
 
-import '../../../rules/context/load_context.dart';
+import 'package:flutter_pcgen/src/rules/context/load_context.dart';
 import 'abstract_token_with_separator.dart';
 import 'cdom_secondary_token.dart';
 import 'parse_result.dart';

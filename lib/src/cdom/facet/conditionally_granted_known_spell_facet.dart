@@ -2,7 +2,7 @@
 //
 // Translation of pcgen.cdom.facet.ConditionallyGrantedKnownSpellFacet
 
-import '../enumeration/char_id.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
 import 'conditionally_known_spell_facet.dart';
 import 'known_spell_facet.dart';
 

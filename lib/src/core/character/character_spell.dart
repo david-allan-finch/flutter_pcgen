@@ -16,13 +16,13 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.core.character.CharacterSpell
-import '../../cdom/base/cdom_object.dart';
-import '../ability.dart';
-import '../domain.dart';
-import '../pc_class.dart';
-import '../player_character.dart';
-import '../race.dart';
-import '../spell/spell.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_object.dart';
+import 'package:flutter_pcgen/src/core/ability.dart';
+import 'package:flutter_pcgen/src/core/domain.dart';
+import 'package:flutter_pcgen/src/core/pc_class.dart';
+import 'package:flutter_pcgen/src/core/player_character.dart';
+import 'package:flutter_pcgen/src/core/race.dart';
+import 'package:flutter_pcgen/src/core/spell/spell.dart';
 import 'spell_info.dart';
 
 // Associates a Spell with a source (PCClass/Domain/Race) and a list of SpellInfos.

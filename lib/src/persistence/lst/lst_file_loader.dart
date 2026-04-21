@@ -17,7 +17,7 @@
 //
 // Translation of pcgen.persistence.lst.LstFileLoader
 import 'dart:io';
-import '../persistence_layer_exception.dart';
+import 'package:flutter_pcgen/src/persistence/persistence_layer_exception.dart';
 
 // Utility class for reading LST file content from disk.
 class LstFileLoader {

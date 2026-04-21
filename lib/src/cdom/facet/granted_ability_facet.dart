@@ -2,15 +2,15 @@
 //
 // Translation of pcgen.cdom.facet.GrantedAbilityFacet
 
-import '../base/category.dart';
-import '../content/cn_ability.dart';
-import '../enumeration/char_id.dart';
-import '../enumeration/nature.dart';
-import '../enumeration/object_key.dart';
-import '../helper/cn_ability_selection.dart';
-import '../../core/ability.dart';
-import '../../core/ability_category.dart';
-import '../../util/enumeration/view.dart';
+import 'package:flutter_pcgen/src/cdom/base/category.dart';
+import 'package:flutter_pcgen/src/cdom/content/cn_ability.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/nature.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/object_key.dart';
+import 'package:flutter_pcgen/src/cdom/helper/cn_ability_selection.dart';
+import 'package:flutter_pcgen/src/core/ability.dart';
+import 'package:flutter_pcgen/src/core/ability_category.dart';
+import 'package:flutter_pcgen/src/util/enumeration/view.dart';
 import 'base/abstract_cnas_enforcing_facet.dart';
 
 /// Tracks all granted [CNAbilitySelection] objects for a Player Character.

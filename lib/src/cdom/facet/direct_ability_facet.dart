@@ -2,8 +2,8 @@
 //
 // Translation of pcgen.cdom.facet.DirectAbilityFacet
 
-import '../enumeration/char_id.dart';
-import '../helper/cn_ability_selection.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
+import 'package:flutter_pcgen/src/cdom/helper/cn_ability_selection.dart';
 import 'base/abstract_cnas_enforcing_facet.dart';
 import 'event/data_facet_change_event.dart';
 

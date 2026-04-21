@@ -16,8 +16,8 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.processor.HitDieLock
-import '../content/hit_die.dart';
-import '../content/processor.dart';
+import 'package:flutter_pcgen/src/cdom/content/hit_die.dart';
+import 'package:flutter_pcgen/src/cdom/content/processor.dart';
 
 // A Processor that unconditionally returns a fixed HitDie regardless of input.
 class HitDieLock implements Processor<HitDie> {

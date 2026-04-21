@@ -1,8 +1,8 @@
-import '../../../base/util/format_manager.dart';
-import '../base/operator_action.dart';
-import '../base/operator_library.dart';
-import '../base/unary_action.dart';
-import '../parse/operator.dart';
+import 'package:flutter_pcgen/src/base/util/format_manager.dart';
+import 'package:flutter_pcgen/src/formula/base/operator_action.dart';
+import 'package:flutter_pcgen/src/formula/base/operator_library.dart';
+import 'package:flutter_pcgen/src/formula/base/unary_action.dart';
+import 'package:flutter_pcgen/src/formula/parse/operator.dart';
 
 class SimpleOperatorLibrary implements OperatorLibrary {
   final List<OperatorAction> _binaryActions = [];

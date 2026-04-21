@@ -17,10 +17,10 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.core.analysis.QualifiedName
-import '../../../cdom/base/choose_information.dart';
-import '../../../cdom/enumeration/object_key.dart';
-import '../../player_character.dart';
-import '../../skill.dart';
+import 'package:flutter_pcgen/src/cdom/base/choose_information.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/object_key.dart';
+import 'package:flutter_pcgen/src/core/player_character.dart';
+import 'package:flutter_pcgen/src/core/skill.dart';
 import 'output_name_formatting.dart';
 
 // Produces qualified display names for Abilities and Skills (with sub-choices).

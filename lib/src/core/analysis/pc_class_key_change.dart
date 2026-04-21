@@ -17,9 +17,9 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.core.analysis.PCClassKeyChange
-import '../../../cdom/base/cdom_object.dart';
-import '../../../cdom/enumeration/list_key.dart';
-import '../../pc_class.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_object.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/list_key.dart';
+import 'package:flutter_pcgen/src/core/pc_class.dart';
 
 // Renames class-references in variables and bonuses when a PCClass key changes.
 final class PCClassKeyChange {

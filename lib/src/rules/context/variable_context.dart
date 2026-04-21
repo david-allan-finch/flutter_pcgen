@@ -16,18 +16,18 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.rules.context.VariableContext
-import '../../base/util/format_manager.dart';
-import '../../formula/base/formula_function.dart';
-import '../../formula/base/implemented_scope.dart';
-import '../../formula/base/scope_instance.dart';
-import '../../formula/base/variable_id.dart';
-import '../../formula/base/variable_library.dart';
-import '../../formula/base/writeable_function_library.dart';
-import '../../formula/base/writeable_variable_store.dart';
-import '../../formula/inst/nep_formula.dart';
-import '../../formula/inst/simple_function_library.dart';
-import '../../formula/inst/variable_manager.dart';
-import '../../formula/solver/solver_manager.dart';
+import 'package:flutter_pcgen/src/base/util/format_manager.dart';
+import 'package:flutter_pcgen/src/formula/base/formula_function.dart';
+import 'package:flutter_pcgen/src/formula/base/implemented_scope.dart';
+import 'package:flutter_pcgen/src/formula/base/scope_instance.dart';
+import 'package:flutter_pcgen/src/formula/base/variable_id.dart';
+import 'package:flutter_pcgen/src/formula/base/variable_library.dart';
+import 'package:flutter_pcgen/src/formula/base/writeable_function_library.dart';
+import 'package:flutter_pcgen/src/formula/base/writeable_variable_store.dart';
+import 'package:flutter_pcgen/src/formula/inst/nep_formula.dart';
+import 'package:flutter_pcgen/src/formula/inst/simple_function_library.dart';
+import 'package:flutter_pcgen/src/formula/inst/variable_manager.dart';
+import 'package:flutter_pcgen/src/formula/solver/solver_manager.dart';
 
 // TODO: The following Java types are not yet translated to Dart.
 // They are represented as dynamic until translations are available.

@@ -16,8 +16,8 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.enumeration.EqWield
-import '../../core/player_character.dart';
-import '../../core/equipment.dart';
+import 'package:flutter_pcgen/src/core/player_character.dart';
+import 'package:flutter_pcgen/src/core/equipment.dart';
 
 // Represents how a weapon is wielded.
 enum EqWield {

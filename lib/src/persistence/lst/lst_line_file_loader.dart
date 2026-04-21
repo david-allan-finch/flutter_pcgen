@@ -16,8 +16,8 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.persistence.lst.LstLineFileLoader
-import '../../rules/context/load_context.dart';
-import '../persistence_layer_exception.dart';
+import 'package:flutter_pcgen/src/rules/context/load_context.dart';
+import 'package:flutter_pcgen/src/persistence/persistence_layer_exception.dart';
 import 'campaign_source_entry.dart';
 import 'lst_file_loader.dart';
 

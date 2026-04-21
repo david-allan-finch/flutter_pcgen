@@ -16,8 +16,8 @@
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
 //
 // Translation of pcgen.cdom.helper.ShieldProfProvider
-import '../base/cdom_reference.dart';
-import '../../core/shield_prof.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_reference.dart';
+import 'package:flutter_pcgen/src/core/shield_prof.dart';
 import 'abstract_prof_provider.dart';
 
 // A ShieldProfProvider grants shield proficiencies either by direct ShieldProf

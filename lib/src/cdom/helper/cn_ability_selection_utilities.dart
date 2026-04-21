@@ -16,7 +16,7 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.helper.CNAbilitySelectionUtilities
-import '../enumeration/object_key.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/object_key.dart';
 import 'cn_ability_selection.dart';
 
 // Utility methods for checking whether two CNAbilitySelections can coexist on a PC.

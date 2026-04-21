@@ -16,7 +16,7 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.base.ConcretePersistentTransitionChoice
-import '../enumeration/association_list_key.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/association_list_key.dart';
 import 'cdom_object.dart';
 import 'choice_actor.dart';
 import 'concrete_transition_choice.dart';

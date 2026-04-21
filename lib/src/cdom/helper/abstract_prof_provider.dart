@@ -16,10 +16,10 @@
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
 //
 // Translation of pcgen.cdom.helper.AbstractProfProvider
-import '../base/cdom_object.dart';
-import '../base/cdom_reference.dart';
-import '../base/concrete_prereq_object.dart';
-import '../base/constants.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_object.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_reference.dart';
+import 'package:flutter_pcgen/src/cdom/base/concrete_prereq_object.dart';
+import 'package:flutter_pcgen/src/cdom/base/constants.dart';
 import 'prof_provider.dart';
 
 // An AbstractProfProvider holds proficiency references either as direct

@@ -2,10 +2,10 @@
 //
 // Translation of pcgen.cdom.facet.CheckBonusFacet
 
-import '../enumeration/char_id.dart';
-import '../enumeration/list_key.dart';
-import '../../core/bonus/bonus_obj.dart';
-import '../../core/bonus/bonus_utilities.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/list_key.dart';
+import 'package:flutter_pcgen/src/core/bonus/bonus_obj.dart';
+import 'package:flutter_pcgen/src/core/bonus/bonus_utilities.dart';
 import 'bonus_checking_facet.dart';
 import 'model/check_facet.dart';
 

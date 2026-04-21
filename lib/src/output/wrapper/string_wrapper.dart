@@ -17,8 +17,8 @@
 //
 // Translation of pcgen.output.wrapper.StringWrapper
 
-import '../base/simple_object_wrapper.dart';
-import '../model/string_model.dart';
+import 'package:flutter_pcgen/src/output/base/simple_object_wrapper.dart';
+import 'package:flutter_pcgen/src/output/model/string_model.dart';
 
 /// Wraps String objects into output models.
 class StringWrapper implements SimpleObjectWrapper {

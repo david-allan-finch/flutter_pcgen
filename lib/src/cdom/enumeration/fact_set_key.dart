@@ -14,8 +14,8 @@
 // Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.enumeration.FactSetKey
-import '../../base/util/case_insensitive_map.dart';
-import '../../base/util/format_manager.dart';
+import 'package:flutter_pcgen/src/base/util/case_insensitive_map.dart';
+import 'package:flutter_pcgen/src/base/util/format_manager.dart';
 
 // Typesafe key for FACTSET (multi-value FACT) storage in CDOMObject.
 class FactSetKey<T> {

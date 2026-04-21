@@ -15,7 +15,7 @@
 //
 // Translation of pcgen.output.actor.IsVisibleToActor
 
-import '../base/output_actor.dart';
+import 'package:flutter_pcgen/src/output/base/output_actor.dart';
 
 /// OutputActor that checks whether an object is visible for a given view.
 class IsVisibleToActor implements OutputActor<dynamic> {

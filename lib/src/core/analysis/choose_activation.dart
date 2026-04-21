@@ -16,8 +16,8 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.core.analysis.ChooseActivation
-import '../../../cdom/base/cdom_object.dart';
-import '../../../cdom/enumeration/object_key.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_object.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/object_key.dart';
 
 // Checks whether a CDOMObject has a new-style CHOOSE token.
 final class ChooseActivation {

@@ -2,14 +2,14 @@
 //
 // Translation of pcgen.cdom.facet.analysis.BaseMovementFacet
 
-import '../../base/cdom_object.dart';
-import '../../enumeration/char_id.dart';
-import '../../enumeration/list_key.dart';
-import '../../../core/simple_movement.dart';
-import '../base/abstract_sourced_list_facet.dart';
-import '../cdom_object_consolidation_facet.dart';
-import '../event/data_facet_change_event.dart';
-import '../event/data_facet_change_listener.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_object.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/list_key.dart';
+import 'package:flutter_pcgen/src/core/simple_movement.dart';
+import 'package:flutter_pcgen/src/cdom/facet/base/abstract_sourced_list_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/cdom_object_consolidation_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/event/data_facet_change_event.dart';
+import 'package:flutter_pcgen/src/cdom/facet/event/data_facet_change_listener.dart';
 
 /// Tracks Movement objects that grant a character the ability to move (BASE_MOVEMENT).
 class BaseMovementFacet extends AbstractSourcedListFacet<CharID, SimpleMovement>

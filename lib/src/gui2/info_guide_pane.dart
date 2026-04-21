@@ -19,7 +19,7 @@
 
 import 'package:flutter/material.dart';
 import 'ui_context.dart';
-import '../facade/core/source_selection_facade.dart';
+import 'package:flutter_pcgen/src/facade/core/source_selection_facade.dart';
 
 /// Provides a guide for first-time users showing what to do next
 /// and which sources are loaded.

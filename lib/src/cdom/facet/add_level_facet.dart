@@ -2,11 +2,11 @@
 //
 // Translation of pcgen.cdom.facet.AddLevelFacet
 
-import '../enumeration/char_id.dart';
-import '../enumeration/list_key.dart';
-import '../../core/pc_template.dart';
-import '../../core/settings_handler.dart';
-import '../../core/ui_property_context.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/list_key.dart';
+import 'package:flutter_pcgen/src/core/pc_template.dart';
+import 'package:flutter_pcgen/src/core/settings_handler.dart';
+import 'package:flutter_pcgen/src/gui2/ui_property_context.dart';
 import 'event/data_facet_change_event.dart';
 import 'event/data_facet_change_listener.dart';
 import 'model/template_facet.dart';

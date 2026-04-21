@@ -17,8 +17,8 @@
 //
 // Translation of pcgen.pluginmgr.messages.ComponentAddedMessage
 
-import '../p_c_gen_message.dart';
-import '../p_c_gen_message_handler.dart';
+import 'package:flutter_pcgen/src/pluginmgr/p_c_gen_message.dart';
+import 'package:flutter_pcgen/src/pluginmgr/p_c_gen_message_handler.dart';
 
 /// Indicates that a plugin has been added to the system.
 class ComponentAddedMessage extends PCGenMessage {

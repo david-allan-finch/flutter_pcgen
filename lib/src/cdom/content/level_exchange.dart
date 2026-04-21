@@ -16,9 +16,9 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.content.LevelExchange
-import '../base/concrete_prereq_object.dart';
-import '../reference/cdom_single_ref.dart';
-import '../../core/pc_class.dart';
+import 'package:flutter_pcgen/src/cdom/base/concrete_prereq_object.dart';
+import 'package:flutter_pcgen/src/cdom/reference/cdom_single_ref.dart';
+import 'package:flutter_pcgen/src/core/pc_class.dart';
 
 // Stores the constraints for a class level exchange.
 class LevelExchange extends ConcretePrereqObject {

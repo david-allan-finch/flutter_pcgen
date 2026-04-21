@@ -1,13 +1,13 @@
-import '../../../base/util/format_manager.dart';
-import '../base/formula_function.dart';
-import '../base/dependency_manager.dart';
-import '../base/evaluation_manager.dart';
-import '../base/formula_semantics.dart';
-import '../parse/node.dart';
-import '../visitor/dependency_visitor.dart';
-import '../visitor/evaluate_visitor.dart';
-import '../visitor/semantics_visitor.dart';
-import '../visitor/static_visitor.dart';
+import 'package:flutter_pcgen/src/base/util/format_manager.dart';
+import 'package:flutter_pcgen/src/formula/base/formula_function.dart';
+import 'package:flutter_pcgen/src/formula/base/dependency_manager.dart';
+import 'package:flutter_pcgen/src/formula/base/evaluation_manager.dart';
+import 'package:flutter_pcgen/src/formula/base/formula_semantics.dart';
+import 'package:flutter_pcgen/src/formula/parse/node.dart';
+import 'package:flutter_pcgen/src/formula/visitor/dependency_visitor.dart';
+import 'package:flutter_pcgen/src/formula/visitor/evaluate_visitor.dart';
+import 'package:flutter_pcgen/src/formula/visitor/semantics_visitor.dart';
+import 'package:flutter_pcgen/src/formula/visitor/static_visitor.dart';
 
 class IfFunction implements FormulaFunction {
   @override

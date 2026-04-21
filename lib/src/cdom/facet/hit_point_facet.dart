@@ -2,13 +2,13 @@
 //
 // Translation of pcgen.cdom.facet.HitPointFacet
 
-import '../base/cdom_object.dart';
-import '../content/hit_die.dart';
-import '../enumeration/char_id.dart';
-import '../enumeration/object_key.dart';
-import '../inst/pc_class_level.dart';
-import '../../core/pc_class.dart';
-import '../../core/settings_handler.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_object.dart';
+import 'package:flutter_pcgen/src/cdom/content/hit_die.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/object_key.dart';
+import 'package:flutter_pcgen/src/cdom/inst/pc_class_level.dart';
+import 'package:flutter_pcgen/src/core/pc_class.dart';
+import 'package:flutter_pcgen/src/core/settings_handler.dart';
 import 'base/abstract_association_facet.dart';
 import 'bonus_checking_facet.dart';
 import 'event/data_facet_change_event.dart';

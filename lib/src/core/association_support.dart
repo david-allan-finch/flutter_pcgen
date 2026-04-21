@@ -16,8 +16,8 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.core.AssociationSupport
-import '../cdom/enumeration/association_key.dart';
-import '../cdom/enumeration/association_list_key.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/association_key.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/association_list_key.dart';
 
 // Stores per-object associations keyed by AssociationKey / AssociationListKey.
 // Uses identity semantics for the primary key (matches Java IdentityHashMap).

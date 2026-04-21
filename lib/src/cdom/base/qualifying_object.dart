@@ -17,7 +17,7 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.base.QualifyingObject
-import '../../core/player_character.dart';
+import 'package:flutter_pcgen/src/core/player_character.dart';
 
 // Functional interface: an object that can be qualified against a PC.
 abstract interface class QualifyingObject {

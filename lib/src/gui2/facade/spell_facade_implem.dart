@@ -17,7 +17,7 @@
 //
 // Translation of pcgen.gui2.facade.SpellFacadeImplem
 
-import '../../facade/core/spell_facade.dart';
+import 'package:flutter_pcgen/src/facade/core/spell_facade.dart';
 
 /// Concrete implementation of SpellFacade wrapping a PCGen spell object.
 class SpellFacadeImplem implements SpellFacade {

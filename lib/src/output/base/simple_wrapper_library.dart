@@ -18,14 +18,14 @@
 // Translation of pcgen.output.base.SimpleWrapperLibrary
 
 import 'simple_object_wrapper.dart';
-import '../wrapper/string_wrapper.dart';
-import '../wrapper/number_wrapper.dart';
-import '../wrapper/boolean_wrapper.dart';
-import '../wrapper/type_safe_constant_wrapper.dart';
-import '../wrapper/category_wrapper.dart';
-import '../wrapper/enum_wrapper.dart';
-import '../wrapper/ordered_pair_wrapper.dart';
-import '../wrapper/age_set_wrapper.dart';
+import 'package:flutter_pcgen/src/output/wrapper/string_wrapper.dart';
+import 'package:flutter_pcgen/src/output/wrapper/number_wrapper.dart';
+import 'package:flutter_pcgen/src/output/wrapper/boolean_wrapper.dart';
+import 'package:flutter_pcgen/src/output/wrapper/type_safe_constant_wrapper.dart';
+import 'package:flutter_pcgen/src/output/wrapper/category_wrapper.dart';
+import 'package:flutter_pcgen/src/output/wrapper/enum_wrapper.dart';
+import 'package:flutter_pcgen/src/output/wrapper/ordered_pair_wrapper.dart';
+import 'package:flutter_pcgen/src/output/wrapper/age_set_wrapper.dart';
 
 /// SimpleWrapperLibrary stores information on simple wrappers used to wrap
 /// objects into output models.

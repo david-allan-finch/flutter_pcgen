@@ -16,8 +16,8 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.content.UserContent
-import '../../base/util/format_manager.dart';
-import '../base/loadable.dart';
+import 'package:flutter_pcgen/src/base/util/format_manager.dart';
+import 'package:flutter_pcgen/src/cdom/base/loadable.dart';
 
 // Abstract base for user-defined content items (variables, functions, facts).
 abstract class UserContent implements Loadable {

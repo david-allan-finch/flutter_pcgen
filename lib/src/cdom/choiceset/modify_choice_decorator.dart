@@ -16,8 +16,8 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.choiceset.ModifyChoiceDecorator
-import '../content/cn_ability.dart';
-import '../enumeration/grouping_state.dart';
+import 'package:flutter_pcgen/src/cdom/content/cn_ability.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/grouping_state.dart';
 
 // A PrimitiveChoiceSet that returns the MULT:YES feats possessed by a
 // PlayerCharacter that also appear in an underlying set of Ability objects.

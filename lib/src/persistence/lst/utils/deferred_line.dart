@@ -2,7 +2,7 @@
 //
 // Translation of pcgen.persistence.lst.utils.DeferredLine
 
-import '../source_entry.dart';
+import 'package:flutter_pcgen/src/persistence/lst/source_entry.dart';
 
 /// A line of LST text that was deferred during loading (e.g. because its
 /// dependencies had not yet been loaded). Stores the source context and

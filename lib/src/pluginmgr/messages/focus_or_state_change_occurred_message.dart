@@ -17,7 +17,7 @@
 //
 // Translation of pcgen.pluginmgr.messages.FocusOrStateChangeOccurredMessage
 
-import '../p_c_gen_message.dart';
+import 'package:flutter_pcgen/src/pluginmgr/p_c_gen_message.dart';
 
 /// Signals that the user switched between GMGen and PCGen.
 class FocusOrStateChangeOccurredMessage extends PCGenMessage {

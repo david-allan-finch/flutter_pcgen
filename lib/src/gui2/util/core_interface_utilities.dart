@@ -15,13 +15,13 @@
 //
 // Translation of pcgen.gui2.util.CoreInterfaceUtilities
 
-import '../../cdom/enumeration/char_id.dart';
-import '../../cdom/facet/facet_library.dart';
-import '../../cdom/facet/load_context_facet.dart';
-import '../../cdom/util/c_control.dart';
-import '../../cdom/util/control_utilities.dart';
-import '../../facade/util/reference_facade.dart';
-import '../../facade/util/vetoable_reference_facade.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
+import 'package:flutter_pcgen/src/cdom/facet/facet_library.dart';
+import 'package:flutter_pcgen/src/cdom/facet/load_context_facet.dart';
+import 'package:flutter_pcgen/src/cdom/util/ccontrol.dart';
+import 'package:flutter_pcgen/src/cdom/util/control_utilities.dart';
+import 'package:flutter_pcgen/src/facade/util/reference_facade.dart';
+import 'package:flutter_pcgen/src/facade/util/vetoable_reference_facade.dart';
 
 /// Provides utility methods for obtaining Channels/Wrappers for the UI layer.
 final class CoreInterfaceUtilities {

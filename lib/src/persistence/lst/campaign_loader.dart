@@ -17,9 +17,9 @@
 //
 // Translation of pcgen.persistence.lst.CampaignLoader
 
-import '../../core/campaign.dart';
-import '../../core/globals.dart';
-import '../persistence_layer_exception.dart';
+import 'package:flutter_pcgen/src/core/campaign.dart';
+import 'package:flutter_pcgen/src/core/globals.dart';
+import 'package:flutter_pcgen/src/persistence/persistence_layer_exception.dart';
 
 /// Loads a campaign (.pcc) file into the global campaign registry.
 ///

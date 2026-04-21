@@ -16,10 +16,10 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.rules.context.ListCommitStrategy
-import '../../cdom/base/associated_prereq_object.dart';
-import '../../cdom/base/cdom_list.dart';
-import '../../cdom/base/cdom_object.dart';
-import '../../cdom/base/cdom_reference.dart';
+import 'package:flutter_pcgen/src/cdom/base/associated_prereq_object.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_list.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_object.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_reference.dart';
 import 'associated_changes.dart';
 import 'changes.dart';
 

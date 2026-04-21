@@ -1,9 +1,9 @@
-import '../../base/util/format_manager.dart';
-import '../base/implemented_scope.dart';
-import '../base/scope_instance.dart';
-import '../base/variable_id.dart';
-import '../base/variable_library.dart';
-import '../exception/legal_variable_exception.dart';
+import 'package:flutter_pcgen/src/base/util/format_manager.dart';
+import 'package:flutter_pcgen/src/formula/base/implemented_scope.dart';
+import 'package:flutter_pcgen/src/formula/base/scope_instance.dart';
+import 'package:flutter_pcgen/src/formula/base/variable_id.dart';
+import 'package:flutter_pcgen/src/formula/base/variable_library.dart';
+import 'package:flutter_pcgen/src/formula/exception/legal_variable_exception.dart';
 
 class VariableManager implements VariableLibrary {
   // Maps variable name (lowercase) to its defining scope and format

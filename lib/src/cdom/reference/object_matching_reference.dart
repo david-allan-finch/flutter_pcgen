@@ -16,10 +16,10 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.reference.ObjectMatchingReference
-import '../base/cdom_object.dart';
-import '../base/cdom_reference.dart';
-import '../enumeration/grouping_state.dart';
-import '../enumeration/object_key.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_object.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_reference.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/grouping_state.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/object_key.dart';
 import 'cdom_group_ref.dart';
 
 // A CDOMReference that contains objects whose ObjectKey matches an expected value.

@@ -17,10 +17,10 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.core.analysis.SpellCountCalc
-import '../pc_class.dart';
-import '../player_character.dart';
-import '../character/character_spell.dart';
-import '../spell.dart';
+import 'package:flutter_pcgen/src/core/pc_class.dart';
+import 'package:flutter_pcgen/src/core/player_character.dart';
+import 'package:flutter_pcgen/src/core/character/character_spell.dart';
+import 'package:flutter_pcgen/src/core/spell/spell.dart';
 
 abstract final class SpellCountCalc {
   static int memorizedSpellForLevelBook(PlayerCharacter pc, PCClass cl, int aLevel, String bookName) {

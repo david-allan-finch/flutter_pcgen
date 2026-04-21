@@ -16,8 +16,8 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.persistence.lst.SourceEntry
-import '../../core/campaign.dart';
-import '../../cdom/prereq/prerequisite.dart';
+import 'package:flutter_pcgen/src/core/campaign.dart';
+import 'package:flutter_pcgen/src/cdom/prereq/prerequisite.dart';
 
 // Interface for an LST source file entry linked to a campaign.
 abstract interface class SourceEntry {

@@ -16,16 +16,16 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.core.kit.KitAbilities
-import '../../cdom/base/cdom_reference.dart';
-import '../../cdom/content/cn_ability.dart';
-import '../../cdom/content/cn_ability_factory.dart';
-import '../../cdom/enumeration/nature.dart';
-import '../../cdom/helper/cn_ability_selection.dart';
-import '../../cdom/reference/cdom_single_ref.dart';
-import '../../core/ability.dart';
-import '../../core/ability_category.dart';
-import '../../core/kit.dart';
-import '../../core/player_character.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_reference.dart';
+import 'package:flutter_pcgen/src/cdom/content/cn_ability.dart';
+import 'package:flutter_pcgen/src/cdom/content/cn_ability_factory.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/nature.dart';
+import 'package:flutter_pcgen/src/cdom/helper/cn_ability_selection.dart';
+import 'package:flutter_pcgen/src/cdom/reference/cdom_single_ref.dart';
+import 'package:flutter_pcgen/src/core/ability.dart';
+import 'package:flutter_pcgen/src/core/ability_category.dart';
+import 'package:flutter_pcgen/src/core/kit.dart';
+import 'package:flutter_pcgen/src/core/player_character.dart';
 import 'base_kit.dart';
 
 // Kit task that grants abilities to a PC.

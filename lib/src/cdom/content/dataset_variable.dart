@@ -16,7 +16,7 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.content.DatasetVariable
-import '../../base/util/format_manager.dart';
+import 'package:flutter_pcgen/src/base/util/format_manager.dart';
 import 'user_content.dart';
 
 // A DatasetVariable is a variable in the formula system defined by data.

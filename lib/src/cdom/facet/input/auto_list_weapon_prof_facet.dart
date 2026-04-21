@@ -19,8 +19,8 @@
 // Translated from PCGen Java source to Dart.
 // Source: pcgen/cdom/facet/input/AutoListWeaponProfFacet.java
 
-import '../../../enumeration/char_id.dart';
-import '../base/abstract_sourced_list_facet.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
+import 'package:flutter_pcgen/src/cdom/facet/base/abstract_sourced_list_facet.dart';
 
 /// AutoListWeaponProfFacet is a Facet that tracks the WeaponProfs that have been
 /// granted to a Player Character via AUTO:WEAPONPROF.

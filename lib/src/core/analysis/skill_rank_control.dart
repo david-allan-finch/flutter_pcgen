@@ -17,11 +17,11 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.core.analysis.SkillRankControl
-import '../pc_class.dart';
-import '../player_character.dart';
-import '../pclevelinfo/pc_level_info.dart';
-import '../rule_constants.dart';
-import '../skill.dart';
+import 'package:flutter_pcgen/src/core/pc_class.dart';
+import 'package:flutter_pcgen/src/core/player_character.dart';
+import 'package:flutter_pcgen/src/core/pclevelinfo/pc_level_info.dart';
+import 'package:flutter_pcgen/src/core/rule_constants.dart';
+import 'package:flutter_pcgen/src/core/skill.dart';
 
 abstract final class SkillRankControl {
   // Returns total ranks of a skill: rank + bonus ranks (racial, class, etc).

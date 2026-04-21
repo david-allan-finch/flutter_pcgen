@@ -18,7 +18,7 @@
 // Translation of pcgen.gui2.facade.DescriptionFacadeImpl
 
 import 'package:flutter/foundation.dart';
-import '../../facade/core/description_facade.dart';
+import 'package:flutter_pcgen/src/facade/core/description_facade.dart';
 
 /// Implementation of DescriptionFacade — manages character biography/description fields.
 class DescriptionFacadeImpl extends ChangeNotifier implements DescriptionFacade {

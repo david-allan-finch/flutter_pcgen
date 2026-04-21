@@ -16,8 +16,8 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.base.CategorizedAbilitySelectionChooseInformation
-import '../choiceset/collection_to_ability_selection.dart';
-import '../content/ability_selection.dart';
+import 'package:flutter_pcgen/src/cdom/choiceset/collection_to_ability_selection.dart';
+import 'package:flutter_pcgen/src/cdom/content/ability_selection.dart';
 import 'basic_choose_information.dart';
 
 // CategorizedAbilitySelectionChooseInformation extends BasicChooseInformation

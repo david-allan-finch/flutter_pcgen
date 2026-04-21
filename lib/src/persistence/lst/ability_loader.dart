@@ -16,9 +16,9 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.persistence.lst.AbilityLoader
-import '../../core/ability.dart';
-import '../../core/ability_category.dart';
-import '../../rules/context/load_context.dart';
+import 'package:flutter_pcgen/src/core/ability.dart';
+import 'package:flutter_pcgen/src/core/ability_category.dart';
+import 'package:flutter_pcgen/src/rules/context/load_context.dart';
 import 'lst_object_file_loader.dart';
 import 'source_entry.dart';
 

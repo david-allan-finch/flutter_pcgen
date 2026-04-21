@@ -17,10 +17,10 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.core.analysis.ExchangeLevelApplication
-import '../../../cdom/enumeration/integer_key.dart';
-import '../../../cdom/enumeration/object_key.dart';
-import '../../pc_class.dart';
-import '../../player_character.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/integer_key.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/object_key.dart';
+import 'package:flutter_pcgen/src/core/pc_class.dart';
+import 'package:flutter_pcgen/src/core/player_character.dart';
 
 // Handles the exchange of levels between classes via the EXCHANGELEVEL token.
 final class ExchangeLevelApplication {

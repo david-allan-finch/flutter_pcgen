@@ -18,8 +18,8 @@
 // Translation of pcgen.gui2.facade.SpellBuilderFacadeImpl
 
 import 'package:flutter/foundation.dart';
-import '../../facade/core/spell_builder_facade.dart';
-import '../../facade/util/list_facade.dart';
+import 'package:flutter_pcgen/src/facade/core/spell_builder_facade.dart';
+import 'package:flutter_pcgen/src/facade/util/list_facade.dart';
 
 /// Implementation of SpellBuilderFacade — builds and adds spells to spell books/lists.
 class SpellBuilderFacadeImpl extends ChangeNotifier implements SpellBuilderFacade {

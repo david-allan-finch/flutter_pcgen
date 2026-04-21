@@ -17,10 +17,10 @@
 //
 // Translation of pcgen.persistence.lst.PCClassLoader
 
-import '../../core/pc_class.dart';
-import '../../core/sub_class.dart';
-import '../../core/substitution_class.dart';
-import '../../rules/context/load_context.dart';
+import 'package:flutter_pcgen/src/core/pc_class.dart';
+import 'package:flutter_pcgen/src/core/sub_class.dart';
+import 'package:flutter_pcgen/src/core/substitution_class.dart';
+import 'package:flutter_pcgen/src/rules/context/load_context.dart';
 import 'lst_object_file_loader.dart';
 import 'source_entry.dart';
 

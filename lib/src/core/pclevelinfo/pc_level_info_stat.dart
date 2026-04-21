@@ -16,7 +16,7 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.core.pclevelinfo.PCLevelInfoStat
-import '../pc_stat.dart';
+import 'package:flutter_pcgen/src/core/pc_stat.dart';
 
 // Records a stat modification that occurred at a specific level.
 final class PCLevelInfoStat {

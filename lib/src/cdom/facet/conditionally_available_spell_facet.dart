@@ -2,7 +2,7 @@
 //
 // Translation of pcgen.cdom.facet.ConditionallyAvailableSpellFacet
 
-import '../helper/available_spell.dart';
+import 'package:flutter_pcgen/src/cdom/helper/available_spell.dart';
 import 'base/abstract_qualified_list_facet.dart';
 
 /// Tracks conditionally-available spells (those with prerequisites) for a

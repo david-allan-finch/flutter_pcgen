@@ -14,7 +14,7 @@
 // Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.util.FactSetKeyMapToList
-import '../enumeration/fact_set_key.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/fact_set_key.dart';
 
 // A map of lists keyed by FactSetKey.
 class FactSetKeyMapToList {

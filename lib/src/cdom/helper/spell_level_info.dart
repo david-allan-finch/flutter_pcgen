@@ -15,8 +15,8 @@
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
 //
 // Translation of pcgen.cdom.helper.SpellLevelInfo
-import '../../core/pc_class.dart';
-import '../../core/player_character.dart';
+import 'package:flutter_pcgen/src/core/pc_class.dart';
+import 'package:flutter_pcgen/src/core/player_character.dart';
 import 'spell_level.dart';
 
 // Pairs a class filter with min/max spell-level formulas for the SPELLLEVEL token.

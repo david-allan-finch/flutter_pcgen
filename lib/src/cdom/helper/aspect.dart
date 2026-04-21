@@ -16,7 +16,7 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.helper.Aspect
-import '../base/concrete_prereq_object.dart';
+import 'package:flutter_pcgen/src/cdom/base/concrete_prereq_object.dart';
 
 // A named field (aspect) on an Ability, with optional variable substitution.
 // Format: ASPECT:Speed|%1 ft|MovementRate — %1 replaced with variable #1.

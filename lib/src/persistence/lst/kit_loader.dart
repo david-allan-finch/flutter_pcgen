@@ -17,8 +17,8 @@
 //
 // Translation of pcgen.persistence.lst.KitLoader
 
-import '../../core/kit.dart';
-import '../../rules/context/load_context.dart';
+import 'package:flutter_pcgen/src/core/kit.dart';
+import 'package:flutter_pcgen/src/rules/context/load_context.dart';
 import 'lst_object_file_loader.dart';
 import 'source_entry.dart';
 

@@ -2,10 +2,10 @@
 //
 // Translation of pcgen.cdom.facet.analysis.LoadFacet
 
-import '../../enumeration/char_id.dart';
-import '../bonus_checking_facet.dart';
-import '../formula_resolving_facet.dart';
-import '../player_character_tracking_facet.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
+import 'package:flutter_pcgen/src/cdom/facet/bonus_checking_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/formula_resolving_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/player_character_tracking_facet.dart';
 import 'total_weight_facet.dart';
 
 /// Calculates load/encumbrance information for a Player Character.

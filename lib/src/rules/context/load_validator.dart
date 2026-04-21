@@ -16,11 +16,11 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.rules.context.LoadValidator
-import '../../base/util/hash_map_to_list.dart';
-import '../../cdom/base/class_identity.dart';
-import '../../cdom/reference/qualifier.dart';
-import '../../cdom/reference/unconstructed_validator.dart';
-import '../../core/campaign.dart';
+import 'package:flutter_pcgen/src/base/util/hash_map_to_list.dart';
+import 'package:flutter_pcgen/src/cdom/base/class_identity.dart';
+import 'package:flutter_pcgen/src/cdom/reference/qualifier.dart';
+import 'package:flutter_pcgen/src/cdom/reference/unconstructed_validator.dart';
+import 'package:flutter_pcgen/src/core/campaign.dart';
 
 class LoadValidator implements UnconstructedValidator {
   final List<dynamic> _campaignList; // List<Campaign>

@@ -17,7 +17,7 @@
 //
 // Translation of pcgen.io.PCGIOHandler
 
-import '../core/player_character.dart';
+import 'package:flutter_pcgen/src/core/player_character.dart';
 import 'io_handler.dart';
 import 'p_c_g_ver2_creator.dart';
 import 'p_c_g_ver2_parser.dart';

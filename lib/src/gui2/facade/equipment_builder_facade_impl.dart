@@ -18,8 +18,8 @@
 // Translation of pcgen.gui2.facade.EquipmentBuilderFacadeImpl
 
 import 'package:flutter/foundation.dart';
-import '../../facade/core/equipment_builder_facade.dart';
-import '../../facade/util/list_facade.dart';
+import 'package:flutter_pcgen/src/facade/core/equipment_builder_facade.dart';
+import 'package:flutter_pcgen/src/facade/util/list_facade.dart';
 
 /// Implementation of EquipmentBuilderFacade — builds custom equipment items.
 class EquipmentBuilderFacadeImpl extends ChangeNotifier

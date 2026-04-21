@@ -17,8 +17,8 @@
 //
 // Translation of pcgen.output.wrapper.BooleanWrapper
 
-import '../base/simple_object_wrapper.dart';
-import '../model/boolean_model.dart';
+import 'package:flutter_pcgen/src/output/base/simple_object_wrapper.dart';
+import 'package:flutter_pcgen/src/output/model/boolean_model.dart';
 
 /// Wraps Boolean objects into output models.
 class BooleanWrapper implements SimpleObjectWrapper {

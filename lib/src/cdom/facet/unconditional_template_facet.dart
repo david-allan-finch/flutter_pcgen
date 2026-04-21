@@ -2,8 +2,8 @@
 //
 // Translation of pcgen.cdom.facet.UnconditionalTemplateFacet
 
-import '../enumeration/char_id.dart';
-import '../../core/pc_template.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
+import 'package:flutter_pcgen/src/core/pc_template.dart';
 import 'base/abstract_list_facet.dart';
 import 'model/template_facet.dart';
 

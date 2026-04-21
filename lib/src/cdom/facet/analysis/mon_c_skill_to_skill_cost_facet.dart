@@ -2,14 +2,14 @@
 //
 // Translation of pcgen.cdom.facet.analysis.MonCSkillToSkillCostFacet
 
-import '../../enumeration/char_id.dart';
-import '../../enumeration/skill_cost.dart';
-import '../../../core/pc_class.dart';
-import '../../../core/skill.dart';
-import '../base/abstract_sub_scope_facet.dart';
-import '../event/data_facet_change_event.dart';
-import '../event/data_facet_change_listener.dart';
-import '../model/class_facet.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/skill_cost.dart';
+import 'package:flutter_pcgen/src/core/pc_class.dart';
+import 'package:flutter_pcgen/src/core/skill.dart';
+import 'package:flutter_pcgen/src/cdom/facet/base/abstract_sub_scope_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/event/data_facet_change_event.dart';
+import 'package:flutter_pcgen/src/cdom/facet/event/data_facet_change_listener.dart';
+import 'package:flutter_pcgen/src/cdom/facet/model/class_facet.dart';
 
 /// Assigns CLASS skill cost to MONCSKILL skills for monster PCClasses.
 class MonCSkillToSkillCostFacet extends AbstractSubScopeFacet<PCClass, SkillCost, Skill>

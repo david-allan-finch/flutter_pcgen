@@ -14,10 +14,10 @@
 // Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.helper.AllowUtilities
-import '../base/cdom_object.dart';
-import '../enumeration/list_key.dart';
-import '../enumeration/map_key.dart';
-import '../../core/player_character.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_object.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/list_key.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/map_key.dart';
+import 'package:flutter_pcgen/src/core/player_character.dart';
 import 'info_boolean.dart';
 import 'info_utilities.dart';
 

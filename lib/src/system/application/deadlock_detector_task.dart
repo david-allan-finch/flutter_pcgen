@@ -17,7 +17,7 @@
 //
 // Translation of pcgen.system.application.DeadlockDetectorTask
 
-import '../p_c_gen_task.dart';
+import 'package:flutter_pcgen/src/system/p_c_gen_task.dart';
 
 /// Detects thread deadlocks (stub — no threading in Dart isolates model).
 class DeadlockDetectorTask extends PCGenTask {

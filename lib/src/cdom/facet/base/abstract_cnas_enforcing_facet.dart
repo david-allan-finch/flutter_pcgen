@@ -16,11 +16,11 @@
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
 //
 // Translation of pcgen.cdom.facet.base.AbstractCNASEnforcingFacet
-import '../../../enumeration/char_id.dart';
-import '../../helper/cn_ability_selection.dart';
-import '../../helper/cn_ability_selection_utilities.dart';
-import '../event/data_facet_change_event.dart';
-import '../event/data_facet_change_listener.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
+import 'package:flutter_pcgen/src/cdom/helper/cn_ability_selection.dart';
+import 'package:flutter_pcgen/src/cdom/helper/cn_ability_selection_utilities.dart';
+import 'package:flutter_pcgen/src/cdom/facet/event/data_facet_change_event.dart';
+import 'package:flutter_pcgen/src/cdom/facet/event/data_facet_change_listener.dart';
 import 'abstract_data_facet.dart';
 
 // Helper pairing a CNAbilitySelection with its source object.

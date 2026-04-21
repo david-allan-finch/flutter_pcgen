@@ -2,8 +2,8 @@
 //
 // Translation of pcgen.cdom.facet.ConditionalAbilityFacet
 
-import '../enumeration/char_id.dart';
-import '../helper/cn_ability_selection.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
+import 'package:flutter_pcgen/src/cdom/helper/cn_ability_selection.dart';
 import 'base/abstract_single_source_list_facet.dart';
 import 'prerequisite_facet.dart';
 

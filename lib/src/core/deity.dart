@@ -17,8 +17,8 @@
 //
 // Translation of pcgen.core.Deity
 
-import '../cdom/enumeration/list_key.dart';
-import '../cdom/enumeration/object_key.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/list_key.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/object_key.dart';
 import 'domain.dart';
 import 'pcobject.dart';
 

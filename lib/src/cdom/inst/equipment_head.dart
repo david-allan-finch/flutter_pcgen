@@ -16,7 +16,7 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.inst.EquipmentHead
-import '../base/cdom_object.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_object.dart';
 
 // Represents one "head" of a weapon (weapons can have multiple heads, e.g. double axe).
 final class EquipmentHead extends CDOMObject {

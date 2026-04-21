@@ -17,8 +17,8 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.core.analysis.SubClassApplication
-import '../../pc_class.dart';
-import '../../player_character.dart';
+import 'package:flutter_pcgen/src/core/pc_class.dart';
+import 'package:flutter_pcgen/src/core/player_character.dart';
 
 // Handles subclass selection UI and application during class level-up.
 final class SubClassApplication {

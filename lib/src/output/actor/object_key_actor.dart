@@ -17,7 +17,7 @@
 //
 // Translation of pcgen.output.actor.ObjectKeyActor
 
-import '../base/output_actor.dart';
+import 'package:flutter_pcgen/src/output/base/output_actor.dart';
 
 /// OutputActor that reads an ObjectKey value from an object.
 class ObjectKeyActor<T> implements OutputActor<dynamic> {

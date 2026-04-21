@@ -18,7 +18,7 @@
 // Translation of pcgen.io.freemarker.PCHasVarFunction
 // Note: FreeMarker not available in Dart; stub only.
 
-import '../../core/player_character.dart';
+import 'package:flutter_pcgen/src/core/player_character.dart';
 
 class PCHasVarFunction {
   final PlayerCharacter pc;

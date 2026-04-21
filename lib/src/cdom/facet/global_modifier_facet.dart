@@ -7,7 +7,7 @@
 
 // Translation of pcgen.cdom.facet.GlobalModifierFacet
 
-import '../enumeration/char_id.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
 import 'base/abstract_item_facet.dart';
 
 /// Stores the GlobalModifiers for a Player Character identified by their CharID.

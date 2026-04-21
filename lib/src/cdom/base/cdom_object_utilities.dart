@@ -20,7 +20,7 @@ import 'cdom_object.dart';
 import 'loadable.dart';
 import 'persistent_transition_choice.dart';
 import 'transition_choice.dart';
-import '../enumeration/list_key.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/list_key.dart';
 
 // CDOMObjectUtilities provides static helpers for working with CDOMObjects,
 // including applying/removing ADD and REMOVE transition choices.

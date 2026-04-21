@@ -16,9 +16,9 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.core.PCStat
-import '../cdom/base/non_interactive.dart';
-import '../cdom/base/sort_key_required.dart';
-import '../cdom/enumeration/string_key.dart';
+import 'package:flutter_pcgen/src/cdom/base/non_interactive.dart';
+import 'package:flutter_pcgen/src/cdom/base/sort_key_required.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/string_key.dart';
 import 'pcobject.dart';
 
 // Represents an ability score (STR, DEX, CON, etc.).

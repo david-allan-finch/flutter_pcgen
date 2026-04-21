@@ -16,7 +16,7 @@
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
 //
 // Translation of pcgen.cdom.identifier.SpellSchool
-import '../base/loadable.dart';
+import 'package:flutter_pcgen/src/cdom/base/loadable.dart';
 
 // Identifies a spell school (e.g. "Abjuration") as a Loadable object.
 class SpellSchool implements Loadable, Comparable<SpellSchool> {

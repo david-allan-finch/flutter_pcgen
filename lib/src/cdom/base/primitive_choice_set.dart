@@ -16,7 +16,7 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.base.PrimitiveChoiceSet
-import '../enumeration/grouping_state.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/grouping_state.dart';
 
 // PrimitiveChoiceSet contains references to objects (often CDOMObjects) and
 // can resolve its contents given a PlayerCharacter.

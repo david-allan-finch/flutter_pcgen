@@ -2,8 +2,8 @@
 //
 // Translation of pcgen.cdom.facet.FormulaResolvingFacet
 
-import '../enumeration/char_id.dart';
-import '../../base/formula/formula.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
+import 'package:flutter_pcgen/src/base/formula/formula.dart';
 import 'player_character_tracking_facet.dart';
 
 /// A transition-class facet that resolves [Formula] values for a Player

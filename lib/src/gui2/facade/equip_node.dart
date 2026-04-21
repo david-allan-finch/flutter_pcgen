@@ -18,10 +18,10 @@
 //
 // Translation of pcgen.gui2.facade.EquipNode
 
-import '../../core/body_structure.dart';
-import '../../core/equipment.dart';
-import '../../core/character/equip_slot.dart';
-import '../../facade/core/equipment_facade.dart';
+import 'package:flutter_pcgen/src/core/body_structure.dart';
+import 'package:flutter_pcgen/src/core/equipment.dart';
+import 'package:flutter_pcgen/src/core/character/equip_slot.dart';
+import 'package:flutter_pcgen/src/facade/core/equipment_facade.dart';
 
 /// Represents a node in the equipping tree. It may be an item of equipment or
 /// a slot that may be filled. EquipNode objects are immutable once created.

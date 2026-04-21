@@ -19,8 +19,8 @@
 // Translated from PCGen Java source to Dart.
 // Source: pcgen/cdom/facet/fact/WeightFacet.java
 
-import '../../../enumeration/char_id.dart';
-import '../base/abstract_item_facet.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
+import 'package:flutter_pcgen/src/cdom/facet/base/abstract_item_facet.dart';
 
 /// WeightFacet is a Facet that tracks the Player Character's weight. Note that
 /// this weight is the actual character weight, not the character plus the

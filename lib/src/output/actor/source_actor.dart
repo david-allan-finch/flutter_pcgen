@@ -17,7 +17,7 @@
 //
 // Translation of pcgen.output.actor.SourceActor
 
-import '../base/output_actor.dart';
+import 'package:flutter_pcgen/src/output/base/output_actor.dart';
 
 /// OutputActor that returns source information (e.g. book/page) of an object.
 class SourceActor implements OutputActor<dynamic> {

@@ -16,7 +16,7 @@
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
 //
 // Translation of pcgen.cdom.facet.event.DataFacetChangeEvent
-import '../../base/pcgen_identifier.dart';
+import 'package:flutter_pcgen/src/cdom/base/pcgen_identifier.dart';
 
 // Event fired when a facet's data changes for a given PCGenIdentifier.
 class DataFacetChangeEvent<IDT extends PCGenIdentifier, T> {

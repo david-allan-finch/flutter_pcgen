@@ -2,7 +2,7 @@
 //
 // Translation of pcgen.rules.persistence.CDOMKitLoader
 
-import '../../rules/context/load_context.dart';
+import 'package:flutter_pcgen/src/rules/context/load_context.dart';
 import 'c_d_o_m_sub_line_loader.dart';
 
 /// Manages a set of [CDOMSubLineLoader]s keyed by their prefix strings and

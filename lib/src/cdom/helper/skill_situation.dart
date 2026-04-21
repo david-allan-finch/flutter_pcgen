@@ -16,7 +16,7 @@
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
 //
 // Translation of pcgen.cdom.helper.SkillSituation
-import '../../core/skill.dart';
+import 'package:flutter_pcgen/src/core/skill.dart';
 
 // Holds a skill, the situation name, and the bonus value for that situation.
 class SkillSituation {

@@ -16,7 +16,7 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.core.PCAlignment
-import '../cdom/enumeration/string_key.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/string_key.dart';
 import 'pcobject.dart';
 
 // Represents an Alignment (LG, NG, CG, LN, TN, CN, LE, NE, CE).

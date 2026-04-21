@@ -1,5 +1,5 @@
-import '../../../base/util/format_manager.dart';
-import '../exception/legal_variable_exception.dart';
+import 'package:flutter_pcgen/src/base/util/format_manager.dart';
+import 'package:flutter_pcgen/src/formula/exception/legal_variable_exception.dart';
 import 'implemented_scope.dart';
 import 'scope_instance.dart';
 import 'variable_id.dart';

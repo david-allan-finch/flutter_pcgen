@@ -16,19 +16,19 @@
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
 //
 // Translation of pcgen.cdom.helper.ClassSkillChoiceActor
-import '../base/cdom_object.dart';
-import '../base/persistent_choice_actor.dart';
-import '../enumeration/integer_key.dart';
-import '../enumeration/object_key.dart';
-import '../enumeration/skill_cost.dart';
-import '../inst/pc_class_level.dart';
-import '../../core/pc_class.dart';
-import '../../core/player_character.dart';
-import '../../core/skill.dart';
-import '../../core/sub_class.dart';
-import '../../core/analysis/skill_rank_control.dart';
-import '../../core/pclevelinfo/pc_level_info.dart';
-import '../../rules/context/load_context.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_object.dart';
+import 'package:flutter_pcgen/src/cdom/base/persistent_choice_actor.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/integer_key.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/object_key.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/skill_cost.dart';
+import 'package:flutter_pcgen/src/cdom/inst/pc_class_level.dart';
+import 'package:flutter_pcgen/src/core/pc_class.dart';
+import 'package:flutter_pcgen/src/core/player_character.dart';
+import 'package:flutter_pcgen/src/core/skill.dart';
+import 'package:flutter_pcgen/src/core/sub_class.dart';
+import 'package:flutter_pcgen/src/core/analysis/skill_rank_control.dart';
+import 'package:flutter_pcgen/src/core/pclevelinfo/pc_level_info.dart';
+import 'package:flutter_pcgen/src/rules/context/load_context.dart';
 
 // A ClassSkillChoiceActor adds selected Skills as class skills for a specific
 // PCClass and optionally applies a fixed number of ranks to each chosen skill.

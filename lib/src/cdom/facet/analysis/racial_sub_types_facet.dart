@@ -2,11 +2,11 @@
 //
 // Translation of pcgen.cdom.facet.analysis.RacialSubTypesFacet
 
-import '../../enumeration/char_id.dart';
-import '../../enumeration/list_key.dart';
-import '../../enumeration/race_sub_type.dart';
-import '../model/race_facet.dart';
-import '../model/template_facet.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/list_key.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/race_sub_type.dart';
+import 'package:flutter_pcgen/src/cdom/facet/model/race_facet.dart';
+import 'package:flutter_pcgen/src/cdom/facet/model/template_facet.dart';
 
 /// Tracks the Racial Sub Types of a Player Character.
 class RacialSubTypesFacet {

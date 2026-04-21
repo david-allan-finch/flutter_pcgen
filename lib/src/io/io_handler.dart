@@ -17,7 +17,7 @@
 //
 // Translation of pcgen.io.IOHandler
 
-import '../core/player_character.dart';
+import 'package:flutter_pcgen/src/core/player_character.dart';
 
 /// Base interface for character file I/O handlers.
 abstract interface class IOHandler {

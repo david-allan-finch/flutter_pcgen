@@ -17,8 +17,8 @@
 //
 // Translation of pcgen.output.wrapper.DateWrapper
 
-import '../base/simple_object_wrapper.dart';
-import '../model/date_model.dart';
+import 'package:flutter_pcgen/src/output/base/simple_object_wrapper.dart';
+import 'package:flutter_pcgen/src/output/model/date_model.dart';
 
 /// Wraps DateTime objects into output models.
 class DateWrapper implements SimpleObjectWrapper {

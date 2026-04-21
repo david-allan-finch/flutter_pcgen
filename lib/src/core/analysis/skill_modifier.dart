@@ -17,9 +17,9 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.core.analysis.SkillModifier
-import '../globals.dart';
-import '../player_character.dart';
-import '../skill.dart';
+import 'package:flutter_pcgen/src/core/globals.dart';
+import 'package:flutter_pcgen/src/core/player_character.dart';
+import 'package:flutter_pcgen/src/core/skill.dart';
 import 'skill_info_utilities.dart';
 import 'skill_rank_control.dart';
 

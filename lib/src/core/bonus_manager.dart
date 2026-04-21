@@ -21,10 +21,10 @@
 // BonusManager.dart
 // Translated from pcgen/core/BonusManager.java
 
-import '../cdom/base/constants.dart';
-import '../cdom/base/formula_factory.dart';
-import '../cdom/base/cdom_object.dart';
-import '../cdom/enumeration/string_key.dart';
+import 'package:flutter_pcgen/src/cdom/base/constants.dart';
+import 'package:flutter_pcgen/src/cdom/base/formula_factory.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_object.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/string_key.dart';
 import 'player_character.dart';
 import 'equipment.dart';
 import 'equipment_modifier.dart';

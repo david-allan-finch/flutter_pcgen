@@ -63,9 +63,9 @@
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
 //
 // Translation of pcgen.cdom.reference.ReferenceManufacturer
-import '../../base/util/format_manager.dart';
-import '../base/cdom_reference.dart';
-import '../base/loadable.dart';
+import 'package:flutter_pcgen/src/base/util/format_manager.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_reference.dart';
+import 'package:flutter_pcgen/src/cdom/base/loadable.dart';
 import 'cdom_single_ref.dart';
 import 'manufacturable_factory.dart';
 import 'selection_creator.dart';

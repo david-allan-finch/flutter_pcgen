@@ -2,8 +2,8 @@
 //
 // Translation of pcgen.persistence.lst.prereq.AbstractPrerequisiteListParser
 
-import '../../../core/prereq/prerequisite.dart';
-import '../../../core/prereq/prerequisite_operator.dart';
+import 'package:flutter_pcgen/src/core/prereq/prerequisite.dart';
+import 'package:flutter_pcgen/src/core/prereq/prerequisite_operator.dart';
 import 'abstract_prerequisite_parser.dart';
 import 'prerequisite_parser_interface.dart';
 

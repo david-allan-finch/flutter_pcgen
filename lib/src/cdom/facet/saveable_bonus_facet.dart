@@ -2,8 +2,8 @@
 //
 // Translation of pcgen.cdom.facet.SaveableBonusFacet
 
-import '../enumeration/char_id.dart';
-import '../../core/bonus/bonus_obj.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
+import 'package:flutter_pcgen/src/core/bonus/bonus_obj.dart';
 import 'base/abstract_sourced_list_facet.dart';
 
 /// Tracks [BonusObj] objects that are "manually" applied to a Player Character

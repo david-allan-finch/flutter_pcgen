@@ -16,8 +16,8 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.list.DomainList
-import '../base/cdom_list_object.dart';
-import '../../core/domain.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_list_object.dart';
+import 'package:flutter_pcgen/src/core/domain.dart';
 
 // A CDOMListObject for Domain objects.
 class DomainList extends CDOMListObject<Domain> {

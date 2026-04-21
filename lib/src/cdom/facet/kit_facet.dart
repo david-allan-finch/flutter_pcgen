@@ -2,8 +2,8 @@
 //
 // Translation of pcgen.cdom.facet.KitFacet
 
-import '../enumeration/char_id.dart';
-import '../../core/kit.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
+import 'package:flutter_pcgen/src/core/kit.dart';
 import 'base/abstract_list_facet.dart';
 
 /// Tracks [Kit] objects possessed by a Player Character.

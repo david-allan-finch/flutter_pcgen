@@ -19,7 +19,7 @@
 // Translated from PCGen Java source to Dart.
 // Source: pcgen/cdom/facet/input/UserSpecialAbilityFacet.java
 
-import '../../../enumeration/char_id.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
 
 /// UserSpecialAbilityFacet tracks the SpecialAbility objects added to a Player
 /// Character by explicit user action (old UI capability).

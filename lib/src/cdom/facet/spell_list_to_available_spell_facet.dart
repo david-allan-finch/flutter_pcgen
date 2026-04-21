@@ -2,10 +2,10 @@
 //
 // Translation of pcgen.cdom.facet.SpellListToAvailableSpellFacet
 
-import '../base/cdom_list.dart';
-import '../enumeration/char_id.dart';
-import '../helper/available_spell.dart';
-import '../../core/spell.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_list.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/char_id.dart';
+import 'package:flutter_pcgen/src/cdom/helper/available_spell.dart';
+import 'package:flutter_pcgen/src/core/spell/spell.dart';
 import 'available_spell_facet.dart';
 import 'conditionally_available_spell_facet.dart';
 import 'event/data_facet_change_event.dart';

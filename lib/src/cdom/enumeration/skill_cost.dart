@@ -16,7 +16,7 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.enumeration.SkillCost
-import '../../core/globals.dart';
+import 'package:flutter_pcgen/src/core/globals.dart';
 
 // Holds the Skill Costs in type-safe form.
 enum SkillCost {

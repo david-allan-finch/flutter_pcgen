@@ -16,8 +16,8 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.list.PCTemplateList
-import '../base/cdom_list_object.dart';
-import '../../core/pc_template.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_list_object.dart';
+import 'package:flutter_pcgen/src/core/pc_template.dart';
 
 // A CDOMListObject for PCTemplate objects.
 class PCTemplateList extends CDOMListObject<PCTemplate> {

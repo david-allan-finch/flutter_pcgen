@@ -18,7 +18,7 @@
 // Translation of pcgen.gui2.dialog.RadioChooserDialog
 
 import 'package:flutter/material.dart';
-import '../../facade/core/chooser_facade.dart';
+import 'package:flutter_pcgen/src/facade/core/chooser_facade.dart';
 
 /// Dialog for making a single selection from a list (radio-button style).
 class RadioChooserDialog extends StatefulWidget {

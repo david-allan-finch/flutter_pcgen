@@ -16,8 +16,8 @@
 // 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
 //
 // Translation of pcgen.cdom.helper.ArmorProfProvider
-import '../base/cdom_reference.dart';
-import '../../core/armor_prof.dart';
+import 'package:flutter_pcgen/src/cdom/base/cdom_reference.dart';
+import 'package:flutter_pcgen/src/core/armor_prof.dart';
 import 'abstract_prof_provider.dart';
 
 // An ArmorProfProvider grants armor proficiencies either by direct ArmorProf

@@ -1,4 +1,4 @@
-import '../../util/format_manager.dart';
+import 'package:flutter_pcgen/src/base/util/format_manager.dart';
 
 // Represents a compound value consisting of a primary value and secondary values.
 abstract interface class Compound {

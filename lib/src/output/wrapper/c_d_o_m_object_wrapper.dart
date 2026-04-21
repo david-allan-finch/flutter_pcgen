@@ -17,8 +17,8 @@
 //
 // Translation of pcgen.output.wrapper.CDOMObjectWrapper
 
-import '../base/p_c_gen_object_wrapper.dart';
-import '../model/c_d_o_m_object_model.dart';
+import 'package:flutter_pcgen/src/output/base/p_c_gen_object_wrapper.dart';
+import 'package:flutter_pcgen/src/output/model/c_d_o_m_object_model.dart';
 
 /// Wraps CDOMObject objects into output models using a CharID.
 class CDOMObjectWrapper implements PCGenObjectWrapper {

@@ -1,6 +1,6 @@
-import '../../base/util/format_manager.dart';
-import '../base/evaluation_manager.dart';
-import '../base/variable_id.dart';
+import 'package:flutter_pcgen/src/base/util/format_manager.dart';
+import 'package:flutter_pcgen/src/formula/base/evaluation_manager.dart';
+import 'package:flutter_pcgen/src/formula/base/variable_id.dart';
 import 'modifier.dart';
 import 'process_step.dart';
 import 'solver.dart';

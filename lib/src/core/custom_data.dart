@@ -35,9 +35,9 @@ import 'language.dart';
 import 'pc_template.dart';
 import 'spell/spell.dart';
 import 'campaign.dart';
-import '../cdom/base/constants.dart';
-import '../cdom/base/p_object.dart';
-import '../cdom/enumeration/string_key.dart';
+import 'package:flutter_pcgen/src/cdom/base/constants.dart';
+import 'package:flutter_pcgen/src/core/pcobject.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/string_key.dart';
 
 class CustomData {
   CustomData._();

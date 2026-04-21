@@ -2,8 +2,8 @@
 //
 // Translation of pcgen.persistence.lst.prereq.PreParserFactory
 
-import '../../../core/prereq/prerequisite.dart';
-import '../../../core/prereq/prerequisite_operator.dart';
+import 'package:flutter_pcgen/src/core/prereq/prerequisite.dart';
+import 'package:flutter_pcgen/src/core/prereq/prerequisite_operator.dart';
 import 'prerequisite_parser_interface.dart';
 
 /// Singleton factory for parsing PRExxx prerequisite strings into Prerequisite objects.

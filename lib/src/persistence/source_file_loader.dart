@@ -17,14 +17,14 @@
 //
 // Translation of pcgen.persistence.SourceFileLoader
 
-import '../core/campaign.dart';
-import '../core/data_set.dart';
-import '../core/game_mode.dart';
-import '../core/globals.dart';
-import '../core/system_collections.dart';
-import '../facade/core/ui_delegate.dart';
-import '../system/p_c_gen_task.dart';
-import '../system/language_bundle.dart';
+import 'package:flutter_pcgen/src/core/campaign.dart';
+import 'package:flutter_pcgen/src/core/data_set.dart';
+import 'package:flutter_pcgen/src/core/game_mode.dart';
+import 'package:flutter_pcgen/src/core/globals.dart';
+import 'package:flutter_pcgen/src/core/system_collections.dart';
+import 'package:flutter_pcgen/src/facade/core/ui_delegate.dart';
+import 'package:flutter_pcgen/src/system/p_c_gen_task.dart';
+import 'package:flutter_pcgen/src/system/language_bundle.dart';
 import 'persistence_layer_exception.dart';
 import 'lst/campaign_loader.dart';
 import 'lst/campaign_source_entry.dart';

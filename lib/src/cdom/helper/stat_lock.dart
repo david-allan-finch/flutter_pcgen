@@ -16,9 +16,9 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.cdom.helper.StatLock
-import '../../base/formula/formula.dart';
-import '../reference/cdom_single_ref.dart';
-import '../../core/pc_stat.dart';
+import 'package:flutter_pcgen/src/base/formula/formula.dart';
+import 'package:flutter_pcgen/src/cdom/reference/cdom_single_ref.dart';
+import 'package:flutter_pcgen/src/core/pc_stat.dart';
 
 // Represents a PCStat locked to a specific value (which may be a formula).
 class StatLock {

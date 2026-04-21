@@ -18,9 +18,9 @@
 // Translation of pcgen.gui2.facade.PartyFacadeImpl
 
 import 'package:flutter/foundation.dart';
-import '../../facade/core/party_facade.dart';
-import '../../facade/core/character_facade.dart';
-import '../../facade/util/list_facade.dart';
+import 'package:flutter_pcgen/src/facade/core/party_facade.dart';
+import 'package:flutter_pcgen/src/facade/core/character_facade.dart';
+import 'package:flutter_pcgen/src/facade/util/list_facade.dart';
 
 /// Implementation of PartyFacade managing the list of open characters.
 class PartyFacadeImpl extends ChangeNotifier implements PartyFacade {

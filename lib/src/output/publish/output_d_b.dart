@@ -17,12 +17,12 @@
 //
 // Translation of pcgen.output.publish.OutputDB
 
-import '../base/model_factory.dart';
-import '../base/mode_model_factory.dart';
-import '../factory/item_model_factory.dart';
-import '../factory/set_model_factory.dart';
-import '../factory/channel_factory.dart';
-import '../model/boolean_option_model.dart';
+import 'package:flutter_pcgen/src/output/base/model_factory.dart';
+import 'package:flutter_pcgen/src/output/base/mode_model_factory.dart';
+import 'package:flutter_pcgen/src/output/factory/item_model_factory.dart';
+import 'package:flutter_pcgen/src/output/factory/set_model_factory.dart';
+import 'package:flutter_pcgen/src/output/factory/channel_factory.dart';
+import 'package:flutter_pcgen/src/output/model/boolean_option_model.dart';
 
 /// OutputDB is the output database for building the data map provided to
 /// the template engine during character sheet export.

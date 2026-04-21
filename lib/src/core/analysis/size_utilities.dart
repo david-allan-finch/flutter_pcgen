@@ -16,9 +16,9 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.core.analysis.SizeUtilities
-import '../../cdom/enumeration/object_key.dart';
-import '../globals.dart';
-import '../size_adjustment.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/object_key.dart';
+import 'package:flutter_pcgen/src/core/globals.dart';
+import 'package:flutter_pcgen/src/core/size_adjustment.dart';
 
 // Utility for size-related queries.
 abstract final class SizeUtilities {

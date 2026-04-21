@@ -1,5 +1,5 @@
-import '../base/edge.dart';
-import '../base/graph.dart';
+import 'package:flutter_pcgen/src/base/graph/base/edge.dart';
+import 'package:flutter_pcgen/src/base/graph/base/graph.dart';
 
 class DepthFirstTraverseAlgorithm<N, ET extends Edge<N>> {
   final Graph<N, ET> _graph;
