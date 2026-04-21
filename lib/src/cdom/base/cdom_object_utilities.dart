@@ -40,7 +40,7 @@ class CDOMObjectUtilities {
   static void addAdds(CDOMObject cdo, dynamic pc) {
     if (!pc.isAllowInteraction()) return;
     final List<PersistentTransitionChoice> addList =
-        cdo.getListFor(ListKey.add) ?? [];
+        cdo.getSafeListFor(ListKey.add as ListKey<PersistentTransitionChoice<dynamic>>);
     for (final tc in addList) {
       _driveChoice(cdo, tc, pc);
     }
@@ -49,7 +49,7 @@ class CDOMObjectUtilities {
   static void removeAdds(CDOMObject cdo, dynamic pc) {
     if (!pc.isAllowInteraction()) return;
     final List<PersistentTransitionChoice> addList =
-        cdo.getListFor(ListKey.add) ?? [];
+        cdo.getSafeListFor(ListKey.add as ListKey<PersistentTransitionChoice<dynamic>>);
     for (final tc in addList) {
       tc.remove(cdo, pc);
     }
@@ -58,7 +58,7 @@ class CDOMObjectUtilities {
   static void checkRemovals(CDOMObject cdo, dynamic pc) {
     if (!pc.isAllowInteraction()) return;
     final List<PersistentTransitionChoice> removeList =
-        cdo.getListFor(ListKey.remove) ?? [];
+        cdo.getSafeListFor(ListKey.remove as ListKey<PersistentTransitionChoice<dynamic>>);
     for (final tc in removeList) {
       _driveChoice(cdo, tc, pc);
     }
@@ -67,7 +67,7 @@ class CDOMObjectUtilities {
   static void restoreRemovals(CDOMObject cdo, dynamic pc) {
     if (!pc.isAllowInteraction()) return;
     final List<PersistentTransitionChoice> removeList =
-        cdo.getListFor(ListKey.remove) ?? [];
+        cdo.getSafeListFor(ListKey.remove as ListKey<PersistentTransitionChoice<dynamic>>);
     for (final tc in removeList) {
       tc.remove(cdo, pc);
     }

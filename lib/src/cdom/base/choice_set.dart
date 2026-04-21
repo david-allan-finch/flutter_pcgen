@@ -54,7 +54,7 @@ class ChoiceSet<T> extends ConcretePrereqObject implements SelectableSet<T> {
   }
 
   @override
-  String? getTitle() => _title;
+  String getTitle() => _title ?? getName();
 
   @override
   GroupingState getGroupingState() => _pcs.getGroupingState();

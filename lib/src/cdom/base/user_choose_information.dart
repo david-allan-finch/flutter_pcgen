@@ -47,22 +47,30 @@ class UserChooseInformation
   GroupingState getGroupingState() => GroupingState.allowsNone;
 
   @override
-  List<String> getSet(PlayerCharacter pc) => ['USERINPUT'];
+  bool allowsPersistentStorage() => true;
+
+  @override
+  Type getReferenceClass() => String;
+
+  @override
+  List<String> getSet(dynamic pc, [dynamic driver]) => ['USERINPUT'];
 
   @override
   String composeDisplay(List<dynamic> collection) =>
       ChooseInformationUtilities.buildEncodedString(collection);
 
   @override
-  void restoreChoice(PlayerCharacter pc, ChooseDriver owner, String choice) =>
-      pc.addAssoc(owner, _listKey(), choice);
+  void restoreChoice(dynamic pc, dynamic owner, String choice) {
+    final aPC = pc as PlayerCharacter;
+    aPC.addAssoc(owner as ChooseDriver, _listKey(), choice);
+  }
 
   @override
-  List<String>? getCurrentlySelected(ChooseDriver owner, PlayerCharacter pc) =>
-      pc.getAssocList(owner, _listKey());
+  List<String> getCurrentlySelected(ChooseDriver owner, dynamic pc) =>
+      (pc as PlayerCharacter).getAssocList(owner, _listKey()) ?? [];
 
   @override
-  void applyChoice(ChooseDriver owner, String choice, PlayerCharacter pc) {
+  void applyChoice(ChooseDriver owner, String choice, dynamic pc) {
     restoreChoice(pc, owner, choice);
     final actors = owner.getActors();
     if (actors != null) {
@@ -73,8 +81,9 @@ class UserChooseInformation
   }
 
   @override
-  void removeChoice(PlayerCharacter pc, ChooseDriver owner, String choice) {
-    pc.removeAssoc(owner, _listKey(), choice);
+  void removeChoice(dynamic pc, ChooseDriver owner, String choice) {
+    final aPC = pc as PlayerCharacter;
+    aPC.removeAssoc(owner, _listKey(), choice);
     final actors = owner.getActors();
     if (actors != null) {
       for (final csa in actors) {
@@ -87,10 +96,10 @@ class UserChooseInformation
   Chooser<String> getChoiceActor() => this;
 
   @override
-  void setChoiceActor(Chooser<String> actor) {} // ignored
+  void setChoiceActor(dynamic actor) {} // ignored — self is the actor
 
   @override
-  bool allow(String choice, PlayerCharacter pc, bool allowStack) => true;
+  bool allow(String choice, dynamic pc, bool allowStack) => true;
 
   @override
   String decodeChoice(dynamic context, String choice) => choice;

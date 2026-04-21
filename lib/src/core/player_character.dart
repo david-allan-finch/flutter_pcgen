@@ -1124,6 +1124,25 @@ class PlayerCharacter {
   void setAllowInteraction(bool b) { _allowInteraction = b; }
 
   // ---------------------------------------------------------------------------
+  // Association storage (used by CHOOSE system)
+  // ---------------------------------------------------------------------------
+
+  final Map<dynamic, Map<dynamic, List<dynamic>>> _assocMap = {};
+
+  void addAssoc(dynamic owner, dynamic key, dynamic value) {
+    _assocMap.putIfAbsent(owner, () => {}).putIfAbsent(key, () => []).add(value);
+  }
+
+  List<String>? getAssocList(dynamic owner, dynamic key) {
+    final list = _assocMap[owner]?[key];
+    return list?.cast<String>();
+  }
+
+  void removeAssoc(dynamic owner, dynamic key, dynamic value) {
+    _assocMap[owner]?[key]?.remove(value);
+  }
+
+  // ---------------------------------------------------------------------------
   // Load / encumbrance
   // ---------------------------------------------------------------------------
 

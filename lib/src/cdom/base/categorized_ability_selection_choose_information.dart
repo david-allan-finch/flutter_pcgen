@@ -29,7 +29,7 @@ class CategorizedAbilitySelectionChooseInformation
   CategorizedAbilitySelectionChooseInformation(
       String name, CollectionToAbilitySelection choice)
       : _casChoiceSet = choice,
-        super(name, choice, choice.getCategory().getPersistentFormat());
+        super(name, choice as dynamic, choice.getCategory().getPersistentFormat());
 
   dynamic getCategory() => _casChoiceSet.getCategory();
 }

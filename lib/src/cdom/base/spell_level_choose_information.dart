@@ -42,7 +42,7 @@ class SpellLevelChooseInformation implements ChooseInformation<SpellLevel> {
   }
 
   @override
-  void setChoiceActor(Chooser<SpellLevel> actor) => choiceActor = actor;
+  void setChoiceActor(dynamic actor) => choiceActor = actor as Chooser<SpellLevel>;
 
   @override
   Chooser<SpellLevel>? getChoiceActor() => choiceActor;
@@ -51,14 +51,21 @@ class SpellLevelChooseInformation implements ChooseInformation<SpellLevel> {
   String encodeChoice(SpellLevel choice) => choiceActor!.encodeChoice(choice);
 
   @override
-  SpellLevel? decodeChoice(dynamic context, String persistenceFormat) =>
-      choiceActor?.decodeChoice(context, persistenceFormat);
+  SpellLevel decodeChoice(dynamic context, String persistenceFormat) =>
+      choiceActor!.decodeChoice(context, persistenceFormat);
 
   @override
-  List<SpellLevel> getSet(PlayerCharacter pc) {
+  bool allowsPersistentStorage() => false;
+
+  @override
+  Type getReferenceClass() => SpellLevel;
+
+  @override
+  List<SpellLevel> getSet(dynamic pc, [dynamic driver]) {
+    final aPC = pc as PlayerCharacter;
     final set = <SpellLevel>{};
     for (final sli in info) {
-      set.addAll(sli.getLevels(pc));
+      set.addAll(sli.getLevels(aPC));
     }
     return set.toList();
   }
@@ -78,8 +85,8 @@ class SpellLevelChooseInformation implements ChooseInformation<SpellLevel> {
   GroupingState getGroupingState() => GroupingState.allowsNone;
 
   @override
-  void restoreChoice(PlayerCharacter pc, ChooseDriver owner, SpellLevel choice) =>
-      choiceActor?.restoreChoice(pc, owner, choice);
+  void restoreChoice(dynamic pc, dynamic owner, SpellLevel choice) =>
+      choiceActor?.restoreChoice(pc, owner as ChooseDriver, choice);
 
   @override
   void removeChoice(PlayerCharacter pc, ChooseDriver owner, SpellLevel choice) =>

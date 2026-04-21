@@ -85,7 +85,7 @@ class WriteOnceReadManyList<T> implements List<T> {
   void insertAll(int index, Iterable<T> iterable) { _checkWrite(); _list.insertAll(index, iterable); }
 
   @override
-  void removeAt(int index) { _checkWrite(); _list.removeAt(index); }
+  T removeAt(int index) { _checkWrite(); return _list.removeAt(index); }
 
   @override
   T removeLast() { _checkWrite(); return _list.removeLast(); }
@@ -193,6 +193,15 @@ class WriteOnceReadManyList<T> implements List<T> {
 
   @override
   List<E> cast<E>() => _list.cast<E>();
+
+  @override
+  T elementAt(int index) => _list[index];
+
+  @override
+  Iterable<R> whereType<R>() => _list.whereType<R>();
+
+  @override
+  List<T> get reversed => _list.reversed.toList();
 
   @override
   String toString() => _list.toString();
