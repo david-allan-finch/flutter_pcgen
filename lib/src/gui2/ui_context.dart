@@ -15,12 +15,13 @@
 //
 // Translation of pcgen.gui2.UIContext
 
+import 'package:flutter/foundation.dart' show ChangeNotifier;
 import 'package:flutter_pcgen/src/facade/util/default_reference_facade.dart';
 import 'package:flutter_pcgen/src/facade/core/source_selection_facade.dart';
 
 /// Stores the source selection information currently identified as being
 /// loaded by the UI.
-class UIContext {
+class UIContext with ChangeNotifier {
   final DefaultReferenceFacade<SourceSelectionFacade> _currentSourceSelection;
 
   UIContext() : _currentSourceSelection = DefaultReferenceFacade<SourceSelectionFacade>();

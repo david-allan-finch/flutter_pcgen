@@ -43,7 +43,7 @@ class SpellReferenceChoiceSet {
   }
 
   // Returns LST format string; DomainSpellList refs are appended with "DOMAIN." prefix.
-  String getLSTformat(bool useAny) {
+  String getLSTformat([bool useAny = false]) {
     // Sort by LST format for determinism (stub: ReferenceUtilities.REFERENCE_SORTER).
     final sorted = _set.toList()
       ..sort((a, b) => a.getLSTformat(false).compareTo(b.getLSTformat(false)));

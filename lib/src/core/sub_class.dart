@@ -39,12 +39,12 @@ final class SubClass extends PCClass implements Categorized<SubClass> {
   }
 
   @override
-  Category<SubClass>? getCDOMCategory() {
-    return getObject(ObjectKey.subclassCategory) as Category<SubClass>?;
+  Category<SubClass> getCDOMCategory() {
+    return getObject(ObjectKey.subclassCategory) as Category<SubClass>;
   }
 
   @override
-  void setCDOMCategory(Category<SubClass>? cat) {
+  void setCDOMCategory(Category<SubClass> cat) {
     putObject(ObjectKey.subclassCategory, cat);
   }
 

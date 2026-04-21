@@ -32,7 +32,7 @@ class ObjectContainerPrimitive<T> {
 
   GroupingState getGroupingState() => GroupingState.any;
 
-  String getLSTformat(bool useAny) => _group.getLSTformat(useAny) as String;
+  String getLSTformat([bool useAny = false]) => _group.getLSTformat(useAny) as String;
 
   @override
   int get hashCode => _group.hashCode - 1;

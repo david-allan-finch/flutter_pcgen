@@ -39,7 +39,7 @@ class NegatingPrimitive<T> {
   GroupingState getGroupingState() =>
       (_primitive.getGroupingState() as GroupingState).negate();
 
-  String getLSTformat(bool useAny) =>
+  String getLSTformat([bool useAny = false]) =>
       '!${_primitive.getLSTformat(useAny)}';
 
   @override

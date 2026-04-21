@@ -54,7 +54,7 @@ class CDOMSimpleSingleRef<T> extends CDOMReference<T>
   bool hasBeenResolved() => _referencedObject != null;
 
   @override
-  String getLSTformat([String? joinWith]) => getName();
+  String getLSTformat([bool useAny = false]) => getName();
 
   @override
   void addResolution(T item) {

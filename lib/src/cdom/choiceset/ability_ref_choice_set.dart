@@ -49,7 +49,7 @@ class AbilityRefChoiceSet {
     _abilityRefSet.addAll(arCollection);
   }
 
-  String getLSTformat(bool useAny) {
+  String getLSTformat([bool useAny = false]) {
     // Sort by LST format for determinism (stub: ReferenceUtilities.REFERENCE_SORTER).
     final sorted = _abilityRefSet.toList()
       ..sort((a, b) {

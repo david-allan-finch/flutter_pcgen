@@ -33,7 +33,7 @@ final class CDOMTypeRef<T> extends CDOMReference<T> implements CDOMGroupRef<T> {
         super('${identity.getReferenceDescription()} $typeArray');
 
   @override
-  String getLSTformat([String? joinWith]) =>
+  String getLSTformat([bool useAny = false]) =>
       'TYPE=${_types.join('.')}';
 
   @override

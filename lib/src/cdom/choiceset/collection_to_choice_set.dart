@@ -30,7 +30,7 @@ class CollectionToChoiceSet<T> {
 
   GroupingState getGroupingState() => _primitive.getGroupingState();
 
-  String getLSTformat(bool useAny) => _primitive.getLSTformat(useAny);
+  String getLSTformat([bool useAny = false]) => _primitive.getLSTformat(useAny);
 
   List<T> getSet(dynamic pc) {
     // stub: DereferencingConverter

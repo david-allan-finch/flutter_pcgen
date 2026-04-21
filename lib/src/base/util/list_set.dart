@@ -139,7 +139,4 @@ class ListSet<T> extends SetBase<T> {
 
   @override
   Iterable<T> followedBy(Iterable<T> other) => _list.followedBy(other);
-
-  @override
-  Iterable<T> cast<T>() => _list.cast<T>();
 }

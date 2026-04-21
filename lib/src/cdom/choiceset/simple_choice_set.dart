@@ -54,7 +54,7 @@ class SimpleChoiceSet<T> {
     }
   }
 
-  String getLSTformat(bool useAny) {
+  String getLSTformat([bool useAny = false]) {
     List<T> sortingList = List<T>.from(_set._items);
     if (_comparator != null) {
       try {

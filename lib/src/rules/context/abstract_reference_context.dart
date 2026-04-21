@@ -84,7 +84,7 @@ class _DeferredSingleRef<T> implements CDOMSingleRef<T> {
   List<T> getContainedObjects() => _resolved == null ? [] : [_resolved!];
 
   @override
-  String getLSTformat([String? joinWith]) => _key;
+  String getLSTformat([bool useAny = false]) => _key;
 
   @override
   int getReferenceCount() => _resolved == null ? 0 : 1;

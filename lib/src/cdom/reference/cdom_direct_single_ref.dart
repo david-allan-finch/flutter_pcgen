@@ -40,7 +40,7 @@ class CDOMDirectSingleRef<T> implements CDOMSingleRef<T> {
   List<T> getContainedObjects() => [_obj];
 
   @override
-  String getLSTformat([String? joinWith]) => _obj.toString();
+  String getLSTformat([bool useAny = false]) => _obj.toString();
 
   @override
   int getReferenceCount() => 1;

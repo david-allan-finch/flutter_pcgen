@@ -44,7 +44,7 @@ class CollectionToAbilitySelection {
   GroupingState getGroupingState() =>
       _collection.getGroupingState() as GroupingState;
 
-  String getLSTformat(bool useAny) =>
+  String getLSTformat([bool useAny = false]) =>
       _collection.getLSTformat(useAny) as String;
 
   List<AbilitySelection> getSet(dynamic pc) {

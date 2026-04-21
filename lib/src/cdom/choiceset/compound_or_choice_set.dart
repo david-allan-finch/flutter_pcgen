@@ -54,7 +54,7 @@ class CompoundOrChoiceSet<T> {
     return returnSet;
   }
 
-  String getLSTformat(bool useAny) {
+  String getLSTformat([bool useAny = false]) {
     return ChoiceSetUtilities.joinLstFormat(_pcsSet, _separator, useAny);
   }
 

@@ -28,7 +28,7 @@ class QualifiedDecorator<T> {
 
   Type getChoiceClass() => _underlyingPcs.getChoiceClass() as Type;
 
-  String getLSTformat(bool useAny) =>
+  String getLSTformat([bool useAny = false]) =>
       _underlyingPcs.getLSTformat(useAny) as String;
 
   // Returns only items that the PlayerCharacter qualifies for.

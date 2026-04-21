@@ -73,7 +73,7 @@ class CDOMCompoundOrReference<T> extends CDOMReference<T>
   }
 
   @override
-  String getLSTformat([String? joinWith]) =>
+  String getLSTformat([bool useAny = false]) =>
       _references.map((r) => r.getLSTformat()).join(',');
 
   @override

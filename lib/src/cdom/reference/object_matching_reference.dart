@@ -79,7 +79,7 @@ class ObjectMatchingReference<T extends CDOMObject, V>
   }
 
   @override
-  String getLSTformat([String? joinWith]) => getName();
+  String getLSTformat([bool useAny = false]) => getName();
 
   @override
   GroupingState getGroupingState() => GroupingState.any;

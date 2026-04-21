@@ -31,7 +31,7 @@ class AbilityFromClassChoiceSet {
 
   AbilityFromClassChoiceSet(CDOMSingleRef<dynamic> pcc) : _classRef = pcc;
 
-  String getLSTformat(bool useAny) {
+  String getLSTformat([bool useAny = false]) {
     return 'CLASS.${_classRef.getLSTformat(useAny)}';
   }
 

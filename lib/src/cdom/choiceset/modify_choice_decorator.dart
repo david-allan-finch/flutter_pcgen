@@ -30,7 +30,7 @@ class ModifyChoiceDecorator {
 
   Type getChoiceClass() => CNAbility;
 
-  String getLSTformat(bool useAny) => _pcs.getLSTformat(useAny) as String;
+  String getLSTformat([bool useAny = false]) => _pcs.getLSTformat(useAny) as String;
 
   // Returns CNAbility objects that are in the underlying set AND are MULT:YES
   // feats possessed by the PlayerCharacter.

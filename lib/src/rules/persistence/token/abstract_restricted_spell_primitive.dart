@@ -56,7 +56,7 @@ abstract class AbstractRestrictedSpellPrimitive
   // ---------------------------------------------------------------------------
 
   @override
-  String getLSTformat(bool useAny) => getPrimitiveLST().toString();
+  String getLSTformat([bool useAny = false]) => getPrimitiveLST().toString();
 
   /// Returns the LST representation of this primitive (without restriction).
   String getPrimitiveLST();

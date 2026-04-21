@@ -18,10 +18,11 @@
 // Translation of pcgen.gui2.UIPropertyContext
 
 import 'dart:ui' show Color;
+import 'package:flutter/foundation.dart' show ChangeNotifier;
 import 'package:flutter_pcgen/src/facade/core/character_facade.dart';
 
 /// Holds UI-related user preferences such as screen position and colours.
-class UIPropertyContext {
+class UIPropertyContext with ChangeNotifier {
   static const String customItemColor = 'customItemColor';
   static const String notQualifiedColor = 'notQualifiedColor';
   static const String automaticColor = 'automaticColor';
@@ -61,6 +62,8 @@ class UIPropertyContext {
     _instance ??= UIPropertyContext._();
     return _instance!;
   }
+
+  static UIPropertyContext get instance => getInstance();
 
   static UIPropertyContext createContext(String name) {
     return getInstance()._createChildContext(name);

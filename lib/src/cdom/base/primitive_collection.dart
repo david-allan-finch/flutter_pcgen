@@ -28,7 +28,7 @@ abstract interface class PrimitiveCollection<T> {
 
   Type getReferenceClass();
 
-  String getLSTformat(bool useAny);
+  String getLSTformat([bool useAny = false]);
 
   // Sentinel "invalid" singleton.
   static final PrimitiveCollection _invalid = _InvalidPrimitiveCollection();
@@ -58,7 +58,7 @@ class _InvalidPrimitiveCollection implements PrimitiveCollection<Object> {
   GroupingState getGroupingState() => GroupingState.invalid;
 
   @override
-  String getLSTformat(bool useAny) => 'ERROR';
+  String getLSTformat([bool useAny = false]) => 'ERROR';
 
   @override
   Type getReferenceClass() => Object;

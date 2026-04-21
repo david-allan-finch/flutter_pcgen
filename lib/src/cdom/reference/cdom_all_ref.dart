@@ -51,7 +51,8 @@ class CDOMAllRef<T> extends CDOMReference<T> implements CDOMGroupRef<T> {
   GroupingState getGroupingState() => GroupingState.any;
 
   @override
-  String getLSTformat(bool useAny) => useAny ? 'ANY' : 'ALL';
+  @override
+  String getLSTformat([bool useAny = false]) => useAny ? 'ANY' : 'ALL';
 
   @override
   Type getReferenceClass() => T;

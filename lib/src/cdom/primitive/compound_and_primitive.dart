@@ -59,7 +59,7 @@ class CompoundAndPrimitive<T> {
     return state.compound(GroupingState.allowsIntersection);
   }
 
-  String getLSTformat(bool useAny) =>
+  String getLSTformat([bool useAny = false]) =>
       PrimitiveUtilities.joinLstFormat(_primCollection, ',', useAny);
 
   @override

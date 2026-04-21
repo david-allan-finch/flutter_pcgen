@@ -68,7 +68,7 @@ class FilteredReference<T> extends CDOMReference<T>
   }
 
   @override
-  String getLSTformat([String? joinWith]) {
+  String getLSTformat([bool useAny = false]) {
     final sorted = _filterSet.map((r) => r.getLSTformat()).toList()..sort();
     return 'ALL|!${sorted.join('|!')}';
   }

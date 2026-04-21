@@ -54,7 +54,7 @@ class CompoundOrPrimitive<T> {
     return state.compound(GroupingState.allowsUnion);
   }
 
-  String getLSTformat(bool useAny) =>
+  String getLSTformat([bool useAny = false]) =>
       PrimitiveUtilities.joinLstFormat(_primCollection, '|', useAny);
 
   @override

@@ -46,7 +46,7 @@ class CDOMTransparentAllRef<T extends Loadable> extends CDOMReference<T>
   }
 
   @override
-  String getLSTformat([String? joinWith]) =>
+  String getLSTformat([bool useAny = false]) =>
       _subReference?.getLSTformat(joinWith) ?? 'ALL';
 
   @override

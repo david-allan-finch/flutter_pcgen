@@ -84,7 +84,7 @@ abstract class AbstractPCQualifierToken<T> implements QualifierToken<T> {
   List<T> getPossessed(dynamic pc);
 
   /// Returns the LST representation of this qualifier.
-  String getLSTformat(bool useAny) {
+  String getLSTformat([bool useAny = false]) {
     final sb = StringBuffer();
     if (_negated) sb.write('!');
     sb.write(getTokenName());

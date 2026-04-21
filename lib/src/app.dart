@@ -5,7 +5,6 @@ import 'gui3/preloader/pc_gen_preloader.dart';
 import 'gui3/preloader/pc_gen_preloader_controller.dart';
 import 'gui2/ui_context.dart';
 import 'gui2/ui_property_context.dart';
-import 'system/character_manager.dart';
 
 class PCGenApp extends StatelessWidget {
   const PCGenApp({super.key});
@@ -16,7 +15,6 @@ class PCGenApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => UIContext()),
         ChangeNotifierProvider(create: (_) => UIPropertyContext.instance),
-        ChangeNotifierProvider(create: (_) => CharacterManager.shared),
         ChangeNotifierProvider(create: (_) => PCGenPreloaderController()),
       ],
       child: Consumer<UIPropertyContext>(

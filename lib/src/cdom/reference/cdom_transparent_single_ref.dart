@@ -60,7 +60,7 @@ class CDOMTransparentSingleRef<T extends Loadable> extends CDOMReference<T>
       _subReference != null && _subReference!.hasBeenResolved();
 
   @override
-  String getLSTformat([String? joinWith]) => getName();
+  String getLSTformat([bool useAny = false]) => getName();
 
   @override
   void addResolution(T item) {

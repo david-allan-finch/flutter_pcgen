@@ -33,7 +33,7 @@ class ReferenceChoiceSet<T> {
     _refCollection.addAll(col);
   }
 
-  String getLSTformat(bool useAny) {
+  String getLSTformat([bool useAny = false]) {
     // Sort by reference LST format for determinism.
     final sorted = List<CDOMReference<T>>.from(_refCollection)
       ..sort((a, b) {

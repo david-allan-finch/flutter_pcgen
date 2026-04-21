@@ -36,7 +36,7 @@ class _ChoiceSetBase {
 // An empty PrimitiveChoiceSet for PCClass used when no type-based classes exist.
 class _EmptyChoiceSet {
   Type getChoiceClass() => dynamic;
-  String getLSTformat(bool useAny) => Constants.emptyString;
+  String getLSTformat([bool useAny = false]) => Constants.emptyString;
   Set<dynamic> getSet(dynamic pc) => {};
   GroupingState getGroupingState() => GroupingState.any;
 }

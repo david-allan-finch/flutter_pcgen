@@ -1,4 +1,4 @@
 abstract interface class ObjectContainer<T> {
   List<T> getContainedObjects();
-  String getLSTformat();
+  String getLSTformat([bool useAny = false]);
 }

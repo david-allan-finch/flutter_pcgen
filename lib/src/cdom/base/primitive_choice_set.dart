@@ -28,7 +28,7 @@ abstract interface class PrimitiveChoiceSet<T> {
   Type getChoiceClass();
 
   /// Returns an LST representation suitable for storing in a data file.
-  String getLSTformat(bool useAny);
+  String getLSTformat([bool useAny = false]);
 
   /// Returns the GroupingState indicating how this set can be combined.
   GroupingState getGroupingState();
@@ -50,5 +50,5 @@ class _InvalidPrimitiveChoiceSet implements PrimitiveChoiceSet<Object> {
   GroupingState getGroupingState() => GroupingState.invalid;
 
   @override
-  String getLSTformat(bool useAny) => 'ERROR';
+  String getLSTformat([bool useAny = false]) => 'ERROR';
 }
