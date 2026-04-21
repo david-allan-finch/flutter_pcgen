@@ -24,7 +24,7 @@ class AddedTemplateFacet extends AbstractSourcedListFacet<CharID, PCTemplate>
   /// Selects and records templates from [po]'s TEMPLATE list for [id].
   List<PCTemplate> select(CharID id, CDOMObject po) {
     final list = <PCTemplate>[];
-    removeAll(id, po);
+    removeAllFromSource(id, po);
     final pc = trackingFacet.getPC(id);
     if (!pc.isImporting()) {
       for (final ref in po.getSafeListFor(
@@ -124,7 +124,7 @@ class AddedTemplateFacet extends AbstractSourcedListFacet<CharID, PCTemplate>
     for (final pct in list) {
       pc.removeTemplate(pct);
     }
-    removeAll(id, cdo);
+    removeAllFromSource(id, cdo);
     final refList = cdo.getListFor(
         ListKey.getConstant<CDOMReference<PCTemplate>>('TEMPLATE'));
     if (refList != null) {

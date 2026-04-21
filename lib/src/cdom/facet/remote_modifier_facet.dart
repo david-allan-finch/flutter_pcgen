@@ -25,7 +25,7 @@ class RemoteModifierFacet
     final addedObject = dfce.getCDOMObject();
 
     // Apply existing remote modifiers to newly added object (if applicable)
-    for (final remoteModifier in getSet(id)) {
+    for (final remoteModifier in getKeySet(id)) {
       final modSource = get(id, remoteModifier);
       _processAdd(id, remoteModifier, addedObject, modSource);
     }
@@ -59,7 +59,7 @@ class RemoteModifierFacet
     final addedObject = dfce.getCDOMObject();
 
     // Remove effects this object had from other objects' remote modifiers
-    for (final remoteModifier in getSet(id)) {
+    for (final remoteModifier in getKeySet(id)) {
       final modSource = get(id, remoteModifier);
       _processRemove(id, remoteModifier, addedObject, modSource);
     }
@@ -69,7 +69,7 @@ class RemoteModifierFacet
     if (remoteModifierArray.isNotEmpty) {
       final targets = varScopedFacet.getSet(id);
       for (final remoteModifier in remoteModifierArray) {
-        remove(id, remoteModifier);
+        removeAssoc(id, remoteModifier);
         for (final obj in targets) {
           _processRemove(id, remoteModifier, obj, addedObject);
         }

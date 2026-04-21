@@ -30,7 +30,7 @@ class AutoEquipmentFacet
 
   @override
   void dataRemoved(DataFacetChangeEvent<CharID, CDOMObject> dfce) {
-    removeAll(dfce.getCharID(), dfce.getCDOMObject());
+    removeAllFromSource(dfce.getCharID(), dfce.getCDOMObject());
   }
 
   /// Returns Equipment objects from all AUTO:EQUIP grants, cloned with qty=1.

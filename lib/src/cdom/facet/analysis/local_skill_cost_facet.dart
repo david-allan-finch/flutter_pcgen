@@ -49,7 +49,7 @@ class LocalSkillCostFacet extends AbstractSubScopeFacet<PCClass, SkillCost, Skil
 
   @override
   void dataRemoved(DataFacetChangeEvent<CharID, CDOMObject> dfce) {
-    removeAll(dfce.getCharID(), dfce.getCDOMObject());
+    removeAllFromSource(dfce.getCharID(), dfce.getCDOMObject());
   }
 
   PCClass? _getOwner(CharID id, CDOMObject cdo) {

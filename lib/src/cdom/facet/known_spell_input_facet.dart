@@ -79,7 +79,7 @@ class KnownSpellInputFacet
   void dataRemoved(DataFacetChangeEvent<CharID, CDOMObject> dfce) {
     final id = dfce.getCharID();
     final source = dfce.getCDOMObject();
-    conditionallyKnownSpellFacet.removeAll(id, source);
+    conditionallyKnownSpellFacet.removeAllFromSource(id, source);
     knownSpellFacet.removeAllFromSource(id, source);
   }
 }

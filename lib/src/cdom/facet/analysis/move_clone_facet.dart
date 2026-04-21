@@ -41,7 +41,7 @@ class MoveCloneFacet extends AbstractSourcedListFacet
   /// CDOMObject removed from the Player Character.
   @override
   void dataRemoved(dynamic dfce) {
-    removeAll(dfce.getCharID() as CharID, dfce.getCDOMObject());
+    removeAllFromSource(dfce.getCharID() as CharID, dfce.getCDOMObject());
   }
 
   void setConsolidationFacet(dynamic consolidationFacet) {

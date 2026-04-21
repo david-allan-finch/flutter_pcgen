@@ -34,7 +34,7 @@ class StatLockFacet extends AbstractSourcedListFacet<CharID, StatLock>
 
   @override
   void dataRemoved(DataFacetChangeEvent<CharID, CDOMObject> dfce) {
-    removeAll(dfce.getCharID(), dfce.getCDOMObject());
+    removeAllFromSource(dfce.getCharID(), dfce.getCDOMObject());
   }
 
   /// Returns the maximum locked value for [stat], or null if not locked.

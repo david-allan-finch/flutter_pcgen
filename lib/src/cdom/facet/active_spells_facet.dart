@@ -38,7 +38,7 @@ class ActiveSpellsFacet extends AbstractSourcedListFacet<CharID, CharacterSpell>
   /// Global reset: rebuilds the active spell list for [id].
   void process(CharID id) {
     final race = raceFacet.get(id);
-    removeAll(id, race);
+    removeAllFromSource(id, race);
     final pc = trackingFacet.getPC(id);
     for (final sla in spellsFacet.getQualifiedSet(id)) {
       final times = sla.getCastTimes();

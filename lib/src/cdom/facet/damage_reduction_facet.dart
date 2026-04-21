@@ -38,7 +38,7 @@ class DamageReductionFacet
 
   @override
   void dataRemoved(DataFacetChangeEvent<CharID, CDOMObject> dfce) {
-    removeAll(dfce.getCharID(), dfce.getCDOMObject());
+    removeAllFromSource(dfce.getCharID(), dfce.getCDOMObject());
   }
 
   Map<String, int> _getDRMap(

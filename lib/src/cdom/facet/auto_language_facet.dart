@@ -50,8 +50,8 @@ class AutoLanguageFacet
   void dataRemoved(DataFacetChangeEvent<CharID, CDOMObject> dfce) {
     final id = dfce.getCharID();
     final cdo = dfce.getCDOMObject();
-    removeAll(id, cdo);
-    autoLanguageUnconditionalFacet.removeAll(id, cdo);
+    removeAllFromSource(id, cdo);
+    autoLanguageUnconditionalFacet.removeAllFromSource(id, cdo);
   }
 
   /// Returns Languages from all qualifying AUTO:LANG grants.

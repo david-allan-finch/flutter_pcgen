@@ -40,6 +40,6 @@ class StartingLanguageFacet extends AbstractSourcedListFacet<CharID, Language>
 
   @override
   void dataRemoved(DataFacetChangeEvent<CharID, CDOMObject> dfce) {
-    removeAll(dfce.getCharID(), dfce.getCDOMObject());
+    removeAllFromSource(dfce.getCharID(), dfce.getCDOMObject());
   }
 }

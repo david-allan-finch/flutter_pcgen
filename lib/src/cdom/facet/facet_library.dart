@@ -25,8 +25,13 @@ final class FacetLibrary {
   }
 
   /// Returns (and caches) the facet for the given string [name].
-  static dynamic getFacet(String name) {
+  static dynamic getFacetByName(String name) {
     return _namedFacets.putIfAbsent(name, () => _StubFacet(name));
+  }
+
+  /// Returns (and caches) the facet for type [T].
+  static T getFacet<T>() {
+    return _facets.putIfAbsent(T, () => _StubFacet(T.toString())) as T;
   }
 
   /// Registers a facet instance under both its [Type] key and [name] key.

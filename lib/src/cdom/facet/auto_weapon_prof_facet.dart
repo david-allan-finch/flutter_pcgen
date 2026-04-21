@@ -27,7 +27,7 @@ class AutoWeaponProfFacet
 
   @override
   void dataRemoved(DataFacetChangeEvent<CharID, CDOMObject> dfce) {
-    removeAll(dfce.getCharID(), dfce.getCDOMObject());
+    removeAllFromSource(dfce.getCharID(), dfce.getCDOMObject());
   }
 
   /// Returns all [WeaponProf]s that have been granted to the character,

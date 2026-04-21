@@ -30,7 +30,7 @@ class VariableFacet extends AbstractStorageFacet<CharID>
 
   @override
   void dataRemoved(DataFacetChangeEvent<CharID, CDOMObject> dfce) {
-    removeAll(dfce.getCharID(), dfce.getCDOMObject());
+    removeAllFromSource(dfce.getCharID(), dfce.getCDOMObject());
   }
 
   void _add(CharID id, VariableKey vk, dynamic formula, CDOMObject cdo) {
@@ -39,7 +39,7 @@ class VariableFacet extends AbstractStorageFacet<CharID>
     subMap.putIfAbsent(formula, () => {}).add(cdo);
   }
 
-  void removeAll(CharID id, Object source) {
+  void removeAllFromSource(CharID id, Object source) {
     final vkMap = _getCachedMap(id);
     if (vkMap == null) return;
     vkMap.removeWhere((vk, fMap) {

@@ -11,7 +11,7 @@ import 'package:flutter_pcgen/src/cdom/facet/event/data_facet_change_event.dart'
 /// (as opposed to conditionally or via a parent object).
 class DirectAbilityFacet extends AbstractCNASEnforcingFacet {
   /// Removes all [CNAbilitySelection] objects sourced from [source].
-  void removeAll(CharID id, Object source) {
+  void removeAllFromSource(CharID id, Object source) {
     final list = getList(id);
     if (list == null) return;
 

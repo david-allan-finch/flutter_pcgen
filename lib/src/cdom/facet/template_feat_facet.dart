@@ -45,7 +45,7 @@ class TemplateFeatFacet
       final pc = trackingFacet.getPC(id);
       choice.remove(source, pc);
     }
-    removeAll(id, source);
+    removeAllFromSource(id, source);
   }
 
   void init() {

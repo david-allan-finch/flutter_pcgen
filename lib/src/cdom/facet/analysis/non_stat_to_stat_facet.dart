@@ -44,7 +44,7 @@ class NonStatToStatFacet extends AbstractSourcedListFacet
   /// from a Player Character.
   @override
   void dataRemoved(dynamic dfce) {
-    removeAll(dfce.getCharID() as CharID, dfce.getCDOMObject());
+    removeAllFromSource(dfce.getCharID() as CharID, dfce.getCDOMObject());
   }
 
   void setConsolidationFacet(dynamic consolidationFacet) {

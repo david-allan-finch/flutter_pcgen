@@ -27,7 +27,7 @@ class HasDeityWeaponProfFacet
 
   @override
   void dataRemoved(DataFacetChangeEvent<CharID, CDOMObject> dfce) {
-    removeAll(dfce.getCharID(), dfce.getCDOMObject());
+    removeAllFromSource(dfce.getCharID(), dfce.getCDOMObject());
   }
 
   /// Returns true if the Player Character has been granted Deity Weapon Profs.

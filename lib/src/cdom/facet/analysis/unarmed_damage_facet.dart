@@ -33,7 +33,7 @@ class UnarmedDamageFacet extends AbstractSourcedListFacet<CharID, List<String>>
 
   @override
   void dataRemoved(DataFacetChangeEvent<CharID, CDOMObject> dfce) {
-    removeAll(dfce.getCharID(), dfce.getCDOMObject());
+    removeAllFromSource(dfce.getCharID(), dfce.getCDOMObject());
   }
 
   /// Returns the unarmed damage string for the Race of the Player Character.

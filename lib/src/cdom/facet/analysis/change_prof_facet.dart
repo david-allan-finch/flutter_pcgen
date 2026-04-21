@@ -29,7 +29,7 @@ class ChangeProfFacet extends AbstractSourcedListFacet<CharID, ChangeProf>
 
   @override
   void dataRemoved(DataFacetChangeEvent<CharID, CDOMObject> dfce) {
-    removeAll(dfce.getCharID(), dfce.getCDOMObject());
+    removeAllFromSource(dfce.getCharID(), dfce.getCDOMObject());
   }
 
   /// Returns the WeaponProfs in the target group, after applying ChangeProf modifications.

@@ -41,7 +41,7 @@ class VisionFacet extends AbstractSourcedListFacet<CharID, QualifiedObject<Visio
 
   @override
   void dataRemoved(DataFacetChangeEvent<CharID, CDOMObject> dfce) {
-    removeAll(dfce.getCharID(), dfce.getCDOMObject());
+    removeAllFromSource(dfce.getCharID(), dfce.getCDOMObject());
   }
 
   /// Returns all active Vision objects (after prerequisites and bonus-based additions).

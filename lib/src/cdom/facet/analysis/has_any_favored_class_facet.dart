@@ -28,7 +28,7 @@ class HasAnyFavoredClassFacet extends AbstractSourcedListFacet<CharID, bool>
 
   @override
   void dataRemoved(DataFacetChangeEvent<CharID, CDOMObject> dfce) {
-    removeAll(dfce.getCharID(), dfce.getCDOMObject());
+    removeAllFromSource(dfce.getCharID(), dfce.getCDOMObject());
   }
 
   bool get(CharID id) => contains(id, true);

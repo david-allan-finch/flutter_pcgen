@@ -76,7 +76,7 @@ class AvailableSpellInputFacet
   void dataRemoved(DataFacetChangeEvent<CharID, CDOMObject> dfce) {
     final id = dfce.getCharID();
     final source = dfce.getCDOMObject();
-    conditionallyAvailableSpellFacet.removeAll(id, source);
+    conditionallyAvailableSpellFacet.removeAllFromSource(id, source);
     availableSpellFacet.removeAllFromSource(id, source);
   }
 }

@@ -28,7 +28,7 @@ class CharacterSpellResistanceFacet extends AbstractSourcedListFacet<CharID, dyn
 
   @override
   void dataRemoved(DataFacetChangeEvent<CharID, CDOMObject> dfce) {
-    removeAll(dfce.getCharID(), dfce.getCDOMObject());
+    removeAllFromSource(dfce.getCharID(), dfce.getCDOMObject());
   }
 
   /// Returns the Spell Resistance for the Player Character — the highest resolved value.
