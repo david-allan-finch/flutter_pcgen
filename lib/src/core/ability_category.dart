@@ -17,10 +17,11 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.core.AbilityCategory
+import 'package:flutter_pcgen/src/cdom/base/category.dart';
 import 'package:flutter_pcgen/src/core/ability.dart';
 
 // Stores and manages information about Ability categories (e.g., FEAT, SPECIAL_ABILITY).
-class AbilityCategory {
+class AbilityCategory implements Category<Ability> {
   static final AbilityCategory feat = AbilityCategory._('FEAT', 'Feat', 'Feats');
   static final AbilityCategory specialAbility = AbilityCategory._('SPECIAL_ABILITY', 'Special Ability', 'Special Abilities');
   static final AbilityCategory trait = AbilityCategory._('TRAIT', 'Trait', 'Traits');
@@ -89,6 +90,38 @@ class AbilityCategory {
   List<Ability> getAbilities() => List.unmodifiable(_abilities);
   void addAbility(Ability ability) { _abilities.add(ability); }
   void removeAbility(Ability ability) { _abilities.remove(ability); }
+
+  // --- Category<Ability> / Loadable / ClassIdentity<Ability> interface ---
+
+  @override
+  void setName(String name) { _displayName = name; }
+
+  @override
+  bool isInternal() => false;
+
+  @override
+  bool isType(String type) => _types.contains(type.toUpperCase());
+
+  @override
+  String getName() => _displayName;
+
+  @override
+  Type getReferenceClass() => Ability;
+
+  @override
+  Ability newInstance() => Ability();
+
+  @override
+  String getReferenceDescription() => _keyName;
+
+  @override
+  String getPersistentFormat() => _keyName;
+
+  @override
+  bool isMember(Ability item) => item.getCDOMCategory() == this;
+
+  @override
+  Category<Ability>? getParentCategory() => null;
 
   @override
   String toString() => _displayName;

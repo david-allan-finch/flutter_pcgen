@@ -24,11 +24,11 @@ import 'package:flutter_pcgen/src/cdom/base/loadable.dart';
 abstract interface class Categorized<T extends Categorized<T>>
     implements Loadable {
   /// Returns the Category of the Categorized object.
-  Category<T> getCDOMCategory();
+  Category<T>? getCDOMCategory();
 
   /// Sets the Category of the Categorized object.
   void setCDOMCategory(Category<T> category);
 
   /// Returns the ClassIdentity for this Categorized object (its category).
-  ClassIdentity<Loadable> getClassIdentity() => getCDOMCategory();
+  ClassIdentity<Loadable>? getClassIdentity() => getCDOMCategory();
 }

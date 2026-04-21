@@ -82,7 +82,7 @@ class AbilitySelection extends Selection<Ability, String> implements Comparable<
   String getPersistentFormat() {
     final ability = getObject();
     final sb = StringBuffer('CATEGORY=');
-    sb.write(ability.getCDOMCategory().getKeyName());
+    sb.write(ability.getCDOMCategory()?.getKeyName());
     sb.write('|');
     sb.write(ability.getKeyName());
     final sel = getSelection();

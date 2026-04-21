@@ -14,6 +14,8 @@
 // 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.core.Ability
+import 'package:flutter_pcgen/src/cdom/base/categorized.dart';
+import 'package:flutter_pcgen/src/cdom/base/category.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/integer_key.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/list_key.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/object_key.dart';
@@ -21,13 +23,17 @@ import 'package:flutter_pcgen/src/core/ability_category.dart';
 import 'package:flutter_pcgen/src/core/pcobject.dart';
 
 /// Definition and game rules for an Ability (feat, special ability, etc).
-final class Ability extends PObject {
-  AbilityCategory? _category;
+final class Ability extends PObject implements Categorized<Ability> {
+  Category<Ability>? _category;
 
   String getCategory() => _category?.getKeyName() ?? '';
 
-  AbilityCategory? getCDOMCategory() => _category;
-  void setCDOMCategory(AbilityCategory? cat) { _category = cat; }
+  @override
+  Category<Ability>? getCDOMCategory() => _category;
+  @override
+  void setCDOMCategory(Category<Ability> cat) { _category = cat; }
+
+  void clearCDOMCategory() { _category = null; }
 
   /// Returns true if this ability can be taken multiple times.
   bool isMult() =>
