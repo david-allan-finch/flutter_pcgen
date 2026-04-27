@@ -72,64 +72,80 @@ class _SourceSelectionDialogState extends State<SourceSelectionDialog>
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      title: const Text('Source Selection'),
-      content: SizedBox(
-        width: 720,
-        height: 520,
-        child: Column(
-          children: [
-            TabBar(
-              controller: _tabController,
-              tabs: const [Tab(text: 'Basic'), Tab(text: 'Advanced')],
-            ),
-            Expanded(
-              child: TabBarView(
+    return Dialog(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 760, maxHeight: 620),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Title
+              Text(
+                'Source Selection',
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              const SizedBox(height: 16),
+              // Tab bar
+              TabBar(
                 controller: _tabController,
-                children: [
-                  // Basic tab — placeholder for quick-load presets
-                  const Center(
-                    child: Text(
-                      'Quick-load presets coming soon.\nUse the Advanced tab to select sources.',
-                      textAlign: TextAlign.center,
+                tabs: const [Tab(text: 'Basic'), Tab(text: 'Advanced')],
+              ),
+              // Tab content — takes remaining space
+              Expanded(
+                child: TabBarView(
+                  controller: _tabController,
+                  children: [
+                    const Center(
+                      child: Text(
+                        'Quick-load presets coming soon.\nUse the Advanced tab to select sources.',
+                        textAlign: TextAlign.center,
+                      ),
                     ),
+                    AdvancedSourceSelectionPanel(
+                      onSelectionChanged: _onSelectionChanged,
+                    ),
+                  ],
+                ),
+              ),
+              // Selection count
+              if (_selectedCampaigns.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Text(
+                    '${_selectedCampaigns.length} source(s) selected'
+                    '${_gameModeName.isNotEmpty ? ' [$_gameModeName]' : ''}',
+                    style: Theme.of(context).textTheme.bodySmall,
                   ),
-                  // Advanced tab — full campaign list
-                  AdvancedSourceSelectionPanel(
-                    onSelectionChanged: _onSelectionChanged,
+                ),
+              // Action buttons
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    onPressed: _loading ? null : () => Navigator.pop(context),
+                    child: const Text('Cancel'),
+                  ),
+                  const SizedBox(width: 8),
+                  ElevatedButton(
+                    onPressed: (_loading || _selectedCampaigns.isEmpty)
+                        ? null
+                        : _handleLoad,
+                    child: _loading
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Text('Load'),
                   ),
                 ],
               ),
-            ),
-            if (_selectedCampaigns.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.only(top: 8),
-                child: Text(
-                  '${_selectedCampaigns.length} source(s) selected'
-                  '${_gameModeName.isNotEmpty ? ' [$_gameModeName]' : ''}',
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
-              ),
-          ],
+            ],
+          ),
         ),
       ),
-      actions: [
-        TextButton(
-          onPressed: _loading ? null : () => Navigator.pop(context),
-          child: const Text('Cancel'),
-        ),
-        ElevatedButton(
-          onPressed:
-              (_loading || _selectedCampaigns.isEmpty) ? null : _handleLoad,
-          child: _loading
-              ? const SizedBox(
-                  width: 16,
-                  height: 16,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                )
-              : const Text('Load'),
-        ),
-      ],
     );
   }
 }
