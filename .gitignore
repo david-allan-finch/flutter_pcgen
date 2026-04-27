@@ -44,3 +44,4 @@ app.*.map.json
 # Copy with: cp -r ../pcgen/data ./data
 # system/ is small (4.6MB) and intentionally tracked.
 /data/
+/errors.txt
