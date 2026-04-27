@@ -36,9 +36,9 @@ class CharacterTabs extends StatefulWidget {
 }
 
 class CharacterTabsState extends State<CharacterTabs>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   final List<CharacterFacade> _characters = [];
-  late final TabController _tabController;
+  late TabController _tabController;
   final GlobalKey<InfoTabbedPaneState> _infoPaneKey = GlobalKey();
 
   @override
@@ -93,11 +93,14 @@ class CharacterTabsState extends State<CharacterTabs>
 
   void _rebuildTabController() {
     final oldIndex = _tabController.index;
+    _tabController.removeListener(_onTabChanged);
     _tabController.dispose();
+    final newLength = _characters.length;
+    final newIndex = newLength == 0 ? 0 : oldIndex.clamp(0, newLength - 1);
     _tabController = TabController(
-      length: _characters.length,
+      length: newLength,
       vsync: this,
-      initialIndex: oldIndex.clamp(0, (_characters.length - 1).clamp(0, 999)),
+      initialIndex: newIndex,
     );
     _tabController.addListener(_onTabChanged);
   }
