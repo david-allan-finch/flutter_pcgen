@@ -40,8 +40,4 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
-# PCGen data files — 156MB, sourced from pcgen/data/ sibling repo.
-# Copy with: cp -r ../pcgen/data ./data
-# system/ is small (4.6MB) and intentionally tracked.
-/data/
 /errors.txt

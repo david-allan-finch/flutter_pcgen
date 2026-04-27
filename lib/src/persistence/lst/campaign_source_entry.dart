@@ -19,6 +19,7 @@
 import 'package:flutter_pcgen/src/cdom/prereq/prerequisite.dart';
 import 'package:flutter_pcgen/src/core/campaign.dart';
 import 'package:flutter_pcgen/src/persistence/lst/source_entry.dart';
+import 'package:flutter_pcgen/src/system/configuration_settings.dart';
 
 // Associates a Campaign with an LST source file URI, with optional include/exclude/prereq filters.
 class CampaignSourceEntry implements SourceEntry {
@@ -86,8 +87,15 @@ class CampaignSourceEntry implements SourceEntry {
 
   static String _resolveUri(String baseUri, String relative) {
     try {
+      // '@' is PCGen's data-root token — expand it to the configured data dir.
+      final expanded = relative.startsWith('@')
+          ? Uri.file(ConfigurationSettings.getPccFilesDir())
+                .toString()
+                .replaceAll(RegExp(r'/$'), '') +
+              relative.substring(1)
+          : relative;
       final base = Uri.parse(baseUri);
-      return base.resolve(relative).toString();
+      return base.resolve(expanded).toString();
     } catch (_) {
       return relative;
     }
