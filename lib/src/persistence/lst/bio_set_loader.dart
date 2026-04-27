@@ -19,6 +19,7 @@
 
 import 'package:flutter_pcgen/src/core/age_set.dart';
 import 'package:flutter_pcgen/src/core/bio_set.dart';
+import 'package:flutter_pcgen/src/persistence/lst/lst_file_loader.dart';
 
 /// Loads biosettings .lst files into a [BioSet].
 ///
@@ -33,6 +34,18 @@ class BioSetLoader {
   final BioSet bioSet;
 
   BioSetLoader(this.bioSet);
+
+  /// Reads [source] and calls [parseLine] for each non-blank, non-comment line.
+  Future<void> loadLstFile(dynamic context, Uri source) async {
+    final content = await LstFileLoader.readFromURI(source.toString());
+    if (content == null) return;
+    final lines = content.split(RegExp(LstFileLoader.lineSeparatorRegexp));
+    for (final line in lines) {
+      final trimmed = line.trim();
+      if (trimmed.isEmpty || trimmed.codeUnitAt(0) == LstFileLoader.lineCommentChar) continue;
+      parseLine(trimmed, source);
+    }
+  }
 
   /// Parses one line from a biosettings .lst file.
   void parseLine(String lstLine, Uri sourceUri) {

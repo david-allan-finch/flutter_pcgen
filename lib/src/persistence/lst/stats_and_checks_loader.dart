@@ -21,6 +21,7 @@ import 'package:flutter_pcgen/src/core/pc_alignment.dart';
 import 'package:flutter_pcgen/src/core/pc_check.dart';
 import 'package:flutter_pcgen/src/core/pc_stat.dart';
 import 'package:flutter_pcgen/src/cdom/content/bonus_spell_info.dart';
+import 'package:flutter_pcgen/src/persistence/lst/lst_file_loader.dart';
 import 'package:flutter_pcgen/src/rules/context/load_context.dart';
 
 /// Loads statsandchecks.lst files from a game mode directory.
@@ -35,6 +36,18 @@ class StatsAndChecksLoader {
   final LoadContext _context;
 
   StatsAndChecksLoader(this._context);
+
+  /// Reads [source] and calls [parseLine] for each non-blank, non-comment line.
+  Future<void> loadLstFile(dynamic context, Uri source) async {
+    final content = await LstFileLoader.readFromURI(source.toString());
+    if (content == null) return;
+    final lines = content.split(RegExp(LstFileLoader.lineSeparatorRegexp));
+    for (final line in lines) {
+      final trimmed = line.trim();
+      if (trimmed.isEmpty || trimmed.codeUnitAt(0) == LstFileLoader.lineCommentChar) continue;
+      parseLine(trimmed, source);
+    }
+  }
 
   /// Parse a single line from a statsandchecks.lst file.
   ///

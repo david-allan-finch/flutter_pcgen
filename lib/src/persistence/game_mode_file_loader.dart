@@ -173,7 +173,7 @@ class GameModeFileLoader extends PCGenTask {
     for (final file in candidates) {
       if (file.existsSync()) {
         try {
-          loader.loadLstFile(gameMode.getModeContext(), file.uri, gameMode.getName());
+          loader.loadLstFile(gameMode.getModeContext(), file.uri);
           return;
         } on PersistenceLayerException {
           // Try next candidate
