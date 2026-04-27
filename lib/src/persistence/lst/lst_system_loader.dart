@@ -65,7 +65,7 @@ class LstSystemLoader {
     await CampaignFileLoader().run();
 
     final campaignCount = Globals.getCampaignList().length;
-    print('PCGen startup complete — ${Globals.getCampaignList().map((g) => g).length} game modes, $campaignCount campaigns discovered');
+    print('PCGen startup complete — $campaignCount campaigns discovered');
 
     onProgress?.call(1.0, 'System resources loaded.');
   }

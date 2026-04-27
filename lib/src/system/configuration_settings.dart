@@ -78,15 +78,15 @@ class ConfigurationSettings extends PropertyContext {
   static String _resolve(String path) {
     if (!path.startsWith('@')) return path;
     final relative = path.substring(1);
-    // Production: data lives next to the executable.
+    // Development: CWD is the project directory when running via `flutter run`.
+    final fromCwd = '${Directory.current.path}${Platform.pathSeparator}$relative';
+    if (Directory(fromCwd).existsSync()) return fromCwd;
+    // Production: data lives next to the executable (released binary).
     final execDir = File(Platform.resolvedExecutable).parent.path;
     final fromExec = '$execDir${Platform.pathSeparator}$relative';
     if (Directory(fromExec).existsSync()) return fromExec;
-    // Development: `flutter run` sets CWD to the project directory.
-    final fromCwd = '${Directory.current.path}${Platform.pathSeparator}$relative';
-    if (Directory(fromCwd).existsSync()) return fromCwd;
-    // Neither found — return CWD-relative path anyway and let caller handle missing dir.
-    print('PCGen: could not find "$relative" next to executable ($execDir) or in CWD (${Directory.current.path})');
+    // Neither found — warn and return CWD-relative so the caller gets a clear path to diagnose.
+    print('PCGen: could not find "$relative" in CWD (${Directory.current.path}) or next to executable ($execDir)');
     return fromCwd;
   }
 }
