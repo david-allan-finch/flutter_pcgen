@@ -36,6 +36,30 @@ abstract class LstLineFileLoader {
     }
   }
 
+  /// Reads [source] and calls [parseLine] for each non-blank, non-comment line.
+  ///
+  /// Used by system-file loaders (TraitLoader, LocationLoader, EquipSlotLoader)
+  /// that receive a bare URI rather than a CampaignSourceEntry.
+  Future<void> loadLstFile(dynamic context, Uri source) async {
+    final key = source.toString();
+    if (_loadedFiles.contains(key)) return;
+    _loadedFiles.add(key);
+
+    final content = await LstFileLoader.readFromURI(key);
+    if (content == null) return;
+
+    final lines = content.split(RegExp(LstFileLoader.lineSeparatorRegexp));
+    for (int i = 0; i < lines.length; i++) {
+      final line = lines[i];
+      if (line.trim().isEmpty || line.codeUnitAt(0) == LstFileLoader.lineCommentChar) continue;
+      try {
+        parseLine(context, line, source);
+      } catch (e) {
+        print('ERROR parsing $source line ${i + 1}: $e');
+      }
+    }
+  }
+
   Future<void> _loadLstFile(LoadContext context, CampaignSourceEntry sourceEntry) async {
     final uri = sourceEntry.getURI();
     final content = await LstFileLoader.readFromURI(uri);

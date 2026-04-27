@@ -41,4 +41,10 @@ final class PCGenSettings extends PropertyContext {
   PCGenSettings._() : super('pcgen.options');
 
   static PCGenSettings getInstance() => _instance;
+
+  static String getVendorDataDir() =>
+      _instance.getProperty('vendordataPath') ?? '';
+
+  static String getHomebrewDataDir() =>
+      _instance.getProperty('homebrewdataPath') ?? '';
 }

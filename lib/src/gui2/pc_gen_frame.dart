@@ -25,10 +25,14 @@ import 'package:flutter_pcgen/src/gui2/pc_gen_menu_bar.dart';
 import 'package:flutter_pcgen/src/gui2/pc_gen_status_bar.dart';
 import 'package:flutter_pcgen/src/gui2/character_tabs.dart';
 import 'package:flutter_pcgen/src/gui2/info_guide_pane.dart';
+import 'package:flutter_pcgen/src/core/campaign.dart';
 import 'package:flutter_pcgen/src/facade/core/character_facade.dart';
 import 'package:flutter_pcgen/src/facade/core/source_selection_facade.dart';
 import 'package:flutter_pcgen/src/facade/core/data_set_facade.dart';
+import 'package:flutter_pcgen/src/facade/core/ui_delegate.dart';
 import 'package:flutter_pcgen/src/facade/util/default_reference_facade.dart';
+import 'package:flutter_pcgen/src/gui2/sources/source_selection_dialog.dart';
+import 'package:flutter_pcgen/src/persistence/source_file_loader.dart';
 import 'package:flutter_pcgen/src/system/character_manager.dart';
 
 /// The main window for PCGen. Also responsible for global UI functions
@@ -61,6 +65,7 @@ class PCGenFrameState extends State<PCGenFrame> {
     _characterTabsKey = GlobalKey();
     actionMap = PCGenActionMap(this, widget.uiContext);
     _updateTitle();
+    WidgetsBinding.instance.addPostFrameCallback((_) => startPCGenFrame());
   }
 
   void startPCGenFrame() {
@@ -211,7 +216,26 @@ class PCGenFrameState extends State<PCGenFrame> {
   }
 
   void showSourceSelectionDialog() {
-    _showInfo('Source Selection');
+    if (!mounted) return;
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => SourceSelectionDialog(
+        uiContext: widget.uiContext,
+        onLoad: _loadSources,
+      ),
+    );
+  }
+
+  Future<void> _loadSources(
+      List<Campaign> campaigns, String gameModeName) async {
+    final delegate = _FrameUIDelegate(context);
+    final loader = SourceFileLoader(delegate, campaigns, gameModeName);
+    await loader.run();
+    final dataset = loader.getDataSetFacade();
+    if (dataset != null && mounted) {
+      setState(() => _currentDataSetRef.set(dataset));
+    }
   }
 
   bool loadSourceSelection(SourceSelectionFacade sources) {
@@ -299,6 +323,44 @@ class PCGenFrameState extends State<PCGenFrame> {
             ),
           ),
           PCGenStatusBar(key: _statusBarKey, frame: this),
+        ],
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// UIDelegate implementation backed by the current BuildContext
+// ---------------------------------------------------------------------------
+
+class _FrameUIDelegate implements UIDelegate {
+  final BuildContext _context;
+  _FrameUIDelegate(this._context);
+
+  @override
+  bool showWarningConfirm(String title, String message) => true;
+
+  @override
+  void showWarningMessage(String title, String message) {
+    if (!_context.mounted) return;
+    ScaffoldMessenger.of(_context).showSnackBar(
+      SnackBar(content: Text('$title: $message')),
+    );
+  }
+
+  @override
+  void showErrorMessage(String title, String message) {
+    if (!_context.mounted) return;
+    showDialog(
+      context: _context,
+      builder: (_) => AlertDialog(
+        title: Text(title),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(_context),
+            child: const Text('OK'),
+          ),
         ],
       ),
     );

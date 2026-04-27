@@ -3,17 +3,18 @@
 // Translation of pcgen.persistence.lst.LstSystemLoader (deprecated in Java)
 // and the broader system-loader responsibilities described in SystemLoader.
 
-/// Manages the set of chosen campaign source-files per game mode and
-/// coordinates loading of system-level LST resources.
+import 'package:flutter_pcgen/src/core/campaign.dart';
+import 'package:flutter_pcgen/src/core/globals.dart';
+import 'package:flutter_pcgen/src/persistence/game_mode_file_loader.dart';
+import 'package:flutter_pcgen/src/persistence/campaign_file_loader.dart';
+import 'package:flutter_pcgen/src/persistence/lst/campaign_loader.dart';
+
+/// Coordinates the two-phase startup loading pipeline:
+///  1. [loadSystemResources] — game modes + campaign discovery (run at launch)
+///  2. [loadCampaigns] — parse selected .pcc files (run after user picks sources)
 ///
-/// The Java LstSystemLoader was deprecated but still provides the
-/// chosenCampaignSourcefiles registry and setChosenCampaignSourcefiles /
-/// getChosenCampaignSourcefiles contract from SystemLoader. Those are
-/// preserved here; the heavy system-file loading (gamemodes, biosettings,
-/// etc.) is handled by the Flutter startup pipeline that calls into
-/// individual loader classes directly.
-///
-/// Translation of pcgen.persistence.lst.LstSystemLoader.
+/// Also maintains the chosen-source-files registry per game mode, mirroring
+/// the SystemLoader interface contract from the Java original.
 class LstSystemLoader {
   /// Map from game-mode name → list of chosen source-file URI strings.
   final Map<String, List<String>> _chosenCampaignSourcefiles = {};
@@ -22,82 +23,78 @@ class LstSystemLoader {
   // Chosen source-file management (mirrors SystemLoader contract)
   // ---------------------------------------------------------------------------
 
-  /// Replaces the chosen source files for [gameModeName] with [uris].
-  ///
-  /// Persists the setting for future sessions.
-  void setChosenCampaignSourcefiles(
-      List<String> uris, String gameModeName) {
+  void setChosenCampaignSourcefiles(List<String> uris, String gameModeName) {
     _chosenCampaignSourcefiles[gameModeName] = List<String>.from(uris);
-    // TODO: persist to preferences / property store:
-    //   PCGenSettings.setProperty(
-    //     'pcgen.files.chosenCampaignSourcefiles.$gameModeName',
-    //     uris.join(', '));
+    // TODO: persist via PCGenSettings.setProperty(
+    //   'pcgen.files.chosenCampaignSourcefiles.$gameModeName', uris.join(', '))
   }
 
-  /// Returns the current list of chosen source file URIs for [gameModeName].
-  ///
-  /// Returns an empty list if none have been set.
   List<String> getChosenCampaignSourcefiles(String gameModeName) {
     return _chosenCampaignSourcefiles.putIfAbsent(gameModeName, () => []);
   }
 
   // ---------------------------------------------------------------------------
-  // System resource loading
+  // Phase 1: System resource loading
   // ---------------------------------------------------------------------------
 
   /// Loads all system-level LST resources required before campaigns can be
-  /// selected.
+  /// selected, then discovers all available campaign (.pcc) files.
   ///
-  /// The loading order follows the Java SystemLoader pipeline:
-  ///  1. Game mode list
-  ///  2. Bio settings (age categories, body parts, etc.)
-  ///  3. Traits and locations
-  ///  4. Stats and checks
-  ///  5. Miscellaneous system files (size adjustments, load info, etc.)
+  /// Loading order:
+  ///  1. Game modes — reads every gameModes/ subdirectory that contains
+  ///     miscinfo.lst + statsandchecks.lst; each mode also loads bio settings,
+  ///     level info, size adjustments, load info, point-buy methods, traits,
+  ///     locations, and equipment slots (all via GameModeFileLoader).
+  ///  2. Campaign discovery — scans data/, vendordata/, homebrewdata/ for
+  ///     .pcc files and registers them in the global campaign registry.
   ///
-  /// [onProgress] is called with a 0.0–1.0 progress fraction after each
-  /// major step, allowing the UI to display a loading indicator.
+  /// [onProgress] receives a 0.0–1.0 fraction and a status string after each
+  /// major step so the splash screen can update.
   Future<void> loadSystemResources({
     void Function(double progress, String message)? onProgress,
   }) async {
-    // TODO: implement full system resource loading pipeline.
-    //       Each step corresponds to one or more LstLineFileLoader subclasses.
+    onProgress?.call(0.0, 'Loading game modes…');
+    await GameModeFileLoader().run();
 
-    onProgress?.call(0.0, 'Starting system resource load…');
+    onProgress?.call(0.7, 'Discovering campaigns…');
+    await CampaignFileLoader().run();
 
-    // Step 1: Game modes.
-    // TODO: GameModeLoader().loadGameModes(systemDir)
-    onProgress?.call(0.2, 'Loading game modes…');
-
-    // Step 2: Bio settings.
-    // TODO: BioSetLoader().loadLstFiles(context, bioFiles)
-    onProgress?.call(0.4, 'Loading bio settings…');
-
-    // Step 3: Traits and locations.
-    // TODO: TraitLoader, LocationLoader
-    onProgress?.call(0.6, 'Loading traits and locations…');
-
-    // Step 4: Stats and checks.
-    // TODO: StatsAndChecksLoader
-    onProgress?.call(0.8, 'Loading stats and checks…');
-
-    // Step 5: Size adjustments, load info, point-buy methods, equipment slots.
-    // TODO: SizeAdjustmentLoader, LoadInfoLoader, PointBuyLoader,
-    //       EquipSlotLoader, WieldCategoryLoader, TabLoader
     onProgress?.call(1.0, 'System resources loaded.');
   }
 
   // ---------------------------------------------------------------------------
-  // Campaign file loading
+  // Phase 2: Selected campaign loading
   // ---------------------------------------------------------------------------
 
-  /// Loads the campaign (.PCC) files at [campaignUris] and processes the
-  /// LST files they reference.
+  /// Parses the .pcc files at [campaignUris] and resolves their dependencies.
   ///
-  /// Returns true if all campaigns loaded without fatal errors.
+  /// This registers each campaign in the global registry and wires up any
+  /// SUB-CAMPAIGN references. The actual object-file loading (races, classes,
+  /// spells, etc.) is handled separately by SourceFileLoader once the user
+  /// confirms their source selection.
+  ///
+  /// Returns true if every URI was loaded without a fatal error.
   Future<bool> loadCampaigns(List<String> campaignUris) async {
-    // TODO: implement CampaignLoader pipeline and delegate to individual
-    //       object-file loaders (RaceLoader, ClassLoader, FeatLoader, etc.).
-    return false;
+    bool success = true;
+    final loader = CampaignLoader();
+
+    for (final rawUri in campaignUris) {
+      final uri = Uri.parse(rawUri);
+      if (Globals.getCampaignByUri(uri) != null) continue;
+      try {
+        await loader.loadCampaignLstFile(uri);
+      } catch (e) {
+        print('LstSystemLoader: error loading campaign $rawUri: $e');
+        success = false;
+      }
+    }
+
+    // Resolve SUB-CAMPAIGN / INFOTEXT dependencies for every newly loaded campaign.
+    for (final rawUri in campaignUris) {
+      final Campaign? campaign = Globals.getCampaignByUri(Uri.parse(rawUri));
+      if (campaign != null) loader.initRecursivePccFiles(campaign);
+    }
+
+    return success;
   }
 }

@@ -5,6 +5,7 @@ import 'package:flutter_pcgen/src/gui3/preloader/pc_gen_preloader.dart';
 import 'package:flutter_pcgen/src/gui3/preloader/pc_gen_preloader_controller.dart';
 import 'package:flutter_pcgen/src/gui2/ui_context.dart';
 import 'package:flutter_pcgen/src/gui2/ui_property_context.dart';
+import 'package:flutter_pcgen/src/persistence/lst/lst_system_loader.dart';
 
 class PCGenApp extends StatelessWidget {
   const PCGenApp({super.key});
@@ -60,18 +61,14 @@ class _PCGenRootState extends State<_PCGenRoot> {
   Future<void> _initialise() async {
     final controller = context.read<PCGenPreloaderController>();
 
-    controller.setProgress(0.1, 'Loading configuration...');
-    await Future.delayed(const Duration(milliseconds: 100));
+    await LstSystemLoader().loadSystemResources(
+      onProgress: (fraction, message) {
+        // Reserve the last 10% for GUI startup so the bar never stalls at 100%.
+        controller.setProgress(fraction * 0.9, message);
+      },
+    );
 
-    controller.setProgress(0.3, 'Loading game data...');
-    await Future.delayed(const Duration(milliseconds: 100));
-
-    controller.setProgress(0.6, 'Initialising systems...');
-    await Future.delayed(const Duration(milliseconds: 100));
-
-    controller.setProgress(0.9, 'Starting GUI...');
-    await Future.delayed(const Duration(milliseconds: 100));
-
+    controller.setProgress(0.95, 'Starting GUI...');
     controller.complete();
     if (mounted) setState(() => _ready = true);
   }

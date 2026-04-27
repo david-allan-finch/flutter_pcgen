@@ -26,6 +26,7 @@ import 'package:flutter_pcgen/src/facade/core/ui_delegate.dart';
 import 'package:flutter_pcgen/src/system/p_c_gen_task.dart';
 import 'package:flutter_pcgen/src/system/language_bundle.dart';
 import 'package:flutter_pcgen/src/persistence/persistence_layer_exception.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/list_key.dart';
 import 'package:flutter_pcgen/src/persistence/lst/campaign_loader.dart';
 import 'package:flutter_pcgen/src/persistence/lst/campaign_source_entry.dart';
 
@@ -145,21 +146,26 @@ class SourceFileLoader extends PCGenTask {
     _dataset = DataSet(_selectedGame, _selectedCampaigns);
   }
 
-  /// Traverses the campaign dependency tree and collects file entries by type.
+  /// Collects all file-type entries from the selected campaigns.
+  ///
+  /// Sub-campaign file lists are already merged into parent campaigns by
+  /// [CampaignLoader.initRecursivePccFiles], so a flat iteration suffices.
   void _collectFileEntries() {
-    final visited = <String>{};
-    final queue = List<Campaign>.from(_selectedCampaigns);
-    while (queue.isNotEmpty) {
-      final campaign = queue.removeAt(0);
-      final key = campaign.getKeyName();
-      if (visited.contains(key)) continue;
-      visited.add(key);
-
-      // Add the campaign's file entries to our lists
-      // TODO: iterate campaign.getSafeListFor(ListKey.FILE_*) for each type
-
-      // Enqueue any SUB-CAMPAIGN dependencies
-      // TODO: for (final sub in campaign.getSubCampaigns()) { queue.add(sub); }
+    _fileLists.clear();
+    final allKeys = [
+      ...CampaignLoader.objectFileListKeys,
+      ...CampaignLoader.otherFileListKeys,
+    ];
+    final seen = <String>{};
+    for (final campaign in _selectedCampaigns) {
+      final campaignKey = campaign.getKeyName();
+      if (!seen.add(campaignKey)) continue;
+      for (final lk in allKeys) {
+        final entries = campaign.getSafeListFor<CampaignSourceEntry>(lk);
+        if (entries.isNotEmpty) {
+          _fileLists.putIfAbsent(lk.toString(), () => []).addAll(entries);
+        }
+      }
     }
   }
 

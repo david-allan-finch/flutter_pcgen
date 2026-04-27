@@ -32,6 +32,9 @@ import 'package:flutter_pcgen/src/persistence/lst/size_adjustment_loader.dart';
 import 'package:flutter_pcgen/src/persistence/lst/bio_set_loader.dart';
 import 'package:flutter_pcgen/src/persistence/lst/load_info_loader.dart';
 import 'package:flutter_pcgen/src/persistence/lst/point_buy_loader.dart';
+import 'package:flutter_pcgen/src/persistence/lst/trait_loader.dart';
+import 'package:flutter_pcgen/src/persistence/lst/location_loader.dart';
+import 'package:flutter_pcgen/src/persistence/lst/equip_slot_loader.dart';
 
 /// Loads game mode data files (miscinfo.lst, statsandchecks.lst, level.lst,
 /// sizeAdjustment.lst, etc.) from the system/gameModes directory tree.
@@ -134,6 +137,11 @@ class GameModeFileLoader extends PCGenTask {
 
     // Point buy
     _loadPointBuyFile(gameMode, specDir, gameModeDir, gameFile);
+
+    // Traits, locations, equipment slots
+    await _loadTraitsFile(gameMode, specDir, gameModeDir);
+    await _loadLocationsFile(gameMode, specDir, gameModeDir);
+    await _loadEquipSlotsFile(gameMode, specDir, gameModeDir);
   }
 
   void _loadInfoFile(GameMode gameMode, Uri uri, String type) {
@@ -177,11 +185,44 @@ class GameModeFileLoader extends PCGenTask {
   void _loadPointBuyFile(
       GameMode gameMode, Directory specDir, Directory gameModeDir, String gameFile) {
     final loader = PointBuyLoader();
-    // Try custom file first
-    // TODO: check CustomData.customPurchaseModeFilePath
-
-    // Fall back to game mode file
+    // TODO: check CustomData.customPurchaseModeFilePath first
     _loadModeLstFile(gameMode, specDir, gameModeDir, 'pointbuymethods.lst', loader, required: false);
+  }
+
+  Future<void> _loadTraitsFile(
+      GameMode gameMode, Directory specDir, Directory gameModeDir) async {
+    final loader = TraitLoader();
+    loader.setGameMode(gameMode.getName());
+    await _loadLineModeLstFile(loader, specDir, gameModeDir, 'bio/traits.lst');
+  }
+
+  Future<void> _loadLocationsFile(
+      GameMode gameMode, Directory specDir, Directory gameModeDir) async {
+    final loader = LocationLoader();
+    loader.setGameMode(gameMode.getName());
+    await _loadLineModeLstFile(loader, specDir, gameModeDir, 'bio/locations.lst');
+  }
+
+  Future<void> _loadEquipSlotsFile(
+      GameMode gameMode, Directory specDir, Directory gameModeDir) async {
+    final loader = EquipSlotLoader();
+    loader.setGameMode(gameMode.getName());
+    await _loadLineModeLstFile(loader, specDir, gameModeDir, 'equipmentslots.lst');
+  }
+
+  /// Loads a single-file LST resource using a loader that accepts a bare URI
+  /// (i.e. LstLineFileLoader subclasses such as TraitLoader, LocationLoader).
+  ///
+  /// Tries the game-mode-specific directory first, then falls back to 'default'.
+  Future<void> _loadLineModeLstFile(
+      dynamic loader, Directory specDir, Directory gameModeDir, String lstFileName) async {
+    for (final dir in [specDir, Directory('${gameModeDir.path}/default')]) {
+      final file = File('${dir.path}/$lstFileName');
+      if (file.existsSync()) {
+        await loader.loadLstFile(null, file.uri);
+        return;
+      }
+    }
   }
 
   static void _addDefaultUnitSet(GameMode gameMode) {
