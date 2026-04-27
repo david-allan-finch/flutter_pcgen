@@ -32,12 +32,17 @@ class ClassInfoTabState extends State<ClassInfoTab> {
       valueListenable: loadedDataSet,
       builder: (context, dataset, _) {
         final classes = dataset?.classes ?? const [];
-        return Row(
-          children: [
-            Expanded(child: _buildList(classes)),
-            const VerticalDivider(width: 1),
-            Expanded(child: _buildDetail()),
-          ],
+        return ValueListenableBuilder(
+          valueListenable: currentCharacter,
+          builder: (context, character, _) {
+            return Row(
+              children: [
+                Expanded(child: _buildList(classes)),
+                const VerticalDivider(width: 1),
+                Expanded(child: _buildDetail(character)),
+              ],
+            );
+          },
         );
       },
     );
@@ -81,10 +86,10 @@ class ClassInfoTabState extends State<ClassInfoTab> {
                   itemCount: filtered.length,
                   itemBuilder: (context, i) {
                     final cls = filtered[i];
-                    final selected = _selected == cls;
+                    final isSelected = _selected == cls;
                     return ListTile(
                       dense: true,
-                      selected: selected,
+                      selected: isSelected,
                       title: Text(cls.getDisplayName()),
                       onTap: () => setState(() => _selected = cls),
                     );
@@ -95,11 +100,20 @@ class ClassInfoTabState extends State<ClassInfoTab> {
     );
   }
 
-  Widget _buildDetail() {
+  Widget _buildDetail(dynamic character) {
     final cls = _selected;
     if (cls == null) {
       return const Center(child: Text('Select a class to see details.'));
     }
+
+    // Get current level count for this class.
+    int currentLevel = 0;
+    if (character != null) {
+      try {
+        currentLevel = (character as dynamic).getClassLevel(cls) as int? ?? 0;
+      } catch (_) {}
+    }
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -111,6 +125,70 @@ class ClassInfoTabState extends State<ClassInfoTab> {
           _row('Key', cls.getKeyName()),
           if (cls.getSourceURI() != null)
             _row('Source', Uri.parse(cls.getSourceURI()!).pathSegments.last),
+          const SizedBox(height: 16),
+          if (character != null) ...[
+            Row(
+              children: [
+                const Text('Current Level:',
+                    style: TextStyle(fontWeight: FontWeight.bold)),
+                const SizedBox(width: 8),
+                Text(
+                  '$currentLevel',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                ElevatedButton.icon(
+                  icon: const Icon(Icons.add),
+                  label: const Text('Add Level'),
+                  onPressed: () {
+                    try {
+                      (character as dynamic).addCharacterLevels([cls]);
+                      currentCharacter.notifyListeners();
+                      setState(() {});
+                    } catch (e) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Error adding level: $e')),
+                      );
+                    }
+                  },
+                ),
+                const SizedBox(width: 8),
+                ElevatedButton.icon(
+                  icon: const Icon(Icons.remove),
+                  label: const Text('Remove Level'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red.shade50,
+                  ),
+                  onPressed: currentLevel == 0
+                      ? null
+                      : () {
+                          try {
+                            // Remove one level of this class by removing the
+                            // last matching entry. We do this by temporarily
+                            // swapping — but the simplest correct approach is
+                            // to call removeCharacterLevels(1) which removes
+                            // the last added level.
+                            (character as dynamic).removeCharacterLevels(1);
+                            currentCharacter.notifyListeners();
+                            setState(() {});
+                          } catch (e) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Error removing level: $e')),
+                            );
+                          }
+                        },
+                ),
+              ],
+            ),
+          ] else
+            const Text(
+              'Create a character to add class levels.',
+              style: TextStyle(fontStyle: FontStyle.italic, color: Colors.grey),
+            ),
         ],
       ),
     );

@@ -19,6 +19,8 @@
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_pcgen/src/core/language.dart';
+import 'package:flutter_pcgen/src/core/pc_stat.dart';
+import 'package:flutter_pcgen/src/core/pc_class.dart';
 import 'package:flutter_pcgen/src/facade/core/character_facade.dart';
 import 'package:flutter_pcgen/src/facade/core/character_levels_facade.dart';
 import 'package:flutter_pcgen/src/facade/core/description_facade.dart';
@@ -148,7 +150,7 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
   DefaultReferenceFacade<Object> getRaceRef() => _raceRef;
 
   @override
-  void setRace(Object? race) {
+  void setRace(Object race) {
     _data['race'] = race;
     _raceRef.set(race);
     notifyListeners();
@@ -408,6 +410,70 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
     if (_data[key] == value) return;
     _data[key] = value;
     notifyListeners();
+  }
+
+  // ---- Stats (ability scores) -----------------------------------------------
+
+  @override
+  int getScoreBase(PCStat stat) {
+    final scores = _data['statScores'];
+    if (scores is Map) return (scores[stat.getKeyName()] as num?)?.toInt() ?? 10;
+    return 10;
+  }
+
+  @override
+  void setScoreBase(PCStat stat, int score) {
+    (_data['statScores'] ??= <String, dynamic>{})[stat.getKeyName()] = score;
+    notifyListeners();
+  }
+
+  @override
+  int getModTotal(PCStat stat) => ((getScoreBase(stat) - 10) / 2).floor();
+
+  // ---- Class levels ---------------------------------------------------------
+
+  @override
+  void addCharacterLevels(List<PCClass> classes) {
+    final levels = (_data['classLevels'] ??= <dynamic>[]) as List;
+    for (final cls in classes) {
+      levels.add({'className': cls.getDisplayName(), 'classKey': cls.getKeyName()});
+    }
+    notifyListeners();
+  }
+
+  @override
+  void removeCharacterLevels(int count) {
+    final list = _data['classLevels'];
+    if (list is! List) return;
+    for (int i = 0; i < count && list.isNotEmpty; i++) list.removeLast();
+    notifyListeners();
+  }
+
+  @override
+  int getClassLevel(PCClass c) {
+    final list = _data['classLevels'];
+    if (list is! List) return 0;
+    return list.where((l) => l is Map && l['classKey'] == c.getKeyName()).length;
+  }
+
+  /// Compute total levels across all classes.
+  int getTotalCharacterLevel() {
+    final list = _data['classLevels'];
+    return list is List ? list.length : 0;
+  }
+
+  /// Get the class level list as a display string e.g. "Fighter 2 / Wizard 1".
+  String getClassLevelSummary() {
+    final list = _data['classLevels'];
+    if (list is! List || list.isEmpty) return '';
+    final counts = <String, int>{};
+    for (final l in list) {
+      if (l is Map) {
+        final name = l['className'] as String? ?? '?';
+        counts[name] = (counts[name] ?? 0) + 1;
+      }
+    }
+    return counts.entries.map((e) => '${e.key} ${e.value}').join(' / ');
   }
 
   @override

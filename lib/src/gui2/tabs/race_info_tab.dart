@@ -32,12 +32,17 @@ class RaceInfoTabState extends State<RaceInfoTab> {
       valueListenable: loadedDataSet,
       builder: (context, dataset, _) {
         final races = dataset?.races ?? const [];
-        return Row(
-          children: [
-            Expanded(child: _buildList(races)),
-            const VerticalDivider(width: 1),
-            Expanded(child: _buildDetail()),
-          ],
+        return ValueListenableBuilder(
+          valueListenable: currentCharacter,
+          builder: (context, character, _) {
+            return Row(
+              children: [
+                Expanded(child: _buildList(races)),
+                const VerticalDivider(width: 1),
+                Expanded(child: _buildDetail(character)),
+              ],
+            );
+          },
         );
       },
     );
@@ -79,10 +84,10 @@ class RaceInfoTabState extends State<RaceInfoTab> {
                   itemCount: filtered.length,
                   itemBuilder: (context, i) {
                     final race = filtered[i];
-                    final selected = _selected == race;
+                    final isSelected = _selected == race;
                     return ListTile(
                       dense: true,
-                      selected: selected,
+                      selected: isSelected,
                       title: Text(race.getDisplayName()),
                       onTap: () => setState(() => _selected = race),
                     );
@@ -93,22 +98,72 @@ class RaceInfoTabState extends State<RaceInfoTab> {
     );
   }
 
-  Widget _buildDetail() {
+  Widget _buildDetail(dynamic character) {
     final race = _selected;
     if (race == null) {
       return const Center(child: Text('Select a race to see details.'));
     }
+
+    // Determine if this race is the character's current race.
+    bool isCurrentRace = false;
+    if (character != null) {
+      try {
+        final raceRef = (character as dynamic).getRaceRef();
+        final currentRace = raceRef?.get();
+        isCurrentRace = currentRace != null && currentRace == race;
+      } catch (_) {}
+    }
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(race.getDisplayName(),
-              style: Theme.of(context).textTheme.titleMedium),
+          Row(
+            children: [
+              Expanded(
+                child: Text(race.getDisplayName(),
+                    style: Theme.of(context).textTheme.titleMedium),
+              ),
+              if (isCurrentRace)
+                const Icon(Icons.check_circle, color: Colors.green, size: 20),
+            ],
+          ),
           const SizedBox(height: 8),
           _row('Key', race.getKeyName()),
           if (race.getSourceURI() != null)
             _row('Source', Uri.parse(race.getSourceURI()!).pathSegments.last),
+          const SizedBox(height: 16),
+          if (character != null)
+            ElevatedButton.icon(
+              icon: isCurrentRace
+                  ? const Icon(Icons.check)
+                  : const Icon(Icons.person),
+              label: Text(isCurrentRace ? 'Selected Race' : 'Select for Character'),
+              style: isCurrentRace
+                  ? ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green.shade100,
+                    )
+                  : null,
+              onPressed: isCurrentRace
+                  ? null
+                  : () {
+                      try {
+                        (character as dynamic).setRace(race);
+                        currentCharacter.notifyListeners();
+                        setState(() {});
+                      } catch (e) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Error setting race: $e')),
+                        );
+                      }
+                    },
+            )
+          else
+            const Text(
+              'Create a character to assign a race.',
+              style: TextStyle(fontStyle: FontStyle.italic, color: Colors.grey),
+            ),
         ],
       ),
     );

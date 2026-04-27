@@ -97,6 +97,7 @@ class PCGenFrameState extends State<PCGenFrame> {
 
   void setCharacter(CharacterFacade? character) {
     _currentCharacterRef.set(character);
+    currentCharacter.value = character;
     _updateTitle();
   }
 

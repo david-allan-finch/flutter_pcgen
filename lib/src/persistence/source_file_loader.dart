@@ -34,6 +34,8 @@ import 'package:flutter_pcgen/src/core/shield_prof.dart';
 import 'package:flutter_pcgen/src/core/skill.dart';
 import 'package:flutter_pcgen/src/core/spell/spell.dart';
 import 'package:flutter_pcgen/src/core/system_collections.dart';
+import 'package:flutter_pcgen/src/core/pc_stat.dart';
+import 'package:flutter_pcgen/src/core/pc_alignment.dart';
 import 'package:flutter_pcgen/src/core/weapon_prof.dart';
 import 'package:flutter_pcgen/src/core/armor_prof.dart';
 import 'package:flutter_pcgen/src/facade/core/ui_delegate.dart';
@@ -177,6 +179,8 @@ class SourceFileLoader extends PCGenTask {
     _dataset!.races   .addAll(ref.getAllConstructed<Race>(Race));
     _dataset!.classes .addAll(ref.getAllConstructed<PCClass>(PCClass));
     _dataset!.skills  .addAll(ref.getAllConstructed<Skill>(Skill));
+    _dataset!.stats   .addAll(ref.getAllConstructed<PCStat>(PCStat));
+    _dataset!.alignments.addAll(ref.getAllConstructed<PCAlignment>(PCAlignment));
     _dataset!.deities .addAll(ref.getAllConstructed<Deity>(Deity));
     _dataset!.domains .addAll(ref.getAllConstructed<Domain>(Domain));
     _dataset!.languages.addAll(ref.getAllConstructed<Language>(Language));

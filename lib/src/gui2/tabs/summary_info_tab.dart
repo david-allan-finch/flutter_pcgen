@@ -18,25 +18,24 @@
 // Translation of pcgen.gui2.tabs.SummaryInfoTab
 
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 
+import 'package:flutter_pcgen/src/core/pc_stat.dart';
+import 'package:flutter_pcgen/src/gui2/app_state.dart';
 import 'package:flutter_pcgen/src/gui2/tabs/character_info_tab.dart';
 import 'package:flutter_pcgen/src/gui2/tabs/tab_title.dart';
 import 'package:flutter_pcgen/src/gui2/tabs/todo_handler.dart';
-import 'package:flutter_pcgen/src/gui2/tabs/summary/class_level_table_model.dart';
-import 'package:flutter_pcgen/src/gui2/tabs/summary/info_pane_handler.dart';
-import 'package:flutter_pcgen/src/gui2/tabs/summary/language_table_model.dart';
-import 'package:flutter_pcgen/src/gui2/tabs/summary/stat_table_model.dart';
+
+/// Standard 3.5e ability score abbreviations in order.
+const _kDefaultStatKeys = ['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'];
 
 /// The Summary tab — displays key character attributes, stats, class levels,
-/// languages and a character info HTML pane.
+/// and saves. Fully reactive via ValueListenableBuilders on global app state.
 class SummaryInfoTabWidget extends StatefulWidget implements TodoHandler {
   const SummaryInfoTabWidget({super.key});
 
   @override
-  void adviseTodo(String fieldName) {
-    // Delegate to state if mounted.
-  }
+  void adviseTodo(String fieldName) {}
 
   @override
   State<SummaryInfoTabWidget> createState() => _SummaryInfoTabState();
@@ -45,131 +44,205 @@ class SummaryInfoTabWidget extends StatefulWidget implements TodoHandler {
 class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
     implements CharacterInfoTab {
   final TabTitle _tabTitle = TabTitle.withTitle('Summary', null);
-  dynamic _character;
 
-  // Models
-  StatTableModel? _statModel;
-  ClassLevelTableModel? _classLevelModel;
-  LanguageTableModel? _languageModel;
-  InfoPaneHandler? _infoPaneHandler;
+  // Name editing
+  late TextEditingController _nameController;
+  bool _nameEditPending = false;
+
+  // HP editing
+  late TextEditingController _hpController;
+  bool _hpEditPending = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _nameController = TextEditingController();
+    _hpController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _hpController.dispose();
+    super.dispose();
+  }
 
   @override
   TabTitle getTabTitle() => _tabTitle;
 
   @override
-  ModelMap createModels(dynamic character) {
-    final models = ModelMap();
-    models.put(StatTableModel, StatTableModel(character));
-    models.put(ClassLevelTableModel, ClassLevelTableModel(character));
-    models.put(LanguageTableModel, LanguageTableModel(character));
-    models.put(InfoPaneHandler, InfoPaneHandler(character));
-    return models;
-  }
+  ModelMap createModels(dynamic character) => ModelMap();
 
   @override
-  void restoreModels(ModelMap models) {
-    setState(() {
-      _statModel = models.get<StatTableModel>(StatTableModel);
-      _classLevelModel = models.get<ClassLevelTableModel>(ClassLevelTableModel);
-      _languageModel = models.get<LanguageTableModel>(LanguageTableModel);
-      _infoPaneHandler = models.get<InfoPaneHandler>(InfoPaneHandler);
-      _infoPaneHandler?.install();
-    });
-  }
+  void restoreModels(ModelMap models) {}
 
   @override
-  void storeModels(ModelMap models) {
-    _infoPaneHandler?.uninstall();
-    _statModel = null;
-    _classLevelModel = null;
-    _languageModel = null;
-    _infoPaneHandler = null;
-  }
+  void storeModels(ModelMap models) {}
 
-  void adviseTodo(String fieldName) {
-    // Highlight or scroll to the named field.
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Please fill in: $fieldName')),
-      );
-    }
-  }
+  // ---- Build ----------------------------------------------------------------
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Character name / alignment / race / class rows
-          _buildIdentitySection(),
-          const SizedBox(height: 12),
-          // Stats table
-          _buildStatsSection(),
-          const SizedBox(height: 12),
-          // Class levels table
-          _buildClassLevelsSection(),
-          const SizedBox(height: 12),
-          // Languages table
-          _buildLanguagesSection(),
-          const SizedBox(height: 12),
-          // Info HTML pane placeholder
-          _buildInfoPane(),
-        ],
-      ),
+    return ValueListenableBuilder(
+      valueListenable: currentCharacter,
+      builder: (context, character, _) {
+        if (character == null) {
+          return const Center(child: Text('No character selected.'));
+        }
+        return ValueListenableBuilder(
+          valueListenable: loadedDataSet,
+          builder: (context, dataset, _) {
+            // Stat list: prefer loaded stats, fall back to hardcoded 3.5e list.
+            final statKeys = (dataset != null && dataset.stats.isNotEmpty)
+                ? dataset.stats.map((s) => s.getKeyName()).toList()
+                : _kDefaultStatKeys;
+            final statObjects = (dataset != null && dataset.stats.isNotEmpty)
+                ? dataset.stats
+                : <PCStat>[];
+
+            return SingleChildScrollView(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildIdentitySection(character),
+                  const SizedBox(height: 12),
+                  _buildStatsSection(character, statKeys, statObjects),
+                  const SizedBox(height: 12),
+                  _buildSavesSection(character, statKeys, statObjects),
+                  const SizedBox(height: 12),
+                  _buildClassLevelSection(character),
+                ],
+              ),
+            );
+          },
+        );
+      },
     );
   }
 
-  Widget _buildIdentitySection() {
+  // ---- Identity section -----------------------------------------------------
+
+  Widget _buildIdentitySection(dynamic character) {
+    // Sync the name controller when character changes.
+    final charName = (character as dynamic).getName() as String? ?? '';
+    if (!_nameEditPending && _nameController.text != charName) {
+      _nameController.text = charName;
+    }
+
+    // Race display
+    final raceRef = character.getRaceRef();
+    final raceObj = raceRef?.get();
+    final raceName = raceObj != null
+        ? (raceObj as dynamic).getDisplayName() as String? ?? '(none)'
+        : '(none)';
+
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(8),
+        padding: const EdgeInsets.all(12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('Identity', style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 8),
-            _labelledField('Name', _character?.toString() ?? ''),
-            _labelledField('Race', ''),
-            _labelledField('Alignment', ''),
-            _labelledField('Deity', ''),
+            Row(
+              children: [
+                const SizedBox(
+                  width: 80,
+                  child: Text('Name:',
+                      style: TextStyle(fontWeight: FontWeight.bold)),
+                ),
+                Expanded(
+                  child: TextField(
+                    controller: _nameController,
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      isDense: true,
+                      contentPadding:
+                          EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                    ),
+                    onChanged: (v) {
+                      _nameEditPending = true;
+                    },
+                    onSubmitted: (v) {
+                      _nameEditPending = false;
+                      character.setName(v);
+                    },
+                    onEditingComplete: () {
+                      _nameEditPending = false;
+                      character.setName(_nameController.text);
+                    },
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            _labelledValue('Race', raceName),
+            _labelledValue(
+                'Class', _classLevelSummary(character)),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildStatsSection() {
-    if (_statModel == null) {
-      return const SizedBox.shrink();
+  String _classLevelSummary(dynamic character) {
+    try {
+      return (character as dynamic).getClassLevelSummary() as String? ?? '';
+    } catch (_) {
+      return '';
     }
+  }
+
+  // ---- Stats section --------------------------------------------------------
+
+  Widget _buildStatsSection(
+      dynamic character, List<String> statKeys, List<PCStat> statObjects) {
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(8),
+        padding: const EdgeInsets.all(12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Stats', style: Theme.of(context).textTheme.titleMedium),
+            Text('Ability Scores',
+                style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 8),
-            AnimatedBuilder(
-              animation: _statModel!,
-              builder: (context, _) {
-                return DataTable(
-                  columns: const [
-                    DataColumn(label: Text('Stat')),
-                    DataColumn(label: Text('Base')),
-                    DataColumn(label: Text('Mod')),
-                  ],
-                  rows: List.generate(_statModel!.rowCount, (i) {
-                    return DataRow(cells: [
-                      DataCell(Text(_statModel!.statName(i))),
-                      DataCell(Text(_statModel!.baseScore(i).toString())),
-                      DataCell(Text(_statModel!.modifier(i).toString())),
-                    ]);
-                  }),
-                );
+            Table(
+              columnWidths: const {
+                0: FixedColumnWidth(60),
+                1: FixedColumnWidth(70),
+                2: FixedColumnWidth(60),
               },
+              defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+              children: [
+                TableRow(
+                  decoration: BoxDecoration(
+                      color: Theme.of(context).highlightColor),
+                  children: const [
+                    Padding(
+                      padding: EdgeInsets.symmetric(vertical: 4, horizontal: 4),
+                      child: Text('Stat',
+                          style: TextStyle(fontWeight: FontWeight.bold)),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.symmetric(vertical: 4, horizontal: 4),
+                      child: Text('Score',
+                          style: TextStyle(fontWeight: FontWeight.bold)),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.symmetric(vertical: 4, horizontal: 4),
+                      child: Text('Mod',
+                          style: TextStyle(fontWeight: FontWeight.bold)),
+                    ),
+                  ],
+                ),
+                for (int i = 0; i < statKeys.length; i++)
+                  _buildStatRow(
+                    character,
+                    statKeys[i],
+                    i < statObjects.length ? statObjects[i] : null,
+                  ),
+              ],
             ),
           ],
         ),
@@ -177,92 +250,228 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
     );
   }
 
-  Widget _buildClassLevelsSection() {
-    if (_classLevelModel == null) return const SizedBox.shrink();
+  TableRow _buildStatRow(
+      dynamic character, String statKey, PCStat? statObj) {
+    int score;
+    if (statObj != null) {
+      try {
+        score = (character as dynamic).getScoreBase(statObj) as int? ?? 10;
+      } catch (_) {
+        score = 10;
+      }
+    } else {
+      // Fallback: no PCStat object available; default to 10.
+      score = 10;
+    }
+
+    final mod = ((score - 10) / 2).floor();
+    final modStr = mod >= 0 ? '+$mod' : '$mod';
+
+    return TableRow(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 4),
+          child: Text(statKey,
+              style: const TextStyle(fontWeight: FontWeight.bold)),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 4),
+          child: _StatScoreField(
+            key: ValueKey('stat_$statKey'),
+            initialValue: score,
+            onChanged: (newScore) {
+              if (statObj != null) {
+                try {
+                  (character as dynamic).setScoreBase(statObj, newScore);
+                  currentCharacter.notifyListeners();
+                } catch (_) {}
+              }
+            },
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 4),
+          child: Text(modStr,
+              style: TextStyle(
+                  color: mod >= 0 ? Colors.green.shade700 : Colors.red.shade700,
+                  fontWeight: FontWeight.bold)),
+        ),
+      ],
+    );
+  }
+
+  // ---- Saves section --------------------------------------------------------
+
+  int _getStatMod(dynamic character, List<String> statKeys,
+      List<PCStat> statObjects, String key) {
+    final idx = statKeys.indexOf(key);
+    if (idx >= 0 && idx < statObjects.length) {
+      try {
+        return (character as dynamic).getModTotal(statObjects[idx]) as int? ?? 0;
+      } catch (_) {}
+    }
+    return 0;
+  }
+
+  String _fmtMod(int v) => v >= 0 ? '+$v' : '$v';
+
+  Widget _buildSavesSection(
+      dynamic character, List<String> statKeys, List<PCStat> statObjects) {
+    // Fort = CON mod, Ref = DEX mod, Will = WIS mod
+    final fort = _getStatMod(character, statKeys, statObjects, 'CON');
+    final ref = _getStatMod(character, statKeys, statObjects, 'DEX');
+    final will = _getStatMod(character, statKeys, statObjects, 'WIS');
+
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(8),
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Saving Throws',
+                style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                _saveChip('Fort', _fmtMod(fort)),
+                const SizedBox(width: 12),
+                _saveChip('Ref', _fmtMod(ref)),
+                const SizedBox(width: 12),
+                _saveChip('Will', _fmtMod(will)),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _saveChip(String label, String value) {
+    return Column(
+      children: [
+        Text(label,
+            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 2),
+        Container(
+          padding:
+              const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.grey),
+            borderRadius: BorderRadius.circular(6),
+          ),
+          child: Text(value,
+              style: const TextStyle(fontWeight: FontWeight.bold)),
+        ),
+      ],
+    );
+  }
+
+  // ---- Class level section --------------------------------------------------
+
+  Widget _buildClassLevelSection(dynamic character) {
+    final summary = _classLevelSummary(character);
+    int totalLevel = 0;
+    try {
+      totalLevel = (character as dynamic).getTotalCharacterLevel() as int? ?? 0;
+    } catch (_) {}
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('Class Levels',
                 style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 8),
-            AnimatedBuilder(
-              animation: _classLevelModel!,
-              builder: (context, _) {
-                return DataTable(
-                  columns: const [
-                    DataColumn(label: Text('Class')),
-                    DataColumn(label: Text('Level')),
-                    DataColumn(label: Text('HP')),
-                  ],
-                  rows: List.generate(_classLevelModel!.rowCount, (i) {
-                    return DataRow(cells: [
-                      DataCell(Text(_classLevelModel!.className(i))),
-                      DataCell(Text(_classLevelModel!.level(i).toString())),
-                      DataCell(Text(_classLevelModel!.hp(i).toString())),
-                    ]);
-                  }),
-                );
-              },
-            ),
+            _labelledValue('Total Level', '$totalLevel'),
+            if (summary.isNotEmpty) _labelledValue('Classes', summary),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildLanguagesSection() {
-    if (_languageModel == null) return const SizedBox.shrink();
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(8),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Languages',
-                style: Theme.of(context).textTheme.titleMedium),
-            const SizedBox(height: 8),
-            AnimatedBuilder(
-              animation: _languageModel!,
-              builder: (context, _) {
-                return Wrap(
-                  spacing: 8,
-                  children: List.generate(
-                    _languageModel!.languageCount,
-                    (i) => Chip(label: Text(_languageModel!.languageName(i))),
-                  ),
-                );
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  // ---- Helpers --------------------------------------------------------------
 
-  Widget _buildInfoPane() {
-    return const Card(
-      child: SizedBox(
-        height: 200,
-        child: Center(child: Text('Character Info Sheet')),
-      ),
-    );
-  }
-
-  Widget _labelledField(String label, String value) {
+  Widget _labelledValue(String label, String value) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2),
+      padding: const EdgeInsets.symmetric(vertical: 3),
       child: Row(
         children: [
           SizedBox(
-            width: 100,
+            width: 80,
             child: Text('$label:',
                 style: const TextStyle(fontWeight: FontWeight.bold)),
           ),
           Expanded(child: Text(value)),
         ],
+      ),
+    );
+  }
+}
+
+/// An editable integer field for ability score input.
+class _StatScoreField extends StatefulWidget {
+  final int initialValue;
+  final ValueChanged<int> onChanged;
+
+  const _StatScoreField({
+    super.key,
+    required this.initialValue,
+    required this.onChanged,
+  });
+
+  @override
+  State<_StatScoreField> createState() => _StatScoreFieldState();
+}
+
+class _StatScoreFieldState extends State<_StatScoreField> {
+  late TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: '${widget.initialValue}');
+  }
+
+  @override
+  void didUpdateWidget(_StatScoreField oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.initialValue != widget.initialValue) {
+      _controller.text = '${widget.initialValue}';
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _commit() {
+    final parsed = int.tryParse(_controller.text);
+    if (parsed != null) {
+      widget.onChanged(parsed.clamp(1, 30));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 55,
+      child: TextField(
+        controller: _controller,
+        keyboardType: TextInputType.number,
+        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+        decoration: const InputDecoration(
+          border: OutlineInputBorder(),
+          isDense: true,
+          contentPadding:
+              EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+        ),
+        onSubmitted: (_) => _commit(),
+        onEditingComplete: _commit,
       ),
     );
   }
