@@ -74,13 +74,14 @@ class PCGenFrameState extends State<PCGenFrame> {
   }
 
   void _doStartup() {
-    // Check preferences for auto-load sources, etc.
-    // For now just show source selection if needed
     final skipSources = UIPropertyContext.getInstance()
         .getBoolean(UIPropertyContext.skipSourceSelection);
     if (!skipSources) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        showSourceSelectionDialog();
+      // Small delay so the OS window is fully focused before we show the dialog.
+      // Without this Flutter Windows renders the dialog blank until the user
+      // clicks the main window.
+      Future.delayed(const Duration(milliseconds: 300), () {
+        if (mounted) showSourceSelectionDialog();
       });
     }
   }

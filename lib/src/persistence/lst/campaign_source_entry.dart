@@ -87,13 +87,16 @@ class CampaignSourceEntry implements SourceEntry {
 
   static String _resolveUri(String baseUri, String relative) {
     try {
-      // '@' is PCGen's data-root token — expand it to the configured data dir.
-      final expanded = relative.startsWith('@')
-          ? Uri.file(ConfigurationSettings.getPccFilesDir())
-                .toString()
-                .replaceAll(RegExp(r'/$'), '') +
-              relative.substring(1)
-          : relative;
+      // '@' and '*' are PCGen data-root tokens — expand to the configured data dir.
+      // '*' appears as the first path segment in paths like '*/_universal/races.lst'
+      // and means the same thing as '@': the absolute data directory root.
+      String expanded = relative;
+      if (relative.startsWith('@') || relative.startsWith('*')) {
+        final dataRoot = Uri.file(ConfigurationSettings.getPccFilesDir())
+            .toString()
+            .replaceAll(RegExp(r'/$'), '');
+        expanded = dataRoot + relative.substring(1);
+      }
       final base = Uri.parse(baseUri);
       return base.resolve(expanded).toString();
     } catch (_) {
