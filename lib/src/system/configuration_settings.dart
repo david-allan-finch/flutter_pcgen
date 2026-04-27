@@ -83,6 +83,10 @@ class ConfigurationSettings extends PropertyContext {
     final fromExec = '$execDir${Platform.pathSeparator}$relative';
     if (Directory(fromExec).existsSync()) return fromExec;
     // Development: `flutter run` sets CWD to the project directory.
-    return '${Directory.current.path}${Platform.pathSeparator}$relative';
+    final fromCwd = '${Directory.current.path}${Platform.pathSeparator}$relative';
+    if (Directory(fromCwd).existsSync()) return fromCwd;
+    // Neither found — return CWD-relative path anyway and let caller handle missing dir.
+    print('PCGen: could not find "$relative" next to executable ($execDir) or in CWD (${Directory.current.path})');
+    return fromCwd;
   }
 }

@@ -8,6 +8,7 @@ import 'package:flutter_pcgen/src/core/globals.dart';
 import 'package:flutter_pcgen/src/persistence/game_mode_file_loader.dart';
 import 'package:flutter_pcgen/src/persistence/campaign_file_loader.dart';
 import 'package:flutter_pcgen/src/persistence/lst/campaign_loader.dart';
+import 'package:flutter_pcgen/src/system/configuration_settings.dart';
 
 /// Coordinates the two-phase startup loading pipeline:
 ///  1. [loadSystemResources] — game modes + campaign discovery (run at launch)
@@ -53,11 +54,18 @@ class LstSystemLoader {
   Future<void> loadSystemResources({
     void Function(double progress, String message)? onProgress,
   }) async {
+    final systemDir = ConfigurationSettings.getSystemsDir();
+    final dataDir   = ConfigurationSettings.getPccFilesDir();
+    print('PCGen paths — system: $systemDir  data: $dataDir');
+
     onProgress?.call(0.0, 'Loading game modes…');
     await GameModeFileLoader().run();
 
     onProgress?.call(0.7, 'Discovering campaigns…');
     await CampaignFileLoader().run();
+
+    final campaignCount = Globals.getCampaignList().length;
+    print('PCGen startup complete — ${Globals.getCampaignList().map((g) => g).length} game modes, $campaignCount campaigns discovered');
 
     onProgress?.call(1.0, 'System resources loaded.');
   }
