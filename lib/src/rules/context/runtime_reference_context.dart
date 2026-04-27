@@ -99,9 +99,25 @@ abstract class AbstractReferenceContext {
     // stub
   }
 
+  // Keyed object registry: runtimeType → (keyName → object)
+  final Map<Type, Map<String, Loadable>> _objectRegistry = {};
+
   // Register a Loadable into the keyed object registry.
   void register<T extends Loadable>(T obj) {
-    // stub: full implementation routes through ReferenceManufacturer
+    final key = obj.getKeyName();
+    _objectRegistry.putIfAbsent(obj.runtimeType, () => {})[key] = obj;
+  }
+
+  // Returns all registered objects of type T.
+  List<T> getAllConstructed<T extends Loadable>(Type type) {
+    final byKey = _objectRegistry[type];
+    if (byKey == null) return [];
+    return byKey.values.whereType<T>().toList();
+  }
+
+  // Returns a registered object by type and key, or null.
+  T? getConstructed<T extends Loadable>(Type type, String key) {
+    return _objectRegistry[type]?[key] as T?;
   }
 
   // Remove an object by its abbreviation; returns true if removed.

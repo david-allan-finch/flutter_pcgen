@@ -5,6 +5,9 @@ import 'package:flutter_pcgen/src/cdom/enumeration/string_key.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/type.dart';
 
 // Base class for several objects in the PCGen database.
+// PCObject is an alias kept for files that reference it by the old name.
+typedef PCObject = PObject;
+
 class PObject extends CDOMObject implements Comparable<Object> {
 
   @override

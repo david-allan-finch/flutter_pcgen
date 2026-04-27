@@ -30,6 +30,7 @@ import 'package:flutter_pcgen/src/persistence/lst/stats_and_checks_loader.dart';
 import 'package:flutter_pcgen/src/persistence/lst/level_loader.dart';
 import 'package:flutter_pcgen/src/persistence/lst/size_adjustment_loader.dart';
 import 'package:flutter_pcgen/src/core/bio_set.dart';
+import 'package:flutter_pcgen/src/rules/context/runtime_load_context.dart';
 import 'package:flutter_pcgen/src/persistence/lst/bio_set_loader.dart';
 import 'package:flutter_pcgen/src/persistence/lst/load_info_loader.dart';
 import 'package:flutter_pcgen/src/persistence/lst/point_buy_loader.dart';
@@ -106,7 +107,8 @@ class GameModeFileLoader extends PCGenTask {
       final file = File.fromUri(uri);
       if (!file.existsSync()) return null;
       final lines = file.readAsLinesSync();
-      final gameMode = GameMode(name);
+      final gameMode = GameMode(name)
+        ..setModeContext(RuntimeLoadContext());
       for (int i = 0; i < lines.length; i++) {
         final line = lines[i].trim();
         if (line.isEmpty || line.startsWith('#')) continue;
