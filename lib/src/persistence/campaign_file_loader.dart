@@ -32,7 +32,7 @@ import 'package:flutter_pcgen/src/persistence/lst/campaign_loader.dart';
 /// Loads campaign (.pcc) files from the data directory tree and initialises
 /// any inter-campaign dependencies (INFOTEXT, SUB-CAMPAIGN references).
 class CampaignFileLoader extends PCGenTask {
-  File? _alternateSourceFolder;
+  Directory? _alternateSourceFolder;
 
   @override
   String getMessage() =>
@@ -41,7 +41,7 @@ class CampaignFileLoader extends PCGenTask {
   @override
   Future<void> run() async {
     final finder = RecursiveFileFinder();
-    final List<Uri> campaignFiles = [];
+    final List<String> campaignFiles = [];
 
     if (_alternateSourceFolder != null) {
       finder.findFiles(_alternateSourceFolder!, campaignFiles);
@@ -67,24 +67,24 @@ class CampaignFileLoader extends PCGenTask {
     _initCampaigns();
   }
 
-  /// Passes each .pcc URI to CampaignLoader; skips already-loaded campaigns.
-  Future<void> _loadCampaigns(List<Uri> campaignFiles) async {
+  /// Passes each .pcc path to CampaignLoader; skips already-loaded campaigns.
+  Future<void> _loadCampaigns(List<String> campaignFiles) async {
     int progress = 0;
     final loader = CampaignLoader();
-    for (final uri in campaignFiles) {
+    for (final path in campaignFiles) {
+      final uri = Uri.parse(path);
       if (Globals.getCampaignByUri(uri) == null) {
         try {
           await loader.loadCampaignLstFile(uri);
         } on PersistenceLayerException catch (ex) {
-          // Log and continue — missing/corrupt PCC files should not abort loading
-          print('PersistenceLayer error loading $uri: $ex');
+          print('PersistenceLayer error loading $path: $ex');
         }
       }
       setProgress(progress++);
     }
   }
 
-  /// Processes INFOTEXT / SUB-CAMPAIGN references for all loaded campaigns.
+  /// Processes PCC sub-campaign references for all loaded campaigns.
   void _initCampaigns() {
     final initialCampaigns = List<Campaign>.from(Globals.getCampaignList());
     final loader = CampaignLoader();
@@ -94,7 +94,7 @@ class CampaignFileLoader extends PCGenTask {
   }
 
   /// Override the source directory used when scanning for campaigns.
-  void setAlternateSourceFolder(File folder) {
+  void setAlternateSourceFolder(Directory folder) {
     _alternateSourceFolder = folder;
   }
 }

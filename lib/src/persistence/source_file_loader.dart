@@ -143,7 +143,9 @@ class SourceFileLoader extends PCGenTask {
     await _loadFileType('FILE_KIT', _kitLoader);
 
     // 6. Build the DataSet facade
-    _dataset = DataSet(_selectedGame, _selectedCampaigns);
+    _dataset = DataSet()
+      ..gameModeStr = _selectedGame.getName()
+      ..campaigns.addAll(_selectedCampaigns);
   }
 
   /// Collects all file-type entries from the selected campaigns.

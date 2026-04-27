@@ -29,6 +29,7 @@ import 'package:flutter_pcgen/src/persistence/lst/game_mode_loader.dart';
 import 'package:flutter_pcgen/src/persistence/lst/stats_and_checks_loader.dart';
 import 'package:flutter_pcgen/src/persistence/lst/level_loader.dart';
 import 'package:flutter_pcgen/src/persistence/lst/size_adjustment_loader.dart';
+import 'package:flutter_pcgen/src/core/bio_set.dart';
 import 'package:flutter_pcgen/src/persistence/lst/bio_set_loader.dart';
 import 'package:flutter_pcgen/src/persistence/lst/load_info_loader.dart';
 import 'package:flutter_pcgen/src/persistence/lst/point_buy_loader.dart';
@@ -130,10 +131,10 @@ class GameModeFileLoader extends PCGenTask {
     _loadInfoFile(gameMode, File('${specDir.path}/rules.lst').uri, 'rules');
 
     // Standard LST files
-    _loadModeLstFile(gameMode, specDir, gameModeDir, 'statsandchecks.lst', StatsAndChecksLoader());
+    _loadModeLstFile(gameMode, specDir, gameModeDir, 'statsandchecks.lst', StatsAndChecksLoader(gameMode.getModeContext()));
     _loadModeLstFile(gameMode, specDir, gameModeDir, 'sizeAdjustment.lst', SizeAdjustmentLoader(), required: false);
     _loadModeLstFile(gameMode, specDir, gameModeDir, 'load.lst', LoadInfoLoader());
-    _loadModeLstFile(gameMode, specDir, gameModeDir, 'bio/biosettings.lst', BioSetLoader());
+    _loadModeLstFile(gameMode, specDir, gameModeDir, 'bio/biosettings.lst', BioSetLoader(BioSet()));
 
     // Point buy
     _loadPointBuyFile(gameMode, specDir, gameModeDir, gameFile);

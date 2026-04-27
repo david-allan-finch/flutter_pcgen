@@ -41,10 +41,10 @@ class BonusSpellInfo implements Loadable {
   }
 
   @override
-  String? getDisplayName() => _spellLevel.toString();
+  String getDisplayName() => _spellLevel.toString();
 
   @override
-  String? getKeyName() => getDisplayName();
+  String getKeyName() => getDisplayName();
 
   @override
   bool isInternal() => false;

@@ -58,7 +58,7 @@ class AgeSet implements BonusContainer, Loadable {
   String? getSourceURI() => _sourceUri;
 
   @override
-  void setSourceURI(String source) => _sourceUri = source;
+  void setSourceURI(String? source) => _sourceUri = source;
 
   @override
   String getKeyName() => _name ?? '';

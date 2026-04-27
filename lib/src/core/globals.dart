@@ -81,6 +81,13 @@ class Globals {
     return null;
   }
 
+  /// Returns the number of slots of the given type (e.g. "HANDS" → 2).
+  /// Defaults to 1 for unknown types.
+  static int getEquipSlotTypeCount(String slotNumType) {
+    const defaults = {'HANDS': 2, 'FINGERS': 10, 'EYES': 2, 'EARS': 2};
+    return defaults[slotNumType.toUpperCase()] ?? 1;
+  }
+
   static Campaign? getCampaignKeyed(String key) {
     for (final c in _campaignList) {
       if (c.getKeyName() == key) return c;

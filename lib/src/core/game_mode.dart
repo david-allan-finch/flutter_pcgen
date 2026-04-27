@@ -123,6 +123,9 @@ final class GameMode implements Comparable<Object> {
   int _rollHP = 0;
   int _purchaseModeMethodNum = 0;
   String _qualifier = '';
+  String _purchaseModeMethodName = '';
+  String _defaultXPTableName = '';
+  String _defaultCharacterType = '';
   String _spellBaseConcentration = '';
   String _spellBaseDC = '';
   String _spellRangeExpression = '';
@@ -459,6 +462,10 @@ final class GameMode implements Comparable<Object> {
   }
 
   dynamic getUnitSet() => null; // TODO: return loaded UnitSet object
+
+  String getPurchaseModeMethodName() => _purchaseModeMethodName;
+  String getDefaultXPTableName() => _defaultXPTableName;
+  String getDefaultCharacterType() => _defaultCharacterType;
 
   // ---------------------------------------------------------------------------
   // Comparable / Object

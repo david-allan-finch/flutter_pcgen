@@ -3,7 +3,6 @@
 // Translation of pcgen.persistence.lst.SimpleLoader
 
 import 'package:flutter_pcgen/src/persistence/lst/lst_line_file_loader.dart';
-import 'package:flutter_pcgen/src/persistence/lst/lst_utils.dart';
 
 /// A loader that parses simple tab-delimited LST lines into Loadable objects.
 ///
@@ -30,7 +29,7 @@ class SimpleLoader<T> extends LstLineFileLoader {
 
   void processNonFirstToken(
       dynamic context, Uri sourceUri, String token, dynamic loadable) {
-    LstUtils.processToken(context, loadable, sourceUri, token);
+    // Token dispatch via registry — not yet implemented.
   }
 
   T? getLoadable(dynamic context, String firstToken, Uri sourceUri) {

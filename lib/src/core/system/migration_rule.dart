@@ -25,11 +25,11 @@ class MigrationRule {
 
 /// The type of object this migration rule applies to.
 enum ObjectType {
-  ability(categorized: true),
-  equipment(categorized: false),
-  race(categorized: false),
-  source(categorized: false),
-  spell(categorized: false);
+  ability(isCategorized: true),
+  equipment(isCategorized: false),
+  race(isCategorized: false),
+  source(isCategorized: false),
+  spell(isCategorized: false);
 
   final bool isCategorized;
   const ObjectType({required this.isCategorized});

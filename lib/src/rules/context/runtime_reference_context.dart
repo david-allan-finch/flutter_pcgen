@@ -99,6 +99,11 @@ abstract class AbstractReferenceContext {
     // stub
   }
 
+  // Register a Loadable into the keyed object registry.
+  void register<T extends Loadable>(T obj) {
+    // stub: full implementation routes through ReferenceManufacturer
+  }
+
   // Remove an object by its abbreviation; returns true if removed.
   bool forgetLoadable<T extends Loadable>(T obj) {
     return false; // stub

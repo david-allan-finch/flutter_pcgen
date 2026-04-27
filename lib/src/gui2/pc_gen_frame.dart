@@ -232,10 +232,7 @@ class PCGenFrameState extends State<PCGenFrame> {
     final delegate = _FrameUIDelegate(context);
     final loader = SourceFileLoader(delegate, campaigns, gameModeName);
     await loader.run();
-    final dataset = loader.getDataSetFacade();
-    if (dataset != null && mounted) {
-      setState(() => _currentDataSetRef.set(dataset));
-    }
+    // DataSetFacade wiring deferred until DataSet implements DataSetFacade.
   }
 
   bool loadSourceSelection(SourceSelectionFacade sources) {
@@ -365,4 +362,20 @@ class _FrameUIDelegate implements UIDelegate {
       ),
     );
   }
+
+  @override
+  void showInfoMessage(String title, String message) => showWarningMessage(title, message);
+
+  @override
+  void showLevelUpInfo(dynamic character, int oldLevel) {}
+
+  @override
+  bool showGeneralChooser(dynamic chooserFacade) => false;
+
+  @override
+  dynamic showCustomEquipDialog(dynamic character, dynamic equipBuilder) =>
+      null; // CustomEquipResult.cancelled
+
+  @override
+  bool showCustomSpellDialog(dynamic spellBuilderFacade) => false;
 }

@@ -31,7 +31,7 @@ final class PointBuyMethod implements BonusContainer, Loadable {
   String? getSourceURI() => _sourceUri;
 
   @override
-  void setSourceURI(String source) => _sourceUri = source;
+  void setSourceURI(String? source) => _sourceUri = source;
 
   String getPointFormula() => _pointFormula;
   void setPointFormula(String formula) => _pointFormula = formula;

@@ -30,7 +30,7 @@ final class PointBuyCost extends ConcretePrereqObject implements Loadable {
   String? getSourceURI() => _sourceUri;
 
   @override
-  void setSourceURI(String source) => _sourceUri = source;
+  void setSourceURI(String? source) => _sourceUri = source;
 
   @override
   String getDisplayName() => _statValue.toString();
