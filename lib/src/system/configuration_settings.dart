@@ -78,15 +78,25 @@ class ConfigurationSettings extends PropertyContext {
   static String _resolve(String path) {
     if (!path.startsWith('@')) return path;
     final relative = path.substring(1);
-    // Development: CWD is the project directory when running via `flutter run`.
-    final fromCwd = '${Directory.current.path}${Platform.pathSeparator}$relative';
+    final sep = Platform.pathSeparator;
+
+    // 1. CWD — project directory when running via `flutter run`.
+    final fromCwd = '${Directory.current.path}$sep$relative';
     if (Directory(fromCwd).existsSync()) return fromCwd;
-    // Production: data lives next to the executable (released binary).
+
+    // 2. Sibling pcgen repo — dev convenience so data/ doesn't need to be copied.
+    //    flutter_pcgen/ and pcgen/ live side-by-side; pcgen/data/ has the LST files.
+    final sibling = Directory(
+        '${Directory.current.path}$sep..${sep}pcgen$sep$relative');
+    if (sibling.existsSync()) return sibling.resolveSymbolicLinksSync();
+
+    // 3. Next to the executable — production (released binary).
     final execDir = File(Platform.resolvedExecutable).parent.path;
-    final fromExec = '$execDir${Platform.pathSeparator}$relative';
+    final fromExec = '$execDir$sep$relative';
     if (Directory(fromExec).existsSync()) return fromExec;
-    // Neither found — warn and return CWD-relative so the caller gets a clear path to diagnose.
-    print('PCGen: could not find "$relative" in CWD (${Directory.current.path}) or next to executable ($execDir)');
+
+    print('PCGen: "$relative" not found in CWD (${Directory.current.path}), '
+        'sibling pcgen repo, or next to executable ($execDir)');
     return fromCwd;
   }
 }
