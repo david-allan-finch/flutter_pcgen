@@ -19,6 +19,7 @@
 
 import 'package:flutter_pcgen/src/cdom/base/constants.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/type.dart';
+import 'package:flutter_pcgen/src/core/level_info.dart';
 import 'package:flutter_pcgen/src/rules/context/load_context.dart';
 
 // ---------------------------------------------------------------------------
@@ -32,17 +33,6 @@ class XPTable {
   const XPTable(this.name, this.levelXP);
 
   int getXPForLevel(int level) => levelXP[level] ?? 0;
-}
-
-// ---------------------------------------------------------------------------
-// LevelInfo — one row in an XP table
-// ---------------------------------------------------------------------------
-
-class LevelInfo {
-  final int level;
-  final int xpRequired;
-
-  const LevelInfo(this.level, this.xpRequired);
 }
 
 // ---------------------------------------------------------------------------
@@ -328,8 +318,10 @@ final class GameMode implements Comparable<Object> {
   XPTable? getLevelInfo(String xpTableName) => xpTableInfo[xpTableName];
 
   void addLevelInfo(String xpTableName, LevelInfo levInfo) {
+    final levelNum = int.tryParse(levInfo.levelString) ?? 0;
+    final xpMin = levInfo.getMinXP();
     xpTableInfo.putIfAbsent(xpTableName, () => XPTable(xpTableName, {}));
-    xpTableInfo[xpTableName]!.levelXP[levInfo.level] = levInfo.xpRequired;
+    xpTableInfo[xpTableName]!.levelXP[levelNum] = xpMin;
   }
 
   Map<int, int> getXPAwards() => Map.unmodifiable(_xpAwards);

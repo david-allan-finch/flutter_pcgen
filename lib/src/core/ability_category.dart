@@ -31,6 +31,9 @@ class AbilityCategory implements Category<Ability> {
 
   static AbilityCategory? get(String key) => _registry[key.toUpperCase()];
 
+  /// Alias for [get] — used by loaders that call AbilityCategory.getCategory().
+  static AbilityCategory? getCategory(String key) => get(key);
+
   static AbilityCategory getConstant(String key) {
     return _registry[key.toUpperCase()] ??
         (throw ArgumentError('Unknown ability category: $key'));

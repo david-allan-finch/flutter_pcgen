@@ -51,7 +51,7 @@ class AbilityLoader extends LstObjectFileLoader<Ability> {
       if (categoryToken != null) {
         final cat = AbilityCategory.getCategory(categoryToken);
         if (cat != null) {
-          anAbility.setCategory(cat);
+          anAbility.setCDOMCategory(cat);
         } else {
           // Invalid category — skip
           return null;

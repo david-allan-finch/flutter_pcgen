@@ -36,7 +36,7 @@ import 'package:flutter_pcgen/src/core/spell/spell.dart';
 import 'package:flutter_pcgen/src/core/system_collections.dart';
 import 'package:flutter_pcgen/src/core/weapon_prof.dart';
 import 'package:flutter_pcgen/src/facade/core/ui_delegate.dart';
-import 'package:flutter_pcgen/src/rules/context/load_context.dart';
+import 'package:flutter_pcgen/src/rules/context/load_context.dart' hide Campaign, CampaignSourceEntry;
 import 'package:flutter_pcgen/src/system/p_c_gen_task.dart';
 import 'package:flutter_pcgen/src/system/language_bundle.dart';
 import 'package:flutter_pcgen/src/persistence/persistence_layer_exception.dart';

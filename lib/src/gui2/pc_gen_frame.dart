@@ -373,8 +373,8 @@ class _FrameUIDelegate implements UIDelegate {
   bool showGeneralChooser(dynamic chooserFacade) => false;
 
   @override
-  dynamic showCustomEquipDialog(dynamic character, dynamic equipBuilder) =>
-      null; // CustomEquipResult.cancelled
+  CustomEquipResult showCustomEquipDialog(dynamic character, dynamic equipBuilder) =>
+      CustomEquipResult.cancelled;
 
   @override
   bool showCustomSpellDialog(dynamic spellBuilderFacade) => false;

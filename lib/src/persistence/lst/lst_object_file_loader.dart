@@ -17,7 +17,7 @@
 //
 // Translation of pcgen.persistence.lst.LstObjectFileLoader
 import 'package:flutter_pcgen/src/cdom/base/cdom_object.dart';
-import 'package:flutter_pcgen/src/rules/context/load_context.dart';
+import 'package:flutter_pcgen/src/rules/context/load_context.dart' hide Campaign, CampaignSourceEntry;
 import 'package:flutter_pcgen/src/persistence/persistence_layer_exception.dart';
 import 'package:flutter_pcgen/src/persistence/lst/campaign_source_entry.dart';
 import 'package:flutter_pcgen/src/persistence/lst/lst_file_loader.dart';

@@ -47,7 +47,7 @@ class RuntimeLoadContext implements LoadContext {
 
   // ---- sub-context accessors (stubs) ----
   @override
-  AbstractReferenceContext getObjectContext() =>
+  AbstractObjectContext getObjectContext() =>
       throw UnimplementedError('getObjectContext');
 
   @override
@@ -108,7 +108,7 @@ class RuntimeLoadContext implements LoadContext {
 
   // ---- campaign source entry ----
   @override
-  dynamic getCampaignSourceEntry(dynamic source, String value) => null;
+  CampaignSourceEntry? getCampaignSourceEntry(dynamic source, String value) => null;
 
   // ---- stateful information ----
   @override
@@ -122,14 +122,14 @@ class RuntimeLoadContext implements LoadContext {
 
   // ---- campaign list ----
   @override
-  void setLoaded(List<dynamic> campaigns) {
+  void setLoaded(List<Campaign> campaigns) {
     _campaigns
       ..clear()
       ..addAll(campaigns);
   }
 
   @override
-  List<dynamic> getLoadedCampaigns() => List.unmodifiable(_campaigns);
+  List<Campaign> getLoadedCampaigns() => List.unmodifiable(_campaigns);
 
   // ---- facet initialization ----
   @override
@@ -141,9 +141,9 @@ class RuntimeLoadContext implements LoadContext {
 
   // ---- token processing ----
   @override
-  dynamic processSubToken<T>(
+  ParseResult processSubToken<T>(
           T cdo, String tokenName, String key, String value) =>
-      null;
+      ParseResult.fail;
 
   @override
   bool processToken<T extends Loadable>(
