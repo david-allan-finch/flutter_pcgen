@@ -68,32 +68,33 @@ class CharacterLevelsFacadeImpl extends ChangeNotifier
   }
 
   @override
-  int getHPRolled(int index) {
-    if (index < 0 || index >= _levels.length) return 0;
-    return (_levels[index]._level?['hpRolled'] as num?)?.toInt() ?? 0;
+  int getHPRolled(CharacterLevelFacade level) {
+    final impl = level as CharacterLevelFacadeImpl;
+    return (impl.levelData?['hpRolled'] as num?)?.toInt() ?? 0;
   }
 
   @override
-  void setHPRolled(int index, int hp) {
-    if (index < 0 || index >= _levels.length) return;
-    final lvl = _levels[index]._level;
-    if (lvl is Map) lvl['hpRolled'] = hp;
+  void setHPRolled(CharacterLevelFacade level, int hp) {
+    final impl = level as CharacterLevelFacadeImpl;
+    final data = impl.levelData;
+    if (data is Map) data['hpRolled'] = hp;
     notifyListeners();
   }
 
-  @override
   int getSkillPointsRemaining(int index) {
     if (index < 0 || index >= _levels.length) return 0;
-    return (_levels[index]._level?['skillPointsRemaining'] as num?)?.toInt() ?? 0;
+    return (_levels[index].levelData?['skillPointsRemaining'] as num?)?.toInt() ?? 0;
   }
 
-  @override
   int getSkillPointsGained(int index) {
     if (index < 0 || index >= _levels.length) return 0;
-    return (_levels[index]._level?['skillPointsGained'] as num?)?.toInt() ?? 0;
+    return (_levels[index].levelData?['skillPointsGained'] as num?)?.toInt() ?? 0;
   }
 
   void reload() => _loadLevels();
+
+  @override
+  dynamic noSuchMethod(Invocation i) => super.noSuchMethod(i);
 }
 
 class _LevelListFacade implements ListFacade<CharacterLevelFacade> {
@@ -105,4 +106,7 @@ class _LevelListFacade implements ListFacade<CharacterLevelFacade> {
 
   @override
   int getSize() => _list.length;
+
+  @override
+  dynamic noSuchMethod(Invocation i) => super.noSuchMethod(i);
 }

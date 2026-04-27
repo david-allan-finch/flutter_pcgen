@@ -79,4 +79,7 @@ class DescriptionFacadeImpl extends ChangeNotifier implements DescriptionFacade 
     _data[key] = value;
     notifyListeners();
   }
+
+  @override
+  dynamic noSuchMethod(Invocation i) => super.noSuchMethod(i);
 }

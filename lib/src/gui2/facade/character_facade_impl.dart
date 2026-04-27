@@ -18,6 +18,7 @@
 // Translation of pcgen.gui2.facade.CharacterFacadeImpl
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter_pcgen/src/core/language.dart';
 import 'package:flutter_pcgen/src/facade/core/character_facade.dart';
 import 'package:flutter_pcgen/src/facade/core/character_levels_facade.dart';
 import 'package:flutter_pcgen/src/facade/core/description_facade.dart';
@@ -373,11 +374,7 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
   // ---- Languages ----------------------------------------------------------
 
   @override
-  ListFacade<Object> getLanguages() {
-    final langs = _data['languages'];
-    final list = langs is List ? langs : <dynamic>[];
-    return _SimpleListFacade(list);
-  }
+  List<Language> getLanguages() => const [];
 
   // ---- Funds / wealth -----------------------------------------------------
 
@@ -412,15 +409,7 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
     _data[key] = value;
     notifyListeners();
   }
-}
-
-class _SimpleListFacade implements ListFacade<Object> {
-  final List _list;
-  _SimpleListFacade(this._list);
 
   @override
-  Object getElementAt(int index) => _list[index] as Object;
-
-  @override
-  int getSize() => _list.length;
+  dynamic noSuchMethod(Invocation i) => super.noSuchMethod(i);
 }

@@ -68,6 +68,9 @@ class TempBonusFacadeImpl extends ChangeNotifier implements TempBonusFacade {
   @override
   bool requiresTarget(Object bonus) =>
       TempBonusHelper.requiresTarget(bonus as Map<String, dynamic>);
+
+  @override
+  dynamic noSuchMethod(Invocation i) => super.noSuchMethod(i);
 }
 
 class _SimpleListFacade<T> implements ListFacade<Object> {
@@ -79,4 +82,7 @@ class _SimpleListFacade<T> implements ListFacade<Object> {
 
   @override
   int getSize() => _list.length;
+
+  @override
+  dynamic noSuchMethod(Invocation i) => super.noSuchMethod(i);
 }

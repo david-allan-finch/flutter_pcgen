@@ -38,41 +38,49 @@ class EquipmentSetFacadeImpl extends ChangeNotifier implements EquipmentSetFacad
   }
 
   @override
-  ListFacade<Object> getEquippedItems(String slot) {
-    return _SimpleListFacade(_slotItems[slot] ?? []);
-  }
+  dynamic getEquippedItems() => List.of(_slotItems.values.expand((l) => l));
 
-  @override
+  List<dynamic> getEquippedItemsForSlot(String slot) =>
+      List.of(_slotItems[slot] ?? []);
+
   List<String> getEquippedSlots() => _slotItems.keys.toList();
 
   @override
-  void addEquipment(String slot, Object item) {
-    _slotItems.putIfAbsent(slot, () => []).add(item as Map<String, dynamic>);
+  dynamic addEquipment(dynamic node, dynamic equipment, int quantity,
+      [dynamic beforeNode]) {
+    final slot = node?.toString() ?? 'Default';
+    _slotItems.putIfAbsent(slot, () => []).add(equipment);
     notifyListeners();
+    return null;
   }
 
   @override
-  void removeEquipment(String slot, Object item) {
-    _slotItems[slot]?.remove(item);
-    if (_slotItems[slot]?.isEmpty ?? false) _slotItems.remove(slot);
+  dynamic removeEquipment(dynamic node, int quantity) {
+    final slot = node?.toString() ?? 'Default';
+    final list = _slotItems[slot];
+    if (list != null && list.isNotEmpty) list.removeLast();
     notifyListeners();
+    return null;
   }
 
   @override
-  int getQuantity(Object item) {
-    final m = item as Map<String, dynamic>;
-    return (m['qty'] as num?)?.toInt() ?? 1;
+  int getQuantity(dynamic node) {
+    if (node is Map<String, dynamic>) {
+      return (node['qty'] as num?)?.toInt() ?? 1;
+    }
+    return 1;
   }
 
-  @override
-  void setQuantity(Object item, int qty) {
-    final m = item as Map<String, dynamic>;
-    m['qty'] = qty;
+  void setQuantity(dynamic item, int qty) {
+    if (item is Map<String, dynamic>) item['qty'] = qty;
     notifyListeners();
   }
 
   @override
   String toString() => _name;
+
+  @override
+  dynamic noSuchMethod(Invocation i) => super.noSuchMethod(i);
 }
 
 class _SimpleListFacade<T> implements ListFacade<Object> {
@@ -84,4 +92,7 @@ class _SimpleListFacade<T> implements ListFacade<Object> {
 
   @override
   int getSize() => _list.length;
+
+  @override
+  dynamic noSuchMethod(Invocation i) => super.noSuchMethod(i);
 }

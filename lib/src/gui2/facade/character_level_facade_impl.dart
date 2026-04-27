@@ -25,6 +25,9 @@ class CharacterLevelFacadeImpl implements CharacterLevelFacade {
 
   CharacterLevelFacadeImpl(this._level);
 
+  // Public accessor so CharacterLevelsFacadeImpl (different file) can read data.
+  dynamic get levelData => _level;
+
   @override
   dynamic getCharClass() => _level?.charClass;
 

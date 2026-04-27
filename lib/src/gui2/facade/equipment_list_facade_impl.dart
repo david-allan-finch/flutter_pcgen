@@ -60,15 +60,15 @@ class EquipmentListFacadeImpl extends ChangeNotifier implements EquipmentListFac
   }
 
   @override
-  int getQuantity(Object item) {
-    final m = item as Map<String, dynamic>;
-    return (m['qty'] as num?)?.toInt() ?? 1;
+  int getQuantity(dynamic equipment) {
+    if (equipment is Map<String, dynamic>) {
+      return (equipment['qty'] as num?)?.toInt() ?? 1;
+    }
+    return 1;
   }
 
-  @override
-  void setQuantity(Object item, int qty) {
-    final m = item as Map<String, dynamic>;
-    m['qty'] = qty;
+  void setQuantity(dynamic item, int qty) {
+    if (item is Map<String, dynamic>) item['qty'] = qty;
     notifyListeners();
   }
 
@@ -82,6 +82,9 @@ class EquipmentListFacadeImpl extends ChangeNotifier implements EquipmentListFac
     _load();
     notifyListeners();
   }
+
+  @override
+  dynamic noSuchMethod(Invocation i) => super.noSuchMethod(i);
 }
 
 class _SimpleListFacade<T> implements ListFacade<Object> {
@@ -93,4 +96,7 @@ class _SimpleListFacade<T> implements ListFacade<Object> {
 
   @override
   int getSize() => _list.length;
+
+  @override
+  dynamic noSuchMethod(Invocation i) => super.noSuchMethod(i);
 }

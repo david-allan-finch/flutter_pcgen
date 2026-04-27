@@ -46,14 +46,15 @@ class CompanionSupportFacadeImpl extends ChangeNotifier
   }
 
   @override
-  ListFacade<Object> getCompanions(String type) {
-    return _SimpleListFacade(_companionsByType[type] ?? []);
+  List<dynamic> getCompanions() {
+    return _companionsByType.values.expand((l) => l).toList();
   }
 
-  @override
+  List<dynamic> getCompanionsByType(String type) =>
+      List.of(_companionsByType[type] ?? []);
+
   List<String> getCompanionTypes() => _companionsByType.keys.toList();
 
-  @override
   int getMaxCompanions(String type) {
     if (_character is Map) {
       final maxMap = _character['maxCompanions'];
@@ -65,15 +66,17 @@ class CompanionSupportFacadeImpl extends ChangeNotifier
   }
 
   @override
-  void addCompanion(String type, Object companion) {
-    _companionsByType.putIfAbsent(type, () => []).add(companion);
+  void addCompanion(dynamic companion, String companionType) {
+    _companionsByType.putIfAbsent(companionType, () => []).add(companion);
     _persist();
     notifyListeners();
   }
 
   @override
-  void removeCompanion(String type, Object companion) {
-    _companionsByType[type]?.remove(companion);
+  void removeCompanion(dynamic companion) {
+    for (final list in _companionsByType.values) {
+      list.remove(companion);
+    }
     _persist();
     notifyListeners();
   }
@@ -90,6 +93,9 @@ class CompanionSupportFacadeImpl extends ChangeNotifier
     _load();
     notifyListeners();
   }
+
+  @override
+  dynamic noSuchMethod(Invocation i) => super.noSuchMethod(i);
 }
 
 class _SimpleListFacade<T> implements ListFacade<Object> {
@@ -101,4 +107,7 @@ class _SimpleListFacade<T> implements ListFacade<Object> {
 
   @override
   int getSize() => _list.length;
+
+  @override
+  dynamic noSuchMethod(Invocation i) => super.noSuchMethod(i);
 }

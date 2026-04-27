@@ -94,13 +94,13 @@ class SpellSupportFacadeImpl extends ChangeNotifier implements SpellSupportFacad
   }
 
   @override
-  void addPreparedSpell(Object spell) {
-    _preparedSpells.add(spell as Map<String, dynamic>);
+  void addPreparedSpell(dynamic spell, String spellList, bool useMetamagic) {
+    if (spell is Map<String, dynamic>) _preparedSpells.add(spell);
     notifyListeners();
   }
 
   @override
-  void removePreparedSpell(Object spell) {
+  void removePreparedSpell(dynamic spell, String spellList) {
     _preparedSpells.remove(spell);
     notifyListeners();
   }
@@ -109,6 +109,9 @@ class SpellSupportFacadeImpl extends ChangeNotifier implements SpellSupportFacad
     _load();
     notifyListeners();
   }
+
+  @override
+  dynamic noSuchMethod(Invocation i) => super.noSuchMethod(i);
 }
 
 class _SimpleListFacade<T> implements ListFacade<Object> {
@@ -120,4 +123,7 @@ class _SimpleListFacade<T> implements ListFacade<Object> {
 
   @override
   int getSize() => _list.length;
+
+  @override
+  dynamic noSuchMethod(Invocation i) => super.noSuchMethod(i);
 }
