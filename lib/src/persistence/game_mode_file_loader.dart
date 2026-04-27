@@ -136,7 +136,7 @@ class GameModeFileLoader extends PCGenTask {
     _loadModeLstFile(gameMode, specDir, gameModeDir, 'statsandchecks.lst', StatsAndChecksLoader(gameMode.getModeContext()));
     _loadModeLstFile(gameMode, specDir, gameModeDir, 'sizeAdjustment.lst', SizeAdjustmentLoader(), required: false);
     _loadModeLstFile(gameMode, specDir, gameModeDir, 'load.lst', LoadInfoLoader());
-    _loadModeLstFile(gameMode, specDir, gameModeDir, 'bio/biosettings.lst', BioSetLoader(BioSet()));
+    _loadModeLstFile(gameMode, specDir, gameModeDir, 'bio/biosettings.lst', BioSetLoader(BioSet()), required: false);
 
     // Point buy
     _loadPointBuyFile(gameMode, specDir, gameModeDir, gameFile);

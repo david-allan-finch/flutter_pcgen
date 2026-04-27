@@ -79,5 +79,7 @@ abstract class LstLineFileLoader {
   }
 
   /// Parse a single content line. Subclasses implement this.
-  void parseLine(LoadContext context, String lstLine, Uri uri);
+  /// [context] is typed dynamic so callers may pass null for system-file
+  /// loaders (TraitLoader, LocationLoader, EquipSlotLoader) that don't use it.
+  void parseLine(dynamic context, String lstLine, Uri uri);
 }
