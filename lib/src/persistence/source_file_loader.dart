@@ -35,6 +35,7 @@ import 'package:flutter_pcgen/src/core/skill.dart';
 import 'package:flutter_pcgen/src/core/spell/spell.dart';
 import 'package:flutter_pcgen/src/core/system_collections.dart';
 import 'package:flutter_pcgen/src/core/weapon_prof.dart';
+import 'package:flutter_pcgen/src/core/armor_prof.dart';
 import 'package:flutter_pcgen/src/facade/core/ui_delegate.dart';
 import 'package:flutter_pcgen/src/rules/context/load_context.dart' hide Campaign, CampaignSourceEntry;
 import 'package:flutter_pcgen/src/system/p_c_gen_task.dart';
@@ -170,6 +171,21 @@ class SourceFileLoader extends PCGenTask {
     _dataset = DataSet()
       ..gameModeStr = _selectedGame.getName()
       ..campaigns.addAll(_selectedCampaigns);
+
+    // Extract registered objects from the reference context into the DataSet.
+    final ref = context.getReferenceContext();
+    _dataset!.races   .addAll(ref.getAllConstructed<Race>(Race));
+    _dataset!.classes .addAll(ref.getAllConstructed<PCClass>(PCClass));
+    _dataset!.skills  .addAll(ref.getAllConstructed<Skill>(Skill));
+    _dataset!.deities .addAll(ref.getAllConstructed<Deity>(Deity));
+    _dataset!.domains .addAll(ref.getAllConstructed<Domain>(Domain));
+    _dataset!.languages.addAll(ref.getAllConstructed<Language>(Language));
+    _dataset!.templates.addAll(ref.getAllConstructed<PCTemplate>(PCTemplate));
+    _dataset!.equipment.addAll(ref.getAllConstructed<Equipment>(Equipment));
+
+    print('DataSet populated: ${_dataset!.races.length} races, '
+        '${_dataset!.classes.length} classes, '
+        '${_dataset!.skills.length} skills');
   }
 
   /// Collects all file-type entries from the selected campaigns.

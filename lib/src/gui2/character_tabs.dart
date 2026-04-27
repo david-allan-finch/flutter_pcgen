@@ -18,7 +18,9 @@
 // Translation of pcgen.gui2.CharacterTabs
 
 import 'package:flutter/material.dart';
+import 'package:flutter_pcgen/src/core/data_set.dart';
 import 'package:flutter_pcgen/src/facade/core/character_facade.dart';
+import 'package:flutter_pcgen/src/gui2/app_state.dart';
 import 'package:flutter_pcgen/src/system/character_manager.dart';
 import 'package:flutter_pcgen/src/gui2/tabs/info_tabbed_pane.dart';
 
@@ -139,8 +141,42 @@ class CharacterTabsState extends State<CharacterTabs>
   }
 
   Widget _buildGuidePane() {
-    return const Center(
-      child: Text('Load sources and create or open a character to begin.'),
+    return ValueListenableBuilder<DataSet?>(
+      valueListenable: loadedDataSet,
+      builder: (context, dataset, _) {
+        if (dataset == null) {
+          return const Center(
+            child: Text(
+                'Use File → Load Sources to load a game system, then create a character.'),
+          );
+        }
+        return Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                '${dataset.gameModeStr} loaded  •  '
+                '${dataset.races.length} races  •  '
+                '${dataset.classes.length} classes  •  '
+                '${dataset.skills.length} skills',
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton.icon(
+                icon: const Icon(Icons.person_add),
+                label: const Text('New Character'),
+                onPressed: () {
+                  final character =
+                      CharacterManager.createNewCharacter(null, dataset);
+                  if (character != null) {
+                    widget.frame.setCharacter(character);
+                  }
+                },
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

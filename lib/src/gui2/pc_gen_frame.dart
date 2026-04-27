@@ -31,6 +31,7 @@ import 'package:flutter_pcgen/src/facade/core/source_selection_facade.dart';
 import 'package:flutter_pcgen/src/facade/core/data_set_facade.dart';
 import 'package:flutter_pcgen/src/facade/core/ui_delegate.dart';
 import 'package:flutter_pcgen/src/facade/util/default_reference_facade.dart';
+import 'package:flutter_pcgen/src/gui2/app_state.dart';
 import 'package:flutter_pcgen/src/gui2/sources/source_selection_dialog.dart';
 import 'package:flutter_pcgen/src/persistence/source_file_loader.dart';
 import 'package:flutter_pcgen/src/system/character_manager.dart';
@@ -233,7 +234,10 @@ class PCGenFrameState extends State<PCGenFrame> {
     final delegate = _FrameUIDelegate(context);
     final loader = SourceFileLoader(delegate, campaigns, gameModeName);
     await loader.run();
-    // DataSetFacade wiring deferred until DataSet implements DataSetFacade.
+    final dataset = loader.getDataSetFacade();
+    if (dataset != null) {
+      loadedDataSet.value = dataset;
+    }
   }
 
   bool loadSourceSelection(SourceSelectionFacade sources) {

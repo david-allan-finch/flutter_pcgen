@@ -23,6 +23,7 @@ import 'package:flutter_pcgen/src/facade/core/data_set_facade.dart';
 import 'package:flutter_pcgen/src/facade/core/source_selection_facade.dart';
 import 'package:flutter_pcgen/src/facade/core/ui_delegate.dart';
 import 'package:flutter_pcgen/src/facade/util/default_list_facade.dart';
+import 'package:flutter_pcgen/src/gui2/facade/character_facade_impl.dart';
 
 /// Manages currently-open characters in PCGen.
 ///
@@ -58,16 +59,19 @@ final class CharacterManager {
   // Create / open
   // ---------------------------------------------------------------------------
 
-  /// Creates a new blank character for the given [dataset], returning its
-  /// facade.
-  ///
-  /// The new character is automatically added to [getCharacters()].
-  /// Returns null if creation fails.
+  /// Creates a new blank character, adds it to the open character list and
+  /// returns its facade. [dataset] may be null or any type — it is stored for
+  /// future use but not required to construct the character model.
   static CharacterFacade? createNewCharacter(
-      UIDelegate? delegate, DataSetFacade dataset) {
-    // TODO: construct a CharacterFacadeImpl, add to _characters, fire
-    //       PlayerCharacterWasLoadedMessage via the plugin message bus.
-    return null;
+      UIDelegate? delegate, dynamic dataset) {
+    final facade = CharacterFacadeImpl({
+      'name': 'New Character',
+      'tabName': '',
+      'fileName': null,
+      'modified': false,
+    });
+    _characters.addElement(facade);
+    return facade;
   }
 
   /// Opens the character saved at [filePath] using [dataset].

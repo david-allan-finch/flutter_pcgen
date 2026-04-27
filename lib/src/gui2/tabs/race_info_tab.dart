@@ -1,25 +1,11 @@
-// *
-// RaceInfoTab.java Copyright James Dempsey, 2010
-//
-// This library is free software; you can redistribute it and/or modify it under
-// the terms of the GNU Lesser General Public License as published by the Free
-// Software Foundation; either version 2.1 of the License, or (at your option)
-// any later version.
-//
-// This library is distributed in the hope that it will be useful, but WITHOUT
-// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-// FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
-// details.
-//
-// You should have received a copy of the GNU Lesser General Public License
-// along with this library; if not, write to the Free Software Foundation, Inc.,
-// 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-//
 // Translation of pcgen.gui2.tabs.RaceInfoTab
 
 import 'package:flutter/material.dart';
+import 'package:flutter_pcgen/src/core/data_set.dart';
+import 'package:flutter_pcgen/src/core/race.dart';
+import 'package:flutter_pcgen/src/gui2/app_state.dart';
 
-/// Tab panel for selecting and viewing race information.
+/// Tab for browsing and selecting a character's race.
 class RaceInfoTab extends StatefulWidget {
   const RaceInfoTab({super.key});
 
@@ -29,47 +15,113 @@ class RaceInfoTab extends StatefulWidget {
 
 class RaceInfoTabState extends State<RaceInfoTab> {
   dynamic _character;
+  Race? _selected;
+  final TextEditingController _search = TextEditingController();
 
   void setCharacter(dynamic character) => setState(() => _character = character);
 
   @override
+  void dispose() {
+    _search.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Row(
+    return ValueListenableBuilder<DataSet?>(
+      valueListenable: loadedDataSet,
+      builder: (context, dataset, _) {
+        final races = dataset?.races ?? const [];
+        return Row(
+          children: [
+            Expanded(child: _buildList(races)),
+            const VerticalDivider(width: 1),
+            Expanded(child: _buildDetail()),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildList(List<Race> races) {
+    final query = _search.text.trim().toLowerCase();
+    final filtered = query.isEmpty
+        ? races
+        : races.where((r) => r.getDisplayName().toLowerCase().contains(query)).toList();
+
+    return Column(
       children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Padding(
-                padding: EdgeInsets.all(8),
-                child: Text('Available Races',
-                    style: TextStyle(fontWeight: FontWeight.bold)),
-              ),
-              Expanded(
-                child: ListView(children: const [
-                  ListTile(title: Text('Human')),
-                  ListTile(title: Text('Elf')),
-                  ListTile(title: Text('Dwarf')),
-                  ListTile(title: Text('Halfling')),
-                ]),
-              ),
-            ],
+        Padding(
+          padding: const EdgeInsets.all(8),
+          child: TextField(
+            controller: _search,
+            decoration: const InputDecoration(
+              prefixIcon: Icon(Icons.search),
+              hintText: 'Filter races…',
+              border: OutlineInputBorder(),
+              isDense: true,
+            ),
+            onChanged: (_) => setState(() {}),
           ),
         ),
-        const VerticalDivider(),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Padding(
-                padding: EdgeInsets.all(8),
-                child: Text('Race Info', style: TextStyle(fontWeight: FontWeight.bold)),
-              ),
-              const Expanded(child: Center(child: Text('Select a race to see info'))),
-            ],
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: Text('${filtered.length} races',
+                style: Theme.of(context).textTheme.bodySmall),
           ),
+        ),
+        Expanded(
+          child: races.isEmpty
+              ? const Center(child: Text('No races loaded.'))
+              : ListView.builder(
+                  itemCount: filtered.length,
+                  itemBuilder: (context, i) {
+                    final race = filtered[i];
+                    final selected = _selected == race;
+                    return ListTile(
+                      dense: true,
+                      selected: selected,
+                      title: Text(race.getDisplayName()),
+                      onTap: () => setState(() => _selected = race),
+                    );
+                  },
+                ),
         ),
       ],
     );
   }
+
+  Widget _buildDetail() {
+    final race = _selected;
+    if (race == null) {
+      return const Center(child: Text('Select a race to see details.'));
+    }
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(race.getDisplayName(),
+              style: Theme.of(context).textTheme.titleMedium),
+          const SizedBox(height: 8),
+          _row('Key', race.getKeyName()),
+          if (race.getSourceURI() != null)
+            _row('Source', Uri.parse(race.getSourceURI()!).pathSegments.last),
+        ],
+      ),
+    );
+  }
+
+  Widget _row(String label, String value) => Padding(
+        padding: const EdgeInsets.symmetric(vertical: 3),
+        child: Row(children: [
+          SizedBox(
+              width: 80,
+              child: Text('$label:',
+                  style: const TextStyle(fontWeight: FontWeight.bold))),
+          Expanded(child: Text(value)),
+        ]),
+      );
 }
