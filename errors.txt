@@ -17,11 +17,7 @@ Got dependencies!
 Try `flutter pub outdated` for more information.
 Launching lib\main.dart on Windows in debug mode...
 Building Windows application...                                 
-lib/src/core/character/companion_mod.dart(6,1): error GC7CDB3DC: 'ClassIdentity' is imported from both 'package:flutter_pcgen/src/cdom/base/category.dart' and 'package:flutter_pcgen/src/cdom/base/class_identity.dart'. [P:\projects\magic\flutter_pcgen\build\windows\x64\flutter\flutter_assemble.vcxproj]
-lib/src/core/character/companion_mod.dart(19,17): error G4E383369: A constructor invocation can't have type arguments after the constructor name. [P:\projects\magic\flutter_pcgen\build\windows\x64\flutter\flutter_assemble.vcxproj]
-lib/src/core/character/companion_mod.dart(19,17): error G75B77105: Member not found: 'MapKey.getConstant'. [P:\projects\magic\flutter_pcgen\build\windows\x64\flutter\flutter_assemble.vcxproj]
-lib/src/core/character/companion_mod.dart(21,17): error G4E383369: A constructor invocation can't have type arguments after the constructor name. [P:\projects\magic\flutter_pcgen\build\windows\x64\flutter\flutter_assemble.vcxproj]
-lib/src/core/character/companion_mod.dart(21,17): error G75B77105: Member not found: 'MapKey.getConstant'. [P:\projects\magic\flutter_pcgen\build\windows\x64\flutter\flutter_assemble.vcxproj]
+lib/src/core/character/companion_mod.dart(52,11): error G0A556F40: The return type of the method 'CompanionMod.getClassIdentity' is 'dynamic', which does not match the return type, 'ClassIdentity<Loadable>?', of the overridden method, 'Categorized.getClassIdentity'. [P:\projects\magic\flutter_pcgen\build\windows\x64\flutter\flutter_assemble.vcxproj]
 C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Microsoft\VC\v170\Microsoft.CppCommon.targets(254,5): error MSB8066: Custom build for 'P:\projects\magic\flutter_pcgen\build\windows\x64\CMakeFiles\56c9ba5ae44bc528e4eee4fedb9d3661\flutter_windows.dll.rule;P:\projects\magic\flutter_pcgen\build\windows\x64\CMakeFiles\5a7a5db025f7e204488bc286eb5863e0\flutter_assemble.rule' exited with code 1. [P:\projects\magic\flutter_pcgen\build\windows\x64\flutter\flutter_assemble.vcxproj]
-Building Windows application...                                     7.2s
+Building Windows application...                                     7.4s
 Error: Build process failed.
