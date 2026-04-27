@@ -49,5 +49,6 @@ class CompanionMod extends PObject implements Categorized<CompanionMod> {
   }
 
   @override
-  dynamic getClassIdentity() => _category;
+  ClassIdentity<Loadable>? getClassIdentity() =>
+      _category as ClassIdentity<Loadable>?;
 }
