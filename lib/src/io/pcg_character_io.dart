@@ -1,182 +1,271 @@
 // PCGen PCG v2 character file format — read and write.
 //
-// The PCG v2 format is a line-based text file where each line is:
-//   KEY:value
-// or
-//   KEY:subkey|SUBKEY2:value2
-//
-// This implementation reads and writes CharacterFacadeImpl directly,
-// so characters can be exchanged with the original Java PCGen application.
+// Reference format from real PCGen files:
+//   PCGVERSION:2.0
+//   CAMPAIGN:Book1|CAMPAIGN:Book2
+//   VERSION:6.09.07          ← PCGen app version (ignored on read)
+//   STAT:STR|SCORE:16
+//   ALIGN:LG
+//   RACE:Human
+//   CLASS:Fighter|SUBCLASS:None|LEVEL:5|...
+//   CLASSABILITIESLEVEL:Fighter=1|HITPOINTS:10|SKILLSGAINED:2|...
+//   SKILL:Climb|OUTPUTORDER:0|CLASSBOUGHT:[CLASS:Fighter|RANKS:5.0|COST:1|CLASSSKILL:Y]
+//   ABILITY:FEAT|TYPE:NORMAL|CATEGORY:FEAT|KEY:Power Attack|TYPE:Combat|DESC:...
+//   TEMPLATESAPPLIED:[NAME:Human]
+//   EQUIPNAME:Longsword|OUTPUTORDER:0|COST:15.0|WT:4.0|QUANTITY:1.0
+//   MONEY:0
+//   CHARACTERBIO:text
+//   CHARACTERDESC:text
+//   SPELLBOOK:Class|TYPE:4
+//   SPELLNAME:Fireball|TIMES:1|CLASS:Wizard|BOOK:Class|SPELLLEVEL:3|SOURCE:[TYPE:CLASS|NAME:Wizard]
+//   NOTE:name|ID:1|PARENTID:-1|VALUE:text
 
 import 'package:flutter_pcgen/src/gui2/facade/character_facade_impl.dart';
 
 class PCGCharacterIO {
-  static const String _pcgVersion = '8.00.00';
+  static const String _pcgVersion = '2.0';
+  static const String _appVersion = '8.00.00'; // reported app version
 
   // ---------------------------------------------------------------------------
-  // Write (serialize CharacterFacadeImpl → PCG v2 text)
+  // Write
   // ---------------------------------------------------------------------------
 
   static String write(CharacterFacadeImpl character) {
     final buf = StringBuffer();
     final data = character.toJson();
 
-    _ln(buf, 'VERSION:$_pcgVersion');
+    buf.writeln('PCGVERSION:$_pcgVersion');
+    buf.writeln();
 
-    // Identity
-    final name = character.getName();
-    _ln(buf, 'CHARACTERNAME:${_esc(name)}');
-    final playerName = character.getPlayersName();
-    if (playerName.isNotEmpty) _ln(buf, 'PLAYERNAME:${_esc(playerName)}');
+    // System info
+    buf.writeln('# System Information');
+    buf.writeln('VERSION:$_appVersion');
+    buf.writeln('ROLLMETHOD:1|EXPRESSION:10');
+    buf.writeln('PURCHASEPOINTS:N');
+    buf.writeln('CHARACTERTYPE:PC');
+    buf.writeln('POOLPOINTS:0');
+    buf.writeln('POOLPOINTSAVAIL:0');
+    buf.writeln('GAMEMODE:35e');
+    buf.writeln('TABLABEL:0');
+    buf.writeln('AUTOSPELLS:Y');
+    buf.writeln('USEHIGHERKNOWN:N');
+    buf.writeln('USEHIGHERPREPPED:N');
+    buf.writeln('LOADCOMPANIONS:N');
+    buf.writeln('USETEMPMODS:Y');
+    buf.writeln('AUTOSORTGEAR:Y');
+    buf.writeln('SKILLSOUTPUTORDER:0');
+    buf.writeln('IGNORECOST:N');
+    buf.writeln('ALLOWDEBT:N');
+    buf.writeln('AUTORESIZEGEAR:N');
+    buf.writeln();
 
-    // Ability scores
+    // Character bio
+    buf.writeln('# Character Bio');
+    buf.writeln('CHARACTERNAME:${_esc(character.getName())}');
+    buf.writeln('TABNAME:');
+    buf.writeln('PLAYERNAME:${_esc(character.getPlayersName())}');
+    buf.writeln('HEIGHT:0');
+    buf.writeln('WEIGHT:0');
+    buf.writeln('AGE:${data['age'] ?? 0}');
+    buf.writeln('GENDER:${data['gender'] ?? ''}');
+    buf.writeln('HANDED:Right');
+    buf.writeln('SKINCOLOR:');
+    buf.writeln('EYECOLOR:');
+    buf.writeln('HAIRCOLOR:');
+    buf.writeln('HAIRSTYLE:');
+    buf.writeln('LOCATION:');
+    buf.writeln('CITY:');
+    buf.writeln('BIRTHDAY:');
+    buf.writeln('BIRTHPLACE:');
+    buf.writeln('PERSONALITYTRAIT1:');
+    buf.writeln('PERSONALITYTRAIT2:');
+    buf.writeln('PORTRAIT:');
+    buf.writeln();
+
+    // Attributes
+    buf.writeln('# Character Attributes');
     final scores = data['statScores'] as Map? ?? {};
     for (final entry in scores.entries) {
-      _ln(buf, 'STAT:${entry.key}|SCORE:${entry.value}');
+      buf.writeln('STAT:${entry.key}|SCORE:${entry.value}');
     }
-
-    // Race, alignment, deity
-    final raceKey = data['raceKey'] as String? ?? '';
-    if (raceKey.isNotEmpty) _ln(buf, 'RACE:$raceKey');
     final alignKey = data['alignmentKey'] as String? ?? '';
-    if (alignKey.isNotEmpty) _ln(buf, 'ALIGNMENT:$alignKey');
-    final deityKey = data['deityKey'] as String? ?? '';
-    _ln(buf, 'DEITY:${deityKey.isEmpty ? "None" : deityKey}');
+    if (alignKey.isNotEmpty) buf.writeln('ALIGN:$alignKey');
+    final raceKey = data['raceKey'] as String? ?? '';
+    if (raceKey.isNotEmpty) buf.writeln('RACE:$raceKey');
+    buf.writeln();
 
-    // Class levels — emit one CLASS summary line then per-level CLASSLEVEL
+    // Classes
     final classLevels = data['classLevels'] as List? ?? [];
-    final classCounts = <String, int>{};
-    for (final l in classLevels) {
-      if (l is Map) {
-        final k = l['classKey'] as String? ?? '';
-        classCounts[k] = (classCounts[k] ?? 0) + 1;
-      }
-    }
-    for (final entry in classCounts.entries) {
-      _ln(buf, 'CLASS:${entry.key}|LEVEL:${entry.value}|SUBCLASS:none');
-    }
-    int lvlNum = 1;
-    for (final l in classLevels) {
-      if (l is Map) {
-        final clsKey  = l['classKey'] as String? ?? '';
-        final hp      = l['hp']       as int? ?? 0;
-        _ln(buf, 'CLASSLEVEL:$clsKey|$lvlNum|HP:$hp');
-        lvlNum++;
-      }
-    }
-
-    // Skills with ranks > 0
-    final skillRanks = data['skillRanks'] as Map? ?? {};
-    int skillOrder = 0;
-    for (final entry in skillRanks.entries) {
-      final rank = (entry.value as num?)?.toDouble() ?? 0.0;
-      if (rank > 0) {
-        _ln(buf, 'SKILL:${entry.key}|OUTPUTORDER:${skillOrder++}|RANK:$rank|SKILLPOOL:0');
-      }
-    }
-
-    // Feats / abilities
-    final selectedAbilities = data['selectedAbilities'] as Map? ?? {};
-    for (final catEntry in selectedAbilities.entries) {
-      final category = catEntry.key as String;
-      final keys = catEntry.value;
-      if (keys is List) {
-        for (final abilityKey in keys) {
-          _ln(buf,
-              'ABILITY:$category|APPLIED:NORMAL|CATEGORY:$category|ABILITY:$abilityKey');
+    if (classLevels.isNotEmpty) {
+      buf.writeln('# Character Class(es)');
+      final counts = <String, int>{};
+      final classNames = <String, String>{};
+      for (final l in classLevels) {
+        if (l is Map) {
+          final k = l['classKey'] as String? ?? '';
+          classNames[k] = l['className'] as String? ?? k;
+          counts[k] = (counts[k] ?? 0) + 1;
         }
       }
+      for (final entry in counts.entries) {
+        buf.writeln('CLASS:${entry.key}|SUBCLASS:None|LEVEL:${entry.value}'
+            '|SKILLPOOL:0|SPELLBASE:STR|CANCASTPERDAY:');
+      }
+      // Per-level lines
+      final levelNums = <String, int>{};
+      for (final l in classLevels) {
+        if (l is Map) {
+          final k = l['classKey'] as String? ?? '';
+          levelNums[k] = (levelNums[k] ?? 0) + 1;
+          final n = levelNums[k]!;
+          final hp = (l['hp'] as num?)?.toInt() ?? 0;
+          buf.writeln('CLASSABILITIESLEVEL:$k=$n|HITPOINTS:$hp'
+              '|SKILLSGAINED:0|SKILLSREMAINING:0');
+        }
+      }
+      buf.writeln();
     }
+
+    // Experience
+    final xp = data['xp'] as int? ?? 0;
+    buf.writeln('# Character Experience');
+    buf.writeln('EXPERIENCE:$xp');
+    buf.writeln();
 
     // Templates
     final templates = data['appliedTemplates'] as List? ?? [];
-    for (final t in templates) {
-      _ln(buf, 'TEMPLATE:$t');
+    buf.writeln('# Character Templates');
+    if (templates.isNotEmpty) {
+      buf.writeln('TEMPLATESAPPLIED:${templates.map((t) => '[NAME:$t]').join('')}');
+    }
+    buf.writeln();
+
+    // Skills
+    final skillRanks = data['skillRanks'] as Map? ?? {};
+    if (skillRanks.isNotEmpty) {
+      buf.writeln('# Character Skills');
+      int order = 1;
+      for (final entry in skillRanks.entries) {
+        final rank = (entry.value as num?)?.toDouble() ?? 0.0;
+        if (rank > 0) {
+          // Determine which class this skill belongs to (first class by default)
+          final firstClass = classLevels.isNotEmpty && classLevels[0] is Map
+              ? classLevels[0]['classKey'] as String? ?? ''
+              : '';
+          final classBought = firstClass.isNotEmpty
+              ? '|CLASSBOUGHT:[CLASS:$firstClass|RANKS:$rank|COST:1|CLASSSKILL:Y]'
+              : '';
+          buf.writeln(
+              'SKILL:${entry.key}|OUTPUTORDER:${order++}$classBought');
+        } else {
+          buf.writeln('SKILL:${entry.key}|OUTPUTORDER:${order++}|');
+        }
+      }
+      buf.writeln();
     }
 
     // Languages
     final languages = data['languageKeys'] as List? ?? [];
-    for (final lang in languages) {
-      _ln(buf, 'LANGUAGE:$lang');
+    if (languages.isNotEmpty) {
+      buf.writeln('# Character Languages');
+      buf.writeln('LANGUAGE:${languages.join('|LANGUAGE:')}');
+      buf.writeln();
     }
 
-    // Equipment / gear
-    final gear = data['gear'] as List? ?? [];
-    int eqOrder = 0;
-    for (final item in gear) {
-      if (item is Map) {
-        final itemName = item['name'] as String? ?? '';
-        final qty      = (item['qty'] as num?)?.toInt() ?? 1;
-        final cost     = (item['cost'] as num?)?.toDouble() ?? 0.0;
-        _ln(buf,
-            'EQUIPNAME:$itemName|OUTPUTORDER:${eqOrder++}|QTY:$qty|COST:$cost|EQUIPPED:N|LOC:Carried');
+    // Abilities (feats + special abilities)
+    final selectedAbilities = data['selectedAbilities'] as Map? ?? {};
+    if (selectedAbilities.isNotEmpty) {
+      buf.writeln('# Character Abilities');
+      for (final catEntry in selectedAbilities.entries) {
+        final category = catEntry.key as String;
+        final keys = catEntry.value;
+        if (keys is List) {
+          for (final key in keys) {
+            buf.writeln(
+                'ABILITY:$category|TYPE:NORMAL|CATEGORY:$category|KEY:$key|TYPE:|DESC:');
+          }
+        }
       }
+      buf.writeln();
     }
 
-    // Biography fields
-    final gender = data['gender'] as String? ?? '';
-    if (gender.isNotEmpty) _ln(buf, 'GENDER:$gender');
-    final age = data['age'] as int? ?? 0;
-    if (age > 0) _ln(buf, 'AGE:$age');
-
-    final bio = data['biography'] as String? ?? '';
-    if (bio.isNotEmpty) _ln(buf, 'BIOGRAPHY:${_esc(bio)}');
-    final appearance = data['appearance'] as String? ?? '';
-    if (appearance.isNotEmpty) _ln(buf, 'APPEARANCE:${_esc(appearance)}');
-
-    // Notes block
-    final notes = data['notes'] as String? ?? '';
-    if (notes.isNotEmpty) {
-      buf.writeln('NOTES:BEGIN');
-      buf.writeln(notes);
-      buf.writeln('NOTES:END');
-    }
-
-    // Spells
-    final knownSpells = data['knownSpells'] as List? ?? [];
-    for (final spell in knownSpells) {
-      if (spell is Map) {
-        final spellName = spell['name'] as String? ?? '';
-        final level = spell['level'] as int? ?? 0;
-        if (spellName.isNotEmpty) {
-          _ln(buf, 'SPELLNAME:$spellName|TIMES:1|TYPE:KNOWN|SPELL LEVEL:$level|SOURCE:Innate');
+    // Equipment
+    final gear = data['gear'] as List? ?? [];
+    final funds = (data['funds'] as num?)?.toDouble() ?? 0.0;
+    buf.writeln('# Character Equipment');
+    buf.writeln('MONEY:${funds.toStringAsFixed(0)}');
+    if (gear.isNotEmpty) {
+      int eqOrder = 1;
+      for (final item in gear) {
+        if (item is Map) {
+          final name = item['name'] as String? ?? '';
+          final qty  = (item['qty']  as num?)?.toInt() ?? 1;
+          final cost = (item['cost'] as num?)?.toDouble() ?? 0.0;
+          buf.writeln(
+              'EQUIPNAME:$name|OUTPUTORDER:${eqOrder++}|COST:$cost|WT:0.0'
+              '|QUANTITY:$qty.0');
         }
       }
     }
+    buf.writeln();
 
-    // Numeric fields
-    final xp = data['xp'] as int? ?? 0;
-    if (xp > 0) _ln(buf, 'EXPERIENCE:$xp');
-    final hp = data['hp'] as int? ?? 0;
-    if (hp > 0) _ln(buf, 'HP:$hp');
-    final funds = data['funds'] as double? ?? 0.0;
-    if (funds > 0) _ln(buf, 'GOLD:$funds');
+    // Deity
+    final deityKey = data['deityKey'] as String? ?? '';
+    buf.writeln('# Character Deity/Domain');
+    if (deityKey.isNotEmpty) buf.writeln('DEITY:$deityKey');
+    buf.writeln();
+
+    // Spells
+    final knownSpells = data['knownSpells'] as List? ?? [];
+    if (knownSpells.isNotEmpty) {
+      buf.writeln('# Character Spells Information');
+      // Determine spellcasting class
+      final spellClass = classLevels.isNotEmpty && classLevels[0] is Map
+          ? classLevels[0]['classKey'] as String? ?? 'Unknown'
+          : 'Unknown';
+      buf.writeln('SPELLBOOK:Class|TYPE:4');
+      for (final spell in knownSpells) {
+        if (spell is Map) {
+          final sName  = spell['name']  as String? ?? '';
+          final sLevel = spell['level'] as int?    ?? 0;
+          buf.writeln('SPELLNAME:$sName|TIMES:1|CLASS:$spellClass|BOOK:Class'
+              '|SPELLLEVEL:$sLevel|SOURCE:[TYPE:CLASS|NAME:$spellClass]');
+        }
+      }
+      buf.writeln();
+    }
+
+    // Character descriptions
+    buf.writeln('# Character Description/Bio/History');
+    buf.writeln('CHARACTERBIO:${_esc(data['biography'] as String? ?? '')}');
+    buf.writeln('CHARACTERDESC:${_esc(data['appearance'] as String? ?? '')}');
+    buf.writeln('CHARACTERCOMP:');
+    buf.writeln('CHARACTERASSET:');
+    buf.writeln('CHARACTERMAGIC:');
+    buf.writeln('CHARACTERDMNOTES:');
+    buf.writeln();
+
+    // Notes
+    final notes = data['notes'] as String? ?? '';
+    buf.writeln('# Character Notes Tab');
+    buf.writeln('NOTE:Character Sheet Notes|ID:1|PARENTID:-1'
+        '|VALUE:${_esc(notes)}');
+    buf.writeln();
 
     return buf.toString();
   }
 
   // ---------------------------------------------------------------------------
-  // Read (parse PCG v2 text → CharacterFacadeImpl)
+  // Read
   // ---------------------------------------------------------------------------
 
   static CharacterFacadeImpl read(String content, {dynamic dataset}) {
     final data = <String, dynamic>{
-      'name': '',
-      'tabName': '',
-      'fileName': null,
-      'modified': false,
-      'playerName': '',
-      'gender': '',
-      'age': 0,
-      'xp': 0,
-      'hp': 0,
-      'funds': 0.0,
-      'biography': '',
-      'appearance': '',
-      'notes': '',
-      'raceKey': '',
-      'alignmentKey': '',
-      'deityKey': '',
+      'name': '', 'tabName': '', 'fileName': null, 'modified': false,
+      'playerName': '', 'gender': '', 'age': 0,
+      'xp': 0, 'hp': 0, 'funds': 0.0,
+      'biography': '', 'appearance': '', 'notes': '',
+      'raceKey': '', 'alignmentKey': '', 'deityKey': '',
       'statScores': <String, dynamic>{},
       'classLevels': <dynamic>[],
       'skillRanks': <String, dynamic>{},
@@ -191,24 +280,13 @@ class PCGCharacterIO {
       'preparedSpells': <dynamic>[],
     };
 
-    // Temp store for CLASS summary lines; used only if no CLASSLEVEL lines appear.
+    // Temp: class summary from CLASS: lines (fallback if no CLASSABILITIESLEVEL)
     final classSummary = <String, int>{};
+    bool hasClassAbilityLines = false;
 
-    final lines = content.split('\n');
-    bool inNotes = false;
-    final notesBuf = StringBuffer();
-
-    for (final rawLine in lines) {
+    for (final rawLine in content.split('\n')) {
       final line = rawLine.trimRight();
-      if (line.isEmpty) continue;
-
-      if (line == 'NOTES:BEGIN') { inNotes = true; continue; }
-      if (line == 'NOTES:END') {
-        data['notes'] = notesBuf.toString().trimRight();
-        inNotes = false;
-        continue;
-      }
-      if (inNotes) { notesBuf.writeln(line); continue; }
+      if (line.isEmpty || line.startsWith('#')) continue;
 
       final colonIdx = line.indexOf(':');
       if (colonIdx < 0) continue;
@@ -217,21 +295,82 @@ class PCGCharacterIO {
       final value = line.substring(colonIdx + 1);
 
       switch (key) {
+        case 'PCGVERSION':
+        case 'VERSION':
+        case 'ROLLMETHOD':
+        case 'PURCHASEPOINTS':
+        case 'POOLPOINTS':
+        case 'POOLPOINTSAVAIL':
+        case 'GAMEMODE':
+        case 'TABLABEL':
+        case 'AUTOSPELLS':
+        case 'USEHIGHERKNOWN':
+        case 'USEHIGHERPREPPED':
+        case 'LOADCOMPANIONS':
+        case 'USETEMPMODS':
+        case 'AUTOSORTGEAR':
+        case 'SKILLSOUTPUTORDER':
+        case 'IGNORECOST':
+        case 'ALLOWDEBT':
+        case 'AUTORESIZEGEAR':
+        case 'CHARACTERTYPE':
+        case 'PREVIEWSHEET':
+        case 'SKILLFILTER':
+        case 'CALCEQUIPSET':
+        case 'EQUIPSET':
+        case 'WEAPONPROF':
+        case 'USERPOOL':
+        case 'FEATPOOL':
+        case 'AGESET':
+        case 'SKINCOLOR':
+        case 'EYECOLOR':
+        case 'HAIRCOLOR':
+        case 'HAIRSTYLE':
+        case 'LOCATION':
+        case 'CITY':
+        case 'BIRTHDAY':
+        case 'BIRTHPLACE':
+        case 'PERSONALITYTRAIT1':
+        case 'PERSONALITYTRAIT2':
+        case 'SPEECHPATTERN':
+        case 'PHOBIAS':
+        case 'INTERESTS':
+        case 'CATCHPHRASE':
+        case 'PORTRAIT':
+        case 'SPELLBOOK':
+          break; // explicitly ignored
+
         case 'CHARACTERNAME':
         case 'NAME':
           data['name'] = _unesc(value);
           break;
+        case 'TABNAME':
+          if (value.isNotEmpty) data['tabName'] = value;
+          break;
         case 'PLAYERNAME':
           data['playerName'] = _unesc(value);
+          break;
+        case 'AGE':
+          data['age'] = int.tryParse(value.trim()) ?? 0;
+          break;
+        case 'GENDER':
+          data['gender'] = value.trim();
+          break;
+        case 'HANDED':
+          break;
+        case 'HEIGHT':
+          break;
+        case 'WEIGHT':
           break;
         case 'STAT':
           _readStat(data, value);
           break;
-        case 'RACE':
-          data['raceKey'] = value.trim();
-          break;
+        case 'ALIGN':
         case 'ALIGNMENT':
           data['alignmentKey'] = value.trim();
+          break;
+        case 'RACE':
+          data['raceKey'] = value.trim();
           break;
         case 'DEITY':
           final d = value.trim();
@@ -240,61 +379,66 @@ class PCGCharacterIO {
         case 'CLASS':
           _readClassSummary(classSummary, value);
           break;
-        case 'CLASSLEVEL':
-          _readClassLevel(data, value);
-          break;
-        case 'SKILL':
-          _readSkill(data, value);
-          break;
-        case 'FEAT':
-          _readFeat(data, value);
-          break;
-        case 'ABILITY':
-          _readAbility(data, value);
-          break;
-        case 'TEMPLATE':
-          final t = value.trim();
-          if (t.isNotEmpty) (data['appliedTemplates'] as List).add(t);
-          break;
-        case 'LANGUAGE':
-          final lang = value.trim();
-          if (lang.isNotEmpty &&
-              !(data['languageKeys'] as List).contains(lang)) {
-            (data['languageKeys'] as List).add(lang);
-          }
-          break;
-        case 'EQUIPNAME':
-          _readEquip(data, value);
-          break;
-        case 'SPELLNAME':
-          _readSpell(data, value);
-          break;
-        case 'GENDER':
-          data['gender'] = value.trim();
-          break;
-        case 'AGE':
-          data['age'] = int.tryParse(value.trim()) ?? 0;
-          break;
-        case 'BIOGRAPHY':
-          data['biography'] = _unesc(value);
-          break;
-        case 'APPEARANCE':
-          data['appearance'] = _unesc(value);
+        case 'CLASSABILITIESLEVEL':
+          hasClassAbilityLines = true;
+          _readClassAbilitiesLevel(data, value);
           break;
         case 'EXPERIENCE':
           data['xp'] = int.tryParse(value.trim()) ?? 0;
           break;
-        case 'HP':
-          data['hp'] = int.tryParse(value.trim()) ?? 0;
+        case 'TEMPLATESAPPLIED':
+          _readTemplates(data, value);
+          break;
+        case 'SKILL':
+          _readSkill(data, value);
+          break;
+        case 'CAMPAIGN':
+          break; // skip campaign lines
+        case 'LANGUAGE':
+          _readLanguages(data, value);
+          break;
+        case 'ABILITY':
+          _readAbility(data, value);
+          break;
+        case 'FEAT':
+          _readFeat(data, value);
+          break;
+        case 'EQUIPNAME':
+          _readEquip(data, value);
+          break;
+        case 'MONEY':
+          data['funds'] = double.tryParse(value.trim()) ?? 0.0;
           break;
         case 'GOLD':
           data['funds'] = double.tryParse(value.trim()) ?? 0.0;
           break;
+        case 'SPELLNAME':
+          _readSpell(data, value);
+          break;
+        case 'CHARACTERBIO':
+        case 'BIOGRAPHY':
+          data['biography'] = _unesc(value);
+          break;
+        case 'CHARACTERDESC':
+        case 'APPEARANCE':
+          data['appearance'] = _unesc(value);
+          break;
+        case 'CHARACTERCOMP':
+        case 'CHARACTERASSET':
+        case 'CHARACTERMAGIC':
+        case 'CHARACTERDMNOTES':
+          break; // additional bio fields — could map later
+        case 'NOTE':
+          _readNote(data, value);
+          break;
+        case 'HP':
+          data['hp'] = int.tryParse(value.trim()) ?? 0;
+          break;
       }
     }
 
-    // If no CLASSLEVEL lines appeared, synthesize from CLASS summary lines.
-    if ((data['classLevels'] as List).isEmpty && classSummary.isNotEmpty) {
+    // If no CLASSABILITIESLEVEL lines, synthesize from CLASS summary
+    if (!hasClassAbilityLines && classSummary.isNotEmpty) {
       for (final entry in classSummary.entries) {
         for (int i = 0; i < entry.value; i++) {
           (data['classLevels'] as List).add({
@@ -306,7 +450,6 @@ class PCGCharacterIO {
       }
     }
 
-    // Default tabName to character name.
     if ((data['tabName'] as String).isEmpty) {
       data['tabName'] = data['name'];
     }
@@ -321,7 +464,7 @@ class PCGCharacterIO {
   // ---------------------------------------------------------------------------
 
   static void _readStat(Map<String, dynamic> data, String value) {
-    // STAT:STR|SCORE:16  or  STR:16 (old format)
+    // STAT:STR|SCORE:16
     final parts = value.split('|');
     final statName = parts[0].trim().toUpperCase();
     int score = 10;
@@ -336,6 +479,7 @@ class PCGCharacterIO {
   }
 
   static void _readClassSummary(Map<String, int> store, String value) {
+    // CLASS:Fighter|SUBCLASS:None|LEVEL:5|...
     final parts = value.split('|');
     if (parts.isEmpty) return;
     final className = parts[0].trim();
@@ -349,42 +493,107 @@ class PCGCharacterIO {
     store[className] = level;
   }
 
-  static void _readClassLevel(Map<String, dynamic> data, String value) {
-    // CLASSLEVEL:Fighter|1|HP:10
+  static void _readClassAbilitiesLevel(
+      Map<String, dynamic> data, String value) {
+    // CLASSABILITIESLEVEL:Fighter=1|HITPOINTS:10|SKILLSGAINED:2|...
     final parts = value.split('|');
     if (parts.isEmpty) return;
-    final className = parts[0].trim();
+
+    // First token is ClassName=levelNum
+    final eqIdx = parts[0].indexOf('=');
+    final className = eqIdx > 0
+        ? parts[0].substring(0, eqIdx).trim()
+        : parts[0].trim();
+
     int hp = 0;
     for (final p in parts.skip(1)) {
-      if (p.toUpperCase().startsWith('HP:')) {
-        hp = int.tryParse(p.substring(3).trim()) ?? 0;
+      final up = p.toUpperCase();
+      if (up.startsWith('HITPOINTS:')) {
+        hp = int.tryParse(p.substring(10).trim()) ?? 0;
         break;
       }
     }
     (data['classLevels'] as List).add({
-      'classKey': className,
+      'classKey':  className,
       'className': className,
       'hp': hp,
     });
   }
 
+  static void _readTemplates(Map<String, dynamic> data, String value) {
+    // TEMPLATESAPPLIED:[NAME:Human][NAME:Vampire]
+    final regex = RegExp(r'\[NAME:([^\]]+)\]');
+    for (final m in regex.allMatches(value)) {
+      final name = m.group(1)?.trim() ?? '';
+      if (name.isNotEmpty) (data['appliedTemplates'] as List).add(name);
+    }
+  }
+
   static void _readSkill(Map<String, dynamic> data, String value) {
-    // SKILL:Climb|OUTPUTORDER:0|RANK:5
-    final parts = value.split('|');
-    if (parts.isEmpty) return;
-    final skillName = parts[0].trim();
+    // SKILL:Diplomacy|OUTPUTORDER:6|CLASSBOUGHT:[CLASS:Paladin|RANKS:5.0|...]
+    // Skills with no CLASSBOUGHT have 0 ranks.
+    final nameEnd = value.indexOf('|');
+    final skillName = nameEnd > 0 ? value.substring(0, nameEnd).trim() : value.trim();
+
+    // Extract RANKS from CLASSBOUGHT block
     double rank = 0;
-    for (final p in parts.skip(1)) {
-      if (p.toUpperCase().startsWith('RANK:')) {
-        rank = double.tryParse(p.substring(5).trim()) ?? 0;
-        break;
+    final cbMatch = RegExp(r'CLASSBOUGHT:\[([^\]]+)\]').firstMatch(value);
+    if (cbMatch != null) {
+      for (final part in cbMatch.group(1)!.split('|')) {
+        if (part.toUpperCase().startsWith('RANKS:')) {
+          rank = double.tryParse(part.substring(6).trim()) ?? 0;
+          break;
+        }
       }
     }
+    // Also handle simple RANK: outside CLASSBOUGHT
+    if (rank == 0) {
+      final rankMatch = RegExp(r'RANK:([0-9.]+)').firstMatch(value);
+      if (rankMatch != null) rank = double.tryParse(rankMatch.group(1)!) ?? 0;
+    }
+
     if (rank > 0) (data['skillRanks'] as Map)[skillName] = rank;
   }
 
+  static void _readLanguages(Map<String, dynamic> data, String value) {
+    // LANGUAGE:Common  or  LANGUAGE:Common|LANGUAGE:Elvish
+    for (final part in value.split('|LANGUAGE:')) {
+      final lang = part.replaceFirst(RegExp('^LANGUAGE:'), '').trim();
+      if (lang.isNotEmpty && !(data['languageKeys'] as List).contains(lang)) {
+        (data['languageKeys'] as List).add(lang);
+      }
+    }
+    // Also handle plain comma-separated list
+    if (!value.contains('|LANGUAGE:')) {
+      final lang = value.trim();
+      if (lang.isNotEmpty && !(data['languageKeys'] as List).contains(lang)) {
+        (data['languageKeys'] as List).add(lang);
+      }
+    }
+  }
+
+  static void _readAbility(Map<String, dynamic> data, String value) {
+    // ABILITY:FEAT|TYPE:NORMAL|CATEGORY:FEAT|KEY:Power Attack|TYPE:Combat|DESC:...
+    // Also: ABILITY:Special Ability|TYPE:NORMAL|CATEGORY:Special Ability|KEY:name
+    final parts = value.split('|');
+    if (parts.isEmpty) return;
+
+    String category = parts[0].trim();
+    String abilityKey = '';
+    for (final p in parts.skip(1)) {
+      final up = p.toUpperCase();
+      if (up.startsWith('CATEGORY:')) category   = p.substring(9).trim();
+      if (up.startsWith('KEY:'))      abilityKey = p.substring(4).trim();
+    }
+    if (abilityKey.isEmpty) return;
+
+    final abilities = data['selectedAbilities'] as Map;
+    final list = (abilities[category] ??= <String>[]) as List;
+    if (!list.contains(abilityKey)) list.add(abilityKey);
+  }
+
   static void _readFeat(Map<String, dynamic> data, String value) {
-    // FEAT:Power Attack|APPLIED:NORMAL
+    // Legacy FEAT:Power Attack|APPLIED:NORMAL|...
     final parts = value.split('|');
     if (parts.isEmpty) return;
     final featName = parts[0].trim();
@@ -394,53 +603,40 @@ class PCGCharacterIO {
     if (!feats.contains(featName)) feats.add(featName);
   }
 
-  static void _readAbility(Map<String, dynamic> data, String value) {
-    // ABILITY:FEAT|APPLIED:NORMAL|CATEGORY:FEAT|ABILITY:Power Attack
-    final parts = value.split('|');
-    String category = '';
-    String abilityName = '';
-    for (final p in parts) {
-      final up = p.toUpperCase();
-      if (up.startsWith('CATEGORY:')) category    = p.substring(9).trim();
-      if (up.startsWith('ABILITY:'))  abilityName = p.substring(8).trim();
-    }
-    if (category.isEmpty || abilityName.isEmpty) return;
-    final abilities = data['selectedAbilities'] as Map;
-    final list = (abilities[category] ??= <String>[]) as List;
-    if (!list.contains(abilityName)) list.add(abilityName);
-  }
-
   static void _readEquip(Map<String, dynamic> data, String value) {
-    // EQUIPNAME:Longsword|OUTPUTORDER:0|QTY:1.0|COST:15.0|...
-    final parts = value.split('|');
-    if (parts.isEmpty) return;
-    final itemName = parts[0].trim();
+    // EQUIPNAME:Longsword +1|OUTPUTORDER:2|COST:5015.0|WT:4.0|QUANTITY:1.0|...
+    final nameEnd = value.indexOf('|');
+    final itemName = nameEnd > 0 ? value.substring(0, nameEnd).trim() : value.trim();
     double qty  = 1;
     double cost = 0;
-    for (final p in parts.skip(1)) {
+    for (final p in value.split('|').skip(1)) {
       final up = p.toUpperCase();
-      if (up.startsWith('QTY:'))  qty  = double.tryParse(p.substring(4).trim()) ?? 1;
-      if (up.startsWith('COST:')) cost = double.tryParse(p.substring(5).trim()) ?? 0;
+      if (up.startsWith('QUANTITY:') || up.startsWith('QTY:')) {
+        qty = double.tryParse(p.substring(p.indexOf(':') + 1).trim()) ?? 1;
+      }
+      if (up.startsWith('COST:')) {
+        cost = double.tryParse(p.substring(5).trim()) ?? 0;
+      }
     }
     (data['gear'] as List).add({
       'name': itemName,
-      'key': itemName.toLowerCase().replaceAll(' ', '_'),
+      'key': itemName.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '_'),
       'qty': qty.toInt(),
       'cost': cost,
     });
   }
 
   static void _readSpell(Map<String, dynamic> data, String value) {
-    // SPELLNAME:Fireball|TIMES:1|TYPE:KNOWN|SPELL LEVEL:3|SOURCE:Innate
+    // SPELLNAME:Fireball|TIMES:1|CLASS:Wizard|BOOK:Class|SPELLLEVEL:3|SOURCE:[...]
     final parts = value.split('|');
     if (parts.isEmpty) return;
     final spellName = parts[0].trim();
     int level = 0;
     for (final p in parts.skip(1)) {
       final up = p.toUpperCase();
-      if (up.startsWith('SPELL LEVEL:') || up.startsWith('SPELLLEVEL:')) {
-        final idx = p.indexOf(':');
-        if (idx >= 0) level = int.tryParse(p.substring(idx + 1).trim()) ?? 0;
+      if (up.startsWith('SPELLLEVEL:') || up.startsWith('SPELL LEVEL:')) {
+        level = int.tryParse(p.substring(p.indexOf(':') + 1).trim()) ?? 0;
+        break;
       }
     }
     (data['knownSpells'] as List).add({
@@ -450,23 +646,28 @@ class PCGCharacterIO {
     });
   }
 
+  static void _readNote(Map<String, dynamic> data, String value) {
+    // NOTE:name|ID:n|PARENTID:n|VALUE:text
+    final valueMatch = RegExp(r'VALUE:(.*)$').firstMatch(value);
+    if (valueMatch != null) {
+      final text = _unesc(valueMatch.group(1) ?? '');
+      if (text.isNotEmpty) {
+        final existing = data['notes'] as String? ?? '';
+        data['notes'] = existing.isEmpty ? text : '$existing\n$text';
+      }
+    }
+  }
+
   // ---------------------------------------------------------------------------
-  // Write helpers
+  // Helpers
   // ---------------------------------------------------------------------------
 
-  static void _ln(StringBuffer buf, String line) => buf.writeln(line);
-
-  /// Escape newlines so single-line values survive round-trips.
   static String _esc(String s) =>
       s.replaceAll('\r', '').replaceAll('\n', '\\n');
 
   static String _unesc(String s) => s.replaceAll('\\n', '\n');
 
-  // ---------------------------------------------------------------------------
-  // Format detection
-  // ---------------------------------------------------------------------------
-
-  /// Returns true if [content] looks like a PCG v2 file (starts with VERSION:).
+  /// Returns true if content is a PCGen PCG file (starts with PCGVERSION:).
   static bool isPCGFormat(String content) =>
-      content.trimLeft().startsWith('VERSION:');
+      content.trimLeft().startsWith('PCGVERSION:');
 }
