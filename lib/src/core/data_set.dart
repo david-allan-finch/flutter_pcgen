@@ -75,8 +75,31 @@ class DataSet {
     abilities.putIfAbsent(category, () => []).add(ability);
   }
 
+  // Adds an Ability using its own embedded category (from getCDOMCategory()).
+  void addAbilityFlat(Ability ability) {
+    final cat = (ability.getCDOMCategory() as AbilityCategory?) ??
+        AbilityCategory(ability.getCategory().isNotEmpty ? ability.getCategory() : 'General');
+    abilities.putIfAbsent(cat, () => []).add(ability);
+  }
+
   List<Ability> getAbilitiesInCategory(AbilityCategory category) {
     return List.unmodifiable(abilities[category] ?? []);
+  }
+
+  // Returns all abilities across all categories as a flat list.
+  List<Ability> getAllAbilities() =>
+      abilities.values.expand((l) => l).toList();
+
+  // Returns abilities whose category key name matches [catName] (case-insensitive).
+  List<Ability> getAbilitiesByCategoryName(String catName) {
+    final lower = catName.toLowerCase();
+    final result = <Ability>[];
+    for (final entry in abilities.entries) {
+      if (entry.key.getKeyName().toLowerCase() == lower) {
+        result.addAll(entry.value);
+      }
+    }
+    return result;
   }
 
   // Lookup helpers

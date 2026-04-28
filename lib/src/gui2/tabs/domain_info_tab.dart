@@ -1,25 +1,11 @@
-//
-// Copyright 2010 Connor Petty <cpmeister@users.sourceforge.net>
-//
-// This library is free software; you can redistribute it and/or
-// modify it under the terms of the GNU Lesser General Public
-// License as published by the Free Software Foundation; either
-// version 2.1 of the License, or (at your option) any later version.
-//
-// This library is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-// Lesser General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public
-// License along with this library; if not, write to the Free Software
-// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-//
 // Translation of pcgen.gui2.tabs.DomainInfoTab
 
 import 'package:flutter/material.dart';
+import 'package:flutter_pcgen/src/core/data_set.dart';
+import 'package:flutter_pcgen/src/core/deity.dart';
+import 'package:flutter_pcgen/src/core/domain.dart';
+import 'package:flutter_pcgen/src/gui2/app_state.dart';
 
-/// Tab panel for selecting cleric domains.
 class DomainInfoTab extends StatefulWidget {
   const DomainInfoTab({super.key});
 
@@ -29,42 +15,201 @@ class DomainInfoTab extends StatefulWidget {
 
 class DomainInfoTabState extends State<DomainInfoTab> {
   dynamic _character;
+  Deity? _selectedDeity;
+  final TextEditingController _search = TextEditingController();
 
   void setCharacter(dynamic character) => setState(() => _character = character);
 
   @override
+  void dispose() {
+    _search.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Row(
+    return ValueListenableBuilder<DataSet?>(
+      valueListenable: loadedDataSet,
+      builder: (context, dataset, _) {
+        return ValueListenableBuilder(
+          valueListenable: currentCharacter,
+          builder: (context, character, _) {
+            final deities = dataset?.deities ?? const <Deity>[];
+            final domains = dataset?.domains ?? const <Domain>[];
+            return _buildContent(character, deities, domains);
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildContent(dynamic character, List<Deity> deities, List<Domain> domains) {
+    final selectedDomainKeys = character != null ? _getDomainKeys(character) : const <String>[];
+    final query = _search.text.trim().toLowerCase();
+    final filtered = query.isEmpty
+        ? domains
+        : domains.where((d) => d.getDisplayName().toLowerCase().contains(query)).toList();
+
+    // Current deity key
+    String deityKey = '';
+    try { deityKey = (character as dynamic).getDeityKey() as String? ?? ''; } catch (_) {}
+
+    return Column(
       children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Padding(
-                padding: EdgeInsets.all(8),
-                child: Text('Available Domains',
-                    style: TextStyle(fontWeight: FontWeight.bold)),
-              ),
-              Expanded(child: ListView(children: const [])),
-            ],
+        // Deity selector
+        if (deities.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.all(8),
+            child: Row(
+              children: [
+                const Text('Deity:', style: TextStyle(fontWeight: FontWeight.bold)),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: DropdownButton<String>(
+                    isExpanded: true,
+                    value: deityKey.isEmpty ? null : deityKey,
+                    hint: const Text('— Select Deity —'),
+                    items: [
+                      const DropdownMenuItem(value: '', child: Text('(None)')),
+                      ...deities.map((d) => DropdownMenuItem(
+                            value: d.getKeyName(),
+                            child: Text(d.getDisplayName()),
+                          )),
+                    ],
+                    onChanged: character == null
+                        ? null
+                        : (v) {
+                            try { (character as dynamic).setDeityKey(v ?? ''); } catch (_) {}
+                            currentCharacter.notifyListeners();
+                            setState(() {});
+                          },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        const Divider(height: 1),
+        // Domain search
+        Padding(
+          padding: const EdgeInsets.all(8),
+          child: TextField(
+            controller: _search,
+            decoration: const InputDecoration(
+              prefixIcon: Icon(Icons.search),
+              hintText: 'Filter domains…',
+              border: OutlineInputBorder(),
+              isDense: true,
+            ),
+            onChanged: (_) => setState(() {}),
           ),
         ),
-        const VerticalDivider(),
+        // Domain list (left) + selected (right)
         Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          child: Row(
             children: [
-              const Padding(
-                padding: EdgeInsets.all(8),
-                child: Text('Domain Info',
-                    style: TextStyle(fontWeight: FontWeight.bold)),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      child: Text('Available Domains (${filtered.length})',
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                    ),
+                    Expanded(
+                      child: filtered.isEmpty
+                          ? const Center(child: Text('No domains loaded.'))
+                          : ListView.builder(
+                              itemCount: filtered.length,
+                              itemBuilder: (context, i) {
+                                final domain = filtered[i];
+                                final isSelected = selectedDomainKeys.contains(domain.getKeyName());
+                                return ListTile(
+                                  dense: true,
+                                  title: Text(domain.getDisplayName(),
+                                      style: const TextStyle(fontSize: 12)),
+                                  tileColor: isSelected ? Colors.green.withOpacity(0.07) : null,
+                                  trailing: isSelected
+                                      ? const Icon(Icons.check_circle, color: Colors.green, size: 16)
+                                      : null,
+                                  onTap: character == null
+                                      ? null
+                                      : () {
+                                          if (isSelected) {
+                                            _removeDomain(character, domain.getKeyName());
+                                          } else {
+                                            _addDomain(character, domain.getKeyName());
+                                          }
+                                        },
+                                );
+                              },
+                            ),
+                    ),
+                  ],
+                ),
               ),
-              const Expanded(
-                  child: Center(child: Text('Select a domain to see info'))),
+              const VerticalDivider(width: 1),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      child: Text('Selected Domains (${selectedDomainKeys.length})',
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                    ),
+                    Expanded(
+                      child: selectedDomainKeys.isEmpty
+                          ? const Center(
+                              child: Text('No domains selected.',
+                                  style: TextStyle(color: Colors.grey, fontStyle: FontStyle.italic)))
+                          : ListView.builder(
+                              itemCount: selectedDomainKeys.length,
+                              itemBuilder: (context, i) {
+                                final key = selectedDomainKeys[i];
+                                final domain = (dataset?.domains ?? [])
+                                    .where((d) => d.getKeyName() == key)
+                                    .firstOrNull;
+                                return ListTile(
+                                  dense: true,
+                                  title: Text(domain?.getDisplayName() ?? key,
+                                      style: const TextStyle(fontSize: 12)),
+                                  trailing: IconButton(
+                                    icon: const Icon(Icons.remove_circle_outline,
+                                        size: 16, color: Colors.red),
+                                    onPressed: character == null
+                                        ? null
+                                        : () => _removeDomain(character, key),
+                                  ),
+                                );
+                              },
+                            ),
+                    ),
+                  ],
+                ),
+              ),
             ],
           ),
         ),
       ],
     );
+  }
+
+  // Needed to capture dataset in closure without passing it through
+  DataSet? get _dataset => loadedDataSet.value;
+
+  List<String> _getDomainKeys(dynamic character) {
+    try { return (character as dynamic).getSelectedDomainKeys() as List<String>? ?? []; }
+    catch (_) { return []; }
+  }
+
+  void _addDomain(dynamic character, String key) {
+    try { (character as dynamic).addDomainKey(key); currentCharacter.notifyListeners(); setState(() {}); }
+    catch (_) {}
+  }
+
+  void _removeDomain(dynamic character, String key) {
+    try { (character as dynamic).removeDomainKey(key); currentCharacter.notifyListeners(); setState(() {}); }
+    catch (_) {}
   }
 }

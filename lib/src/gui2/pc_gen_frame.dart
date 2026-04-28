@@ -33,6 +33,8 @@ import 'package:flutter_pcgen/src/facade/core/ui_delegate.dart';
 import 'package:flutter_pcgen/src/facade/util/default_reference_facade.dart';
 import 'package:flutter_pcgen/src/gui2/app_state.dart';
 import 'package:flutter_pcgen/src/gui2/sources/source_selection_dialog.dart';
+import 'package:flutter_pcgen/src/gui2/facade/character_facade_impl.dart';
+import 'package:flutter_pcgen/src/io/character_file_io.dart';
 import 'package:flutter_pcgen/src/persistence/source_file_loader.dart';
 import 'package:flutter_pcgen/src/system/character_manager.dart';
 
@@ -120,8 +122,19 @@ class PCGenFrameState extends State<PCGenFrame> {
   }
 
   void showOpenCharacterChooser() {
-    // Show file picker for character files
-    _showInfo('Open character file');
+    if (!mounted) return;
+    showDialog(
+      context: context,
+      builder: (_) => _LoadCharacterDialog(
+        onLoad: (path) async {
+          final character = await CharacterFileIO.load(path);
+          if (character != null) {
+            CharacterManager.getCharacters().addElement(character);
+            setCharacter(character);
+          }
+        },
+      ),
+    );
   }
 
   bool closeCharacter(CharacterFacade? character) {
@@ -142,17 +155,20 @@ class PCGenFrameState extends State<PCGenFrame> {
   }
 
   void saveCharacter(CharacterFacade character) {
-    final file = character.getFileRef().get();
-    if (file == null) {
-      showSaveCharacterChooser(character);
-    } else {
-      CharacterManager.saveCharacter(character);
+    if (character is CharacterFacadeImpl) {
+      CharacterFileIO.save(character).then((path) {
+        if (path != null && mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Saved to $path'),
+                duration: const Duration(seconds: 3)),
+          );
+        }
+      });
     }
   }
 
   void showSaveCharacterChooser(CharacterFacade? character) {
-    // Show file picker for saving
-    _showInfo('Save character as...');
+    if (character != null) saveCharacter(character);
   }
 
   bool saveAllCharacters() {
@@ -384,4 +400,93 @@ class _FrameUIDelegate implements UIDelegate {
 
   @override
   bool showCustomSpellDialog(dynamic spellBuilderFacade) => false;
+}
+
+// ---------------------------------------------------------------------------
+// Load Character dialog — lists saved .pcg files
+// ---------------------------------------------------------------------------
+
+class _LoadCharacterDialog extends StatefulWidget {
+  final Future<void> Function(String path) onLoad;
+  const _LoadCharacterDialog({required this.onLoad});
+
+  @override
+  State<_LoadCharacterDialog> createState() => _LoadCharacterDialogState();
+}
+
+class _LoadCharacterDialogState extends State<_LoadCharacterDialog> {
+  late Future<List<dynamic>> _filesFuture;
+  bool _loading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _filesFuture = CharacterFileIO.listSaved();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 480, maxHeight: 400),
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text('Open Character',
+                  style: Theme.of(context).textTheme.titleLarge),
+              const SizedBox(height: 12),
+              Expanded(
+                child: FutureBuilder<List<dynamic>>(
+                  future: _filesFuture,
+                  builder: (context, snap) {
+                    if (snap.connectionState != ConnectionState.done) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                    final files = snap.data ?? [];
+                    if (files.isEmpty) {
+                      return const Center(
+                        child: Text('No saved characters found.',
+                            style: TextStyle(color: Colors.grey)),
+                      );
+                    }
+                    return ListView.builder(
+                      itemCount: files.length,
+                      itemBuilder: (context, i) {
+                        final file = files[i] as dynamic;
+                        final name = file.path.toString().split('/').last.split('\\').last;
+                        return ListTile(
+                          leading: const Icon(Icons.person),
+                          title: Text(name.replaceAll('.pcg', '')),
+                          subtitle: Text(file.path as String),
+                          onTap: _loading
+                              ? null
+                              : () async {
+                                  setState(() => _loading = true);
+                                  await widget.onLoad(file.path as String);
+                                  if (mounted) Navigator.pop(context);
+                                },
+                        );
+                      },
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 12),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('Cancel'),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }

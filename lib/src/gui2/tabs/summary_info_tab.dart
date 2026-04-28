@@ -124,65 +124,107 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
   // ---- Identity section -----------------------------------------------------
 
   Widget _buildIdentitySection(dynamic character) {
-    // Sync the name controller when character changes.
     final charName = (character as dynamic).getName() as String? ?? '';
     if (!_nameEditPending && _nameController.text != charName) {
       _nameController.text = charName;
     }
 
-    // Race display
     final raceRef = character.getRaceRef();
     final raceObj = raceRef?.get();
     final raceName = raceObj != null
         ? (raceObj as dynamic).getDisplayName() as String? ?? '(none)'
         : '(none)';
 
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Identity', style: Theme.of(context).textTheme.titleMedium),
-            const SizedBox(height: 8),
-            Row(
+    return ValueListenableBuilder(
+      valueListenable: loadedDataSet,
+      builder: (context, dataset, _) {
+        final alignments = dataset?.alignments ?? const [];
+        String alignKey = '';
+        try { alignKey = (character as dynamic).getAlignmentKey() as String? ?? ''; } catch (_) {}
+        String deityKey = '';
+        try { deityKey = (character as dynamic).getDeityKey() as String? ?? ''; } catch (_) {}
+
+        return Card(
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SizedBox(
-                  width: 80,
-                  child: Text('Name:',
-                      style: TextStyle(fontWeight: FontWeight.bold)),
-                ),
-                Expanded(
-                  child: TextField(
-                    controller: _nameController,
-                    decoration: const InputDecoration(
-                      border: OutlineInputBorder(),
-                      isDense: true,
-                      contentPadding:
-                          EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                Text('Identity', style: Theme.of(context).textTheme.titleMedium),
+                const SizedBox(height: 8),
+                // Name
+                Row(
+                  children: [
+                    const SizedBox(width: 80,
+                        child: Text('Name:', style: TextStyle(fontWeight: FontWeight.bold))),
+                    Expanded(
+                      child: TextField(
+                        controller: _nameController,
+                        decoration: const InputDecoration(
+                          border: OutlineInputBorder(), isDense: true,
+                          contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                        ),
+                        onChanged: (_) => _nameEditPending = true,
+                        onSubmitted: (v) { _nameEditPending = false; character.setName(v); },
+                        onEditingComplete: () { _nameEditPending = false; character.setName(_nameController.text); },
+                      ),
                     ),
-                    onChanged: (v) {
-                      _nameEditPending = true;
-                    },
-                    onSubmitted: (v) {
-                      _nameEditPending = false;
-                      character.setName(v);
-                    },
-                    onEditingComplete: () {
-                      _nameEditPending = false;
-                      character.setName(_nameController.text);
-                    },
-                  ),
+                  ],
                 ),
+                const SizedBox(height: 6),
+                _labelledValue('Race', raceName),
+                _labelledValue('Class', _classLevelSummary(character)),
+                const SizedBox(height: 6),
+                // Alignment dropdown
+                if (alignments.isNotEmpty)
+                  Row(children: [
+                    const SizedBox(width: 80,
+                        child: Text('Alignment:', style: TextStyle(fontWeight: FontWeight.bold))),
+                    Expanded(
+                      child: DropdownButton<String>(
+                        isExpanded: true,
+                        value: alignKey.isEmpty ? null : alignKey,
+                        hint: const Text('— Select —'),
+                        items: alignments.map((a) {
+                          final key = (a as dynamic).getKeyName() as String;
+                          final name = (a as dynamic).getDisplayName() as String;
+                          return DropdownMenuItem(value: key, child: Text(name));
+                        }).toList(),
+                        onChanged: (v) {
+                          if (v != null) {
+                            try { (character as dynamic).setAlignmentKey(v); } catch (_) {}
+                            currentCharacter.notifyListeners();
+                            setState(() {});
+                          }
+                        },
+                      ),
+                    ),
+                  ]),
+                const SizedBox(height: 6),
+                // Deity field
+                Row(children: [
+                  const SizedBox(width: 80,
+                      child: Text('Deity:', style: TextStyle(fontWeight: FontWeight.bold))),
+                  Expanded(
+                    child: TextField(
+                      controller: TextEditingController(text: deityKey),
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(), isDense: true,
+                        contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                        hintText: 'Deity name',
+                      ),
+                      onSubmitted: (v) {
+                        try { (character as dynamic).setDeityKey(v); } catch (_) {}
+                        currentCharacter.notifyListeners();
+                      },
+                    ),
+                  ),
+                ]),
               ],
             ),
-            const SizedBox(height: 6),
-            _labelledValue('Race', raceName),
-            _labelledValue(
-                'Class', _classLevelSummary(character)),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 

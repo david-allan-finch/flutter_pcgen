@@ -476,6 +476,101 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
     return counts.entries.map((e) => '${e.key} ${e.value}').join(' / ');
   }
 
+  // ---- Ability / Feat selection -------------------------------------------
+
+  // Selected abilities stored as: _data['selectedAbilities'] = Map<String, List<String>>
+  // category key → [abilityKeyName, ...]
+
+  List<String> getSelectedAbilityKeys(String categoryKey) {
+    final map = _data['selectedAbilities'];
+    if (map is! Map) return [];
+    final list = map[categoryKey];
+    return list is List ? list.cast<String>() : [];
+  }
+
+  bool isAbilitySelected(String categoryKey, String abilityKey) =>
+      getSelectedAbilityKeys(categoryKey).contains(abilityKey);
+
+  void addSelectedAbility(String categoryKey, String abilityKey) {
+    final map = (_data['selectedAbilities'] ??= <String, dynamic>{}) as Map;
+    final list = (map[categoryKey] ??= <String>[]) as List;
+    if (!list.contains(abilityKey)) {
+      list.add(abilityKey);
+      notifyListeners();
+    }
+  }
+
+  void removeSelectedAbility(String categoryKey, String abilityKey) {
+    final map = _data['selectedAbilities'];
+    if (map is! Map) return;
+    final list = map[categoryKey];
+    if (list is List && list.remove(abilityKey)) {
+      notifyListeners();
+    }
+  }
+
+  // ---- Alignment string ---------------------------------------------------
+
+  String getAlignmentKey() => _str('alignmentKey');
+  void setAlignmentKey(String key) => _set('alignmentKey', key);
+
+  // ---- Deity key ----------------------------------------------------------
+
+  String getDeityKey() => _str('deityKey');
+  void setDeityKey(String key) => _set('deityKey', key);
+
+  // ---- Domain keys --------------------------------------------------------
+
+  List<String> getSelectedDomainKeys() {
+    final list = _data['selectedDomains'];
+    return list is List ? list.cast<String>() : [];
+  }
+
+  void addDomainKey(String key) {
+    final list = (_data['selectedDomains'] ??= <String>[]) as List;
+    if (!list.contains(key)) { list.add(key); notifyListeners(); }
+  }
+
+  void removeDomainKey(String key) {
+    final list = _data['selectedDomains'];
+    if (list is List && list.remove(key)) notifyListeners();
+  }
+
+  // ---- Template keys -------------------------------------------------------
+
+  List<String> getAppliedTemplateKeys() {
+    final list = _data['appliedTemplates'];
+    return list is List ? list.cast<String>() : [];
+  }
+
+  void applyTemplateKey(String key) {
+    final list = (_data['appliedTemplates'] ??= <String>[]) as List;
+    if (!list.contains(key)) { list.add(key); notifyListeners(); }
+  }
+
+  void removeTemplateKey(String key) {
+    final list = _data['appliedTemplates'];
+    if (list is List && list.remove(key)) notifyListeners();
+  }
+
+  // ---- Biography ----------------------------------------------------------
+
+  String getBiography() => _str('biography');
+  void setBiography(String text) => _set('biography', text);
+
+  String getAppearance() => _str('appearance');
+  void setAppearance(String text) => _set('appearance', text);
+
+  String getNotes() => _str('notes');
+  void setNotes2(String text) => _set('notes', text);
+
+  // ---- Serialise / deserialise to Map (for save / load) -------------------
+
+  Map<String, dynamic> toJson() => Map<String, dynamic>.from(_data);
+
+  static CharacterFacadeImpl fromJson(Map<String, dynamic> json) =>
+      CharacterFacadeImpl(json);
+
   @override
   dynamic noSuchMethod(Invocation i) => super.noSuchMethod(i);
 }

@@ -186,10 +186,15 @@ class SourceFileLoader extends PCGenTask {
     _dataset!.languages.addAll(ref.getAllConstructed<Language>(Language));
     _dataset!.templates.addAll(ref.getAllConstructed<PCTemplate>(PCTemplate));
     _dataset!.equipment.addAll(ref.getAllConstructed<Equipment>(Equipment));
+    for (final ability in ref.getAllConstructed<Ability>(Ability)) {
+      _dataset!.addAbilityFlat(ability);
+    }
 
+    final allAbilities = _dataset!.getAllAbilities();
     print('DataSet populated: ${_dataset!.races.length} races, '
         '${_dataset!.classes.length} classes, '
-        '${_dataset!.skills.length} skills');
+        '${_dataset!.skills.length} skills, '
+        '${allAbilities.length} abilities/feats');
   }
 
   /// Collects all file-type entries from the selected campaigns.
