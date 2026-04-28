@@ -318,8 +318,11 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
       children: [
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 4),
-          child: Text(statKey,
-              style: const TextStyle(fontWeight: FontWeight.bold)),
+          child: Tooltip(
+            message: statObj?.getDisplayName() ?? statKey,
+            child: Text(statKey,
+                style: const TextStyle(fontWeight: FontWeight.bold)),
+          ),
         ),
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 4),

@@ -34,8 +34,9 @@ import 'package:flutter_pcgen/src/core/shield_prof.dart';
 import 'package:flutter_pcgen/src/core/skill.dart';
 import 'package:flutter_pcgen/src/core/spell/spell.dart';
 import 'package:flutter_pcgen/src/core/system_collections.dart';
-import 'package:flutter_pcgen/src/core/pc_stat.dart';
 import 'package:flutter_pcgen/src/core/pc_alignment.dart';
+import 'package:flutter_pcgen/src/core/pc_check.dart';
+import 'package:flutter_pcgen/src/core/pc_stat.dart';
 import 'package:flutter_pcgen/src/core/weapon_prof.dart';
 import 'package:flutter_pcgen/src/core/armor_prof.dart';
 import 'package:flutter_pcgen/src/facade/core/ui_delegate.dart';
@@ -96,6 +97,9 @@ class SourceFileLoader extends PCGenTask {
       'FILE_COMPANION_MOD':    CompanionModLoader(),
       'FILE_ABILITYCATEGORY':  AbilityCategoryLoader(),
       'FILE_ABILITY_CATEGORY': AbilityCategoryLoader(),
+      'FILE_STAT':             GenericLoader<PCStat>(() => PCStat()),
+      'FILE_SAVE':             GenericLoader<PCCheck>(() => PCCheck()),
+      'FILE_ALIGNMENT':        GenericLoader<PCAlignment>(() => PCAlignment()),
       'FILE_RACE':             GenericLoader<Race>(() => Race()),
       'FILE_SKILL':            GenericLoader<Skill>(() => Skill()),
       'FILE_DEITY':            GenericLoader<Deity>(() => Deity()),
@@ -194,6 +198,7 @@ class SourceFileLoader extends PCGenTask {
     print('DataSet populated: ${_dataset!.races.length} races, '
         '${_dataset!.classes.length} classes, '
         '${_dataset!.skills.length} skills, '
+        '${_dataset!.stats.length} stats, '
         '${allAbilities.length} abilities/feats');
   }
 

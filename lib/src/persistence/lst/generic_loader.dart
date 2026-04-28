@@ -98,6 +98,29 @@ class GenericLoader<T extends CDOMObject> extends LstObjectFileLoader<T> {
         case 'SORTKEY':
           try { obj.putString(StringKey.sortKey, value); } catch (_) {}
           return;
+        case 'ABB':
+          // Abbreviation — e.g. ABB:STR for Strength stat
+          try { obj.putString(StringKey.abbKr, value); } catch (_) {}
+          return;
+        case 'STATMOD':
+          // Stat modifier formula — skip (formula system not yet wired)
+          return;
+        case 'DEFINE':
+          // DEFINE:VARNAME|expression — skip
+          return;
+        case 'BONUSSPELLLEVEL':
+        case 'BASESTATSCORE':
+        case 'STATRANGE':
+        case 'COST':
+        case 'MAXLEVEL':
+        case 'MAXHD':
+        case 'LEGS':
+        case 'HANDS':
+        case 'FACE':
+        case 'REACH':
+        case 'UNENCUMBEREDMOVE':
+          // Numeric/complex tokens — skip for now
+          return;
         case 'KEY_STAT':
           // Skill key ability stat abbreviation (e.g. KEY_STAT:STR).
           try {
