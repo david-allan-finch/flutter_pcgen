@@ -21,6 +21,7 @@ import 'package:flutter_pcgen/src/cdom/base/cdom_object.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/list_key.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/object_key.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/string_key.dart';
+import 'package:flutter_pcgen/src/core/skill.dart';
 import 'package:flutter_pcgen/src/persistence/lst/lst_utils.dart';
 import 'package:flutter_pcgen/src/rules/context/load_context.dart';
 import 'package:flutter_pcgen/src/persistence/lst/lst_object_file_loader.dart';
@@ -96,6 +97,40 @@ class GenericLoader<T extends CDOMObject> extends LstObjectFileLoader<T> {
           return;
         case 'SORTKEY':
           try { obj.putString(StringKey.sortKey, value); } catch (_) {}
+          return;
+        case 'KEY_STAT':
+          // Skill key ability stat abbreviation (e.g. KEY_STAT:STR).
+          try {
+            obj.putObject(
+              ObjectKey.getConstant<dynamic>('KEY_STAT'),
+              KeyStatRef(value),
+            );
+          } catch (_) {}
+          return;
+        case 'USE_UNTRAINED':
+          try {
+            obj.putObject(
+              ObjectKey.getConstant<bool>('USE_UNTRAINED', defaultValue: true),
+              value.toUpperCase() != 'NO',
+            );
+          } catch (_) {}
+          return;
+        case 'EXCLUSIVE':
+          try {
+            obj.putObject(
+              ObjectKey.getConstant<bool>('EXCLUSIVE', defaultValue: false),
+              value.toUpperCase() == 'YES',
+            );
+          } catch (_) {}
+          return;
+        case 'SIZE':
+          try { obj.putString(StringKey.sizeformula, value); } catch (_) {}
+          return;
+        case 'CR':
+        case 'RACETYPE':
+        case 'RACESUBTYPE':
+          // Store race-specific tokens as type list entries.
+          try { obj.addToListFor(ListKey.getConstant<String>('TYPE'), '$tag:$value'); } catch (_) {}
           return;
         default:
           break; // fall through to registered handlers

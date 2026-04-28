@@ -1,6 +1,7 @@
 // Translation of pcgen.gui2.tabs.AbilitiesInfoTab
 
 import 'package:flutter/material.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/string_key.dart';
 import 'package:flutter_pcgen/src/core/ability.dart';
 import 'package:flutter_pcgen/src/core/data_set.dart';
 import 'package:flutter_pcgen/src/gui2/app_state.dart';
@@ -119,10 +120,18 @@ class AbilitiesInfoTabState extends State<AbilitiesInfoTab>
                     final ability = filtered[i];
                     final isSelected =
                         selectedKeys.contains(ability.getKeyName());
+                    String? desc;
+                    try { desc = ability.getString(StringKey.description); } catch (_) {}
                     return ListTile(
                       dense: true,
                       title: Text(ability.getDisplayName(),
                           style: const TextStyle(fontSize: 12)),
+                      subtitle: desc != null && desc.isNotEmpty
+                          ? Text(desc,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(fontSize: 10, color: Colors.grey))
+                          : null,
                       tileColor: isSelected
                           ? Colors.green.withOpacity(0.07)
                           : null,

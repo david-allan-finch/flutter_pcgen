@@ -16,8 +16,12 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.persistence.lst.AbilityLoader
+import 'package:flutter_pcgen/src/cdom/enumeration/list_key.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/object_key.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/string_key.dart';
 import 'package:flutter_pcgen/src/core/ability.dart';
 import 'package:flutter_pcgen/src/core/ability_category.dart';
+import 'package:flutter_pcgen/src/persistence/lst/lst_utils.dart';
 import 'package:flutter_pcgen/src/rules/context/load_context.dart';
 import 'package:flutter_pcgen/src/persistence/lst/lst_object_file_loader.dart';
 import 'package:flutter_pcgen/src/persistence/lst/source_entry.dart';
@@ -70,7 +74,41 @@ class AbilityLoader extends LstObjectFileLoader<Ability> {
   }
 
   void _processToken(LoadContext context, Ability obj, String token, SourceEntry source) {
-    // Token dispatch would go here in full implementation
+    final (tag, value) = LstUtils.splitToken(token);
+    if (value.isEmpty) return;
+    switch (tag.toUpperCase()) {
+      case 'TYPE':
+        for (final t in value.split('.')) {
+          if (t.isNotEmpty) {
+            try { obj.addToListFor(ListKey.getConstant<String>('TYPE'), t); } catch (_) {}
+          }
+        }
+        break;
+      case 'DESC':
+        obj.putString(StringKey.description, value);
+        break;
+      case 'SOURCELONG':
+        obj.putString(StringKey.sourceLong, value);
+        break;
+      case 'SOURCESHORT':
+        obj.putString(StringKey.sourceShort, value);
+        break;
+      case 'OUTPUTNAME':
+        obj.putString(StringKey.outputName, value);
+        break;
+      case 'MULT':
+        obj.putObject(ObjectKey.multipleAllowed, value.toUpperCase() == 'YES');
+        break;
+      case 'STACK':
+        obj.putObject(ObjectKey.stacks, value.toUpperCase() == 'YES');
+        break;
+      case 'SORTKEY':
+        obj.putString(StringKey.sortKey, value);
+        break;
+      default:
+        // PRE, BONUS, CHOOSE, AUTO, etc. — skipped for now
+        break;
+    }
   }
 
   @override

@@ -109,6 +109,8 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
                   const SizedBox(height: 12),
                   _buildStatsSection(character, statKeys, statObjects),
                   const SizedBox(height: 12),
+                  _buildCombatSection(character, statKeys, statObjects),
+                  const SizedBox(height: 12),
                   _buildSavesSection(character, statKeys, statObjects),
                   const SizedBox(height: 12),
                   _buildClassLevelSection(character),
@@ -337,6 +339,58 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
               style: TextStyle(
                   color: mod >= 0 ? Colors.green.shade700 : Colors.red.shade700,
                   fontWeight: FontWeight.bold)),
+        ),
+      ],
+    );
+  }
+
+  // ---- Combat section -------------------------------------------------------
+
+  Widget _buildCombatSection(dynamic character, List<String> statKeys,
+      List<PCStat> statObjects) {
+    int totalLevel = 0;
+    try { totalLevel = (character as dynamic).getTotalCharacterLevel() as int? ?? 0; } catch (_) {}
+    final dexMod = _getStatMod(character, statKeys, statObjects, 'DEX');
+    final initiative = dexMod;
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Combat', style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                _combatChip('Initiative', _fmtMod(initiative)),
+                const SizedBox(width: 12),
+                _combatChip('BAB', '+${_estimateBab(totalLevel)}'),
+                const SizedBox(width: 12),
+                _combatChip('AC', '10 + ${_fmtMod(dexMod)}'),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Very rough BAB estimate: 3/4 of total level (average between full and 1/2).
+  int _estimateBab(int level) => (level * 3 / 4).floor();
+
+  Widget _combatChip(String label, String value) {
+    return Column(
+      children: [
+        Text(label, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 2),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.grey),
+            borderRadius: BorderRadius.circular(6),
+          ),
+          child: Text(value, style: const TextStyle(fontWeight: FontWeight.bold)),
         ),
       ],
     );

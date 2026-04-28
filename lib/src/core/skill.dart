@@ -26,9 +26,15 @@ final class Skill extends PObject {
   String getLocalScopeName() => 'PC.SKILL';
 
   /// Returns the abbreviation of the key ability stat for this skill.
+  /// Stored during LST loading as a KeyStatRef via ObjectKey('KEY_STAT').
   String getKeyStatAbb() {
-    final keyStat = getSafeObject(ObjectKey.getConstant<dynamic>('KEY_STAT'));
-    return (keyStat as dynamic)?.get()?.getKeyName() ?? '';
+    try {
+      final keyStat = getSafeObject(ObjectKey.getConstant<dynamic>('KEY_STAT'));
+      if (keyStat is KeyStatRef) return keyStat.abbrev;
+      return (keyStat as dynamic)?.get()?.getKeyName() ?? '';
+    } catch (_) {
+      return '';
+    }
   }
 
   /// Returns true if this skill can be used untrained.
@@ -54,4 +60,13 @@ final class Skill extends PObject {
 
   @override
   int get hashCode => getKeyName().toLowerCase().hashCode;
+}
+
+// Thin wrapper so GenericLoader can store a stat abbreviation string
+// in a way that Skill.getKeyStatAbb() can retrieve it.
+class KeyStatRef {
+  final String abbrev;
+  const KeyStatRef(this.abbrev);
+  // Mimics CDOMReference.getKeyName() for compatibility.
+  String getKeyName() => abbrev;
 }
