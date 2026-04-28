@@ -68,7 +68,15 @@ class PCGenFrameState extends State<PCGenFrame> {
     _characterTabsKey = GlobalKey();
     actionMap = PCGenActionMap(this, widget.uiContext);
     _updateTitle();
+    // Reactively update the window title whenever the current character's name changes.
+    currentCharacter.addListener(_updateTitle);
     WidgetsBinding.instance.addPostFrameCallback((_) => startPCGenFrame());
+  }
+
+  @override
+  void dispose() {
+    currentCharacter.removeListener(_updateTitle);
+    super.dispose();
   }
 
   void startPCGenFrame() {
@@ -104,10 +112,13 @@ class PCGenFrameState extends State<PCGenFrame> {
   }
 
   void _updateTitle() {
-    final char = _currentCharacterRef.get();
+    if (!mounted) return;
+    final char = currentCharacter.value;
+    String? name;
+    try { name = (char as dynamic)?.getName() as String?; } catch (_) {}
     setState(() {
-      _title = char != null
-          ? 'PCGen - ${char.getNameRef().get() ?? "Character"}'
+      _title = (char != null && name != null && name.isNotEmpty)
+          ? 'PCGen — $name'
           : 'PCGen';
     });
   }

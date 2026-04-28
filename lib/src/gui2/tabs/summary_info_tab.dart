@@ -413,9 +413,14 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
   Widget _buildClassLevelSection(dynamic character) {
     final summary = _classLevelSummary(character);
     int totalLevel = 0;
-    try {
-      totalLevel = (character as dynamic).getTotalCharacterLevel() as int? ?? 0;
-    } catch (_) {}
+    try { totalLevel = (character as dynamic).getTotalCharacterLevel() as int? ?? 0; } catch (_) {}
+
+    // HP: load from data or compute estimate (d8 + CON mod) × level
+    int hp = 0;
+    try { hp = (character as dynamic).getHP() as int? ?? 0; } catch (_) {}
+    if (!_hpEditPending && _hpController.text != '$hp') {
+      _hpController.text = '$hp';
+    }
 
     return Card(
       child: Padding(
@@ -423,11 +428,63 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Class Levels',
-                style: Theme.of(context).textTheme.titleMedium),
+            Text('Class & Combat', style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 8),
             _labelledValue('Total Level', '$totalLevel'),
             if (summary.isNotEmpty) _labelledValue('Classes', summary),
+            const SizedBox(height: 6),
+            Row(
+              children: [
+                const SizedBox(width: 80,
+                    child: Text('HP:', style: TextStyle(fontWeight: FontWeight.bold))),
+                SizedBox(
+                  width: 60,
+                  child: TextField(
+                    controller: _hpController,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      isDense: true,
+                      contentPadding: EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                    ),
+                    onChanged: (_) => _hpEditPending = true,
+                    onSubmitted: (v) {
+                      _hpEditPending = false;
+                      final n = int.tryParse(v);
+                      if (n != null) {
+                        try { (character as dynamic).setHP(n); } catch (_) {}
+                        currentCharacter.notifyListeners();
+                      }
+                    },
+                  ),
+                ),
+                const SizedBox(width: 8),
+                if (totalLevel > 0)
+                  TextButton.icon(
+                    icon: const Icon(Icons.casino, size: 14),
+                    label: const Text('Max'),
+                    onPressed: () {
+                      // Rough estimate: 8 + CON mod per level (d8 default)
+                      _hpEditPending = false;
+                      try {
+                        final dataset = loadedDataSet.value;
+                        final statObjects = dataset?.stats ?? const [];
+                        int conMod = 0;
+                        for (final s in statObjects) {
+                          if (s.getKeyName().toUpperCase() == 'CON') {
+                            conMod = (character as dynamic).getModTotal(s) as int? ?? 0;
+                            break;
+                          }
+                        }
+                        final maxHp = (8 + conMod) * totalLevel;
+                        (character as dynamic).setHP(maxHp.clamp(totalLevel, 9999));
+                        currentCharacter.notifyListeners();
+                        setState(() {});
+                      } catch (_) {}
+                    },
+                  ),
+              ],
+            ),
           ],
         ),
       ),
