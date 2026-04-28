@@ -486,6 +486,9 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
             const SizedBox(height: 8),
             _labelledValue('Total Level', '$totalLevel'),
             if (summary.isNotEmpty) _labelledValue('Classes', summary),
+            // XP tracking
+            const SizedBox(height: 4),
+            _buildXPRow(character, totalLevel),
             const SizedBox(height: 6),
             Row(
               children: [
@@ -554,6 +557,54 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
           ],
         ),
       ),
+    );
+  }
+
+  // ---- XP row ---------------------------------------------------------------
+
+  Widget _buildXPRow(dynamic character, int totalLevel) {
+    int xp = 0;
+    try { xp = (character as dynamic).getXP() as int? ?? 0; } catch (_) {}
+    // 3.5e XP thresholds: level × (level - 1) × 500
+    final nextLevelXP = totalLevel > 0 ? (totalLevel * (totalLevel + 1) * 500) : 1000;
+
+    return Row(
+      children: [
+        const SizedBox(width: 80, child: Text('XP:', style: TextStyle(fontWeight: FontWeight.bold))),
+        Text('$xp / $nextLevelXP'),
+        const SizedBox(width: 8),
+        SizedBox(
+          width: 120,
+          height: 6,
+          child: LinearProgressIndicator(
+            value: (xp / nextLevelXP).clamp(0.0, 1.0),
+            backgroundColor: Colors.grey.shade300,
+          ),
+        ),
+        const SizedBox(width: 8),
+        SizedBox(
+          width: 80,
+          child: TextField(
+            keyboardType: TextInputType.number,
+            decoration: const InputDecoration(
+              hintText: '+XP',
+              border: OutlineInputBorder(),
+              isDense: true,
+              contentPadding: EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+            ),
+            onSubmitted: (v) {
+              final gain = int.tryParse(v);
+              if (gain != null && gain != 0) {
+                try {
+                  (character as dynamic).adjustXP(gain);
+                  currentCharacter.notifyListeners();
+                  setState(() {});
+                } catch (_) {}
+              }
+            },
+          ),
+        ),
+      ],
     );
   }
 

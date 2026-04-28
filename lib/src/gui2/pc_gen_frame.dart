@@ -31,10 +31,12 @@ import 'package:flutter_pcgen/src/facade/core/source_selection_facade.dart';
 import 'package:flutter_pcgen/src/facade/core/data_set_facade.dart';
 import 'package:flutter_pcgen/src/facade/core/ui_delegate.dart';
 import 'package:flutter_pcgen/src/facade/util/default_reference_facade.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_pcgen/src/gui2/app_state.dart';
 import 'package:flutter_pcgen/src/gui2/sources/source_selection_dialog.dart';
 import 'package:flutter_pcgen/src/gui2/facade/character_facade_impl.dart';
 import 'package:flutter_pcgen/src/io/character_file_io.dart';
+import 'package:flutter_pcgen/src/io/character_text_export.dart';
 import 'package:flutter_pcgen/src/persistence/source_file_loader.dart';
 import 'package:flutter_pcgen/src/system/character_manager.dart';
 
@@ -208,7 +210,13 @@ class PCGenFrameState extends State<PCGenFrame> {
   }
 
   void showExportDialog() {
-    _showInfo('Export character');
+    final character = currentCharacter.value;
+    if (character == null) { _showInfo('No character open.'); return; }
+    if (!mounted) return;
+    showDialog(
+      context: context,
+      builder: (_) => _ExportDialog(character: character),
+    );
   }
 
   void closePCGen() {
@@ -411,6 +419,71 @@ class _FrameUIDelegate implements UIDelegate {
 
   @override
   bool showCustomSpellDialog(dynamic spellBuilderFacade) => false;
+}
+
+// ---------------------------------------------------------------------------
+// Export dialog — shows plaintext character sheet, copy to clipboard
+// ---------------------------------------------------------------------------
+
+class _ExportDialog extends StatelessWidget {
+  final dynamic character;
+  const _ExportDialog({required this.character});
+
+  @override
+  Widget build(BuildContext context) {
+    final text = character is CharacterFacadeImpl
+        ? CharacterTextExport.export(character as CharacterFacadeImpl)
+        : 'Cannot export: unsupported character type.';
+
+    return Dialog(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 680, maxHeight: 600),
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text('Export Character Sheet',
+                  style: Theme.of(context).textTheme.titleLarge),
+              const SizedBox(height: 12),
+              Expanded(
+                child: SingleChildScrollView(
+                  child: SelectableText(
+                    text,
+                    style: const TextStyle(fontFamily: 'monospace', fontSize: 12),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  OutlinedButton.icon(
+                    icon: const Icon(Icons.copy),
+                    label: const Text('Copy to Clipboard'),
+                    onPressed: () {
+                      Clipboard.setData(ClipboardData(text: text));
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Copied to clipboard'),
+                          duration: Duration(seconds: 2),
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(width: 8),
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('Close'),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 // ---------------------------------------------------------------------------

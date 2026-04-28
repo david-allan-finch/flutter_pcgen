@@ -1,21 +1,7 @@
-//
-// CompanionInfoTab.java Copyright 2012 Connor Petty <cpmeister@users.sourceforge.net>
-//
-// This library is free software; you can redistribute it and/or modify it under the terms of the
-// GNU Lesser General Public License as published by the Free Software Foundation; either version 2.1
-// of the License, or (at your option) any later version.
-//
-// This library is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
-// even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-// Lesser General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public License along with this library;
-// if not, write to the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-// 02111-1307 USA
-//
 // Translation of pcgen.gui2.tabs.CompanionInfoTab
 
 import 'package:flutter/material.dart';
+import 'package:flutter_pcgen/src/gui2/app_state.dart';
 
 /// Tab panel for managing character companions (animal companion, familiar, etc.).
 class CompanionInfoTab extends StatefulWidget {
@@ -32,28 +18,161 @@ class CompanionInfoTabState extends State<CompanionInfoTab> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        const Padding(
-          padding: EdgeInsets.all(8),
-          child: Text('Companions', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-        ),
-        Expanded(
-          child: ListView(
-            children: const [
-              ListTile(title: Text('No companions')),
+    return ValueListenableBuilder(
+      valueListenable: currentCharacter,
+      builder: (context, character, _) {
+        final companions = _getCompanions(character);
+        return Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(8),
+              child: Row(
+                children: [
+                  const Text('Companions',
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  const Spacer(),
+                  ElevatedButton.icon(
+                    icon: const Icon(Icons.add, size: 16),
+                    label: const Text('Add'),
+                    onPressed: character == null
+                        ? null
+                        : () => _showAddCompanionDialog(context, character),
+                  ),
+                ],
+              ),
+            ),
+            const Divider(height: 1),
+            Expanded(
+              child: companions.isEmpty
+                  ? Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.pets, size: 48, color: Colors.grey),
+                          const SizedBox(height: 8),
+                          Text(
+                            character == null
+                                ? 'No character selected.'
+                                : 'No companions yet.\nAdd an animal companion, familiar, or mount.',
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                                color: Colors.grey, fontStyle: FontStyle.italic),
+                          ),
+                        ],
+                      ),
+                    )
+                  : ListView.builder(
+                      itemCount: companions.length,
+                      itemBuilder: (context, i) {
+                        final comp = companions[i];
+                        final name = comp['name'] as String? ?? 'Companion';
+                        final type = comp['type'] as String? ?? 'Companion';
+                        return Card(
+                          margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          child: ListTile(
+                            leading: const Icon(Icons.pets),
+                            title: Text(name),
+                            subtitle: Text(type),
+                            trailing: IconButton(
+                              icon: const Icon(Icons.delete_outline, color: Colors.red),
+                              onPressed: character == null
+                                  ? null
+                                  : () {
+                                      _removeCompanion(character, i);
+                                    },
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  List<Map<String, dynamic>> _getCompanions(dynamic character) {
+    if (character == null) return [];
+    try {
+      final data = (character as dynamic).toJson() as Map<String, dynamic>;
+      final list = data['companions'];
+      if (list is List) return list.cast<Map<String, dynamic>>();
+    } catch (_) {}
+    return [];
+  }
+
+  void _removeCompanion(dynamic character, int index) {
+    try {
+      final data = (character as dynamic).toJson() as Map<String, dynamic>;
+      final list = data['companions'] as List?;
+      if (list != null && index < list.length) {
+        list.removeAt(index);
+        currentCharacter.notifyListeners();
+        setState(() {});
+      }
+    } catch (_) {}
+  }
+
+  void _showAddCompanionDialog(BuildContext context, dynamic character) {
+    final nameController = TextEditingController();
+    String type = 'Animal Companion';
+    final types = ['Animal Companion', 'Familiar', 'Mount', 'Special Mount', 'Other'];
+
+    showDialog(
+      context: context,
+      builder: (_) => StatefulBuilder(
+        builder: (ctx, setS) => AlertDialog(
+          title: const Text('Add Companion'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: nameController,
+                autofocus: true,
+                decoration: const InputDecoration(
+                  labelText: 'Companion name (e.g. Rex)',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 12),
+              DropdownButton<String>(
+                isExpanded: true,
+                value: type,
+                items: types
+                    .map((t) => DropdownMenuItem(value: t, child: Text(t)))
+                    .toList(),
+                onChanged: (v) => setS(() => type = v ?? type),
+              ),
             ],
           ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                if (nameController.text.isNotEmpty) {
+                  _addCompanion(character, nameController.text, type);
+                  Navigator.pop(ctx);
+                }
+              },
+              child: const Text('Add'),
+            ),
+          ],
         ),
-        Padding(
-          padding: const EdgeInsets.all(8),
-          child: ElevatedButton.icon(
-            icon: const Icon(Icons.add),
-            label: const Text('Add Companion'),
-            onPressed: () {},
-          ),
-        ),
-      ],
+      ),
     );
+  }
+
+  void _addCompanion(dynamic character, String name, String type) {
+    try {
+      final data = (character as dynamic).toJson() as Map<String, dynamic>;
+      final list = (data['companions'] ??= <Map<String, dynamic>>[]) as List;
+      list.add({'name': name, 'type': type});
+      currentCharacter.notifyListeners();
+      setState(() {});
+    } catch (_) {}
   }
 }
