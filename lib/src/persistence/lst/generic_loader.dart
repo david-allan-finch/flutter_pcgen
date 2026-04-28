@@ -126,11 +126,29 @@ class GenericLoader<T extends CDOMObject> extends LstObjectFileLoader<T> {
         case 'SIZE':
           try { obj.putString(StringKey.sizeformula, value); } catch (_) {}
           return;
+        case 'MOVE':
+          // MOVE:Walk,30 — store raw movement string
+          try { obj.putString(StringKey.tempvalue, value); } catch (_) {}
+          return;
+        case 'XTRASKILLPTSPERLVL':
+          // Extra skill points per level (bonus, e.g. Human gets +1)
+          try {
+            obj.putObject(ObjectKey.getConstant<int>('XTRA_SKILL_PTS'), int.tryParse(value) ?? 0);
+          } catch (_) {}
+          return;
+        case 'STARTFEATS':
+          try {
+            obj.putObject(ObjectKey.getConstant<int>('START_FEATS'), int.tryParse(value) ?? 0);
+          } catch (_) {}
+          return;
         case 'CR':
+          try { obj.putString(StringKey.subregion, value); } catch (_) {}
+          return;
         case 'RACETYPE':
+          try { obj.addToListFor(ListKey.getConstant<String>('TYPE'), 'RACETYPE:$value'); } catch (_) {}
+          return;
         case 'RACESUBTYPE':
-          // Store race-specific tokens as type list entries.
-          try { obj.addToListFor(ListKey.getConstant<String>('TYPE'), '$tag:$value'); } catch (_) {}
+          try { obj.addToListFor(ListKey.getConstant<String>('TYPE'), 'RACESUBTYPE:$value'); } catch (_) {}
           return;
         default:
           break; // fall through to registered handlers

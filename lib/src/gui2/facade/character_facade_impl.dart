@@ -312,15 +312,28 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
   }
 
   // ---- Saving throws ------------------------------------------------------
+  // Returns stored value or stat-mod estimate if not yet set.
 
   @override
-  int getFortSave() => (_data['fortSave'] as num?)?.toInt() ?? 0;
+  int getFortSave() =>
+      (_data['fortSave'] as num?)?.toInt() ?? _statModByAbb('CON');
 
   @override
-  int getRefSave() => (_data['refSave'] as num?)?.toInt() ?? 0;
+  int getRefSave() =>
+      (_data['refSave'] as num?)?.toInt() ?? _statModByAbb('DEX');
 
   @override
-  int getWillSave() => (_data['willSave'] as num?)?.toInt() ?? 0;
+  int getWillSave() =>
+      (_data['willSave'] as num?)?.toInt() ?? _statModByAbb('WIS');
+
+  int _statModByAbb(String abb) {
+    final scores = _data['statScores'];
+    if (scores is Map) {
+      final score = (scores[abb] as num?)?.toInt() ?? 10;
+      return ((score - 10) / 2).floor();
+    }
+    return 0;
+  }
 
   // ---- Initiative ---------------------------------------------------------
 

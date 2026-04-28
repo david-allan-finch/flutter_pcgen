@@ -126,11 +126,15 @@ class PCGenFrameState extends State<PCGenFrame> {
   }
 
   void createNewCharacter(dynamic dataset) {
-    final ds = (dataset ?? _currentDataSetRef.get()) as DataSetFacade?;
-    if (ds == null) return;
+    // Use loadedDataSet if no explicit dataset given.
+    final ds = dataset ?? loadedDataSet.value;
+    if (ds == null) {
+      _showInfo('Load sources before creating a character.');
+      return;
+    }
     final character = CharacterManager.createNewCharacter(null, ds);
     if (character != null) {
-      _currentCharacterRef.set(character);
+      setCharacter(character);
     }
   }
 
@@ -229,8 +233,27 @@ class PCGenFrameState extends State<PCGenFrame> {
     _showInfo('Kit selection');
   }
 
-  void showPreferencesDialog() {
-    _showInfo('Preferences');
+  void showPreferencesDialog() => displayPreferencesDialog();
+
+  void displayPreferencesDialog() {
+    if (!mounted) return;
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Preferences'),
+        content: const SizedBox(
+          width: 400,
+          height: 200,
+          child: Center(child: Text('Preferences dialog — not yet implemented.')),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
   }
 
   void showDebugDialog() {

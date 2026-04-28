@@ -118,13 +118,21 @@ class RaceInfoTabState extends State<RaceInfoTab> {
     // Pull extra fields stored during token parsing.
     String desc = '';
     String sourceShort = '';
+    String size = '';
+    String move = '';
+    String cr = '';
     List<String> types = [];
     try {
       desc = race.getString(StringKey.description) ?? '';
       sourceShort = race.getString(StringKey.sourceShort) ??
                     race.getString(StringKey.sourceLong) ?? '';
+      size = race.getString(StringKey.sizeformula) ?? '';
+      move = race.getString(StringKey.tempvalue) ?? '';
+      cr   = race.getString(StringKey.subregion) ?? '';
       final typeList = race.getSafeListFor(ListKey.getConstant<String>('TYPE'));
-      types = typeList.cast<String>();
+      types = typeList.cast<String>()
+          .where((t) => !t.startsWith('RACETYPE:') && !t.startsWith('RACESUBTYPE:'))
+          .toList();
     } catch (_) {}
 
     return SingleChildScrollView(
@@ -144,6 +152,9 @@ class RaceInfoTabState extends State<RaceInfoTab> {
           ),
           const SizedBox(height: 8),
           _row('Key', race.getKeyName()),
+          if (size.isNotEmpty) _row('Size', size),
+          if (move.isNotEmpty) _row('Speed', _formatMove(move)),
+          if (cr.isNotEmpty) _row('CR', cr),
           if (sourceShort.isNotEmpty) _row('Source', sourceShort),
           if (types.isNotEmpty) _row('Types', types.join(', ')),
           if (desc.isNotEmpty) ...[
@@ -184,6 +195,13 @@ class RaceInfoTabState extends State<RaceInfoTab> {
         ],
       ),
     );
+  }
+
+  String _formatMove(String raw) {
+    // MOVE:Walk,30 → "Walk 30 ft."
+    final parts = raw.split(',');
+    if (parts.length == 2) return '${parts[0]} ${parts[1]} ft.';
+    return raw;
   }
 
   Widget _row(String label, String value) => Padding(
