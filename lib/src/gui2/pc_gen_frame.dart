@@ -17,8 +17,9 @@
 //
 // Translation of pcgen.gui2.PCGenFrame
 
+import 'dart:convert' show JsonEncoder;
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart' show LogicalKeyboardKey;
+import 'package:flutter/services.dart';
 import 'package:flutter_pcgen/src/gui2/ui_context.dart';
 import 'package:flutter_pcgen/src/gui2/ui_property_context.dart';
 import 'package:flutter_pcgen/src/gui2/pc_gen_action_map.dart';
@@ -38,6 +39,7 @@ import 'package:flutter_pcgen/src/gui2/sources/source_selection_dialog.dart';
 import 'package:flutter_pcgen/src/gui2/facade/character_facade_impl.dart';
 import 'package:flutter_pcgen/src/io/character_file_io.dart';
 import 'package:flutter_pcgen/src/io/character_text_export.dart';
+import 'package:flutter_pcgen/src/io/pcg_character_io.dart';
 import 'package:flutter_pcgen/src/persistence/source_file_loader.dart';
 import 'package:flutter_pcgen/src/system/character_manager.dart';
 
@@ -220,8 +222,23 @@ class PCGenFrameState extends State<PCGenFrame> {
     if (!mounted) return;
     showDialog(
       context: context,
-      builder: (_) => _ExportDialog(character: character),
+      builder: (_) => _ExportDialog(character: character, frame: this),
     );
+  }
+
+  void saveCharacterAsJson(CharacterFacade character) {
+    if (character is CharacterFacadeImpl) {
+      CharacterFileIO.saveJson(character).then((path) {
+        if (path != null && mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Saved JSON to $path'),
+              duration: const Duration(seconds: 3),
+            ),
+          );
+        }
+      });
+    }
   }
 
   void closePCGen() {
@@ -553,44 +570,113 @@ class _FrameUIDelegate implements UIDelegate {
 // Export dialog — shows plaintext character sheet, copy to clipboard
 // ---------------------------------------------------------------------------
 
-class _ExportDialog extends StatelessWidget {
+class _ExportDialog extends StatefulWidget {
   final dynamic character;
-  const _ExportDialog({required this.character});
+  final dynamic frame; // PCGenFrameState
+  const _ExportDialog({required this.character, required this.frame});
+
+  @override
+  State<_ExportDialog> createState() => _ExportDialogState();
+}
+
+class _ExportDialogState extends State<_ExportDialog> {
+  // 0 = plain text, 1 = PCG, 2 = JSON
+  int _tab = 0;
+
+  String get _textContent => widget.character is CharacterFacadeImpl
+      ? CharacterTextExport.export(widget.character as CharacterFacadeImpl)
+      : 'Cannot export: unsupported character type.';
+
+  String get _pcgContent => widget.character is CharacterFacadeImpl
+      ? PCGCharacterIO.write(widget.character as CharacterFacadeImpl)
+      : '';
+
+  String get _jsonContent {
+    if (widget.character is! CharacterFacadeImpl) return '';
+    try {
+      return const JsonEncoder.withIndent('  ').convert(
+          CharacterFileIO.sanitiseForJson(
+              (widget.character as CharacterFacadeImpl).toJson()));
+    } catch (e) {
+      return 'JSON error: $e';
+    }
+  }
+
+  String get _currentContent =>
+      _tab == 0 ? _textContent : _tab == 1 ? _pcgContent : _jsonContent;
+
+  String get _currentLabel =>
+      _tab == 0 ? 'Text' : _tab == 1 ? 'PCG' : 'JSON';
 
   @override
   Widget build(BuildContext context) {
-    final text = character is CharacterFacadeImpl
-        ? CharacterTextExport.export(character as CharacterFacadeImpl)
-        : 'Cannot export: unsupported character type.';
-
     return Dialog(
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 680, maxHeight: 600),
+        constraints: const BoxConstraints(maxWidth: 700, maxHeight: 640),
         child: Padding(
           padding: const EdgeInsets.all(20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text('Export Character Sheet',
+              Text('Export Character',
                   style: Theme.of(context).textTheme.titleLarge),
               const SizedBox(height: 12),
+              // Format tabs
+              Row(
+                children: [
+                  _fmtBtn('Plain Text', 0),
+                  const SizedBox(width: 8),
+                  _fmtBtn('PCG (Java PCGen)', 1),
+                  const SizedBox(width: 8),
+                  _fmtBtn('JSON', 2),
+                ],
+              ),
+              const SizedBox(height: 8),
               Expanded(
-                child: SingleChildScrollView(
-                  child: SelectableText(
-                    text,
-                    style: const TextStyle(fontFamily: 'monospace', fontSize: 12),
+                child: Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey.shade300),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(8),
+                    child: SelectableText(
+                      _currentContent,
+                      style: const TextStyle(fontFamily: 'monospace', fontSize: 11),
+                    ),
                   ),
                 ),
               ),
               const SizedBox(height: 12),
               Row(
-                mainAxisAlignment: MainAxisAlignment.end,
                 children: [
+                  // Save to file
+                  if (widget.character is CharacterFacadeImpl) ...[
+                    OutlinedButton.icon(
+                      icon: const Icon(Icons.save, size: 16),
+                      label: Text('Save as $_currentLabel'),
+                      onPressed: () {
+                        Navigator.pop(context);
+                        if (_tab == 1) {
+                          widget.frame.saveCharacter(widget.character);
+                        } else if (_tab == 2) {
+                          widget.frame.saveCharacterAsJson(widget.character);
+                        } else {
+                          // Plain text — just copy
+                          Clipboard.setData(ClipboardData(text: _currentContent));
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Copied to clipboard')),
+                          );
+                        }
+                      },
+                    ),
+                    const SizedBox(width: 8),
+                  ],
                   OutlinedButton.icon(
-                    icon: const Icon(Icons.copy),
+                    icon: const Icon(Icons.copy, size: 16),
                     label: const Text('Copy to Clipboard'),
                     onPressed: () {
-                      Clipboard.setData(ClipboardData(text: text));
+                      Clipboard.setData(ClipboardData(text: _currentContent));
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
                           content: Text('Copied to clipboard'),
@@ -599,7 +685,7 @@ class _ExportDialog extends StatelessWidget {
                       );
                     },
                   ),
-                  const SizedBox(width: 8),
+                  const Spacer(),
                   TextButton(
                     onPressed: () => Navigator.pop(context),
                     child: const Text('Close'),
@@ -610,6 +696,20 @@ class _ExportDialog extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _fmtBtn(String label, int idx) {
+    final selected = _tab == idx;
+    return OutlinedButton(
+      style: OutlinedButton.styleFrom(
+        backgroundColor: selected ? Theme.of(context).colorScheme.primaryContainer : null,
+        side: selected
+            ? BorderSide(color: Theme.of(context).colorScheme.primary, width: 2)
+            : null,
+      ),
+      onPressed: () => setState(() => _tab = idx),
+      child: Text(label, style: const TextStyle(fontSize: 12)),
     );
   }
 }

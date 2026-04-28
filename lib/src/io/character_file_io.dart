@@ -1,4 +1,7 @@
-// Character file save/load — stores characters as JSON .pcg files.
+// Character file save/load.
+//
+// Writes in PCGen PCG v2 format (compatible with the Java PCGen application).
+// Reads both PCG v2 and our older JSON format for backwards compatibility.
 
 import 'dart:convert';
 import 'dart:io';
@@ -6,6 +9,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import 'package:flutter_pcgen/src/gui2/app_state.dart';
 import 'package:flutter_pcgen/src/gui2/facade/character_facade_impl.dart';
+import 'package:flutter_pcgen/src/io/pcg_character_io.dart';
 
 class CharacterFileIO {
   static Future<Directory> _getCharDir() async {
@@ -14,6 +18,10 @@ class CharacterFileIO {
     if (!dir.existsSync()) dir.createSync(recursive: true);
     return dir;
   }
+
+  /// Public alias used by the export dialog to produce a JSON preview.
+  static Map<String, dynamic> sanitiseForJson(Map<String, dynamic> data) =>
+      _sanitise(data);
 
   /// Produce a JSON-safe copy of [data] by dropping any values that are not
   /// a primitive, List, or Map. This guards against accidentally serialising
@@ -41,8 +49,8 @@ class CharacterFileIO {
         return null; // drop non-serialisable items
       }).where((e) => e != null).toList();
 
-  /// Save [character] to disk. Filename derives from the character name.
-  /// Returns the path written, or null on error.
+  /// Save [character] to disk in PCG v2 format.
+  /// Filename derives from the character name. Returns the path, or null on error.
   static Future<String?> save(CharacterFacadeImpl character) async {
     try {
       final dir = await _getCharDir();
@@ -50,8 +58,7 @@ class CharacterFileIO {
           character.getName().trim().isEmpty ? 'unnamed' : character.getName().trim();
       final safeName = name.replaceAll(RegExp(r'[^\w\s\-]'), '_');
       final file = File(p.join(dir.path, '$safeName.pcg'));
-      final json = jsonEncode(_sanitise(character.toJson()));
-      await file.writeAsString(json, flush: true);
+      await file.writeAsString(PCGCharacterIO.write(character), flush: true);
       character.setFilePath(file.path);
       return file.path;
     } catch (e) {
@@ -60,14 +67,12 @@ class CharacterFileIO {
     }
   }
 
-  /// Save [character] to an explicit [path].
+  /// Save [character] to an explicit [path] in PCG v2 format.
   static Future<bool> saveAs(CharacterFacadeImpl character, String path) async {
     try {
       final file = File(path);
       await file.parent.create(recursive: true);
-      await file.writeAsString(
-          jsonEncode(_sanitise(character.toJson())),
-          flush: true);
+      await file.writeAsString(PCGCharacterIO.write(character), flush: true);
       character.setFilePath(path);
       return true;
     } catch (e) {
@@ -76,19 +81,51 @@ class CharacterFileIO {
     }
   }
 
+  /// Save [character] as JSON (.json) — useful for debugging or backup.
+  /// Returns the path written, or null on error.
+  static Future<String?> saveJson(CharacterFacadeImpl character) async {
+    try {
+      final dir = await _getCharDir();
+      final name =
+          character.getName().trim().isEmpty ? 'unnamed' : character.getName().trim();
+      final safeName = name.replaceAll(RegExp(r'[^\w\s\-]'), '_');
+      final file = File(p.join(dir.path, '$safeName.json'));
+      final json = const JsonEncoder.withIndent('  ').convert(_sanitise(character.toJson()));
+      await file.writeAsString(json, flush: true);
+      return file.path;
+    } catch (e) {
+      print('CharacterFileIO.saveJson error: $e');
+      return null;
+    }
+  }
+
   /// Load a character from [path].
-  /// Reconstructs live object references (race etc.) from [loadedDataSet] if
-  /// available. Returns null on error.
+  /// Supports both PCG v2 format (Java PCGen compatible) and legacy JSON.
+  /// Reconstructs live object references via [loadedDataSet] if available.
   static Future<CharacterFacadeImpl?> load(String path) async {
     try {
       final file = File(path);
       if (!file.existsSync()) return null;
-      final json =
-          jsonDecode(await file.readAsString()) as Map<String, dynamic>;
-      final character = CharacterFacadeImpl.fromJson(json);
+      final content = await file.readAsString();
+      final dataset = loadedDataSet.value;
+
+      CharacterFacadeImpl character;
+      if (PCGCharacterIO.isPCGFormat(content)) {
+        // Native PCGen PCG v2 format
+        character = PCGCharacterIO.read(content, dataset: dataset);
+      } else {
+        // Legacy JSON format (older saves from this app)
+        try {
+          final json = jsonDecode(content) as Map<String, dynamic>;
+          character = CharacterFacadeImpl.fromJson(json);
+          character.restoreFromDataset(dataset);
+        } catch (_) {
+          print('CharacterFileIO.load: unrecognised format in $path');
+          return null;
+        }
+      }
+
       character.setFilePath(path);
-      // Reconnect live game objects from the currently loaded dataset.
-      character.restoreFromDataset(loadedDataSet.value);
       return character;
     } catch (e) {
       print('CharacterFileIO.load error: $e');
@@ -96,14 +133,15 @@ class CharacterFileIO {
     }
   }
 
-  /// List all saved .pcg files ordered newest-first.
+  /// List all saved character files (.pcg and .json) ordered newest-first.
   static Future<List<File>> listSaved() async {
     try {
       final dir = await _getCharDir();
       return dir
           .listSync()
           .whereType<File>()
-          .where((f) => f.path.endsWith('.pcg'))
+          .where((f) =>
+              f.path.endsWith('.pcg') || f.path.endsWith('.json'))
           .toList()
         ..sort(
             (a, b) => b.lastModifiedSync().compareTo(a.lastModifiedSync()));
