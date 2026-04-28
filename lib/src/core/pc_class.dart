@@ -92,6 +92,17 @@ class PCClass extends PObject {
   String getClassType() => getSafeString(StringKey.classType);
   String getFullKey() => getKeyName();
 
+  /// Returns skill points per level parsed from STARTSKILLPTS token.
+  int getSkillPtsPerLevel() {
+    try {
+      final v = getSafeObject(ObjectKey.getConstant<int>('START_SKILL_PTS'));
+      return v as int? ?? 2;
+    } catch (_) { return 2; }
+  }
+
+  /// Returns the raw CSKILL string (pipe-separated skill names/TYPE= entries).
+  String getRawClassSkills() => getSafeString(StringKey.listtype);
+
   List<String> getTypes() {
     final types = getSafeListFor<dynamic>(ListKey.getConstant<dynamic>('TYPE'));
     return types.map((t) => t.toString()).toList();

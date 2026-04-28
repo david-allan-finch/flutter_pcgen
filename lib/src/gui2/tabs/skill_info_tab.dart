@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_pcgen/src/core/data_set.dart';
+import 'package:flutter_pcgen/src/core/pc_class.dart';
 import 'package:flutter_pcgen/src/core/pc_stat.dart';
 import 'package:flutter_pcgen/src/core/skill.dart';
 import 'package:flutter_pcgen/src/gui2/app_state.dart';
@@ -50,9 +51,13 @@ class SkillInfoTabState extends State<SkillInfoTab> {
 
     final intMod = _statMod(character, 'INT', stats);
     final totalLevels = _totalLevels(character);
-    // Very rough skill pool: (4 + INT mod) per level, min 1 per level.
-    final pool = totalLevels > 0 ? ((4 + intMod).clamp(1, 99) * totalLevels) : 0;
+    // Use real class skill points from the last class level if available.
+    final pool = totalLevels > 0
+        ? (_computeSkillPool(character, dataset?.classes ?? [], intMod, totalLevels))
+        : 0;
     final spent = _totalRanksSpent(character, skills);
+    // Build class skills set for highlighting.
+    final classSkillNames = _buildClassSkillNames(character, dataset?.classes ?? []);
     final remaining = pool - spent;
 
     return Column(
@@ -98,7 +103,7 @@ class SkillInfoTabState extends State<SkillInfoTab> {
               : ListView.builder(
                   itemCount: filtered.length,
                   itemBuilder: (context, i) =>
-                      _buildRow(character, filtered[i], stats, i.isEven),
+                      _buildRow(character, filtered[i], stats, i.isEven, classSkillNames),
                 ),
         ),
       ],
@@ -121,7 +126,10 @@ class SkillInfoTabState extends State<SkillInfoTab> {
     );
   }
 
-  Widget _buildRow(dynamic character, Skill skill, List<PCStat> stats, bool shaded) {
+  Widget _buildRow(dynamic character, Skill skill, List<PCStat> stats, bool shaded,
+      Set<String> classSkills) {
+    final isClassSkill = classSkills.contains(skill.getDisplayName()) ||
+        classSkills.contains(skill.getKeyName());
     final keyStatAbb = _safeKeyStatAbb(skill);
     final statMod = _statMod(character, keyStatAbb, stats);
     final ranks = _getRanks(character, skill);
@@ -135,9 +143,23 @@ class SkillInfoTabState extends State<SkillInfoTab> {
           children: [
             SizedBox(
               width: 160,
-              child: Text(skill.getDisplayName(),
-                  style: const TextStyle(fontSize: 12),
-                  overflow: TextOverflow.ellipsis),
+              child: Row(
+                children: [
+                  if (isClassSkill)
+                    const Padding(
+                      padding: EdgeInsets.only(right: 2),
+                      child: Icon(Icons.star, size: 10, color: Colors.amber),
+                    ),
+                  Expanded(
+                    child: Text(skill.getDisplayName(),
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: isClassSkill ? FontWeight.bold : FontWeight.normal,
+                        ),
+                        overflow: TextOverflow.ellipsis),
+                  ),
+                ],
+              ),
             ),
             SizedBox(
               width: 40,
@@ -252,6 +274,58 @@ class SkillInfoTabState extends State<SkillInfoTab> {
   }
 
   String _fmtMod(int mod) => mod >= 0 ? '+$mod' : '$mod';
+
+  int _computeSkillPool(dynamic character, List<PCClass> classes, int intMod, int totalLevels) {
+    try {
+      final levels = (character as dynamic).toJson()['classLevels'];
+      if (levels is! List || levels.isEmpty) {
+        return ((4 + intMod).clamp(1, 99)) * totalLevels;
+      }
+      // Sum skill points per class level: (classSPL + INT mod) min 1
+      int total = 0;
+      final counts = <String, int>{};
+      for (final l in levels) {
+        if (l is Map) {
+          final key = l['classKey'] as String? ?? '';
+          counts[key] = (counts[key] ?? 0) + 1;
+        }
+      }
+      for (final entry in counts.entries) {
+        final cls = classes.where((c) => c.getKeyName() == entry.key).firstOrNull;
+        final spl = cls?.getSkillPtsPerLevel() ?? 4;
+        total += ((spl + intMod).clamp(1, 99)) * entry.value;
+      }
+      return total;
+    } catch (_) {
+      return ((4 + intMod).clamp(1, 99)) * totalLevels;
+    }
+  }
+
+  Set<String> _buildClassSkillNames(dynamic character, List<PCClass> classes) {
+    final result = <String>{};
+    try {
+      final levels = (character as dynamic).toJson()['classLevels'];
+      if (levels is! List) return result;
+      final seenKeys = <String>{};
+      for (final l in levels) {
+        if (l is Map) {
+          final key = l['classKey'] as String? ?? '';
+          if (seenKeys.add(key)) {
+            final cls = classes.where((c) => c.getKeyName() == key).firstOrNull;
+            if (cls != null) {
+              final raw = cls.getRawClassSkills();
+              if (raw.isNotEmpty) {
+                for (final s in raw.split('|')) {
+                  if (!s.startsWith('TYPE=')) result.add(s.trim());
+                }
+              }
+            }
+          }
+        }
+      }
+    } catch (_) {}
+    return result;
+  }
 }
 
 class _SmallIconButton extends StatelessWidget {

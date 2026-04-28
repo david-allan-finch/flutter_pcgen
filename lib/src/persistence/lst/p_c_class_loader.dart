@@ -18,6 +18,7 @@
 // Translation of pcgen.persistence.lst.PCClassLoader
 
 import 'package:flutter_pcgen/src/cdom/enumeration/list_key.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/object_key.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/string_key.dart';
 import 'package:flutter_pcgen/src/core/pc_class.dart';
 import 'package:flutter_pcgen/src/core/sub_class.dart';
@@ -132,8 +133,11 @@ class PCClassLoader extends LstObjectFileLoader<PCClass> {
         pcClass.putString(StringKey.sourceWeb, value);
         break;
       case 'STARTSKILLPTS':
-        // Skill points per level — stored as a class type string for now
-        try { pcClass.putString(StringKey.classType, 'SKILLPTS:$value'); } catch (_) {}
+        try { pcClass.putObject(ObjectKey.getConstant<int>('START_SKILL_PTS'), int.tryParse(value) ?? 2); } catch (_) {}
+        break;
+      case 'CSKILL':
+        // Class skills: CSKILL:Climb|TYPE=Craft|... — store raw for now
+        try { pcClass.putString(StringKey.listtype, value); } catch (_) {}
         break;
       case 'OUTPUTNAME':
         pcClass.putString(StringKey.outputName, value);
