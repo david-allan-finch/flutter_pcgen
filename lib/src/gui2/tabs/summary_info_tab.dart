@@ -56,17 +56,36 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
   late TextEditingController _hpController;
   bool _hpEditPending = false;
 
+  // Deity editing — must be a persistent controller or it resets on every rebuild
+  late TextEditingController _deityController;
+  late FocusNode _deityFocus;
+
+  // Player name / Age / Gender
+  late TextEditingController _playerNameController;
+  late TextEditingController _ageController;
+  late TextEditingController _genderController;
+
   @override
   void initState() {
     super.initState();
     _nameController = TextEditingController();
     _hpController = TextEditingController();
+    _deityController = TextEditingController();
+    _deityFocus = FocusNode();
+    _playerNameController = TextEditingController();
+    _ageController = TextEditingController();
+    _genderController = TextEditingController();
   }
 
   @override
   void dispose() {
     _nameController.dispose();
     _hpController.dispose();
+    _deityController.dispose();
+    _deityFocus.dispose();
+    _playerNameController.dispose();
+    _ageController.dispose();
+    _genderController.dispose();
     super.dispose();
   }
 
@@ -131,10 +150,33 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
   // ---- Identity section -----------------------------------------------------
 
   Widget _buildIdentitySection(dynamic character) {
+    // Sync name only when not actively editing
     final charName = (character as dynamic).getName() as String? ?? '';
     if (!_nameEditPending && _nameController.text != charName) {
       _nameController.text = charName;
     }
+
+    // Sync deity only when the field is not focused
+    String deityKey = '';
+    try { deityKey = (character as dynamic).getDeityKey() as String? ?? ''; } catch (_) {}
+    if (!_deityFocus.hasFocus && _deityController.text != deityKey) {
+      _deityController.text = deityKey;
+    }
+
+    // Sync player name / age / gender when not focused (no pending flag needed
+    // since these fields save on submit, not on every keystroke)
+    String playerName = '';
+    try { playerName = (character as dynamic).getPlayersName() as String? ?? ''; } catch (_) {}
+    if (_playerNameController.text != playerName) _playerNameController.text = playerName;
+
+    String gender = '';
+    try { gender = (character as dynamic).getGender() as String? ?? ''; } catch (_) {}
+    if (_genderController.text != gender) _genderController.text = gender;
+
+    int age = 0;
+    try { age = (character as dynamic).getAge() as int? ?? 0; } catch (_) {}
+    final ageStr = age > 0 ? '$age' : '';
+    if (_ageController.text != ageStr) _ageController.text = ageStr;
 
     final raceRef = character.getRaceRef();
     final raceObj = raceRef?.get();
@@ -148,8 +190,6 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
         final alignments = dataset?.alignments ?? const [];
         String alignKey = '';
         try { alignKey = (character as dynamic).getAlignmentKey() as String? ?? ''; } catch (_) {}
-        String deityKey = '';
-        try { deityKey = (character as dynamic).getDeityKey() as String? ?? ''; } catch (_) {}
 
         return Card(
           child: Padding(
@@ -159,28 +199,28 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
               children: [
                 Text('Identity', style: Theme.of(context).textTheme.titleMedium),
                 const SizedBox(height: 8),
-                // Name
-                Row(
-                  children: [
-                    const SizedBox(width: 80,
-                        child: Text('Name:', style: TextStyle(fontWeight: FontWeight.bold))),
-                    Expanded(
-                      child: TextField(
-                        controller: _nameController,
-                        decoration: const InputDecoration(
-                          border: OutlineInputBorder(), isDense: true,
-                          contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                        ),
-                        onChanged: (v) {
-                          _nameEditPending = true;
-                          character.setName(v); // live update so title bar reacts
-                        },
-                        onSubmitted: (v) { _nameEditPending = false; },
-                        onEditingComplete: () { _nameEditPending = false; },
-                      ),
-                    ),
-                  ],
-                ),
+                _editRow('Name', _nameController,
+                  onChanged: (v) { _nameEditPending = true; character.setName(v); },
+                  onDone: (v) { _nameEditPending = false; }),
+                const SizedBox(height: 4),
+                _editRow('Player', _playerNameController,
+                  onDone: (v) {
+                    try { (character as dynamic).setPlayersName(v); } catch (_) {}
+                  }),
+                const SizedBox(height: 4),
+                Row(children: [
+                  Expanded(child: _editRow('Gender', _genderController,
+                    onDone: (v) {
+                      try { (character as dynamic).setGender(v); } catch (_) {}
+                    })),
+                  const SizedBox(width: 8),
+                  Expanded(child: _editRow('Age', _ageController,
+                    keyboardType: TextInputType.number,
+                    onDone: (v) {
+                      final n = int.tryParse(v);
+                      if (n != null) try { (character as dynamic).setAge(n); } catch (_) {}
+                    })),
+                ]),
                 const SizedBox(height: 6),
                 _labelledValue('Race', raceName),
                 _labelledValue('Class', _classLevelSummary(character)),
@@ -211,31 +251,49 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
                     ),
                   ]),
                 const SizedBox(height: 6),
-                // Deity field
-                Row(children: [
-                  const SizedBox(width: 80,
-                      child: Text('Deity:', style: TextStyle(fontWeight: FontWeight.bold))),
-                  Expanded(
-                    child: TextField(
-                      controller: TextEditingController(text: deityKey),
-                      decoration: const InputDecoration(
-                        border: OutlineInputBorder(), isDense: true,
-                        contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                        hintText: 'Deity name',
-                      ),
-                      onSubmitted: (v) {
-                        try { (character as dynamic).setDeityKey(v); } catch (_) {}
-                        currentCharacter.notifyListeners();
-                      },
-                    ),
-                  ),
-                ]),
+                // Deity — persistent controller, only syncs when not focused
+                _editRow('Deity', _deityController,
+                  focusNode: _deityFocus,
+                  hint: 'Deity name',
+                  onDone: (v) {
+                    try { (character as dynamic).setDeityKey(v); } catch (_) {}
+                    currentCharacter.notifyListeners();
+                  }),
               ],
             ),
           ),
         );
       },
     );
+  }
+
+  /// A labelled text field row that commits on submit/unfocus.
+  Widget _editRow(String label, TextEditingController ctrl, {
+    FocusNode? focusNode,
+    String? hint,
+    TextInputType? keyboardType,
+    void Function(String)? onChanged,
+    void Function(String)? onDone,
+  }) {
+    return Row(children: [
+      SizedBox(width: 80,
+          child: Text('$label:', style: const TextStyle(fontWeight: FontWeight.bold))),
+      Expanded(
+        child: TextField(
+          controller: ctrl,
+          focusNode: focusNode,
+          keyboardType: keyboardType,
+          decoration: InputDecoration(
+            border: const OutlineInputBorder(), isDense: true,
+            contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+            hintText: hint,
+          ),
+          onChanged: onChanged,
+          onSubmitted: onDone,
+          onEditingComplete: () { if (onDone != null) onDone(ctrl.text); },
+        ),
+      ),
+    ]);
   }
 
   String _classLevelSummary(dynamic character) {

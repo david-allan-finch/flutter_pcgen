@@ -74,9 +74,11 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
   late final DefaultReferenceFacade<String?> _fileRef;
 
   CharacterFacadeImpl(this._data) {
-    _raceRef = DefaultReferenceFacade(_data['race']);
-    _alignmentRef = DefaultReferenceFacade(_data['alignment']);
-    _deityRef = DefaultReferenceFacade(_data['deity']);
+    // Race/alignment/deity are stored only as key strings; live objects are
+    // reconstructed after load via restoreFromDataset().
+    _raceRef = DefaultReferenceFacade(null);
+    _alignmentRef = DefaultReferenceFacade(null);
+    _deityRef = DefaultReferenceFacade(null);
     _nameRef = DefaultReferenceFacade(_data['name'] as String? ?? '');
     _tabNameRef = DefaultReferenceFacade(_data['tabName'] as String? ?? '');
     _fileRef = DefaultReferenceFacade(_data['fileName'] as String?);
@@ -150,12 +152,17 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
   @override
   DefaultReferenceFacade<Object> getRaceRef() => _raceRef;
 
+  /// Assign a race. Stores only the key name in the serialisable data map;
+  /// the live object is kept in [_raceRef] for in-session use.
   @override
   void setRace(Object race) {
-    _data['race'] = race;
+    _data['raceKey'] = (race as dynamic).getKeyName() as String? ?? '';
+    // Do NOT put the Race object itself into _data — it is not JSON-serialisable.
     _raceRef.set(race);
     notifyListeners();
   }
+
+  String getRaceKey() => _data['raceKey'] as String? ?? '';
 
   // ---- Alignment ----------------------------------------------------------
 
@@ -164,7 +171,10 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
 
   @override
   void setAlignment(Object? alignment) {
-    _data['alignment'] = alignment;
+    // Store only the key name; object kept in ref for in-session use.
+    if (alignment != null) {
+      _data['alignmentKey'] = (alignment as dynamic).getKeyName() as String? ?? '';
+    }
     _alignmentRef.set(alignment);
     notifyListeners();
   }
@@ -176,7 +186,9 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
 
   @override
   void setDeity(Object? deity) {
-    _data['deity'] = deity;
+    if (deity != null) {
+      _data['deityKey'] = (deity as dynamic).getKeyName() as String? ?? '';
+    }
     _deityRef.set(deity);
     notifyListeners();
   }
@@ -449,8 +461,7 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
   /// Racial (and template) bonus to [stat] from BONUS:STAT tokens.
   int getRacialBonus(PCStat stat) {
     int total = 0;
-    // Race bonuses
-    final race = _data['race'];
+    final race = _raceRef.get();
     if (race != null) {
       try {
         final bonusList = (race as dynamic)
@@ -611,7 +622,21 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
 
   // ---- Serialise / deserialise to Map (for save / load) -------------------
 
-  Map<String, dynamic> toJson() => Map<String, dynamic>.from(_data);
+  /// Returns the live data map directly so callers can mutate lists in-place.
+  Map<String, dynamic> toJson() => _data;
+
+  /// Reconstruct live object references (race, alignment, deity) from
+  /// [dataset] after loading a character from disk.
+  void restoreFromDataset(dynamic dataset) {
+    if (dataset == null) return;
+    try {
+      final raceKey = _data['raceKey'] as String? ?? '';
+      if (raceKey.isNotEmpty) {
+        final race = (dataset as dynamic).findRace(raceKey);
+        if (race != null) _raceRef.set(race);
+      }
+    } catch (_) {}
+  }
 
   static CharacterFacadeImpl fromJson(Map<String, dynamic> json) =>
       CharacterFacadeImpl(json);

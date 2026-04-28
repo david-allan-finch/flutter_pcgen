@@ -18,6 +18,7 @@
 // Translation of pcgen.gui2.PCGenFrame
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show LogicalKeyboardKey;
 import 'package:flutter_pcgen/src/gui2/ui_context.dart';
 import 'package:flutter_pcgen/src/gui2/ui_property_context.dart';
 import 'package:flutter_pcgen/src/gui2/pc_gen_action_map.dart';
@@ -442,23 +443,53 @@ class PCGenFrameState extends State<PCGenFrame> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(_title ?? 'PCGen'),
-        actions: [
-          PCGenMenuBar(frame: this, uiContext: widget.uiContext),
-        ],
-      ),
-      body: Column(
-        children: [
-          Expanded(
-            child: CharacterTabs(
-              key: _characterTabsKey,
-              frame: this,
+    return Shortcuts(
+      shortcuts: {
+        const SingleActivator(LogicalKeyboardKey.keyS, control: true):
+            const _SaveIntent(),
+        const SingleActivator(LogicalKeyboardKey.keyN, control: true):
+            const _NewIntent(),
+        const SingleActivator(LogicalKeyboardKey.keyO, control: true):
+            const _OpenIntent(),
+      },
+      child: Actions(
+        actions: {
+          _SaveIntent: CallbackAction<_SaveIntent>(
+            onInvoke: (_) {
+              final pc = getSelectedCharacterRef().get();
+              if (pc != null) saveCharacter(pc);
+              return null;
+            },
+          ),
+          _NewIntent: CallbackAction<_NewIntent>(
+            onInvoke: (_) { createNewCharacter(null); return null; },
+          ),
+          _OpenIntent: CallbackAction<_OpenIntent>(
+            onInvoke: (_) { showOpenCharacterChooser(); return null; },
+          ),
+        },
+        child: Focus(
+          autofocus: true,
+          child: Scaffold(
+            appBar: AppBar(
+              title: Text(_title ?? 'PCGen'),
+              actions: [
+                PCGenMenuBar(frame: this, uiContext: widget.uiContext),
+              ],
+            ),
+            body: Column(
+              children: [
+                Expanded(
+                  child: CharacterTabs(
+                    key: _characterTabsKey,
+                    frame: this,
+                  ),
+                ),
+                PCGenStatusBar(key: _statusBarKey, frame: this),
+              ],
             ),
           ),
-          PCGenStatusBar(key: _statusBarKey, frame: this),
-        ],
+        ),
       ),
     );
   }
@@ -671,3 +702,11 @@ class _LoadCharacterDialogState extends State<_LoadCharacterDialog> {
     );
   }
 }
+
+// ---------------------------------------------------------------------------
+// Keyboard shortcut intents
+// ---------------------------------------------------------------------------
+
+class _SaveIntent extends Intent { const _SaveIntent(); }
+class _NewIntent  extends Intent { const _NewIntent(); }
+class _OpenIntent extends Intent { const _OpenIntent(); }

@@ -295,7 +295,21 @@ class InventoryInfoTabState extends State<InventoryInfoTab>
       if (existing != null) {
         existing['qty'] = (existing['qty'] as int? ?? 1) + 1;
       } else {
-        gear.add({'name': item.getDisplayName(), 'key': item.getKeyName(), 'qty': 1});
+        // Parse cost from stored string (e.g. '50' gp)
+        String costStr = '';
+        try { costStr = item.getString(StringKey.cost) ?? ''; } catch (_) {}
+        final costGp = double.tryParse(costStr) ?? 0.0;
+        gear.add({
+          'name': item.getDisplayName(),
+          'key': item.getKeyName(),
+          'qty': 1,
+          'cost': costGp,
+        });
+        // Deduct cost from funds
+        if (costGp > 0) {
+          final current = (character as dynamic).getFunds() as double? ?? 0.0;
+          (character as dynamic).setFunds(current - costGp);
+        }
       }
       currentCharacter.notifyListeners();
       setState(() {});

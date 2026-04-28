@@ -78,6 +78,7 @@ final class CharacterManager {
       'biography': '',
       'appearance': '',
       'notes': '',
+      'raceKey': '',
       'alignmentKey': '',
       'deityKey': '',
       'statScores': {

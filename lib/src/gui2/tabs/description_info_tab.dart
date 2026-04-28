@@ -12,14 +12,19 @@ class DescriptionInfoTab extends StatefulWidget {
 
 class DescriptionInfoTabState extends State<DescriptionInfoTab>
     with SingleTickerProviderStateMixin {
-  dynamic _character;
   late final TabController _tabController;
 
   final TextEditingController _bioController = TextEditingController();
   final TextEditingController _appearanceController = TextEditingController();
   final TextEditingController _notesController = TextEditingController();
 
-  void setCharacter(dynamic character) => setState(() => _character = character);
+  final FocusNode _bioFocus        = FocusNode();
+  final FocusNode _appearanceFocus = FocusNode();
+  final FocusNode _notesFocus      = FocusNode();
+
+  // The last character whose values have been loaded into the controllers.
+  // We only resync when the character identity changes, not on every rebuild.
+  Object? _lastSyncedCharacter;
 
   @override
   void initState() {
@@ -33,7 +38,26 @@ class DescriptionInfoTabState extends State<DescriptionInfoTab>
     _bioController.dispose();
     _appearanceController.dispose();
     _notesController.dispose();
+    _bioFocus.dispose();
+    _appearanceFocus.dispose();
+    _notesFocus.dispose();
     super.dispose();
+  }
+
+  void _syncIfCharacterChanged(dynamic character) {
+    if (character == null) { _lastSyncedCharacter = null; return; }
+    // Only reload controllers when a different character is selected.
+    if (identical(character, _lastSyncedCharacter)) return;
+    _lastSyncedCharacter = character as Object;
+    _forceSync(character);
+  }
+
+  void _forceSync(dynamic character) {
+    try {
+      _bioController.text        = (character as dynamic).getBiography()  as String? ?? '';
+      _appearanceController.text = (character as dynamic).getAppearance() as String? ?? '';
+      _notesController.text      = (character as dynamic).getNotes()       as String? ?? '';
+    } catch (_) {}
   }
 
   @override
@@ -41,7 +65,11 @@ class DescriptionInfoTabState extends State<DescriptionInfoTab>
     return ValueListenableBuilder(
       valueListenable: currentCharacter,
       builder: (context, character, _) {
-        _syncControllers(character);
+        // Only resync when the character object itself changes, not on every
+        // notifyListeners call. This prevents overwriting text the user is
+        // actively editing on the current character.
+        _syncIfCharacterChanged(character);
+
         return Column(
           children: [
             TabBar(
@@ -59,6 +87,7 @@ class DescriptionInfoTabState extends State<DescriptionInfoTab>
                   _buildTextPane(
                     character: character,
                     controller: _bioController,
+                    focusNode: _bioFocus,
                     hint: 'Enter character biography…',
                     onSave: (v) {
                       try { (character as dynamic).setBiography(v); } catch (_) {}
@@ -67,7 +96,8 @@ class DescriptionInfoTabState extends State<DescriptionInfoTab>
                   _buildTextPane(
                     character: character,
                     controller: _appearanceController,
-                    hint: 'Describe your character\'s appearance…',
+                    focusNode: _appearanceFocus,
+                    hint: "Describe your character's appearance…",
                     onSave: (v) {
                       try { (character as dynamic).setAppearance(v); } catch (_) {}
                     },
@@ -75,6 +105,7 @@ class DescriptionInfoTabState extends State<DescriptionInfoTab>
                   _buildTextPane(
                     character: character,
                     controller: _notesController,
+                    focusNode: _notesFocus,
                     hint: 'Session notes, backstory details…',
                     onSave: (v) {
                       try { (character as dynamic).setNotes(v); } catch (_) {}
@@ -89,21 +120,10 @@ class DescriptionInfoTabState extends State<DescriptionInfoTab>
     );
   }
 
-  void _syncControllers(dynamic character) {
-    if (character == null) return;
-    try {
-      final bio = (character as dynamic).getBiography() as String? ?? '';
-      if (_bioController.text != bio) _bioController.text = bio;
-      final appearance = (character as dynamic).getAppearance() as String? ?? '';
-      if (_appearanceController.text != appearance) _appearanceController.text = appearance;
-      final notes = (character as dynamic).getNotes() as String? ?? '';
-      if (_notesController.text != notes) _notesController.text = notes;
-    } catch (_) {}
-  }
-
   Widget _buildTextPane({
     required dynamic character,
     required TextEditingController controller,
+    required FocusNode focusNode,
     required String hint,
     required void Function(String) onSave,
   }) {
@@ -118,6 +138,7 @@ class DescriptionInfoTabState extends State<DescriptionInfoTab>
           Expanded(
             child: TextField(
               controller: controller,
+              focusNode: focusNode,
               maxLines: null,
               expands: true,
               textAlignVertical: TextAlignVertical.top,
@@ -129,16 +150,24 @@ class DescriptionInfoTabState extends State<DescriptionInfoTab>
             ),
           ),
           const SizedBox(height: 8),
-          Align(
-            alignment: Alignment.centerRight,
-            child: ElevatedButton.icon(
-              icon: const Icon(Icons.save, size: 16),
-              label: const Text('Save'),
-              onPressed: () {
-                onSave(controller.text);
-                currentCharacter.notifyListeners();
-              },
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              TextButton(
+                onPressed: () => _forceSync(character),
+                child: const Text('Revert'),
+              ),
+              const SizedBox(width: 8),
+              ElevatedButton.icon(
+                icon: const Icon(Icons.save, size: 16),
+                label: const Text('Save'),
+                onPressed: () {
+                  onSave(controller.text);
+                  // Don't call notifyListeners here — it would trigger rebuilds
+                  // in every other tab, which is noisy and unnecessary.
+                },
+              ),
+            ],
           ),
         ],
       ),
