@@ -167,7 +167,7 @@ class DomainInfoTabState extends State<DomainInfoTab> {
                               itemCount: selectedDomainKeys.length,
                               itemBuilder: (context, i) {
                                 final key = selectedDomainKeys[i];
-                                final domain = (dataset?.domains ?? [])
+                                final domain = domains
                                     .where((d) => d.getKeyName() == key)
                                     .firstOrNull;
                                 return ListTile(
@@ -194,9 +194,6 @@ class DomainInfoTabState extends State<DomainInfoTab> {
       ],
     );
   }
-
-  // Needed to capture dataset in closure without passing it through
-  DataSet? get _dataset => loadedDataSet.value;
 
   List<String> _getDomainKeys(dynamic character) {
     try { return (character as dynamic).getSelectedDomainKeys() as List<String>? ?? []; }

@@ -36,14 +36,15 @@ class SkillInfoTabState extends State<SkillInfoTab> {
           builder: (context, character, _) {
             final skills = dataset?.skills ?? const [];
             final stats = dataset?.stats ?? const [];
-            return _buildContent(character, skills, stats);
+            final classes = dataset?.classes ?? const <PCClass>[];
+            return _buildContent(character, skills, stats, classes);
           },
         );
       },
     );
   }
 
-  Widget _buildContent(dynamic character, List<Skill> skills, List<PCStat> stats) {
+  Widget _buildContent(dynamic character, List<Skill> skills, List<PCStat> stats, List<PCClass> classes) {
     final query = _search.text.trim().toLowerCase();
     final filtered = query.isEmpty
         ? skills
@@ -53,11 +54,11 @@ class SkillInfoTabState extends State<SkillInfoTab> {
     final totalLevels = _totalLevels(character);
     // Use real class skill points from the last class level if available.
     final pool = totalLevels > 0
-        ? (_computeSkillPool(character, dataset?.classes ?? [], intMod, totalLevels))
+        ? (_computeSkillPool(character, classes, intMod, totalLevels))
         : 0;
     final spent = _totalRanksSpent(character, skills);
     // Build class skills set for highlighting.
-    final classSkillNames = _buildClassSkillNames(character, dataset?.classes ?? []);
+    final classSkillNames = _buildClassSkillNames(character, classes);
     final remaining = pool - spent;
 
     return Column(

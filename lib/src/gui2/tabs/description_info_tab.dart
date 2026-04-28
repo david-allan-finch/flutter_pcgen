@@ -77,7 +77,7 @@ class DescriptionInfoTabState extends State<DescriptionInfoTab>
                     controller: _notesController,
                     hint: 'Session notes, backstory details…',
                     onSave: (v) {
-                      try { (character as dynamic).setNotes2(v); } catch (_) {}
+                      try { (character as dynamic).setNotes(v); } catch (_) {}
                     },
                   ),
                 ],

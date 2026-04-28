@@ -90,6 +90,9 @@ class PCClass extends PObject {
 
   String getHD() => getSafeString(StringKey.hdFormula);
   String getClassType() => getSafeString(StringKey.classType);
+
+  /// Returns the BAB progression type: 'Full', 'ThreeQuarters', 'Half', or '' (unknown).
+  String getBabProgression() => getSafeString(StringKey.masterBabFormula);
   String getFullKey() => getKeyName();
 
   /// Returns skill points per level parsed from STARTSKILLPTS token.

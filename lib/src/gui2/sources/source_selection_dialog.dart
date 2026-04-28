@@ -9,7 +9,9 @@
 // Translation of pcgen.gui2.sources.SourceSelectionDialog
 
 import 'package:flutter/material.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/list_key.dart';
 import 'package:flutter_pcgen/src/core/campaign.dart';
+import 'package:flutter_pcgen/src/core/globals.dart';
 import 'package:flutter_pcgen/src/gui2/sources/advanced_source_selection_panel.dart';
 
 /// Dialog for selecting game sources (books/settings) to load.
@@ -102,12 +104,7 @@ class _SourceSelectionDialogState extends State<SourceSelectionDialog>
                 child: TabBarView(
                   controller: _tabController,
                   children: [
-                    const Center(
-                      child: Text(
-                        'Quick-load presets coming soon.\nUse the Advanced tab to select sources.',
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
+                    _BasicPresetsPanel(onSelected: _onSelectionChanged),
                     AdvancedSourceSelectionPanel(
                       onSelectionChanged: _onSelectionChanged,
                     ),
@@ -154,4 +151,114 @@ class _SourceSelectionDialogState extends State<SourceSelectionDialog>
       ),
     );
   }
+}
+
+// ---------------------------------------------------------------------------
+// Basic tab: grouped presets by game mode
+// ---------------------------------------------------------------------------
+
+class _BasicPresetsPanel extends StatefulWidget {
+  final void Function(List<Campaign>, String) onSelected;
+  const _BasicPresetsPanel({required this.onSelected});
+
+  @override
+  State<_BasicPresetsPanel> createState() => _BasicPresetsPanelState();
+}
+
+class _BasicPresetsPanelState extends State<_BasicPresetsPanel> {
+  // Groups of game mode → list of (label, campaign-name keywords)
+  late final Map<String, List<_Preset>> _presets;
+  String? _selectedPresetId;
+
+  @override
+  void initState() {
+    super.initState();
+    _presets = _buildPresets();
+  }
+
+  Map<String, List<_Preset>> _buildPresets() {
+    // Build presets from the loaded campaign list.
+    final gameModeKey = ListKey.getConstant<String>('GAMEMODES');
+    final byMode = <String, List<Campaign>>{};
+    for (final c in Globals.getCampaignList()) {
+      final modes = c.getSafeListFor<String>(gameModeKey);
+      final mode = modes.isNotEmpty ? modes.first : '(Unknown)';
+      byMode.putIfAbsent(mode, () => []).add(c);
+    }
+
+    // For each game mode, show up to 6 highlighted campaigns as presets.
+    // If a campaign's name contains "SRD" or "Core" we bump it to the top.
+    final result = <String, List<_Preset>>{};
+    for (final entry in byMode.entries) {
+      final mode = entry.key;
+      final sorted = [...entry.value]..sort((a, b) {
+          final aScore = _importanceScore(a.getDisplayName());
+          final bScore = _importanceScore(b.getDisplayName());
+          return bScore.compareTo(aScore);
+        });
+      final presets = sorted.take(6).map((c) =>
+          _Preset(c.getDisplayName(), [c], mode)).toList();
+      if (presets.isNotEmpty) result[mode] = presets;
+    }
+    return result;
+  }
+
+  int _importanceScore(String name) {
+    final lower = name.toLowerCase();
+    if (lower.contains('srd') || lower.contains('system reference')) return 3;
+    if (lower.contains('core') || lower.contains('rulebook')) return 2;
+    if (lower.contains('complete') || lower.contains('players')) return 1;
+    return 0;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_presets.isEmpty) {
+      return const Center(child: Text('No campaigns found. Use the Advanced tab.'));
+    }
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Quick Load — select a source set to load:',
+              style: Theme.of(context).textTheme.bodySmall),
+          const SizedBox(height: 12),
+          for (final entry in _presets.entries) ...[
+            Text(entry.key,
+                style: Theme.of(context).textTheme.titleSmall),
+            const SizedBox(height: 6),
+            Wrap(
+              spacing: 8,
+              runSpacing: 6,
+              children: entry.value.map((preset) {
+                final selected = _selectedPresetId == preset.id;
+                return FilterChip(
+                  selected: selected,
+                  label: Text(preset.label,
+                      style: const TextStyle(fontSize: 12)),
+                  onSelected: (v) {
+                    setState(() => _selectedPresetId = v ? preset.id : null);
+                    if (v) {
+                      widget.onSelected(preset.campaigns, preset.gameMode);
+                    }
+                  },
+                );
+              }).toList(),
+            ),
+            const SizedBox(height: 12),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _Preset {
+  final String label;
+  final List<Campaign> campaigns;
+  final String gameMode;
+  String get id => '$gameMode:$label';
+  const _Preset(this.label, this.campaigns, this.gameMode);
 }

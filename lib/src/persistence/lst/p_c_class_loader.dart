@@ -169,8 +169,36 @@ class PCClassLoader extends LstObjectFileLoader<PCClass> {
           pcClass.putString(StringKey.description, 'Role: $value');
         }
         break;
+      case 'BONUS':
+        // Only process BONUS:COMBAT|BASEAB| for BAB-type detection.
+        // Format: BONUS:COMBAT|BASEAB|<formula>
+        if (value.toUpperCase().startsWith('COMBAT|BASEAB|')) {
+          final formula = value.substring('COMBAT|BASEAB|'.length).toLowerCase();
+          String babType;
+          if (!formula.contains('*') && !formula.contains('/') &&
+              !formula.contains('.') && formula.contains('cl')) {
+            babType = 'Full';
+          } else if (formula.contains('3/4') || formula.contains('.75') ||
+              formula.contains('0.75')) {
+            babType = 'ThreeQuarters';
+          } else if (formula.contains('1/2') || formula.contains('/2') ||
+              formula.contains('.5') || formula.contains('0.5')) {
+            babType = 'Half';
+          } else {
+            babType = 'ThreeQuarters'; // safe default
+          }
+          // Only set if not already determined (first occurrence wins).
+          if (pcClass.getString(StringKey.masterBabFormula) == null) {
+            pcClass.putString(StringKey.masterBabFormula, babType);
+          }
+        }
+        break;
+      case 'INTMOD':
+        // INTMOD:YES/NO — whether INT modifier applies to skill points
+        // (affects first-level skill point calculation; stored for now)
+        break;
       default:
-        // PRE, BONUS, CAST, KNOWN, SPELLLIST, etc. — not yet implemented
+        // CAST, KNOWN, SPELLLIST, PRExxx, etc. — not yet implemented
         break;
     }
   }

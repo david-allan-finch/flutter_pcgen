@@ -22,6 +22,8 @@ import 'package:flutter/services.dart';
 
 import 'package:flutter_pcgen/src/core/data_set.dart';
 import 'package:flutter_pcgen/src/core/language.dart';
+import 'package:flutter_pcgen/src/core/pc_check.dart';
+import 'package:flutter_pcgen/src/core/pc_class.dart';
 import 'package:flutter_pcgen/src/core/pc_stat.dart';
 import 'package:flutter_pcgen/src/gui2/app_state.dart';
 import 'package:flutter_pcgen/src/gui2/tabs/character_info_tab.dart';
@@ -115,7 +117,7 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
                   const SizedBox(height: 12),
                   _buildCombatSection(character, statKeys, statObjects),
                   const SizedBox(height: 12),
-                  _buildSavesSection(character, statKeys, statObjects),
+                  _buildSavesSection(character, statKeys, statObjects, dataset),
                   const SizedBox(height: 12),
                   _buildClassLevelSection(character),
                 ],
@@ -479,9 +481,9 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
 
   Widget _buildCombatSection(dynamic character, List<String> statKeys,
       List<PCStat> statObjects) {
-    int totalLevel = 0;
-    try { totalLevel = (character as dynamic).getTotalCharacterLevel() as int? ?? 0; } catch (_) {}
+    final dataset = loadedDataSet.value;
     final dexMod = _getStatMod(character, statKeys, statObjects, 'DEX');
+    final bab = _computeBab(character, dataset);
     final initiative = dexMod;
 
     return Card(
@@ -496,7 +498,7 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
               children: [
                 _combatChip('Initiative', _fmtMod(initiative)),
                 const SizedBox(width: 12),
-                _combatChip('BAB', '+${_estimateBab(totalLevel)}'),
+                _combatChip('BAB', '+$bab'),
                 const SizedBox(width: 12),
                 _combatChip('AC', '10 + ${_fmtMod(dexMod)}'),
               ],
@@ -507,8 +509,32 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
     );
   }
 
-  // Very rough BAB estimate: 3/4 of total level (average between full and 1/2).
-  int _estimateBab(int level) => (level * 3 / 4).floor();
+  /// Compute BAB from class levels and each class's BAB progression type.
+  int _computeBab(dynamic character, DataSet? dataset) {
+    List classLevels = [];
+    try { classLevels = ((character as dynamic).toJson()['classLevels'] as List?) ?? []; } catch (_) {}
+    if (classLevels.isEmpty) return 0;
+    final classes = dataset?.classes ?? const <PCClass>[];
+
+    // Count levels per class key.
+    final counts = <String, int>{};
+    for (final l in classLevels) {
+      if (l is Map) {
+        final k = l['classKey'] as String? ?? '';
+        counts[k] = (counts[k] ?? 0) + 1;
+      }
+    }
+
+    // Sum BAB contribution from each class.
+    double total = 0.0;
+    for (final entry in counts.entries) {
+      final cls = classes.where((c) => c.getKeyName() == entry.key).firstOrNull;
+      final bab = cls?.getBabProgression() ?? '';
+      final rate = bab == 'Full' ? 1.0 : bab == 'Half' ? 0.5 : 0.75;
+      total += entry.value * rate;
+    }
+    return total.floor();
+  }
 
   Widget _combatChip(String label, String value) {
     return Column(
@@ -542,12 +568,25 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
 
   String _fmtMod(int v) => v >= 0 ? '+$v' : '$v';
 
-  Widget _buildSavesSection(
-      dynamic character, List<String> statKeys, List<PCStat> statObjects) {
-    // Fort = CON mod, Ref = DEX mod, Will = WIS mod
-    final fort = _getStatMod(character, statKeys, statObjects, 'CON');
-    final ref = _getStatMod(character, statKeys, statObjects, 'DEX');
-    final will = _getStatMod(character, statKeys, statObjects, 'WIS');
+  Widget _buildSavesSection(dynamic character, List<String> statKeys,
+      List<PCStat> statObjects, DataSet? dataset) {
+    final checks = dataset?.checks ?? const <PCCheck>[];
+    // Map saves to their governing stats (Fort=CON, Ref=DEX, Will=WIS for 3.5e)
+    // If checks are loaded, use their names; otherwise use abbreviations.
+    final saveStatMap = <String, String>{};
+    if (checks.isNotEmpty) {
+      for (final check in checks) {
+        final name = check.getDisplayName();
+        if (name.toLowerCase().contains('fort')) saveStatMap[name] = 'CON';
+        else if (name.toLowerCase().contains('ref')) saveStatMap[name] = 'DEX';
+        else if (name.toLowerCase().contains('will')) saveStatMap[name] = 'WIS';
+      }
+    }
+    if (saveStatMap.isEmpty) {
+      saveStatMap['Fort'] = 'CON';
+      saveStatMap['Ref'] = 'DEX';
+      saveStatMap['Will'] = 'WIS';
+    }
 
     return Card(
       child: Padding(
@@ -555,17 +594,16 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Saving Throws',
-                style: Theme.of(context).textTheme.titleMedium),
+            Text('Saving Throws', style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 8),
             Row(
-              children: [
-                _saveChip('Fort', _fmtMod(fort)),
-                const SizedBox(width: 12),
-                _saveChip('Ref', _fmtMod(ref)),
-                const SizedBox(width: 12),
-                _saveChip('Will', _fmtMod(will)),
-              ],
+              children: saveStatMap.entries.map((e) {
+                final mod = _getStatMod(character, statKeys, statObjects, e.value);
+                return Padding(
+                  padding: const EdgeInsets.only(right: 12),
+                  child: _saveChip(e.key.length > 4 ? e.key.substring(0, 4) : e.key, _fmtMod(mod)),
+                );
+              }).toList(),
             ),
           ],
         ),

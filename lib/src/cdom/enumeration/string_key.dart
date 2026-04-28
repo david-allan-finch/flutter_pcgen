@@ -68,4 +68,7 @@ enum StringKey {
   subregion,
   hdFormula,
   classType,
+  duration,
+  spellRange,
+  spellComponents,
 }

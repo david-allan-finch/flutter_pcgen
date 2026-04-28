@@ -25,12 +25,14 @@ import 'package:flutter_pcgen/src/core/equipment.dart';
 import 'package:flutter_pcgen/src/core/kit.dart';
 import 'package:flutter_pcgen/src/core/language.dart';
 import 'package:flutter_pcgen/src/core/pc_alignment.dart';
+import 'package:flutter_pcgen/src/core/pc_check.dart';
 import 'package:flutter_pcgen/src/core/pc_class.dart';
 import 'package:flutter_pcgen/src/core/pc_template.dart';
 import 'package:flutter_pcgen/src/core/pc_stat.dart';
 import 'package:flutter_pcgen/src/core/race.dart';
 import 'package:flutter_pcgen/src/core/size_adjustment.dart';
 import 'package:flutter_pcgen/src/core/skill.dart';
+import 'package:flutter_pcgen/src/core/spell/spell.dart';
 import 'package:flutter_pcgen/src/core/weapon_prof.dart';
 
 // Holds all the data loaded from data sources for a given game mode.
@@ -43,12 +45,14 @@ class DataSet {
   final List<PCAlignment> alignments = [];
   final List<Kit> kits = [];
   final List<PCStat> stats = [];
+  final List<PCCheck> checks = [];
   final List<Campaign> campaigns = [];
   final List<Equipment> equipment = [];
   final List<Domain> domains = [];
   final List<Language> languages = [];
   final List<WeaponProf> weaponProfs = [];
   final List<SizeAdjustment> sizeAdjustments = [];
+  final List<Spell> spells = [];
   final Map<AbilityCategory, List<Ability>> abilities = {};
   final List<String> xpTableNames = [];
   final List<String> characterTypes = [];
@@ -70,6 +74,7 @@ class DataSet {
   void addLanguage(Language lang) => languages.add(lang);
   void addWeaponProf(WeaponProf prof) => weaponProfs.add(prof);
   void addSizeAdjustment(SizeAdjustment size) => sizeAdjustments.add(size);
+  void addSpell(Spell spell) => spells.add(spell);
 
   void addAbility(AbilityCategory category, Ability ability) {
     abilities.putIfAbsent(category, () => []).add(ability);

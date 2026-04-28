@@ -2,6 +2,9 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/list_key.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/object_key.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/string_key.dart';
 import 'package:flutter_pcgen/src/core/data_set.dart';
 import 'package:flutter_pcgen/src/core/equipment.dart';
 import 'package:flutter_pcgen/src/gui2/app_state.dart';
@@ -139,6 +142,24 @@ class InventoryInfoTabState extends State<InventoryInfoTab>
   }
 
   Widget _buildItemDetail(Equipment item, dynamic character) {
+    // Pull parsed LST data
+    String cost = '';
+    String wt = '';
+    String damage = '';
+    String wield = '';
+    List<String> types = [];
+    try { cost = item.getString(StringKey.cost) ?? ''; } catch (_) {}
+    try {
+      final w = item.getSafeObject(ObjectKey.getConstant<double>('WEIGHT'));
+      if (w != null) wt = '${w} lb';
+    } catch (_) {}
+    try { damage = item.getString(StringKey.damage) ?? ''; } catch (_) {}
+    try { wield = item.getString(StringKey.nameText) ?? ''; } catch (_) {}
+    try {
+      final typeList = item.getSafeListFor(ListKey.getConstant<String>('TYPE'));
+      types = typeList.cast<String>().take(6).toList();
+    } catch (_) {}
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -148,8 +169,14 @@ class InventoryInfoTabState extends State<InventoryInfoTab>
               style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 8),
           _row('Key', item.getKeyName()),
+          if (cost.isNotEmpty) _row('Cost', '$cost gp'),
+          if (wt.isNotEmpty) _row('Weight', wt),
+          if (damage.isNotEmpty) _row('Damage', damage),
+          if (wield.isNotEmpty) _row('Wield', wield),
+          if (types.isNotEmpty) _row('Type', types.join(', ')),
           if (item.getSourceURI() != null)
-            _row('Source', Uri.parse(item.getSourceURI()!).pathSegments.last),
+            _row('Source',
+                Uri.parse(item.getSourceURI()!).pathSegments.last),
           const SizedBox(height: 16),
           if (character != null)
             ElevatedButton.icon(
@@ -175,6 +202,7 @@ class InventoryInfoTabState extends State<InventoryInfoTab>
       return const Center(child: Text('No character selected.'));
     }
     final gear = _getGear(character);
+    final funds = _getFunds(character);
     return Column(
       children: [
         Padding(
@@ -184,9 +212,32 @@ class InventoryInfoTabState extends State<InventoryInfoTab>
               Text('Carried Gear (${gear.length} items)',
                   style: const TextStyle(fontWeight: FontWeight.bold)),
               const Spacer(),
-              // Funds display
-              Text('Funds: ${_getFunds(character)} gp',
-                  style: const TextStyle(fontSize: 12, color: Colors.grey)),
+              // Funds display + edit
+              const Text('Gold: ', style: TextStyle(fontSize: 12)),
+              SizedBox(
+                width: 70,
+                child: TextFormField(
+                  initialValue: funds.toStringAsFixed(2),
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  style: const TextStyle(fontSize: 12),
+                  decoration: const InputDecoration(
+                    isDense: true,
+                    border: OutlineInputBorder(),
+                    contentPadding: EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                    suffixText: 'gp',
+                  ),
+                  onFieldSubmitted: (v) {
+                    final amount = double.tryParse(v);
+                    if (amount != null) {
+                      try {
+                        (character as dynamic).setFunds(amount);
+                        currentCharacter.notifyListeners();
+                        setState(() {});
+                      } catch (_) {}
+                    }
+                  },
+                ),
+              ),
             ],
           ),
         ),

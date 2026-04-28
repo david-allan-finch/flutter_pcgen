@@ -108,10 +108,80 @@ class GenericLoader<T extends CDOMObject> extends LstObjectFileLoader<T> {
         case 'DEFINE':
           // DEFINE:VARNAME|expression — skip
           return;
+        case 'COST':
+          try { obj.putString(StringKey.cost, value); } catch (_) {}
+          return;
+        case 'WT':
+          try {
+            obj.putObject(
+              ObjectKey.getConstant<double>('WEIGHT'),
+              double.tryParse(value) ?? 0.0,
+            );
+          } catch (_) {}
+          return;
+        case 'PROFICIENCY':
+          // PROFICIENCY:WEAPON|SwordLong — store weapon proficiency name
+          try {
+            final idx = value.indexOf('|');
+            if (idx > 0) {
+              obj.putString(StringKey.targetArea, value.substring(idx + 1));
+            }
+          } catch (_) {}
+          return;
+        case 'WIELD':
+          // WIELD:TwoHanded|OneHanded|Light etc.
+          try { obj.putString(StringKey.nameText, value); } catch (_) {}
+          return;
+        case 'DAMAGE':
+          try { obj.putString(StringKey.damage, value); } catch (_) {}
+          return;
+        case 'RANGE':
+          // Weapon range in feet — store in itemcreate for now
+          try { obj.putString(StringKey.itemcreate, value); } catch (_) {}
+          return;
+        case 'SCHOOL':
+          // Spell school (Evocation, Conjuration, etc.)
+          try { obj.putString(StringKey.genre, value); } catch (_) {}
+          return;
+        case 'SUBSCHOOL':
+          try { obj.putString(StringKey.setting, value); } catch (_) {}
+          return;
+        case 'DESCRIPTOR':
+          try { obj.putString(StringKey.dataFormat, value); } catch (_) {}
+          return;
+        case 'CLASSES':
+          // CLASSES:Wizard=3|Sorcerer=3|Cleric=5|...
+          try { obj.putString(StringKey.campaignSetting, value); } catch (_) {}
+          return;
+        case 'CASTTIME':
+        case 'CASTINGTIME':
+          // Spell casting time
+          try { obj.putString(StringKey.duration, value); } catch (_) {}
+          return;
+        case 'DURATION':
+          // Spell duration (e.g. "1 round/level")
+          try { obj.putString(StringKey.help, value); } catch (_) {}
+          return;
+        case 'COMPS':
+          // Spell components (V, S, M, etc.)
+          try { obj.putString(StringKey.spellComponents, value); } catch (_) {}
+          return;
+        case 'SAVEINFO':
+          // Saving throw info for spell
+          try { obj.putString(StringKey.convertName, value); } catch (_) {}
+          return;
+        case 'SPELLRANGE':
+          try { obj.putString(StringKey.spellRange, value); } catch (_) {}
+          return;
+        case 'STAT':
+          // STAT:CL (for spell level checks)
+          break;
+        case 'CRITRANGE':
+        case 'CRITMULT':
+        case 'FUMBLERANGE':
         case 'BONUSSPELLLEVEL':
         case 'BASESTATSCORE':
         case 'STATRANGE':
-        case 'COST':
         case 'MAXLEVEL':
         case 'MAXHD':
         case 'LEGS':

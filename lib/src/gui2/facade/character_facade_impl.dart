@@ -228,6 +228,11 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
     notifyListeners();
   }
 
+  void adjustXP(int delta) {
+    _data['xp'] = ((_data['xp'] as num?)?.toInt() ?? 0) + delta;
+    notifyListeners();
+  }
+
   @override
   int getXPForNextLevel() => (_data['xpForNext'] as num?)?.toInt() ?? 0;
 
@@ -573,9 +578,6 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
 
   String getAppearance() => _str('appearance');
   void setAppearance(String text) => _set('appearance', text);
-
-  String getNotes() => _str('notes');
-  void setNotes2(String text) => _set('notes', text);
 
   // ---- Serialise / deserialise to Map (for save / load) -------------------
 

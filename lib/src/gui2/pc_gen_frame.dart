@@ -390,22 +390,27 @@ class PCGenFrameState extends State<PCGenFrame> {
 
   void showAboutDialog() {
     if (!mounted) return;
+    final ds = loadedDataSet.value;
+    final dataLine = ds != null
+        ? '${ds.races.length} races • ${ds.classes.length} classes • '
+          '${ds.skills.length} skills • ${ds.spells.length} spells'
+        : 'No sources loaded';
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
         title: const Text('About PCGen Flutter'),
-        content: const Column(
+        content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('PCGen — Character Generator', style: TextStyle(fontWeight: FontWeight.bold)),
-            SizedBox(height: 4),
-            Text('Flutter/Dart port of the Java PCGen application.'),
-            SizedBox(height: 8),
-            Text('Data: d20/3.5e System Reference Document (RSRD)'),
-            Text('622 campaigns • 94 races • 104 classes • 86 skills'),
-            SizedBox(height: 8),
-            Text('Original PCGen: https://pcgen.org',
+            const Text('PCGen — Character Generator',
+                style: TextStyle(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 4),
+            const Text('Flutter/Dart port of the Java PCGen application.'),
+            const SizedBox(height: 8),
+            Text(dataLine),
+            const SizedBox(height: 8),
+            const Text('Original PCGen: https://pcgen.org',
                 style: TextStyle(color: Colors.blue)),
           ],
         ),
@@ -426,10 +431,6 @@ class PCGenFrameState extends State<PCGenFrame> {
 
   void loadPartyFromFile(String path) {
     CharacterManager.loadPartyFromFile(path);
-  }
-
-  void dispose() {
-    super.dispose();
   }
 
   void _showInfo(String message) {

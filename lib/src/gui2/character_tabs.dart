@@ -20,6 +20,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_pcgen/src/core/data_set.dart';
 import 'package:flutter_pcgen/src/facade/core/character_facade.dart';
+import 'package:flutter_pcgen/src/facade/util/list_facade.dart';
 import 'package:flutter_pcgen/src/gui2/app_state.dart';
 import 'package:flutter_pcgen/src/system/character_manager.dart';
 import 'package:flutter_pcgen/src/gui2/tabs/info_tabbed_pane.dart';
@@ -40,18 +41,21 @@ class CharacterTabsState extends State<CharacterTabs>
   final List<CharacterFacade> _characters = [];
   late TabController _tabController;
   final GlobalKey<InfoTabbedPaneState> _infoPaneKey = GlobalKey();
+  // Stored so we can pass the identical object to removeListListener.
+  late final void Function(ListChangeEvent<CharacterFacade>) _charListListener;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 0, vsync: this);
-    CharacterManager.getCharacters().addListListener((_) => _onCharactersChanged());
+    _charListListener = (_) => _onCharactersChanged();
+    CharacterManager.getCharacters().addListListener(_charListListener);
     widget.frame.getSelectedCharacterRef().addListener(_onSelectedCharacterChanged);
   }
 
   @override
   void dispose() {
-    CharacterManager.getCharacters().removeListListener((_) => _onCharactersChanged());
+    CharacterManager.getCharacters().removeListListener(_charListListener);
     widget.frame.getSelectedCharacterRef().removeListener(_onSelectedCharacterChanged);
     _tabController.dispose();
     super.dispose();
@@ -161,7 +165,8 @@ class CharacterTabsState extends State<CharacterTabs>
                 '${dataset.gameModeStr} loaded  •  '
                 '${dataset.races.length} races  •  '
                 '${dataset.classes.length} classes  •  '
-                '${dataset.skills.length} skills',
+                '${dataset.skills.length} skills  •  '
+                '${dataset.spells.length} spells',
                 style: Theme.of(context).textTheme.bodySmall,
               ),
               const SizedBox(height: 24),

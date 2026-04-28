@@ -1,6 +1,7 @@
 // Translation of pcgen.gui2.tabs.SpellsInfoTab
 
 import 'package:flutter/material.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/string_key.dart';
 import 'package:flutter_pcgen/src/core/data_set.dart';
 import 'package:flutter_pcgen/src/core/spell/spell.dart';
 import 'package:flutter_pcgen/src/gui2/app_state.dart';
@@ -110,47 +111,123 @@ class SpellsInfoTabState extends State<SpellsInfoTab>
   }
 
   Widget _buildAllSpellsTab(dynamic character, DataSet? dataset) {
-    // We'll show a note that spell loading requires class selection.
-    // If dataset has loaded spells, show them.
+    final allSpells = dataset?.spells ?? const [];
     final query = _search.text.trim().toLowerCase();
-    // DataSet.spell list is not yet populated by SourceFileLoader for Spell type.
-    // Show placeholder with search for future use.
+    final filtered = query.isEmpty
+        ? allSpells
+        : allSpells
+            .where((s) => s.getDisplayName().toLowerCase().contains(query))
+            .toList();
+
     return Column(
       children: [
         Padding(
           padding: const EdgeInsets.all(8),
-          child: TextField(
-            controller: _search,
-            decoration: const InputDecoration(
-              prefixIcon: Icon(Icons.search),
-              hintText: 'Search spells… (select a class first)',
-              border: OutlineInputBorder(),
-              isDense: true,
-            ),
-            onChanged: (_) => setState(() {}),
+          child: Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _search,
+                  decoration: const InputDecoration(
+                    prefixIcon: Icon(Icons.search),
+                    hintText: 'Search spells…',
+                    border: OutlineInputBorder(),
+                    isDense: true,
+                  ),
+                  onChanged: (_) => setState(() {}),
+                ),
+              ),
+              const SizedBox(width: 8),
+              if (character != null)
+                TextButton.icon(
+                  icon: const Icon(Icons.add, size: 14),
+                  label: const Text('Add Manually'),
+                  onPressed: () => _showAddSpellDialog(character),
+                ),
+            ],
           ),
         ),
-        Expanded(
-          child: Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.auto_stories, size: 48, color: Colors.grey),
-                const SizedBox(height: 8),
-                const Text('Spell list loading requires class levels.\n'
-                    'Add a spellcasting class in the Class tab first.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: Colors.grey)),
-                const SizedBox(height: 16),
-                if (character != null)
-                  ElevatedButton.icon(
-                    icon: const Icon(Icons.add),
-                    label: const Text('Add Spell Manually'),
-                    onPressed: () => _showAddSpellDialog(character),
-                  ),
-              ],
+        if (allSpells.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Text('${filtered.length} of ${allSpells.length} spells',
+                  style: const TextStyle(fontSize: 11, color: Colors.grey)),
             ),
           ),
+        Expanded(
+          child: allSpells.isEmpty
+              ? Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.auto_stories, size: 48, color: Colors.grey),
+                      const SizedBox(height: 8),
+                      const Text('No spells loaded.',
+                          style: TextStyle(color: Colors.grey)),
+                      const SizedBox(height: 16),
+                      if (character != null)
+                        ElevatedButton.icon(
+                          icon: const Icon(Icons.add),
+                          label: const Text('Add Spell Manually'),
+                          onPressed: () => _showAddSpellDialog(character),
+                        ),
+                    ],
+                  ),
+                )
+              : ListView.builder(
+                  itemCount: filtered.length,
+                  itemBuilder: (context, i) {
+                    final spell = filtered[i];
+                    String school = '';
+                    String classes = '';
+                    try { school = spell.getString(StringKey.genre) ?? ''; } catch (_) {}
+                    try {
+                      final raw = spell.getString(StringKey.campaignSetting) ?? '';
+                      if (raw.isNotEmpty) {
+                        final parts = raw.split('|').take(3).map((s) {
+                          final eq = s.indexOf('=');
+                          return eq > 0
+                              ? '${s.substring(0, eq)} ${s.substring(eq + 1)}'
+                              : s;
+                        });
+                        classes = parts.join(', ');
+                      }
+                    } catch (_) {}
+                    return ListTile(
+                      dense: true,
+                      title: Text(spell.getDisplayName(),
+                          style: const TextStyle(fontSize: 12)),
+                      subtitle: (school.isNotEmpty || classes.isNotEmpty)
+                          ? Text(
+                              [if (school.isNotEmpty) school,
+                               if (classes.isNotEmpty) classes].join(' • '),
+                              style: const TextStyle(fontSize: 10, color: Colors.grey),
+                              maxLines: 1, overflow: TextOverflow.ellipsis)
+                          : null,
+                      trailing: character == null
+                          ? null
+                          : TextButton(
+                              child: const Text('Add to Known',
+                                  style: TextStyle(fontSize: 11)),
+                              onPressed: () {
+                                _addToList(character, 'knownSpells', {
+                                  'name': spell.getDisplayName(),
+                                  'key': spell.getKeyName(),
+                                  'level': 0,
+                                });
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('Added ${spell.getDisplayName()}'),
+                                    duration: const Duration(seconds: 1),
+                                  ),
+                                );
+                              },
+                            ),
+                    );
+                  },
+                ),
         ),
       ],
     );

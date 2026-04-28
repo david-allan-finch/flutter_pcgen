@@ -39,6 +39,7 @@ import 'package:flutter_pcgen/src/core/pc_check.dart';
 import 'package:flutter_pcgen/src/core/pc_stat.dart';
 import 'package:flutter_pcgen/src/core/weapon_prof.dart';
 import 'package:flutter_pcgen/src/core/armor_prof.dart';
+import 'package:flutter_pcgen/src/core/spell/spell.dart';
 import 'package:flutter_pcgen/src/facade/core/ui_delegate.dart';
 import 'package:flutter_pcgen/src/rules/context/load_context.dart' hide Campaign, CampaignSourceEntry;
 import 'package:flutter_pcgen/src/system/p_c_gen_task.dart';
@@ -184,12 +185,14 @@ class SourceFileLoader extends PCGenTask {
     _dataset!.classes .addAll(ref.getAllConstructed<PCClass>(PCClass));
     _dataset!.skills  .addAll(ref.getAllConstructed<Skill>(Skill));
     _dataset!.stats   .addAll(ref.getAllConstructed<PCStat>(PCStat));
+    _dataset!.checks  .addAll(ref.getAllConstructed<PCCheck>(PCCheck));
     _dataset!.alignments.addAll(ref.getAllConstructed<PCAlignment>(PCAlignment));
     _dataset!.deities .addAll(ref.getAllConstructed<Deity>(Deity));
     _dataset!.domains .addAll(ref.getAllConstructed<Domain>(Domain));
     _dataset!.languages.addAll(ref.getAllConstructed<Language>(Language));
     _dataset!.templates.addAll(ref.getAllConstructed<PCTemplate>(PCTemplate));
     _dataset!.equipment.addAll(ref.getAllConstructed<Equipment>(Equipment));
+    _dataset!.spells   .addAll(ref.getAllConstructed<Spell>(Spell));
     for (final ability in ref.getAllConstructed<Ability>(Ability)) {
       _dataset!.addAbilityFlat(ability);
     }
@@ -199,6 +202,7 @@ class SourceFileLoader extends PCGenTask {
         '${_dataset!.classes.length} classes, '
         '${_dataset!.skills.length} skills, '
         '${_dataset!.stats.length} stats, '
+        '${_dataset!.spells.length} spells, '
         '${allAbilities.length} abilities/feats');
   }
 

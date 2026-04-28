@@ -18,26 +18,23 @@
 // Translation of pcgen.gui2.tabs.CharacterSheetInfoTab
 
 import 'package:flutter/material.dart';
+import 'package:flutter_pcgen/src/gui2/app_state.dart';
 import 'package:flutter_pcgen/src/gui2/csheet/character_sheet_panel.dart';
 
 /// Tab panel that shows the rendered character sheet.
-class CharacterSheetInfoTab extends StatefulWidget {
+class CharacterSheetInfoTab extends StatelessWidget {
   const CharacterSheetInfoTab({super.key});
 
   @override
-  State<CharacterSheetInfoTab> createState() => CharacterSheetInfoTabState();
-}
-
-class CharacterSheetInfoTabState extends State<CharacterSheetInfoTab> {
-  dynamic _character;
-
-  void setCharacter(dynamic character) => setState(() => _character = character);
-
-  @override
   Widget build(BuildContext context) {
-    if (_character == null) {
-      return const Center(child: Text('No character loaded'));
-    }
-    return CharacterSheetPanel(character: _character);
+    return ValueListenableBuilder(
+      valueListenable: currentCharacter,
+      builder: (context, character, _) {
+        if (character == null) {
+          return const Center(child: Text('No character selected.'));
+        }
+        return CharacterSheetPanel(character: character);
+      },
+    );
   }
 }
