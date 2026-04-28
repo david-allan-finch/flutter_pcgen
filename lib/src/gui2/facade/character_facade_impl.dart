@@ -18,6 +18,7 @@
 // Translation of pcgen.gui2.facade.CharacterFacadeImpl
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/list_key.dart';
 import 'package:flutter_pcgen/src/core/language.dart';
 import 'package:flutter_pcgen/src/core/pc_stat.dart';
 import 'package:flutter_pcgen/src/core/pc_class.dart';
@@ -445,8 +446,37 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
     notifyListeners();
   }
 
+  /// Racial (and template) bonus to [stat] from BONUS:STAT tokens.
+  int getRacialBonus(PCStat stat) {
+    int total = 0;
+    // Race bonuses
+    final race = _data['race'];
+    if (race != null) {
+      try {
+        final bonusList = (race as dynamic)
+            .getSafeListFor(ListKey.getConstant<String>('STAT_BONUS')) as List?;
+        if (bonusList != null) {
+          for (final b in bonusList) {
+            if (b is String) {
+              final idx = b.indexOf(':');
+              if (idx > 0 &&
+                  b.substring(0, idx).toUpperCase() ==
+                      stat.getKeyName().toUpperCase()) {
+                total += int.tryParse(b.substring(idx + 1)) ?? 0;
+              }
+            }
+          }
+        }
+      } catch (_) {}
+    }
+    return total;
+  }
+
+  /// Base score + racial bonuses.
+  int getEffectiveScore(PCStat stat) => getScoreBase(stat) + getRacialBonus(stat);
+
   @override
-  int getModTotal(PCStat stat) => ((getScoreBase(stat) - 10) / 2).floor();
+  int getModTotal(PCStat stat) => ((getEffectiveScore(stat) - 10) / 2).floor();
 
   // ---- Class levels ---------------------------------------------------------
 

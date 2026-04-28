@@ -43,10 +43,6 @@ class SpellsInfoTabState extends State<SpellsInfoTab>
         return ValueListenableBuilder(
           valueListenable: currentCharacter,
           builder: (context, character, _) {
-            // Spells come from the reference context via DataSet — for now
-            // DataSet doesn't have a spells list, so we show a placeholder.
-            // TODO: populate DataSet.spells from reference context once
-            //       Spell is registered with getAllConstructed.
             return Column(
               children: [
                 TabBar(

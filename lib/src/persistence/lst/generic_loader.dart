@@ -103,10 +103,11 @@ class GenericLoader<T extends CDOMObject> extends LstObjectFileLoader<T> {
           try { obj.putString(StringKey.abbKr, value); } catch (_) {}
           return;
         case 'STATMOD':
-          // Stat modifier formula — skip (formula system not yet wired)
           return;
         case 'DEFINE':
-          // DEFINE:VARNAME|expression — skip
+          return;
+        case 'BONUS':
+          _parseBonusToken(obj, value);
           return;
         case 'COST':
           try { obj.putString(StringKey.cost, value); } catch (_) {}
@@ -248,8 +249,8 @@ class GenericLoader<T extends CDOMObject> extends LstObjectFileLoader<T> {
       }
     }
 
-    // Skip PRE/BONUS/AUTO tokens for now (complex formula system).
-    if (LstUtils.isPrereqToken(tag) || LstUtils.isBonusToken(tag) ||
+    // Skip PRE/AUTO/CHOOSE and remaining BONUS subtypes.
+    if (LstUtils.isPrereqToken(tag) ||
         tag.toUpperCase() == 'AUTO' || tag.toUpperCase() == 'CHOOSE') {
       return;
     }
@@ -257,6 +258,65 @@ class GenericLoader<T extends CDOMObject> extends LstObjectFileLoader<T> {
     // Registered token handlers (added via addTokenHandler).
     for (final handler in _tokenHandlers) {
       handler(context, obj, token, source);
+    }
+  }
+
+  /// Parse BONUS: subtypes we care about (STAT, CHECKS).
+  /// Only processes unconditional bonuses (no trailing PRE conditions).
+  void _parseBonusToken(T obj, String value) {
+    // value is everything after 'BONUS:' e.g. 'STAT|STR|2' or 'CHECKS|BASE.Fortitude|CL/2+2'
+    final parts = value.split('|');
+    if (parts.length < 3) return;
+    // Skip conditional bonuses (have a 4th+ segment starting with PRE)
+    if (parts.length > 3 && parts[3].toUpperCase().startsWith('PRE')) return;
+
+    final bonusType = parts[0].toUpperCase();
+
+    switch (bonusType) {
+      case 'STAT':
+        // BONUS:STAT|STR,CON|2  or  BONUS:STAT|STR|-2
+        final statNames = parts[1].split(',');
+        final bonus = int.tryParse(parts[2]);
+        if (bonus == null) return;
+        for (final stat in statNames) {
+          final s = stat.trim().toUpperCase();
+          if (s.isNotEmpty) {
+            try {
+              obj.addToListFor(
+                ListKey.getConstant<String>('STAT_BONUS'),
+                '$s:$bonus',
+              );
+            } catch (_) {}
+          }
+        }
+        break;
+
+      case 'CHECKS':
+        // BONUS:CHECKS|BASE.Fortitude|CL/2+2
+        // Store raw so PCClass.isSaveGood() can interpret it.
+        final saveName = parts[1].toUpperCase();
+        final formula  = parts[2].toLowerCase();
+        String saveKey = '';
+        if (saveName.contains('FORT')) saveKey = 'Fortitude';
+        else if (saveName.contains('REF'))  saveKey = 'Reflex';
+        else if (saveName.contains('WILL')) saveKey = 'Will';
+        if (saveKey.isEmpty) return;
+
+        final isGood = formula.contains('/2') || formula.contains('*.5') ||
+            formula.contains('*0.5') || formula.contains('+2');
+        final type = isGood ? 'Good' : 'Poor';
+
+        try {
+          final existing = obj.getString(StringKey.masterCheckFormula) ?? '';
+          if (!existing.contains(saveKey)) {
+            final updated = existing.isEmpty ? '$saveKey:$type' : '$existing,$saveKey:$type';
+            obj.putString(StringKey.masterCheckFormula, updated);
+          }
+        } catch (_) {}
+        break;
+
+      default:
+        break;
     }
   }
 

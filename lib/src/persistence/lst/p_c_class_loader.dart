@@ -170,26 +170,44 @@ class PCClassLoader extends LstObjectFileLoader<PCClass> {
         }
         break;
       case 'BONUS':
-        // Only process BONUS:COMBAT|BASEAB| for BAB-type detection.
-        // Format: BONUS:COMBAT|BASEAB|<formula>
-        if (value.toUpperCase().startsWith('COMBAT|BASEAB|')) {
-          final formula = value.substring('COMBAT|BASEAB|'.length).toLowerCase();
-          String babType;
-          if (!formula.contains('*') && !formula.contains('/') &&
-              !formula.contains('.') && formula.contains('cl')) {
-            babType = 'Full';
-          } else if (formula.contains('3/4') || formula.contains('.75') ||
-              formula.contains('0.75')) {
-            babType = 'ThreeQuarters';
-          } else if (formula.contains('1/2') || formula.contains('/2') ||
-              formula.contains('.5') || formula.contains('0.5')) {
-            babType = 'Half';
-          } else {
-            babType = 'ThreeQuarters'; // safe default
-          }
-          // Only set if not already determined (first occurrence wins).
-          if (pcClass.getString(StringKey.masterBabFormula) == null) {
-            pcClass.putString(StringKey.masterBabFormula, babType);
+        final parts = value.split('|');
+        if (parts.length >= 3) {
+          final bonusType = parts[0].toUpperCase();
+          if (bonusType == 'COMBAT' && parts[1].toUpperCase() == 'BASEAB') {
+            // BAB progression detection
+            final formula = parts[2].toLowerCase();
+            String babType;
+            if (!formula.contains('*') && !formula.contains('/') &&
+                !formula.contains('.') && formula.contains('cl')) {
+              babType = 'Full';
+            } else if (formula.contains('3/4') || formula.contains('.75')) {
+              babType = 'ThreeQuarters';
+            } else if (formula.contains('/2') || formula.contains('.5')) {
+              babType = 'Half';
+            } else {
+              babType = 'ThreeQuarters';
+            }
+            if (pcClass.getString(StringKey.masterBabFormula) == null) {
+              pcClass.putString(StringKey.masterBabFormula, babType);
+            }
+          } else if (bonusType == 'CHECKS') {
+            // Save type detection — Good or Poor
+            final saveName = parts[1].toUpperCase();
+            final formula  = parts[2].toLowerCase();
+            String saveKey = '';
+            if (saveName.contains('FORT')) saveKey = 'Fortitude';
+            else if (saveName.contains('REF'))  saveKey = 'Reflex';
+            else if (saveName.contains('WILL')) saveKey = 'Will';
+            if (saveKey.isNotEmpty) {
+              final isGood = formula.contains('/2') || formula.contains('*.5') ||
+                  formula.contains('*0.5') || formula.contains('+2');
+              final type = isGood ? 'Good' : 'Poor';
+              final existing = pcClass.getString(StringKey.masterCheckFormula) ?? '';
+              if (!existing.contains(saveKey)) {
+                pcClass.putString(StringKey.masterCheckFormula,
+                    existing.isEmpty ? '$saveKey:$type' : '$existing,$saveKey:$type');
+              }
+            }
           }
         }
         break;

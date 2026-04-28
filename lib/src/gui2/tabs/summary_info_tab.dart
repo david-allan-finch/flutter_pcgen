@@ -22,7 +22,6 @@ import 'package:flutter/services.dart';
 
 import 'package:flutter_pcgen/src/core/data_set.dart';
 import 'package:flutter_pcgen/src/core/language.dart';
-import 'package:flutter_pcgen/src/core/pc_check.dart';
 import 'package:flutter_pcgen/src/core/pc_class.dart';
 import 'package:flutter_pcgen/src/core/pc_stat.dart';
 import 'package:flutter_pcgen/src/gui2/app_state.dart';
@@ -383,9 +382,10 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
             const SizedBox(height: 8),
             Table(
               columnWidths: const {
-                0: FixedColumnWidth(60),
-                1: FixedColumnWidth(70),
-                2: FixedColumnWidth(60),
+                0: FixedColumnWidth(56),
+                1: FixedColumnWidth(68),
+                2: FixedColumnWidth(46),
+                3: FixedColumnWidth(44),
               },
               defaultVerticalAlignment: TableCellVerticalAlignment.middle,
               children: [
@@ -393,21 +393,14 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
                   decoration: BoxDecoration(
                       color: Theme.of(context).highlightColor),
                   children: const [
-                    Padding(
-                      padding: EdgeInsets.symmetric(vertical: 4, horizontal: 4),
-                      child: Text('Stat',
-                          style: TextStyle(fontWeight: FontWeight.bold)),
-                    ),
-                    Padding(
-                      padding: EdgeInsets.symmetric(vertical: 4, horizontal: 4),
-                      child: Text('Score',
-                          style: TextStyle(fontWeight: FontWeight.bold)),
-                    ),
-                    Padding(
-                      padding: EdgeInsets.symmetric(vertical: 4, horizontal: 4),
-                      child: Text('Mod',
-                          style: TextStyle(fontWeight: FontWeight.bold)),
-                    ),
+                    Padding(padding: EdgeInsets.symmetric(vertical: 4, horizontal: 4),
+                        child: Text('Stat', style: TextStyle(fontWeight: FontWeight.bold))),
+                    Padding(padding: EdgeInsets.symmetric(vertical: 4, horizontal: 4),
+                        child: Text('Base', style: TextStyle(fontWeight: FontWeight.bold))),
+                    Padding(padding: EdgeInsets.symmetric(vertical: 4, horizontal: 4),
+                        child: Text('Total', style: TextStyle(fontWeight: FontWeight.bold))),
+                    Padding(padding: EdgeInsets.symmetric(vertical: 4, horizontal: 4),
+                        child: Text('Mod', style: TextStyle(fontWeight: FontWeight.bold))),
                   ],
                 ),
                 for (int i = 0; i < statKeys.length; i++)
@@ -424,21 +417,16 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
     );
   }
 
-  TableRow _buildStatRow(
-      dynamic character, String statKey, PCStat? statObj) {
-    int score;
+  TableRow _buildStatRow(dynamic character, String statKey, PCStat? statObj) {
+    int base = 10;
+    int racial = 0;
+    int effective = 10;
     if (statObj != null) {
-      try {
-        score = (character as dynamic).getScoreBase(statObj) as int? ?? 10;
-      } catch (_) {
-        score = 10;
-      }
-    } else {
-      // Fallback: no PCStat object available; default to 10.
-      score = 10;
+      try { base = (character as dynamic).getScoreBase(statObj) as int? ?? 10; } catch (_) {}
+      try { racial = (character as dynamic).getRacialBonus(statObj) as int? ?? 0; } catch (_) {}
+      effective = base + racial;
     }
-
-    final mod = ((score - 10) / 2).floor();
+    final mod = ((effective - 10) / 2).floor();
     final modStr = mod >= 0 ? '+$mod' : '$mod';
 
     return TableRow(
@@ -448,23 +436,38 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
           child: Tooltip(
             message: statObj?.getDisplayName() ?? statKey,
             child: Text(statKey,
-                style: const TextStyle(fontWeight: FontWeight.bold)),
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
           ),
         ),
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 4),
           child: _StatScoreField(
             key: ValueKey('stat_$statKey'),
-            initialValue: score,
-            onChanged: (newScore) {
+            initialValue: base,
+            onChanged: (newBase) {
               if (statObj != null) {
                 try {
-                  (character as dynamic).setScoreBase(statObj, newScore);
+                  (character as dynamic).setScoreBase(statObj, newBase);
                   currentCharacter.notifyListeners();
                 } catch (_) {}
               }
             },
           ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 4),
+          child: racial == 0
+              ? Text('$effective',
+                  style: const TextStyle(fontWeight: FontWeight.bold))
+              : Tooltip(
+                  message: 'Base $base + racial ${racial >= 0 ? "+$racial" : "$racial"}',
+                  child: Text('$effective',
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: racial > 0
+                              ? Colors.blue.shade700
+                              : Colors.orange.shade700)),
+                ),
         ),
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 4),
@@ -498,15 +501,28 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
               children: [
                 _combatChip('Initiative', _fmtMod(initiative)),
                 const SizedBox(width: 12),
-                _combatChip('BAB', '+$bab'),
+                _combatChip('BAB', _babSequence(bab)),
                 const SizedBox(width: 12),
-                _combatChip('AC', '10 + ${_fmtMod(dexMod)}'),
+                _combatChip('AC', '${10 + dexMod}'),
               ],
             ),
           ],
         ),
       ),
     );
+  }
+
+  /// Full attack sequence string: '+6/+1' for BAB 6, '+11/+6/+1' for 11, etc.
+  String _babSequence(int bab) {
+    if (bab <= 0) return '+0';
+    if (bab < 6) return '+$bab';
+    final attacks = <String>[];
+    int current = bab;
+    while (current > 0) {
+      attacks.add('+$current');
+      current -= 5;
+    }
+    return attacks.join('/');
   }
 
   /// Compute BAB from class levels and each class's BAB progression type.
@@ -570,23 +586,12 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
 
   Widget _buildSavesSection(dynamic character, List<String> statKeys,
       List<PCStat> statObjects, DataSet? dataset) {
-    final checks = dataset?.checks ?? const <PCCheck>[];
-    // Map saves to their governing stats (Fort=CON, Ref=DEX, Will=WIS for 3.5e)
-    // If checks are loaded, use their names; otherwise use abbreviations.
-    final saveStatMap = <String, String>{};
-    if (checks.isNotEmpty) {
-      for (final check in checks) {
-        final name = check.getDisplayName();
-        if (name.toLowerCase().contains('fort')) saveStatMap[name] = 'CON';
-        else if (name.toLowerCase().contains('ref')) saveStatMap[name] = 'DEX';
-        else if (name.toLowerCase().contains('will')) saveStatMap[name] = 'WIS';
-      }
-    }
-    if (saveStatMap.isEmpty) {
-      saveStatMap['Fort'] = 'CON';
-      saveStatMap['Ref'] = 'DEX';
-      saveStatMap['Will'] = 'WIS';
-    }
+    // Standard 3.5e saves with governing stat abbreviations.
+    const saves = [
+      ('Fortitude', 'Fort', 'CON'),
+      ('Reflex',    'Ref',  'DEX'),
+      ('Will',      'Will', 'WIS'),
+    ];
 
     return Card(
       child: Padding(
@@ -597,11 +602,13 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
             Text('Saving Throws', style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 8),
             Row(
-              children: saveStatMap.entries.map((e) {
-                final mod = _getStatMod(character, statKeys, statObjects, e.value);
+              children: saves.map((s) {
+                final (fullName, abbr, statAbb) = s;
+                final total = _computeSave(fullName, statAbb, character,
+                    statKeys, statObjects, dataset);
                 return Padding(
                   padding: const EdgeInsets.only(right: 12),
-                  child: _saveChip(e.key.length > 4 ? e.key.substring(0, 4) : e.key, _fmtMod(mod)),
+                  child: _saveChip(abbr, _fmtMod(total)),
                 );
               }).toList(),
             ),
@@ -609,6 +616,46 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
         ),
       ),
     );
+  }
+
+  /// Compute a saving throw total using class levels + stat modifier.
+  /// Uses 3.5e Good (floor(L/2)+2) / Poor (floor(L/3)) progression per class.
+  int _computeSave(String saveName, String statAbb, dynamic character,
+      List<String> statKeys, List<PCStat> statObjects, DataSet? dataset) {
+    final statMod = _getStatMod(character, statKeys, statObjects, statAbb);
+    if (dataset == null) return statMod;
+
+    List classLevels = [];
+    try {
+      classLevels = ((character as dynamic).toJson()['classLevels'] as List?) ?? [];
+    } catch (_) {}
+    if (classLevels.isEmpty) return statMod;
+
+    final counts = <String, int>{};
+    for (final l in classLevels) {
+      if (l is Map) {
+        final k = l['classKey'] as String? ?? '';
+        counts[k] = (counts[k] ?? 0) + 1;
+      }
+    }
+
+    double base = 0;
+    bool hasGoodClass = false;
+    for (final entry in counts.entries) {
+      final cls = dataset.classes
+          .where((c) => c.getKeyName() == entry.key)
+          .firstOrNull;
+      final isGood = cls?.isSaveGood(saveName) ?? false;
+      if (isGood) {
+        // Good save: floor(L/2) + 2 per class, but +2 bonus counted once
+        base += entry.value / 2;
+        if (!hasGoodClass) { base += 2; hasGoodClass = true; }
+      } else {
+        base += entry.value / 3;
+      }
+    }
+
+    return base.floor() + statMod;
   }
 
   Widget _saveChip(String label, String value) {

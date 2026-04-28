@@ -93,6 +93,22 @@ class PCClass extends PObject {
 
   /// Returns the BAB progression type: 'Full', 'ThreeQuarters', 'Half', or '' (unknown).
   String getBabProgression() => getSafeString(StringKey.masterBabFormula);
+
+  /// Returns true if this class has Good (fast) progression for [saveName].
+  /// [saveName] is 'Fortitude', 'Reflex', or 'Will'.
+  bool isSaveGood(String saveName) {
+    final data = getSafeString(StringKey.masterCheckFormula);
+    if (data.isEmpty) return false;
+    final lower = saveName.toLowerCase();
+    for (final entry in data.split(',')) {
+      final idx = entry.indexOf(':');
+      if (idx < 0) continue;
+      if (entry.substring(0, idx).toLowerCase().contains(lower)) {
+        return entry.substring(idx + 1) == 'Good';
+      }
+    }
+    return false;
+  }
   String getFullKey() => getKeyName();
 
   /// Returns skill points per level parsed from STARTSKILLPTS token.

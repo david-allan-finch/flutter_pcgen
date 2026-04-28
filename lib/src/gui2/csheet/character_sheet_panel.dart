@@ -1,6 +1,8 @@
 // Translation of pcgen.gui2.csheet.CharacterSheetPanel
 
 import 'package:flutter/material.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/list_key.dart';
+import 'package:flutter_pcgen/src/core/pc_class.dart';
 import 'package:flutter_pcgen/src/gui2/app_state.dart';
 import 'package:flutter_pcgen/src/gui2/facade/character_facade_impl.dart';
 import 'package:flutter_pcgen/src/io/character_text_export.dart';
@@ -128,8 +130,63 @@ class _CharacterSheetView extends StatelessWidget {
   }
 
   Widget _statsCard(BuildContext context, ThemeData theme, Map data) {
-    final scores = data['statScores'] as Map? ?? {};
-    const stats = ['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'];
+    final baseScores = data['statScores'] as Map? ?? {};
+    const statOrder = ['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'];
+
+    // Compute racial bonuses from race object's STAT_BONUS list.
+    final racialBonuses = <String, int>{};
+    try {
+      final race = _tryGet(() => (character as dynamic).getRaceRef()?.get());
+      if (race != null) {
+        final bonusList = (race as dynamic)
+            .getSafeListFor(ListKey.getConstant<String>('STAT_BONUS')) as List?;
+        if (bonusList != null) {
+          for (final b in bonusList) {
+            if (b is String) {
+              final idx = b.indexOf(':');
+              if (idx > 0) {
+                racialBonuses[b.substring(0, idx).toUpperCase()] =
+                    (racialBonuses[b.substring(0, idx).toUpperCase()] ?? 0) +
+                        (int.tryParse(b.substring(idx + 1)) ?? 0);
+              }
+            }
+          }
+        }
+      }
+    } catch (_) {}
+
+    // Compute saves using class progressions.
+    final dataset = loadedDataSet.value;
+    final classLevels = data['classLevels'] as List? ?? [];
+    final counts = <String, int>{};
+    for (final l in classLevels) {
+      if (l is Map) {
+        final k = l['classKey'] as String? ?? '';
+        counts[k] = (counts[k] ?? 0) + 1;
+      }
+    }
+
+    int _computeSave(String saveName, String statAbb) {
+      final baseScore = (baseScores[statAbb] as num?)?.toInt() ?? 10;
+      final racial = racialBonuses[statAbb] ?? 0;
+      final statMod = ((baseScore + racial - 10) / 2).floor();
+      if (dataset == null) return statMod;
+      double base = 0;
+      bool hasGood = false;
+      for (final entry in counts.entries) {
+        final cls = dataset.classes
+            .where((c) => c.getKeyName() == entry.key)
+            .firstOrNull;
+        final isGood = cls?.isSaveGood(saveName) ?? false;
+        if (isGood) {
+          base += entry.value / 2;
+          if (!hasGood) { base += 2; hasGood = true; }
+        } else {
+          base += entry.value / 3;
+        }
+      }
+      return base.floor() + statMod;
+    }
 
     return Card(
       child: Padding(
@@ -144,34 +201,50 @@ class _CharacterSheetView extends StatelessWidget {
                 0: FlexColumnWidth(2),
                 1: FlexColumnWidth(1),
                 2: FlexColumnWidth(1),
+                3: FlexColumnWidth(1),
               },
-              children: stats.map((s) {
-                final score = (scores[s] as num?)?.toInt() ?? 10;
-                final mod = ((score - 10) / 2).floor();
-                return TableRow(children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 2),
-                    child: Text(s, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-                  ),
-                  Padding(padding: const EdgeInsets.symmetric(vertical: 2), child: Text('$score', style: const TextStyle(fontSize: 12))),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 2),
-                    child: Text(mod >= 0 ? '+$mod' : '$mod',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: mod >= 0 ? Colors.green.shade700 : Colors.red,
-                          fontWeight: FontWeight.bold,
-                        )),
-                  ),
-                ]);
-              }).toList(),
+              children: [
+                TableRow(children: [
+                  const Text('', style: TextStyle(fontSize: 10)),
+                  const Text('Base', style: TextStyle(fontSize: 10, color: Colors.grey)),
+                  const Text('Total', style: TextStyle(fontSize: 10, color: Colors.grey)),
+                  const Text('Mod', style: TextStyle(fontSize: 10, color: Colors.grey)),
+                ]),
+                ...statOrder.map((s) {
+                  final base = (baseScores[s] as num?)?.toInt() ?? 10;
+                  final racial = racialBonuses[s] ?? 0;
+                  final total = base + racial;
+                  final mod = ((total - 10) / 2).floor();
+                  return TableRow(children: [
+                    Padding(padding: const EdgeInsets.symmetric(vertical: 2),
+                        child: Text(s, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12))),
+                    Padding(padding: const EdgeInsets.symmetric(vertical: 2),
+                        child: Text('$base', style: const TextStyle(fontSize: 12))),
+                    Padding(padding: const EdgeInsets.symmetric(vertical: 2),
+                        child: Text('$total',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: racial > 0 ? Colors.blue.shade700
+                                  : racial < 0 ? Colors.orange.shade700 : null,
+                            ))),
+                    Padding(padding: const EdgeInsets.symmetric(vertical: 2),
+                        child: Text(mod >= 0 ? '+$mod' : '$mod',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: mod >= 0 ? Colors.green.shade700 : Colors.red,
+                              fontWeight: FontWeight.bold,
+                            ))),
+                  ]);
+                }),
+              ],
             ),
             const Divider(),
             Text('SAVING THROWS', style: theme.textTheme.titleSmall),
             const SizedBox(height: 4),
-            _saveRow('Fort', _tryGet(() => (character as dynamic).getFortSave()) as int? ?? 0),
-            _saveRow('Ref',  _tryGet(() => (character as dynamic).getRefSave()) as int? ?? 0),
-            _saveRow('Will', _tryGet(() => (character as dynamic).getWillSave()) as int? ?? 0),
+            _saveRow('Fort', _computeSave('Fortitude', 'CON')),
+            _saveRow('Ref',  _computeSave('Reflex',    'DEX')),
+            _saveRow('Will', _computeSave('Will',      'WIS')),
           ],
         ),
       ),
@@ -191,8 +264,29 @@ class _CharacterSheetView extends StatelessWidget {
     final scores = data['statScores'] as Map? ?? {};
     final dexScore = (scores['DEX'] as num?)?.toInt() ?? 10;
     final dexMod = ((dexScore - 10) / 2).floor();
-    final level = _tryGet(() => (character as dynamic).getTotalCharacterLevel()) as int? ?? 0;
-    final bab = (level * 3 / 4).floor();
+
+    // Compute BAB using class progressions from dataset.
+    final dataset = loadedDataSet.value;
+    final classLevels = data['classLevels'] as List? ?? [];
+    final counts = <String, int>{};
+    for (final l in classLevels) {
+      if (l is Map) {
+        final k = l['classKey'] as String? ?? '';
+        counts[k] = (counts[k] ?? 0) + 1;
+      }
+    }
+    double babDouble = 0;
+    for (final entry in counts.entries) {
+      final cls = dataset?.classes
+          .where((c) => c.getKeyName() == entry.key)
+          .firstOrNull;
+      final prog = cls?.getBabProgression() ?? '';
+      final rate = prog == 'Full' ? 1.0 : prog == 'Half' ? 0.5 : 0.75;
+      babDouble += entry.value * rate;
+    }
+    final bab = babDouble.floor();
+    final babStr = _babSequence(bab);
+
     final ac = 10 + dexMod;
     final init = dexMod;
 
@@ -205,7 +299,7 @@ class _CharacterSheetView extends StatelessWidget {
             Text('COMBAT', style: theme.textTheme.titleSmall),
             const SizedBox(height: 8),
             _combatRow('AC', '$ac'),
-            _combatRow('BAB', '+$bab (estimate)'),
+            _combatRow('BAB', babStr),
             _combatRow('Initiative', init >= 0 ? '+$init' : '$init'),
             _combatRow('HP', '${_tryGet(() => (character as dynamic).getHP()) ?? 0}'),
             const Divider(),
@@ -306,6 +400,15 @@ class _CharacterSheetView extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  String _babSequence(int bab) {
+    if (bab <= 0) return '+0';
+    if (bab < 6) return '+$bab';
+    final attacks = <String>[];
+    int cur = bab;
+    while (cur > 0) { attacks.add('+$cur'); cur -= 5; }
+    return attacks.join('/');
   }
 
   dynamic _tryGet(dynamic Function() fn) {
