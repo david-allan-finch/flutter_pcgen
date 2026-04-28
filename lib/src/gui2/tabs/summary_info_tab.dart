@@ -166,9 +166,12 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
                           border: OutlineInputBorder(), isDense: true,
                           contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 6),
                         ),
-                        onChanged: (_) => _nameEditPending = true,
-                        onSubmitted: (v) { _nameEditPending = false; character.setName(v); },
-                        onEditingComplete: () { _nameEditPending = false; character.setName(_nameController.text); },
+                        onChanged: (v) {
+                          _nameEditPending = true;
+                          character.setName(v); // live update so title bar reacts
+                        },
+                        onSubmitted: (v) { _nameEditPending = false; },
+                        onEditingComplete: () { _nameEditPending = false; },
                       ),
                     ),
                   ],

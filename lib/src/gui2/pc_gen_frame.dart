@@ -322,11 +322,70 @@ class PCGenFrameState extends State<PCGenFrame> {
   }
 
   void showOGLDialog() {
-    _showInfo('OGL License');
+    if (!mounted) return;
+    showDialog(
+      context: context,
+      builder: (_) => Dialog(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 600, maxHeight: 500),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text('Open Game License v1.0a',
+                    style: Theme.of(context).textTheme.titleLarge),
+                const SizedBox(height: 12),
+                const Expanded(
+                  child: SingleChildScrollView(
+                    child: Text(
+                      'This application is built using content released under the '
+                      'Open Game License v1.0a (OGL). The PCGen data files '
+                      'contain SECTION 15 copyright notices in each .pcc file. '
+                      '\n\nPCGen and its contributors are not affiliated with Wizards '
+                      'of the Coast or Paizo Publishing.',
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('Close'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   void showTipsOfTheDay() {
-    _showInfo('Tips of the Day');
+    if (!mounted) return;
+    final tips = [
+      'Use the Point Buy tab to set ability scores using the standard 28-point system.',
+      'Save your character with Ctrl+S. Files are stored in Documents/PCGen/characters/',
+      'The Race tab shows Size, Speed, and CR for each race.',
+      'Class skills are highlighted with ★ in the Skills tab.',
+      'Use File > Export to copy a formatted character sheet to the clipboard.',
+      'Add class levels in the Class tab, then check the Summary for HP.',
+    ];
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Tip of the Day'),
+        content: Text(tips[(DateTime.now().day % tips.length)]),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
   }
 
   void showAboutDialog() {
@@ -334,8 +393,22 @@ class PCGenFrameState extends State<PCGenFrame> {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text('About PCGen'),
-        content: const Text('PCGen - Character Generator\nFlutter Edition'),
+        title: const Text('About PCGen Flutter'),
+        content: const Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('PCGen — Character Generator', style: TextStyle(fontWeight: FontWeight.bold)),
+            SizedBox(height: 4),
+            Text('Flutter/Dart port of the Java PCGen application.'),
+            SizedBox(height: 8),
+            Text('Data: d20/3.5e System Reference Document (RSRD)'),
+            Text('622 campaigns • 94 races • 104 classes • 86 skills'),
+            SizedBox(height: 8),
+            Text('Original PCGen: https://pcgen.org',
+                style: TextStyle(color: Colors.blue)),
+          ],
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),

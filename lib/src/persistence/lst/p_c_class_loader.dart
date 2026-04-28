@@ -145,8 +145,32 @@ class PCClassLoader extends LstObjectFileLoader<PCClass> {
       case 'SORTKEY':
         pcClass.putString(StringKey.sortKey, value);
         break;
+      case 'FACT':
+        // FACT:FieldName|Value — e.g. FACT:ClassType|PC, FACT:Abb|Ftr
+        final pipeIdx = value.indexOf('|');
+        if (pipeIdx > 0) {
+          final factName = value.substring(0, pipeIdx);
+          final factVal  = value.substring(pipeIdx + 1);
+          switch (factName.toUpperCase()) {
+            case 'CLASSTYPE':
+              pcClass.putString(StringKey.classType, factVal);
+              break;
+            case 'ABB':
+              pcClass.putString(StringKey.abbKr, factVal);
+              break;
+            default:
+              break;
+          }
+        }
+        break;
+      case 'ROLE':
+        // ROLE:Combat|Divine etc — store as description if not set
+        if (pcClass.getString(StringKey.description) == null) {
+          pcClass.putString(StringKey.description, 'Role: $value');
+        }
+        break;
       default:
-        // PRE, BONUS, CAST, KNOWN, etc. — not yet implemented
+        // PRE, BONUS, CAST, KNOWN, SPELLLIST, etc. — not yet implemented
         break;
     }
   }

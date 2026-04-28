@@ -120,12 +120,16 @@ class ClassInfoTabState extends State<ClassInfoTab> {
     String hd = '';
     String desc = '';
     String sourceShort = '';
+    String abbrev = '';
+    String classType = '';
     List<String> types = [];
     try {
       hd = cls.getHD();
       desc = cls.getString(StringKey.description) ?? '';
       sourceShort = cls.getString(StringKey.sourceShort) ??
                     cls.getString(StringKey.sourceLong) ?? '';
+      abbrev = cls.getString(StringKey.abbKr) ?? '';
+      classType = cls.getString(StringKey.classType) ?? '';
       final typeList = cls.getSafeListFor(ListKey.getConstant<String>('TYPE'));
       types = typeList.cast<String>();
     } catch (_) {}
@@ -139,7 +143,10 @@ class ClassInfoTabState extends State<ClassInfoTab> {
               style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 8),
           _row('Key', cls.getKeyName()),
+          if (abbrev.isNotEmpty) _row('Abbrev', abbrev),
           if (hd.isNotEmpty) _row('Hit Die', 'd$hd'),
+          if (classType.isNotEmpty) _row('Class Type', classType),
+          _row('Skill Pts/Lvl', '${cls.getSkillPtsPerLevel()}'),
           if (sourceShort.isNotEmpty) _row('Source', sourceShort),
           if (types.isNotEmpty) _row('Types', types.join(', ')),
           if (desc.isNotEmpty) ...[
