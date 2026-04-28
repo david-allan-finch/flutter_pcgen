@@ -20,6 +20,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'package:flutter_pcgen/src/core/data_set.dart';
+import 'package:flutter_pcgen/src/core/language.dart';
 import 'package:flutter_pcgen/src/core/pc_stat.dart';
 import 'package:flutter_pcgen/src/gui2/app_state.dart';
 import 'package:flutter_pcgen/src/gui2/tabs/character_info_tab.dart';
@@ -106,6 +108,8 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _buildIdentitySection(character),
+                  const SizedBox(height: 12),
+                  _buildLanguagesSection(character, dataset),
                   const SizedBox(height: 12),
                   _buildStatsSection(character, statKeys, statObjects),
                   const SizedBox(height: 12),
@@ -242,6 +246,127 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
   }
 
   // ---- Stats section --------------------------------------------------------
+
+  // ---- Languages section ----------------------------------------------------
+
+  Widget _buildLanguagesSection(dynamic character, DataSet? dataset) {
+    final available = dataset?.languages ?? const <Language>[];
+    final selected = _getLanguageKeys(character);
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Text('Languages', style: Theme.of(context).textTheme.titleMedium),
+                const Spacer(),
+                if (available.isNotEmpty && character != null)
+                  TextButton.icon(
+                    icon: const Icon(Icons.add, size: 14),
+                    label: const Text('Add'),
+                    onPressed: () => _showAddLanguageDialog(context, character, available, selected),
+                  ),
+              ],
+            ),
+            if (selected.isEmpty)
+              const Text('No languages selected.',
+                  style: TextStyle(color: Colors.grey, fontSize: 12))
+            else
+              Wrap(
+                spacing: 6,
+                runSpacing: 4,
+                children: selected.map((key) {
+                  final lang = available.where((l) => l.getKeyName() == key).firstOrNull;
+                  return InputChip(
+                    label: Text(lang?.getDisplayName() ?? key,
+                        style: const TextStyle(fontSize: 12)),
+                    onDeleted: character == null
+                        ? null
+                        : () => _removeLanguage(character, key),
+                  );
+                }).toList(),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  List<String> _getLanguageKeys(dynamic character) {
+    if (character == null) return [];
+    try {
+      final data = (character as dynamic).toJson() as Map<String, dynamic>;
+      final list = data['languageKeys'];
+      if (list is List) return list.cast<String>();
+    } catch (_) {}
+    return [];
+  }
+
+  void _addLanguage(dynamic character, String key) {
+    try {
+      final data = (character as dynamic).toJson() as Map<String, dynamic>;
+      final list = (data['languageKeys'] ??= <String>[]) as List;
+      if (!list.contains(key)) {
+        list.add(key);
+        currentCharacter.notifyListeners();
+        setState(() {});
+      }
+    } catch (_) {}
+  }
+
+  void _removeLanguage(dynamic character, String key) {
+    try {
+      final data = (character as dynamic).toJson() as Map<String, dynamic>;
+      final list = data['languageKeys'] as List?;
+      if (list != null && list.remove(key)) {
+        currentCharacter.notifyListeners();
+        setState(() {});
+      }
+    } catch (_) {}
+  }
+
+  void _showAddLanguageDialog(BuildContext context, dynamic character,
+      List<Language> available, List<String> selected) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Add Language'),
+        content: SizedBox(
+          width: 280,
+          height: 360,
+          child: ListView.builder(
+            itemCount: available.length,
+            itemBuilder: (context, i) {
+              final lang = available[i];
+              final isSelected = selected.contains(lang.getKeyName());
+              return ListTile(
+                dense: true,
+                title: Text(lang.getDisplayName()),
+                trailing: isSelected
+                    ? const Icon(Icons.check, color: Colors.green)
+                    : null,
+                onTap: isSelected
+                    ? null
+                    : () {
+                        _addLanguage(character, lang.getKeyName());
+                        Navigator.pop(context);
+                      },
+              );
+            },
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
+  }
 
   Widget _buildStatsSection(
       dynamic character, List<String> statKeys, List<PCStat> statObjects) {

@@ -65,6 +65,12 @@ class _SourceSelectionDialogState extends State<SourceSelectionDialog>
     try {
       await widget.onLoad(_selectedCampaigns, _gameModeName);
       if (mounted) Navigator.pop(context);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Load error: $e'), backgroundColor: Colors.red),
+        );
+      }
     } finally {
       if (mounted) setState(() => _loading = false);
     }
