@@ -1,6 +1,8 @@
 // Translation of pcgen.gui2.tabs.RaceInfoTab
 
 import 'package:flutter/material.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/list_key.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/string_key.dart';
 import 'package:flutter_pcgen/src/core/data_set.dart';
 import 'package:flutter_pcgen/src/core/race.dart';
 import 'package:flutter_pcgen/src/gui2/app_state.dart';
@@ -104,7 +106,6 @@ class RaceInfoTabState extends State<RaceInfoTab> {
       return const Center(child: Text('Select a race to see details.'));
     }
 
-    // Determine if this race is the character's current race.
     bool isCurrentRace = false;
     if (character != null) {
       try {
@@ -113,6 +114,18 @@ class RaceInfoTabState extends State<RaceInfoTab> {
         isCurrentRace = currentRace != null && currentRace == race;
       } catch (_) {}
     }
+
+    // Pull extra fields stored during token parsing.
+    String desc = '';
+    String sourceShort = '';
+    List<String> types = [];
+    try {
+      desc = race.getString(StringKey.description) ?? '';
+      sourceShort = race.getString(StringKey.sourceShort) ??
+                    race.getString(StringKey.sourceLong) ?? '';
+      final typeList = race.getSafeListFor(ListKey.getConstant<String>('TYPE'));
+      types = typeList.cast<String>();
+    } catch (_) {}
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -131,8 +144,12 @@ class RaceInfoTabState extends State<RaceInfoTab> {
           ),
           const SizedBox(height: 8),
           _row('Key', race.getKeyName()),
-          if (race.getSourceURI() != null)
-            _row('Source', Uri.parse(race.getSourceURI()!).pathSegments.last),
+          if (sourceShort.isNotEmpty) _row('Source', sourceShort),
+          if (types.isNotEmpty) _row('Types', types.join(', ')),
+          if (desc.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Text(desc, style: Theme.of(context).textTheme.bodySmall),
+          ],
           const SizedBox(height: 16),
           if (character != null)
             ElevatedButton.icon(

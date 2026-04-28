@@ -18,7 +18,10 @@
 //
 // Translation of pcgen.persistence.lst.GenericLoader
 import 'package:flutter_pcgen/src/cdom/base/cdom_object.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/list_key.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/object_key.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/string_key.dart';
+import 'package:flutter_pcgen/src/persistence/lst/lst_utils.dart';
 import 'package:flutter_pcgen/src/rules/context/load_context.dart';
 import 'package:flutter_pcgen/src/persistence/lst/lst_object_file_loader.dart';
 import 'package:flutter_pcgen/src/persistence/lst/source_entry.dart';
@@ -60,6 +63,52 @@ class GenericLoader<T extends CDOMObject> extends LstObjectFileLoader<T> {
 
   void _processToken(LoadContext context, T obj, SourceEntry source, String token) {
     if (token.trim().isEmpty) return;
+
+    // Dispatch common tokens understood by all CDOMObjects.
+    final (tag, value) = LstUtils.splitToken(token);
+    if (value.isNotEmpty) {
+      switch (tag.toUpperCase()) {
+        case 'TYPE':
+          // TYPE:Fighter.Magic — dot-separated list of type tags.
+          for (final t in value.split('.')) {
+            if (t.isNotEmpty) {
+              try { obj.addToListFor(ListKey.getConstant<String>('TYPE'), t); } catch (_) {}
+            }
+          }
+          return;
+        case 'DESC':
+          try { obj.putString(StringKey.description, value); } catch (_) {}
+          return;
+        case 'OUTPUTNAME':
+          try { obj.putString(StringKey.outputName, value); } catch (_) {}
+          return;
+        case 'SOURCELONG':
+          try { obj.putString(StringKey.sourceLong, value); } catch (_) {}
+          return;
+        case 'SOURCESHORT':
+          try { obj.putString(StringKey.sourceShort, value); } catch (_) {}
+          return;
+        case 'SOURCEWEB':
+          try { obj.putString(StringKey.sourceWeb, value); } catch (_) {}
+          return;
+        case 'KEY':
+          try { obj.setKeyName(value); } catch (_) {}
+          return;
+        case 'SORTKEY':
+          try { obj.putString(StringKey.sortKey, value); } catch (_) {}
+          return;
+        default:
+          break; // fall through to registered handlers
+      }
+    }
+
+    // Skip PRE/BONUS/AUTO tokens for now (complex formula system).
+    if (LstUtils.isPrereqToken(tag) || LstUtils.isBonusToken(tag) ||
+        tag.toUpperCase() == 'AUTO' || tag.toUpperCase() == 'CHOOSE') {
+      return;
+    }
+
+    // Registered token handlers (added via addTokenHandler).
     for (final handler in _tokenHandlers) {
       handler(context, obj, token, source);
     }

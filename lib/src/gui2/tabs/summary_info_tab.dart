@@ -464,7 +464,6 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
                     icon: const Icon(Icons.casino, size: 14),
                     label: const Text('Max'),
                     onPressed: () {
-                      // Rough estimate: 8 + CON mod per level (d8 default)
                       _hpEditPending = false;
                       try {
                         final dataset = loadedDataSet.value;
@@ -476,8 +475,21 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
                             break;
                           }
                         }
-                        final maxHp = (8 + conMod) * totalLevel;
-                        (character as dynamic).setHP(maxHp.clamp(totalLevel, 9999));
+                        // Use class HD if available, otherwise d8 default.
+                        int hdSize = 8;
+                        try {
+                          final levels = (character as dynamic).toJson()['classLevels'];
+                          if (levels is List && levels.isNotEmpty) {
+                            final clsKey = levels.last['classKey'] as String?;
+                            final cls = dataset?.classes.where((c) => c.getKeyName() == clsKey).firstOrNull;
+                            if (cls != null) {
+                              final hdStr = cls.getHD();
+                              hdSize = int.tryParse(hdStr) ?? 8;
+                            }
+                          }
+                        } catch (_) {}
+                        final maxHp = (hdSize + conMod).clamp(1, hdSize) * totalLevel;
+                        (character as dynamic).setHP(maxHp);
                         currentCharacter.notifyListeners();
                         setState(() {});
                       } catch (_) {}

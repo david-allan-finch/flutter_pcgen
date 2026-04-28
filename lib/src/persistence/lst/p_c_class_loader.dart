@@ -17,9 +17,12 @@
 //
 // Translation of pcgen.persistence.lst.PCClassLoader
 
+import 'package:flutter_pcgen/src/cdom/enumeration/list_key.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/string_key.dart';
 import 'package:flutter_pcgen/src/core/pc_class.dart';
 import 'package:flutter_pcgen/src/core/sub_class.dart';
 import 'package:flutter_pcgen/src/core/substitution_class.dart';
+import 'package:flutter_pcgen/src/persistence/lst/lst_utils.dart';
 import 'package:flutter_pcgen/src/rules/context/load_context.dart';
 import 'package:flutter_pcgen/src/persistence/lst/lst_object_file_loader.dart';
 import 'package:flutter_pcgen/src/persistence/lst/source_entry.dart';
@@ -97,7 +100,50 @@ class PCClassLoader extends LstObjectFileLoader<PCClass> {
     for (final token in tokens) {
       final tok = token.trim();
       if (tok.isEmpty) continue;
-      // TODO: dispatch via TokenStore — full implementation uses PCClassLoader.parseToken
+      _parseToken(pcClass, tok);
+    }
+  }
+
+  void _parseToken(PCClass pcClass, String token) {
+    final (tag, value) = LstUtils.splitToken(token);
+    if (value.isEmpty) return;
+    switch (tag.toUpperCase()) {
+      case 'HD':
+        // HD:10 — hit die size (d10 for Fighter, d4 for Wizard, etc.)
+        pcClass.putString(StringKey.hdFormula, value);
+        break;
+      case 'TYPE':
+        for (final t in value.split('.')) {
+          if (t.isNotEmpty) {
+            try { pcClass.addToListFor(ListKey.getConstant<String>('TYPE'), t); } catch (_) {}
+          }
+        }
+        break;
+      case 'DESC':
+        pcClass.putString(StringKey.description, value);
+        break;
+      case 'SOURCELONG':
+        pcClass.putString(StringKey.sourceLong, value);
+        break;
+      case 'SOURCESHORT':
+        pcClass.putString(StringKey.sourceShort, value);
+        break;
+      case 'SOURCEWEB':
+        pcClass.putString(StringKey.sourceWeb, value);
+        break;
+      case 'STARTSKILLPTS':
+        // Skill points per level — stored as a class type string for now
+        try { pcClass.putString(StringKey.classType, 'SKILLPTS:$value'); } catch (_) {}
+        break;
+      case 'OUTPUTNAME':
+        pcClass.putString(StringKey.outputName, value);
+        break;
+      case 'SORTKEY':
+        pcClass.putString(StringKey.sortKey, value);
+        break;
+      default:
+        // PRE, BONUS, CAST, KNOWN, etc. — not yet implemented
+        break;
     }
   }
 

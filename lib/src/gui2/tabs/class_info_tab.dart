@@ -1,6 +1,8 @@
 // Translation of pcgen.gui2.tabs.ClassInfoTab
 
 import 'package:flutter/material.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/list_key.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/string_key.dart';
 import 'package:flutter_pcgen/src/core/data_set.dart';
 import 'package:flutter_pcgen/src/core/pc_class.dart';
 import 'package:flutter_pcgen/src/gui2/app_state.dart';
@@ -114,6 +116,20 @@ class ClassInfoTabState extends State<ClassInfoTab> {
       } catch (_) {}
     }
 
+    // Pull extra fields from token parsing.
+    String hd = '';
+    String desc = '';
+    String sourceShort = '';
+    List<String> types = [];
+    try {
+      hd = cls.getHD();
+      desc = cls.getString(StringKey.description) ?? '';
+      sourceShort = cls.getString(StringKey.sourceShort) ??
+                    cls.getString(StringKey.sourceLong) ?? '';
+      final typeList = cls.getSafeListFor(ListKey.getConstant<String>('TYPE'));
+      types = typeList.cast<String>();
+    } catch (_) {}
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -123,8 +139,13 @@ class ClassInfoTabState extends State<ClassInfoTab> {
               style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 8),
           _row('Key', cls.getKeyName()),
-          if (cls.getSourceURI() != null)
-            _row('Source', Uri.parse(cls.getSourceURI()!).pathSegments.last),
+          if (hd.isNotEmpty) _row('Hit Die', 'd$hd'),
+          if (sourceShort.isNotEmpty) _row('Source', sourceShort),
+          if (types.isNotEmpty) _row('Types', types.join(', ')),
+          if (desc.isNotEmpty) ...[
+            const SizedBox(height: 6),
+            Text(desc, style: Theme.of(context).textTheme.bodySmall),
+          ],
           const SizedBox(height: 16),
           if (character != null) ...[
             Row(
