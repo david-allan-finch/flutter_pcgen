@@ -3,7 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/list_key.dart';
-import 'package:flutter_pcgen/src/cdom/enumeration/object_key.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/object_key.dart' as cdom;
 import 'package:flutter_pcgen/src/cdom/enumeration/string_key.dart';
 import 'package:flutter_pcgen/src/core/data_set.dart';
 import 'package:flutter_pcgen/src/core/equipment.dart';
@@ -150,7 +150,7 @@ class InventoryInfoTabState extends State<InventoryInfoTab>
     List<String> types = [];
     try { cost = item.getString(StringKey.cost) ?? ''; } catch (_) {}
     try {
-      final w = item.getSafeObject(ObjectKey.getConstant<double>('WEIGHT'));
+      final w = item.getSafeObject(cdom.ObjectKey.getConstant<double>('WEIGHT'));
       if (w != null) wt = '${w} lb';
     } catch (_) {}
     try { damage = item.getString(StringKey.damage) ?? ''; } catch (_) {}
