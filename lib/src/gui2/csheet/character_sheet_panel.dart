@@ -58,11 +58,14 @@ class _CharacterSheetView extends StatelessWidget {
           // Class levels
           _classLevelsCard(context, theme, data),
           const SizedBox(height: 12),
-          // Skills (top 10 by rank)
+          // Skills (top 20 by rank)
           _skillsCard(context, theme, data),
           const SizedBox(height: 12),
           // Feats
           _featsCard(context, theme, data),
+          const SizedBox(height: 12),
+          // Companions
+          _companionsCard(context, theme, data),
           const SizedBox(height: 16),
           // Export button
           Center(
@@ -328,10 +331,29 @@ class _CharacterSheetView extends StatelessWidget {
   Widget _classLevelsCard(BuildContext context, ThemeData theme, Map data) {
     final levels = data['classLevels'] as List? ?? [];
     if (levels.isEmpty) return const SizedBox.shrink();
+
+    // Counts per class + total HP from levels
     final counts = <String, int>{};
+    int hpFromLevels = 0;
     for (final l in levels) {
-      if (l is Map) counts[l['className'] as String? ?? '?'] = (counts[l['className']] ?? 0) + 1;
+      if (l is Map) {
+        final name = l['className'] as String? ?? '?';
+        counts[name] = (counts[name] ?? 0) + 1;
+        hpFromLevels += (l['hp'] as num?)?.toInt() ?? 0;
+      }
     }
+
+    // Add CON modifier per level (from character)
+    int conMod = 0;
+    try {
+      conMod = _tryGet(() => (character as dynamic).getModTotal(
+        loadedDataSet.value?.stats.firstWhere(
+          (s) => s.getKeyName().toUpperCase() == 'CON',
+          orElse: () => throw Exception(),
+        ),
+      )) as int? ?? 0;
+    } catch (_) {}
+    final maxHp = (hpFromLevels + conMod * levels.length).clamp(levels.length, 9999);
 
     return Card(
       child: Padding(
@@ -343,9 +365,21 @@ class _CharacterSheetView extends StatelessWidget {
             const SizedBox(height: 8),
             Wrap(
               spacing: 12,
-              children: counts.entries.map((e) => Chip(
-                label: Text('${e.key} ${e.value}', style: const TextStyle(fontSize: 12)),
-              )).toList(),
+              runSpacing: 4,
+              children: [
+                ...counts.entries.map((e) => Chip(
+                  label: Text('${e.key} ${e.value}',
+                      style: const TextStyle(fontSize: 12)),
+                )),
+                if (maxHp > 0)
+                  Chip(
+                    avatar: const Icon(Icons.favorite, size: 14, color: Colors.red),
+                    label: Text('Max HP: $maxHp',
+                        style: const TextStyle(fontSize: 12,
+                            fontWeight: FontWeight.bold)),
+                    backgroundColor: Colors.red.shade50,
+                  ),
+              ],
             ),
           ],
         ),
@@ -385,7 +419,15 @@ class _CharacterSheetView extends StatelessWidget {
   Widget _featsCard(BuildContext context, ThemeData theme, Map data) {
     final selected = data['selectedAbilities'] as Map? ?? {};
     final feats = (selected['FEAT'] as List?)?.cast<String>() ?? [];
-    if (feats.isEmpty) return const SizedBox.shrink();
+    // Collect other ability categories too
+    final others = <String, List<String>>{};
+    for (final entry in selected.entries) {
+      if (entry.key != 'FEAT' && entry.value is List) {
+        final list = (entry.value as List).cast<String>();
+        if (list.isNotEmpty) others[entry.key as String] = list;
+      }
+    }
+    if (feats.isEmpty && others.isEmpty) return const SizedBox.shrink();
 
     return Card(
       child: Padding(
@@ -393,9 +435,48 @@ class _CharacterSheetView extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('FEATS (${feats.length})', style: theme.textTheme.titleSmall),
-            const SizedBox(height: 8),
-            Text(feats.join(', '), style: const TextStyle(fontSize: 11)),
+            if (feats.isNotEmpty) ...[
+              Text('FEATS (${feats.length})', style: theme.textTheme.titleSmall),
+              const SizedBox(height: 6),
+              Wrap(
+                spacing: 6,
+                runSpacing: 2,
+                children: feats.map((f) => Chip(
+                  label: Text(f, style: const TextStyle(fontSize: 11)),
+                  padding: EdgeInsets.zero,
+                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                )).toList(),
+              ),
+            ],
+            for (final entry in others.entries) ...[
+              const SizedBox(height: 8),
+              Text('${entry.key.toUpperCase()} (${entry.value.length})',
+                  style: theme.textTheme.titleSmall),
+              const SizedBox(height: 4),
+              Text(entry.value.join(', '),
+                  style: const TextStyle(fontSize: 11)),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _companionsCard(BuildContext context, ThemeData theme, Map data) {
+    final companions = data['companions'] as List? ?? [];
+    if (companions.isEmpty) return const SizedBox.shrink();
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('COMPANIONS', style: theme.textTheme.titleSmall),
+            const SizedBox(height: 6),
+            for (final c in companions)
+              if (c is Map)
+                Text('${c["name"] ?? "?"} — ${c["type"] ?? ""}',
+                    style: const TextStyle(fontSize: 11)),
           ],
         ),
       ),

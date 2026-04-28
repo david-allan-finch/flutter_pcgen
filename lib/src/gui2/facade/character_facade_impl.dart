@@ -317,16 +317,52 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
 
   // ---- HP -----------------------------------------------------------------
 
+  /// Current hit points (may be less than max due to damage).
   @override
-  int getHP() => (_data['hp'] as num?)?.toInt() ?? 0;
+  int getHP() => (_data['hp'] as num?)?.toInt() ?? getMaxHP();
 
+  /// Maximum hit points — sum of per-level HP values plus CON modifier per level.
   @override
-  int getMaxHP() => (_data['maxHp'] as num?)?.toInt() ?? 0;
+  int getMaxHP() {
+    final levels = _data['classLevels'] as List? ?? [];
+    int total = 0;
+    for (final l in levels) {
+      if (l is Map) total += (l['hp'] as num?)?.toInt() ?? 0;
+    }
+    if (total > 0) {
+      // Add CON modifier × number of levels
+      final conMod = _statModByAbb('CON');
+      total += conMod * levels.length;
+      return total.clamp(levels.length, 9999); // minimum 1 HP per level
+    }
+    // Fall back to stored maxHp if no per-level data yet.
+    return (_data['maxHp'] as num?)?.toInt() ?? 0;
+  }
 
   @override
   void setHP(int hp) {
     _data['hp'] = hp;
     notifyListeners();
+  }
+
+  /// Set the HP gained at level [levelIndex] (0-based).
+  void setLevelHP(int levelIndex, int hp) {
+    final levels = _data['classLevels'] as List? ?? [];
+    if (levelIndex >= 0 && levelIndex < levels.length) {
+      if (levels[levelIndex] is Map) {
+        (levels[levelIndex] as Map)['hp'] = hp.clamp(1, 999);
+        notifyListeners();
+      }
+    }
+  }
+
+  /// Roll random HP for level [levelIndex] using the class's HD.
+  /// Returns the rolled value.
+  int rollLevelHP(int levelIndex, int hdSize) {
+    // Simple pseudo-random using current time — no dart:math import needed.
+    final roll = (DateTime.now().microsecondsSinceEpoch % hdSize) + 1;
+    setLevelHP(levelIndex, roll);
+    return roll;
   }
 
   // ---- Saving throws ------------------------------------------------------
@@ -495,7 +531,13 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
   void addCharacterLevels(List<PCClass> classes) {
     final levels = (_data['classLevels'] ??= <dynamic>[]) as List;
     for (final cls in classes) {
-      levels.add({'className': cls.getDisplayName(), 'classKey': cls.getKeyName()});
+      final hd = int.tryParse(cls.getHD()) ?? 8;
+      // Max HP at every level (user can edit or re-roll afterward).
+      levels.add({
+        'className': cls.getDisplayName(),
+        'classKey':  cls.getKeyName(),
+        'hp': hd,
+      });
     }
     notifyListeners();
   }

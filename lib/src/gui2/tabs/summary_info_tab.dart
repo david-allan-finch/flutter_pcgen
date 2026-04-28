@@ -743,11 +743,14 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
     int totalLevel = 0;
     try { totalLevel = (character as dynamic).getTotalCharacterLevel() as int? ?? 0; } catch (_) {}
 
-    // HP: load from data or compute estimate (d8 + CON mod) × level
-    int hp = 0;
-    try { hp = (character as dynamic).getHP() as int? ?? 0; } catch (_) {}
-    if (!_hpEditPending && _hpController.text != '$hp') {
-      _hpController.text = '$hp';
+    int currentHp = 0;
+    int maxHp = 0;
+    try { currentHp = (character as dynamic).getHP() as int? ?? 0; } catch (_) {}
+    try { maxHp    = (character as dynamic).getMaxHP() as int? ?? 0; } catch (_) {}
+
+    // Sync current HP controller when not editing
+    if (!_hpEditPending && _hpController.text != '$currentHp') {
+      _hpController.text = '$currentHp';
     }
 
     return Card(
@@ -756,27 +759,30 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Class & Combat', style: Theme.of(context).textTheme.titleMedium),
+            Text('Level & HP', style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 8),
             _labelledValue('Total Level', '$totalLevel'),
             if (summary.isNotEmpty) _labelledValue('Classes', summary),
-            // XP tracking
             const SizedBox(height: 4),
             _buildXPRow(character, totalLevel),
-            const SizedBox(height: 6),
+            const SizedBox(height: 8),
+            // HP row: current / max
             Row(
               children: [
                 const SizedBox(width: 80,
                     child: Text('HP:', style: TextStyle(fontWeight: FontWeight.bold))),
+                // Current HP (editable)
                 SizedBox(
-                  width: 60,
+                  width: 52,
                   child: TextField(
                     controller: _hpController,
                     keyboardType: TextInputType.number,
+                    textAlign: TextAlign.center,
                     decoration: const InputDecoration(
                       border: OutlineInputBorder(),
                       isDense: true,
-                      contentPadding: EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                      contentPadding: EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+                      hintText: 'cur',
                     ),
                     onChanged: (_) => _hpEditPending = true,
                     onSubmitted: (v) {
@@ -787,45 +793,43 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
                         currentCharacter.notifyListeners();
                       }
                     },
-                  ),
-                ),
-                const SizedBox(width: 8),
-                if (totalLevel > 0)
-                  TextButton.icon(
-                    icon: const Icon(Icons.casino, size: 14),
-                    label: const Text('Max'),
-                    onPressed: () {
+                    onEditingComplete: () {
                       _hpEditPending = false;
-                      try {
-                        final dataset = loadedDataSet.value;
-                        final statObjects = dataset?.stats ?? const [];
-                        int conMod = 0;
-                        for (final s in statObjects) {
-                          if (s.getKeyName().toUpperCase() == 'CON') {
-                            conMod = (character as dynamic).getModTotal(s) as int? ?? 0;
-                            break;
-                          }
-                        }
-                        // Use class HD if available, otherwise d8 default.
-                        int hdSize = 8;
-                        try {
-                          final levels = (character as dynamic).toJson()['classLevels'];
-                          if (levels is List && levels.isNotEmpty) {
-                            final clsKey = levels.last['classKey'] as String?;
-                            final cls = dataset?.classes.where((c) => c.getKeyName() == clsKey).firstOrNull;
-                            if (cls != null) {
-                              final hdStr = cls.getHD();
-                              hdSize = int.tryParse(hdStr) ?? 8;
-                            }
-                          }
-                        } catch (_) {}
-                        final maxHp = (hdSize + conMod).clamp(1, hdSize) * totalLevel;
-                        (character as dynamic).setHP(maxHp);
+                      final n = int.tryParse(_hpController.text);
+                      if (n != null) {
+                        try { (character as dynamic).setHP(n); } catch (_) {}
                         currentCharacter.notifyListeners();
-                        setState(() {});
-                      } catch (_) {}
+                      }
                     },
                   ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 6),
+                  child: Text('/ $maxHp max',
+                      style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
+                ),
+                // Heal / Full buttons
+                if (maxHp > 0) ...[
+                  Tooltip(
+                    message: 'Restore to full ($maxHp HP)',
+                    child: TextButton.icon(
+                      icon: const Icon(Icons.favorite, size: 14, color: Colors.green),
+                      label: const Text('Full', style: TextStyle(fontSize: 12)),
+                      style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4)),
+                      onPressed: () {
+                        _hpEditPending = false;
+                        try { (character as dynamic).setHP(maxHp); } catch (_) {}
+                        currentCharacter.notifyListeners();
+                        setState(() {});
+                      },
+                    ),
+                  ),
+                ],
+                if (maxHp == 0 && totalLevel > 0)
+                  Text('(set HP in Class tab)',
+                      style: TextStyle(fontSize: 11, color: Colors.grey.shade500,
+                          fontStyle: FontStyle.italic)),
               ],
             ),
           ],
@@ -836,28 +840,81 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
 
   // ---- XP row ---------------------------------------------------------------
 
+  // 3.5e XP thresholds — cumulative XP needed to reach each level.
+  static const List<int> _kXpTable = [
+    0,       // level 1
+    1000,    // level 2
+    3000,    // level 3
+    6000,    // level 4
+    10000,   // level 5
+    15000,   // level 6
+    21000,   // level 7
+    28000,   // level 8
+    36000,   // level 9
+    45000,   // level 10
+    55000,   // level 11
+    66000,   // level 12
+    78000,   // level 13
+    91000,   // level 14
+    105000,  // level 15
+    120000,  // level 16
+    136000,  // level 17
+    153000,  // level 18
+    171000,  // level 19
+    190000,  // level 20
+  ];
+
+  int _xpForLevel(int level) {
+    if (level <= 0) return 0;
+    if (level - 1 < _kXpTable.length) return _kXpTable[level - 1];
+    // Beyond table: extrapolate
+    return _kXpTable.last + (level - _kXpTable.length) * 21000;
+  }
+
   Widget _buildXPRow(dynamic character, int totalLevel) {
     int xp = 0;
     try { xp = (character as dynamic).getXP() as int? ?? 0; } catch (_) {}
-    // 3.5e XP thresholds: level × (level - 1) × 500
-    final nextLevelXP = totalLevel > 0 ? (totalLevel * (totalLevel + 1) * 500) : 1000;
+
+    final currentThreshold = _xpForLevel(totalLevel);
+    final nextThreshold = _xpForLevel(totalLevel + 1);
+    final xpInLevel = xp - currentThreshold;
+    final xpNeeded = nextThreshold - currentThreshold;
+    final readyToLevel = xp >= nextThreshold;
 
     return Row(
       children: [
         const SizedBox(width: 80, child: Text('XP:', style: TextStyle(fontWeight: FontWeight.bold))),
-        Text('$xp / $nextLevelXP'),
-        const SizedBox(width: 8),
-        SizedBox(
-          width: 120,
-          height: 6,
-          child: LinearProgressIndicator(
-            value: (xp / nextLevelXP).clamp(0.0, 1.0),
-            backgroundColor: Colors.grey.shade300,
-          ),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(children: [
+              Text('$xp', style: const TextStyle(fontWeight: FontWeight.bold)),
+              Text(' / $nextThreshold',
+                  style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
+              if (readyToLevel)
+                const Padding(
+                  padding: EdgeInsets.only(left: 8),
+                  child: Text('★ Ready to level up!',
+                      style: TextStyle(color: Colors.amber,
+                          fontWeight: FontWeight.bold, fontSize: 12)),
+                ),
+            ]),
+            SizedBox(
+              width: 160,
+              height: 5,
+              child: LinearProgressIndicator(
+                value: xpNeeded > 0
+                    ? (xpInLevel / xpNeeded).clamp(0.0, 1.0)
+                    : 1.0,
+                backgroundColor: Colors.grey.shade300,
+                color: readyToLevel ? Colors.amber : null,
+              ),
+            ),
+          ],
         ),
         const SizedBox(width: 8),
         SizedBox(
-          width: 80,
+          width: 72,
           child: TextField(
             keyboardType: TextInputType.number,
             decoration: const InputDecoration(

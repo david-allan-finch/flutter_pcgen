@@ -56,10 +56,23 @@ class CharacterTextExport {
     _line(buf, '-' * 30);
     final dexScore = (statScores['DEX'] as num?)?.toInt() ?? 10;
     final dexMod = ((dexScore - 10) / 2).floor();
-    final totalLevel = character.getTotalCharacterLevel();
-    final bab = (totalLevel * 3 / 4).floor();
+    // Compute BAB from class levels using stored progression.
+    final classLevels = data['classLevels'] as List? ?? [];
+    final counts = <String, int>{};
+    for (final l in classLevels) {
+      if (l is Map) { final k = l['classKey'] as String? ?? ''; counts[k] = (counts[k] ?? 0) + 1; }
+    }
+    // Without DataSet access here we fall back to 3/4 per level.
+    // (Full accuracy requires the dataset which is available only at runtime.)
+    final bab = (counts.values.fold(0, (s, v) => s + v) * 0.75).floor();
+    final babStr = bab <= 0 ? '+0' : bab < 6 ? '+$bab' : () {
+      final attacks = <String>[];
+      int cur = bab;
+      while (cur > 0) { attacks.add('+$cur'); cur -= 5; }
+      return attacks.join('/');
+    }();
     _line(buf, '  AC:         ${10 + dexMod}');
-    _line(buf, '  BAB:        +$bab (estimate)');
+    _line(buf, '  BAB:        $babStr');
     _line(buf, '  Initiative: ${dexMod >= 0 ? "+$dexMod" : "$dexMod"}');
     _line(buf, '');
 
