@@ -910,7 +910,10 @@ class _LoadCharacterDialogState extends State<_LoadCharacterDialog> {
                               final name = header?['name']?.isNotEmpty == true
                                   ? header!['name']!
                                   : p.basenameWithoutExtension(file.path);
-                              final gameMode = header?['gameMode'] ?? '';
+                              final gameMode     = header?['gameMode'] ?? '';
+                              final race         = header?['race'] ?? '';
+                              final primaryClass = header?['primaryClass'] ?? '';
+                              final totalLevel   = header?['totalLevel'] ?? '';
                               final ext = p.extension(file.path);
 
                               // Match against loaded dataset
@@ -921,8 +924,17 @@ class _LoadCharacterDialogState extends State<_LoadCharacterDialog> {
                                   gameMode.toLowerCase() ==
                                       loadedMode.toLowerCase();
                               final mismatched = gameMode.isNotEmpty &&
-                                  loadedMode.isNotEmpty &&
-                                  !matched;
+                                  loadedMode.isNotEmpty && !matched;
+
+                              // Build character summary line
+                              final summaryParts = <String>[
+                                if (race.isNotEmpty) race,
+                                if (primaryClass.isNotEmpty && totalLevel.isNotEmpty)
+                                  '$primaryClass $totalLevel'
+                                else if (primaryClass.isNotEmpty)
+                                  primaryClass,
+                              ];
+                              final summary = summaryParts.join(' · ');
 
                               return ListTile(
                                 dense: true,
@@ -934,51 +946,54 @@ class _LoadCharacterDialogState extends State<_LoadCharacterDialog> {
                                 ),
                                 title: Text(name,
                                     style: const TextStyle(fontSize: 13)),
-                                subtitle: gameMode.isNotEmpty
-                                    ? Row(
-                                        children: [
-                                          Icon(
-                                            mismatched
-                                                ? Icons.warning_amber_rounded
-                                                : matched
-                                                    ? Icons.check_circle
-                                                    : Icons.circle_outlined,
-                                            size: 11,
+                                subtitle: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    // Race · Class Level
+                                    if (summary.isNotEmpty)
+                                      Text(summary,
+                                          style: const TextStyle(
+                                              fontSize: 11,
+                                              fontStyle: FontStyle.italic)),
+                                    // Gamemode + match indicator
+                                    if (gameMode.isNotEmpty)
+                                      Row(children: [
+                                        Icon(
+                                          mismatched
+                                              ? Icons.warning_amber_rounded
+                                              : matched
+                                                  ? Icons.check_circle
+                                                  : Icons.circle_outlined,
+                                          size: 10,
+                                          color: mismatched
+                                              ? Colors.orange.shade600
+                                              : matched
+                                                  ? Colors.green.shade600
+                                                  : Colors.grey.shade500,
+                                        ),
+                                        const SizedBox(width: 3),
+                                        Text(
+                                          mismatched
+                                              ? '$gameMode (loaded: $loadedMode)'
+                                              : gameMode,
+                                          style: TextStyle(
+                                            fontSize: 10,
                                             color: mismatched
-                                                ? Colors.orange.shade600
+                                                ? Colors.orange.shade700
                                                 : matched
-                                                    ? Colors.green.shade600
-                                                    : Colors.grey.shade500,
+                                                    ? Colors.green.shade700
+                                                    : Colors.grey.shade600,
                                           ),
-                                          const SizedBox(width: 3),
-                                          Text(
-                                            gameMode,
-                                            style: TextStyle(
-                                              fontSize: 10,
-                                              color: mismatched
-                                                  ? Colors.orange.shade700
-                                                  : matched
-                                                      ? Colors.green.shade700
-                                                      : Colors.grey.shade600,
-                                            ),
-                                          ),
-                                          if (mismatched)
-                                            Text(
-                                              ' (loaded: $loadedMode)',
-                                              style: TextStyle(
-                                                  fontSize: 10,
-                                                  color:
-                                                      Colors.orange.shade700),
-                                            ),
-                                        ],
-                                      )
-                                    : null,
+                                        ),
+                                      ]),
+                                  ],
+                                ),
+                                isThreeLine: summary.isNotEmpty && gameMode.isNotEmpty,
                                 trailing: _loading
                                     ? const SizedBox(
-                                        width: 16,
-                                        height: 16,
-                                        child: CircularProgressIndicator(
-                                            strokeWidth: 2))
+                                        width: 16, height: 16,
+                                        child: CircularProgressIndicator(strokeWidth: 2))
                                     : null,
                                 onTap: _loading
                                     ? null

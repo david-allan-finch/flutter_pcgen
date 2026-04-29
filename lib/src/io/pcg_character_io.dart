@@ -824,33 +824,79 @@ class PCGCharacterIO {
   static bool isPCGFormat(String content) =>
       content.trimLeft().startsWith('PCGVERSION:');
 
-  /// Quickly peek the GAMEMODE and CHARACTERNAME from the first ~40 lines of
-  /// a PCG or JSON file without doing a full parse.
+  /// Quickly peek key fields from the first ~80 lines of a PCG or JSON file.
+  /// Returns a map with keys: name, gameMode, race, primaryClass, totalLevel.
   static Map<String, String> peekHeader(String content) {
     final result = <String, String>{};
     if (content.trimLeft().startsWith('{')) {
-      // JSON — extract name and gameMode from top-level keys
+      // JSON — extract fields via regex
       try {
-        final nameMatch = RegExp(r'"name"\s*:\s*"([^"]*)"').firstMatch(content);
+        final nameMatch  = RegExp(r'"name"\s*:\s*"([^"]*)"').firstMatch(content);
         if (nameMatch != null) result['name'] = nameMatch.group(1)!;
-        final modeMatch = RegExp(r'"gameMode"\s*:\s*"([^"]*)"').firstMatch(content);
+        final modeMatch  = RegExp(r'"gameMode"\s*:\s*"([^"]*)"').firstMatch(content);
         if (modeMatch != null) result['gameMode'] = modeMatch.group(1)!;
+        final raceMatch  = RegExp(r'"raceKey"\s*:\s*"([^"]*)"').firstMatch(content);
+        if (raceMatch != null) result['race'] = raceMatch.group(1)!;
+        // classLevels: count entries for total level + find primary class
+        final classKeys = RegExp(r'"classKey"\s*:\s*"([^"]*)"')
+            .allMatches(content)
+            .map((m) => m.group(1)!)
+            .toList();
+        if (classKeys.isNotEmpty) {
+          final counts = <String, int>{};
+          for (final k in classKeys) counts[k] = (counts[k] ?? 0) + 1;
+          final primary = counts.entries
+              .reduce((a, b) => a.value >= b.value ? a : b)
+              .key;
+          result['primaryClass'] = primary;
+          result['totalLevel'] = '${classKeys.length}';
+        }
       } catch (_) {}
       return result;
     }
-    // PCG — scan first 40 lines
+
+    // PCG — scan first 80 lines
+    // CLASS lines: CLASS:Name|SUBCLASS:None|LEVEL:5|...
+    final classes = <String, int>{}; // className → level
     int lineCount = 0;
     for (final raw in content.split('\n')) {
-      if (++lineCount > 40) break;
+      if (++lineCount > 80) break;
       final line = raw.trimRight();
       if (line.isEmpty || line.startsWith('#')) continue;
       final idx = line.indexOf(':');
       if (idx < 0) continue;
       final key = line.substring(0, idx).toUpperCase();
       final val = line.substring(idx + 1).trim();
-      if (key == 'CHARACTERNAME' || key == 'NAME') result['name'] = _unesc(val);
-      if (key == 'GAMEMODE') result['gameMode'] = val;
-      if (result.length == 2) break;
+      switch (key) {
+        case 'CHARACTERNAME':
+        case 'NAME':
+          result['name'] = _unesc(val);
+        case 'GAMEMODE':
+          result['gameMode'] = val;
+        case 'RACE':
+          result['race'] = val;
+        case 'CLASS':
+          // CLASS:Paladin|SUBCLASS:None|LEVEL:5|...
+          final parts = val.split('|');
+          final className = parts[0].trim();
+          int level = 0;
+          for (final p in parts.skip(1)) {
+            if (p.toUpperCase().startsWith('LEVEL:')) {
+              level = int.tryParse(p.substring(6).trim()) ?? 0;
+              break;
+            }
+          }
+          if (className.isNotEmpty) classes[className] = level;
+      }
+    }
+    if (classes.isNotEmpty) {
+      final total = classes.values.fold(0, (s, v) => s + v);
+      // Primary class = highest level; on tie, first encountered
+      final primary = classes.entries
+          .reduce((a, b) => a.value >= b.value ? a : b)
+          .key;
+      result['primaryClass'] = primary;
+      result['totalLevel'] = '$total';
     }
     return result;
   }
