@@ -18,6 +18,7 @@
 // Translation of pcgen.gui2.PCGenStatusBar
 
 import 'package:flutter/material.dart';
+import 'package:flutter_pcgen/src/gui2/app_state.dart';
 
 /// Status bar displayed at the bottom of the PCGen frame.
 /// Shows source loading progress and error/warning icons.
@@ -97,55 +98,151 @@ class PCGenStatusBarState extends State<PCGenStatusBar> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 24,
-      color: Theme.of(context).colorScheme.surface,
-      child: Row(
-        children: [
-          if (_contextMessage != null)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              child: Text(_contextMessage!, style: const TextStyle(fontSize: 12)),
-            ),
-          const Spacer(),
-          if (_progressVisible)
-            SizedBox(
-              width: 200,
-              child: _indeterminate
-                  ? const LinearProgressIndicator()
-                  : LinearProgressIndicator(value: _progress),
-            ),
-          if (_progressString != null && !_indeterminate)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 4),
-              child: Text(_progressString!, style: const TextStyle(fontSize: 11)),
-            ),
-          const Spacer(),
-          if (_loadStatus != _LoadStatus.none)
-            Tooltip(
-              message: '$_errorCount errors and $_warningCount warnings occurred',
-              child: IconButton(
-                iconSize: 16,
-                icon: Icon(
-                  _loadStatus == _LoadStatus.error
-                      ? Icons.error
-                      : _loadStatus == _LoadStatus.warning
-                          ? Icons.warning
-                          : Icons.check_circle,
-                  color: _loadStatus == _LoadStatus.error
-                      ? Colors.red
-                      : _loadStatus == _LoadStatus.warning
-                          ? Colors.orange
-                          : Colors.green,
-                  size: 16,
-                ),
-                onPressed: () {
-                  // Show debug/log dialog
-                },
+    return ValueListenableBuilder(
+      valueListenable: currentCharacter,
+      builder: (context, character, _) {
+        return ValueListenableBuilder(
+          valueListenable: loadedDataSet,
+          builder: (context, dataset, _) {
+            String charGameMode = '';
+            try {
+              charGameMode =
+                  (character as dynamic).getGameMode() as String? ?? '';
+            } catch (_) {}
+            final loadedMode = dataset?.gameModeStr ?? '';
+            final hasMismatch = charGameMode.isNotEmpty &&
+                loadedMode.isNotEmpty &&
+                charGameMode.toLowerCase() != loadedMode.toLowerCase();
+            final sourcesLoaded = dataset != null;
+
+            return Container(
+              height: 26,
+              color: Theme.of(context).colorScheme.surface,
+              padding: const EdgeInsets.symmetric(horizontal: 6),
+              child: Row(
+                children: [
+                  // Progress / context message
+                  if (_contextMessage != null)
+                    Text(_contextMessage!,
+                        style: const TextStyle(fontSize: 12)),
+
+                  if (_progressVisible) ...[
+                    const SizedBox(width: 8),
+                    SizedBox(
+                      width: 160,
+                      child: _indeterminate
+                          ? const LinearProgressIndicator()
+                          : LinearProgressIndicator(value: _progress),
+                    ),
+                    if (_progressString != null && !_indeterminate)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 4),
+                        child: Text(_progressString!,
+                            style: const TextStyle(fontSize: 11)),
+                      ),
+                  ],
+
+                  const Spacer(),
+
+                  // Gamemode chip — character's required mode
+                  if (charGameMode.isNotEmpty)
+                    Tooltip(
+                      message: hasMismatch
+                          ? 'Character needs "$charGameMode" but "$loadedMode" is loaded'
+                          : sourcesLoaded
+                              ? 'Gamemode: $charGameMode (sources loaded)'
+                              : 'Gamemode: $charGameMode (no sources loaded)',
+                      child: Container(
+                        margin: const EdgeInsets.symmetric(
+                            vertical: 4, horizontal: 4),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: hasMismatch
+                              ? Colors.orange.shade100
+                              : !sourcesLoaded
+                                  ? Colors.grey.shade200
+                                  : Colors.green.shade100,
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                            color: hasMismatch
+                                ? Colors.orange.shade600
+                                : !sourcesLoaded
+                                    ? Colors.grey.shade400
+                                    : Colors.green.shade600,
+                            width: 1,
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              hasMismatch
+                                  ? Icons.warning_amber_rounded
+                                  : !sourcesLoaded
+                                      ? Icons.circle_outlined
+                                      : Icons.check_circle,
+                              size: 13,
+                              color: hasMismatch
+                                  ? Colors.orange.shade700
+                                  : !sourcesLoaded
+                                      ? Colors.grey.shade600
+                                      : Colors.green.shade700,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              charGameMode,
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: hasMismatch
+                                    ? Colors.orange.shade800
+                                    : !sourcesLoaded
+                                        ? Colors.grey.shade700
+                                        : Colors.green.shade800,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                  // Loaded sources mode label (when different from char mode)
+                  if (loadedMode.isNotEmpty && charGameMode.isEmpty)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                      child: Text('Sources: $loadedMode',
+                          style: TextStyle(
+                              fontSize: 11, color: Colors.grey.shade600)),
+                    ),
+
+                  const SizedBox(width: 4),
+
+                  // Load status icon
+                  if (_loadStatus != _LoadStatus.none)
+                    Tooltip(
+                      message:
+                          '$_errorCount errors, $_warningCount warnings',
+                      child: Icon(
+                        _loadStatus == _LoadStatus.error
+                            ? Icons.error
+                            : _loadStatus == _LoadStatus.warning
+                                ? Icons.warning
+                                : Icons.check_circle,
+                        color: _loadStatus == _LoadStatus.error
+                            ? Colors.red
+                            : _loadStatus == _LoadStatus.warning
+                                ? Colors.orange
+                                : Colors.green,
+                        size: 16,
+                      ),
+                    ),
+                ],
               ),
-            ),
-        ],
-      ),
+            );
+          },
+        );
+      },
     );
   }
 }

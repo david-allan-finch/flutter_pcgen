@@ -347,6 +347,8 @@ class PCGCharacterIO {
         case 'POOLPOINTS':
         case 'POOLPOINTSAVAIL':
         case 'GAMEMODE':
+          data['gameMode'] = value.trim();
+          break;
         case 'TABLABEL':
         case 'AUTOSPELLS':
         case 'USEHIGHERKNOWN':
@@ -821,4 +823,35 @@ class PCGCharacterIO {
   /// Returns true if content is a PCGen PCG file (starts with PCGVERSION:).
   static bool isPCGFormat(String content) =>
       content.trimLeft().startsWith('PCGVERSION:');
+
+  /// Quickly peek the GAMEMODE and CHARACTERNAME from the first ~40 lines of
+  /// a PCG or JSON file without doing a full parse.
+  static Map<String, String> peekHeader(String content) {
+    final result = <String, String>{};
+    if (content.trimLeft().startsWith('{')) {
+      // JSON — extract name and gameMode from top-level keys
+      try {
+        final nameMatch = RegExp(r'"name"\s*:\s*"([^"]*)"').firstMatch(content);
+        if (nameMatch != null) result['name'] = nameMatch.group(1)!;
+        final modeMatch = RegExp(r'"gameMode"\s*:\s*"([^"]*)"').firstMatch(content);
+        if (modeMatch != null) result['gameMode'] = modeMatch.group(1)!;
+      } catch (_) {}
+      return result;
+    }
+    // PCG — scan first 40 lines
+    int lineCount = 0;
+    for (final raw in content.split('\n')) {
+      if (++lineCount > 40) break;
+      final line = raw.trimRight();
+      if (line.isEmpty || line.startsWith('#')) continue;
+      final idx = line.indexOf(':');
+      if (idx < 0) continue;
+      final key = line.substring(0, idx).toUpperCase();
+      final val = line.substring(idx + 1).trim();
+      if (key == 'CHARACTERNAME' || key == 'NAME') result['name'] = _unesc(val);
+      if (key == 'GAMEMODE') result['gameMode'] = val;
+      if (result.length == 2) break;
+    }
+    return result;
+  }
 }

@@ -644,6 +644,11 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
     }
   }
 
+  // ---- Game mode ----------------------------------------------------------
+
+  String getGameMode() => _str('gameMode');
+  void setGameMode(String mode) => _set('gameMode', mode);
+
   // ---- Alignment string ---------------------------------------------------
 
   String getAlignmentKey() => _str('alignmentKey');

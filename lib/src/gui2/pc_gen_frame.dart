@@ -731,6 +731,8 @@ class _LoadCharacterDialog extends StatefulWidget {
 
 class _LoadCharacterDialogState extends State<_LoadCharacterDialog> {
   List<File> _allFiles = [];
+  // Cache of file path → {name, gameMode}
+  final Map<String, Map<String, String>> _headerCache = {};
   bool _loading = false;
   bool _scanning = true;
   String _dir = '';
@@ -751,7 +753,7 @@ class _LoadCharacterDialogState extends State<_LoadCharacterDialog> {
   }
 
   Future<void> _loadFromDir(String? override) async {
-    setState(() { _scanning = true; _allFiles = []; });
+    setState(() { _scanning = true; _allFiles = []; _headerCache.clear(); });
     try {
       final dirPath = override ?? await CharacterFileIO.getCharDir();
       final dir = Directory(dirPath);
@@ -771,6 +773,16 @@ class _LoadCharacterDialogState extends State<_LoadCharacterDialog> {
           _dirController.text = dirPath;
           _allFiles = files;
         });
+        // Peek headers asynchronously so the list appears immediately
+        for (final file in files) {
+          try {
+            final content = await file.readAsString();
+            final header = PCGCharacterIO.peekHeader(content);
+            if (mounted) {
+              setState(() => _headerCache[file.path] = header);
+            }
+          } catch (_) {}
+        }
       } else {
         setState(() {
           _dir = dirPath;
@@ -778,7 +790,7 @@ class _LoadCharacterDialogState extends State<_LoadCharacterDialog> {
         });
       }
     } catch (_) {}
-    setState(() => _scanning = false);
+    if (mounted) setState(() => _scanning = false);
   }
 
   List<File> get _filtered {
@@ -876,9 +888,24 @@ class _LoadCharacterDialogState extends State<_LoadCharacterDialog> {
                             itemCount: filtered.length,
                             itemBuilder: (context, i) {
                               final file = filtered[i];
-                              final name =
-                                  p.basenameWithoutExtension(file.path);
+                              final header = _headerCache[file.path];
+                              final name = header?['name']?.isNotEmpty == true
+                                  ? header!['name']!
+                                  : p.basenameWithoutExtension(file.path);
+                              final gameMode = header?['gameMode'] ?? '';
                               final ext = p.extension(file.path);
+
+                              // Match against loaded dataset
+                              final loadedMode =
+                                  loadedDataSet.value?.gameModeStr ?? '';
+                              final matched = gameMode.isNotEmpty &&
+                                  loadedMode.isNotEmpty &&
+                                  gameMode.toLowerCase() ==
+                                      loadedMode.toLowerCase();
+                              final mismatched = gameMode.isNotEmpty &&
+                                  loadedMode.isNotEmpty &&
+                                  !matched;
+
                               return ListTile(
                                 dense: true,
                                 leading: Icon(
@@ -889,6 +916,45 @@ class _LoadCharacterDialogState extends State<_LoadCharacterDialog> {
                                 ),
                                 title: Text(name,
                                     style: const TextStyle(fontSize: 13)),
+                                subtitle: gameMode.isNotEmpty
+                                    ? Row(
+                                        children: [
+                                          Icon(
+                                            mismatched
+                                                ? Icons.warning_amber_rounded
+                                                : matched
+                                                    ? Icons.check_circle
+                                                    : Icons.circle_outlined,
+                                            size: 11,
+                                            color: mismatched
+                                                ? Colors.orange.shade600
+                                                : matched
+                                                    ? Colors.green.shade600
+                                                    : Colors.grey.shade500,
+                                          ),
+                                          const SizedBox(width: 3),
+                                          Text(
+                                            gameMode,
+                                            style: TextStyle(
+                                              fontSize: 10,
+                                              color: mismatched
+                                                  ? Colors.orange.shade700
+                                                  : matched
+                                                      ? Colors.green.shade700
+                                                      : Colors.grey.shade600,
+                                            ),
+                                          ),
+                                          if (mismatched)
+                                            Text(
+                                              ' (loaded: $loadedMode)',
+                                              style: TextStyle(
+                                                  fontSize: 10,
+                                                  color:
+                                                      Colors.orange.shade700),
+                                            ),
+                                        ],
+                                      )
+                                    : null,
                                 trailing: _loading
                                     ? const SizedBox(
                                         width: 16,
