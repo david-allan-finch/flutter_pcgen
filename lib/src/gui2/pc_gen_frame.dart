@@ -156,6 +156,10 @@ class PCGenFrameState extends State<PCGenFrame> {
             setCharacter(character);
           }
         },
+        onLoadSources: () {
+          // Called when user wants to load sources before opening a character.
+          showSourceSelectionDialog();
+        },
       ),
     );
   }
@@ -741,7 +745,8 @@ class _ExportDialogState extends State<_ExportDialog> {
 
 class _LoadCharacterDialog extends StatefulWidget {
   final Future<void> Function(String path) onLoad;
-  const _LoadCharacterDialog({required this.onLoad});
+  final VoidCallback? onLoadSources;
+  const _LoadCharacterDialog({required this.onLoad, this.onLoadSources});
 
   @override
   State<_LoadCharacterDialog> createState() => _LoadCharacterDialogState();
@@ -907,9 +912,10 @@ class _LoadCharacterDialogState extends State<_LoadCharacterDialog> {
                             itemBuilder: (context, i) {
                               final file = filtered[i];
                               final header = _headerCache[file.path];
-                              final name = header?['name']?.isNotEmpty == true
+                              final charName = header?['name']?.isNotEmpty == true
                                   ? header!['name']!
                                   : p.basenameWithoutExtension(file.path);
+                              final fileName   = p.basename(file.path);
                               final gameMode     = header?['gameMode'] ?? '';
                               final race         = header?['race'] ?? '';
                               final primaryClass = header?['primaryClass'] ?? '';
@@ -925,8 +931,10 @@ class _LoadCharacterDialogState extends State<_LoadCharacterDialog> {
                                       loadedMode.toLowerCase();
                               final mismatched = gameMode.isNotEmpty &&
                                   loadedMode.isNotEmpty && !matched;
+                              final noSources = gameMode.isNotEmpty &&
+                                  loadedMode.isEmpty;
 
-                              // Build character summary line
+                              // Character summary: Race · Class Level
                               final summaryParts = <String>[
                                 if (race.isNotEmpty) race,
                                 if (primaryClass.isNotEmpty && totalLevel.isNotEmpty)
@@ -936,16 +944,77 @@ class _LoadCharacterDialogState extends State<_LoadCharacterDialog> {
                               ];
                               final summary = summaryParts.join(' · ');
 
+                              // Tap handler — prompt on mismatch/no sources
+                              Future<void> doLoad() async {
+                                setState(() => _loading = true);
+                                await widget.onLoad(file.path);
+                                if (mounted) Navigator.pop(context);
+                              }
+
+                              Future<void> handleTap() async {
+                                if (mismatched || noSources) {
+                                  final action = await showDialog<String>(
+                                    context: context,
+                                    builder: (_) => AlertDialog(
+                                      title: Row(children: [
+                                        Icon(Icons.warning_amber_rounded,
+                                            color: Colors.orange.shade700, size: 20),
+                                        const SizedBox(width: 8),
+                                        const Text('Sources Not Loaded'),
+                                      ]),
+                                      content: Text(
+                                        mismatched
+                                            ? 'This character requires the "$gameMode" '
+                                              'game mode, but "$loadedMode" is currently '
+                                              'loaded.\n\nWould you like to load sources '
+                                              'for "$gameMode" first?'
+                                            : 'This character requires the "$gameMode" '
+                                              'game mode but no sources are loaded.\n\n'
+                                              'Would you like to load sources first?',
+                                      ),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () =>
+                                              Navigator.pop(context, 'cancel'),
+                                          child: const Text('Cancel'),
+                                        ),
+                                        TextButton(
+                                          onPressed: () =>
+                                              Navigator.pop(context, 'open'),
+                                          child: const Text('Open Anyway'),
+                                        ),
+                                        FilledButton(
+                                          onPressed: () =>
+                                              Navigator.pop(context, 'sources'),
+                                          child: const Text('Load Sources First'),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                  if (action == 'sources') {
+                                    if (mounted) Navigator.pop(context);
+                                    widget.onLoadSources?.call();
+                                    return;
+                                  }
+                                  if (action != 'open') return;
+                                }
+                                await doLoad();
+                              }
+
                               return ListTile(
-                                dense: true,
+                                dense: false,
                                 leading: Icon(
                                   ext == '.json'
                                       ? Icons.data_object
                                       : Icons.person,
-                                  size: 20,
+                                  size: 22,
+                                  color: mismatched
+                                      ? Colors.orange.shade400
+                                      : null,
                                 ),
-                                title: Text(name,
-                                    style: const TextStyle(fontSize: 13)),
+                                title: Text(charName,
+                                    style: const TextStyle(fontSize: 13,
+                                        fontWeight: FontWeight.w600)),
                                 subtitle: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   mainAxisSize: MainAxisSize.min,
@@ -956,17 +1025,22 @@ class _LoadCharacterDialogState extends State<_LoadCharacterDialog> {
                                           style: const TextStyle(
                                               fontSize: 11,
                                               fontStyle: FontStyle.italic)),
+                                    // Filename
+                                    Text(fileName,
+                                        style: TextStyle(
+                                            fontSize: 10,
+                                            color: Colors.grey.shade500)),
                                     // Gamemode + match indicator
                                     if (gameMode.isNotEmpty)
                                       Row(children: [
                                         Icon(
-                                          mismatched
+                                          mismatched || noSources
                                               ? Icons.warning_amber_rounded
                                               : matched
                                                   ? Icons.check_circle
                                                   : Icons.circle_outlined,
                                           size: 10,
-                                          color: mismatched
+                                          color: mismatched || noSources
                                               ? Colors.orange.shade600
                                               : matched
                                                   ? Colors.green.shade600
@@ -975,11 +1049,11 @@ class _LoadCharacterDialogState extends State<_LoadCharacterDialog> {
                                         const SizedBox(width: 3),
                                         Text(
                                           mismatched
-                                              ? '$gameMode (loaded: $loadedMode)'
+                                              ? '$gameMode  ⚠ loaded: $loadedMode'
                                               : gameMode,
                                           style: TextStyle(
                                             fontSize: 10,
-                                            color: mismatched
+                                            color: mismatched || noSources
                                                 ? Colors.orange.shade700
                                                 : matched
                                                     ? Colors.green.shade700
@@ -989,19 +1063,13 @@ class _LoadCharacterDialogState extends State<_LoadCharacterDialog> {
                                       ]),
                                   ],
                                 ),
-                                isThreeLine: summary.isNotEmpty && gameMode.isNotEmpty,
+                                isThreeLine: true,
                                 trailing: _loading
                                     ? const SizedBox(
                                         width: 16, height: 16,
                                         child: CircularProgressIndicator(strokeWidth: 2))
                                     : null,
-                                onTap: _loading
-                                    ? null
-                                    : () async {
-                                        setState(() => _loading = true);
-                                        await widget.onLoad(file.path);
-                                        if (mounted) Navigator.pop(context);
-                                      },
+                                onTap: _loading ? null : handleTap,
                               );
                             },
                           ),
