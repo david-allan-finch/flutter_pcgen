@@ -425,9 +425,27 @@ class PCGenFrameState extends State<PCGenFrame> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text('PCGen — Character Generator',
-                style: TextStyle(fontWeight: FontWeight.bold)),
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
             const SizedBox(height: 4),
-            const Text('Flutter/Dart port of the Java PCGen application.'),
+            Row(children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: Colors.amber.shade100,
+                  border: Border.all(color: Colors.amber.shade600),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text('Version 7.0.0-alpha.1',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.amber.shade900,
+                    )),
+              ),
+            ]),
+            const SizedBox(height: 8),
+            const Text('Flutter/Dart port of the Java PCGen application.\n'
+                'Based on PCGen 6.09.08 (Java).'),
             const SizedBox(height: 8),
             Text(dataLine),
             const SizedBox(height: 8),
@@ -492,7 +510,7 @@ class PCGenFrameState extends State<PCGenFrame> {
           autofocus: true,
           child: Scaffold(
             appBar: AppBar(
-              title: Text(_title ?? 'PCGen'),
+              title: Text(_title ?? 'PCGen 7 α'),
               actions: [
                 PCGenMenuBar(frame: this, uiContext: widget.uiContext),
               ],

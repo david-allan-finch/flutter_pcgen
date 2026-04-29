@@ -1,6 +1,6 @@
 name: flutter_pcgen
 description: PCGen - Character creation and management for tabletop RPGs (Flutter/Dart port)
-version: 1.0.0+1
+version: 7.0.0-alpha.1+1
 publish_to: none
 
 environment:
