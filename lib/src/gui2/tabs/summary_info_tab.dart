@@ -56,10 +56,6 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
   late TextEditingController _hpController;
   bool _hpEditPending = false;
 
-  // Deity editing — must be a persistent controller or it resets on every rebuild
-  late TextEditingController _deityController;
-  late FocusNode _deityFocus;
-
   // Player name / Age / Gender / Physical
   late TextEditingController _playerNameController;
   late TextEditingController _ageController;
@@ -75,8 +71,6 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
     super.initState();
     _nameController = TextEditingController();
     _hpController = TextEditingController();
-    _deityController = TextEditingController();
-    _deityFocus = FocusNode();
     _playerNameController = TextEditingController();
     _ageController = TextEditingController();
     _genderController = TextEditingController();
@@ -91,8 +85,6 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
   void dispose() {
     _nameController.dispose();
     _hpController.dispose();
-    _deityController.dispose();
-    _deityFocus.dispose();
     _playerNameController.dispose();
     _ageController.dispose();
     _genderController.dispose();
@@ -169,13 +161,6 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
     final charName = (character as dynamic).getName() as String? ?? '';
     if (!_nameEditPending && _nameController.text != charName) {
       _nameController.text = charName;
-    }
-
-    // Sync deity only when the field is not focused
-    String deityKey = '';
-    try { deityKey = (character as dynamic).getDeityKey() as String? ?? ''; } catch (_) {}
-    if (!_deityFocus.hasFocus && _deityController.text != deityKey) {
-      _deityController.text = deityKey;
     }
 
     // Sync player name / age / gender / physical when not focused
@@ -321,15 +306,6 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
                       ),
                     ),
                   ]),
-                const SizedBox(height: 6),
-                // Deity — persistent controller, only syncs when not focused
-                _editRow('Deity', _deityController,
-                  focusNode: _deityFocus,
-                  hint: 'Deity name',
-                  onDone: (v) {
-                    try { (character as dynamic).setDeityKey(v); } catch (_) {}
-                    currentCharacter.notifyListeners();
-                  }),
               ],
             ),
           ),
@@ -512,10 +488,11 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
             const SizedBox(height: 8),
             Table(
               columnWidths: const {
-                0: FixedColumnWidth(56),
-                1: FixedColumnWidth(68),
-                2: FixedColumnWidth(46),
-                3: FixedColumnWidth(44),
+                0: FixedColumnWidth(52),
+                1: FixedColumnWidth(60),
+                2: FixedColumnWidth(44),
+                3: FixedColumnWidth(50),
+                4: FixedColumnWidth(40),
               },
               defaultVerticalAlignment: TableCellVerticalAlignment.middle,
               children: [
@@ -524,13 +501,15 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
                       color: Theme.of(context).highlightColor),
                   children: const [
                     Padding(padding: EdgeInsets.symmetric(vertical: 4, horizontal: 4),
-                        child: Text('Stat', style: TextStyle(fontWeight: FontWeight.bold))),
+                        child: Text('Stat', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12))),
                     Padding(padding: EdgeInsets.symmetric(vertical: 4, horizontal: 4),
-                        child: Text('Base', style: TextStyle(fontWeight: FontWeight.bold))),
+                        child: Text('Base', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12))),
                     Padding(padding: EdgeInsets.symmetric(vertical: 4, horizontal: 4),
-                        child: Text('Total', style: TextStyle(fontWeight: FontWeight.bold))),
+                        child: Text('Race', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12))),
                     Padding(padding: EdgeInsets.symmetric(vertical: 4, horizontal: 4),
-                        child: Text('Mod', style: TextStyle(fontWeight: FontWeight.bold))),
+                        child: Text('Total', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12))),
+                    Padding(padding: EdgeInsets.symmetric(vertical: 4, horizontal: 4),
+                        child: Text('Mod', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12))),
                   ],
                 ),
                 for (int i = 0; i < statKeys.length; i++)
@@ -550,14 +529,21 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
   TableRow _buildStatRow(dynamic character, String statKey, PCStat? statObj) {
     int base = 10;
     int racial = 0;
-    int effective = 10;
+    int levelGains = 0;
     if (statObj != null) {
-      try { base = (character as dynamic).getScoreBase(statObj) as int? ?? 10; } catch (_) {}
-      try { racial = (character as dynamic).getRacialBonus(statObj) as int? ?? 0; } catch (_) {}
-      effective = base + racial;
+      try { base       = (character as dynamic).getScoreBase(statObj)      as int? ?? 10; } catch (_) {}
+      try { racial     = (character as dynamic).getRacialBonus(statObj)    as int? ?? 0;  } catch (_) {}
+      try { levelGains = (character as dynamic).getLevelStatGains(statObj) as int? ?? 0;  } catch (_) {}
     }
+    final effective = base + racial + levelGains;
     final mod = ((effective - 10) / 2).floor();
     final modStr = mod >= 0 ? '+$mod' : '$mod';
+
+    // Race column: show bonus with sign, greyed when zero
+    String racialStr = racial == 0 ? '—' : (racial > 0 ? '+$racial' : '$racial');
+    Color racialColor = racial > 0
+        ? Colors.blue.shade700
+        : racial < 0 ? Colors.orange.shade700 : Colors.grey.shade400;
 
     return TableRow(
       children: [
@@ -566,7 +552,7 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
           child: Tooltip(
             message: statObj?.getDisplayName() ?? statKey,
             child: Text(statKey,
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
           ),
         ),
         Padding(
@@ -584,17 +570,33 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
             },
           ),
         ),
+        // Race column
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 4),
-          child: racial == 0
+          child: Text(racialStr,
+              style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: racial != 0 ? FontWeight.bold : FontWeight.normal,
+                  color: racialColor)),
+        ),
+        // Total column — tooltip shows breakdown if there are any adjustments
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 4),
+          child: (racial == 0 && levelGains == 0)
               ? Text('$effective',
-                  style: const TextStyle(fontWeight: FontWeight.bold))
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12))
               : Tooltip(
-                  message: 'Base $base + racial ${racial >= 0 ? "+$racial" : "$racial"}',
+                  message: [
+                    'Base: $base',
+                    if (racial != 0) 'Race: ${racial > 0 ? "+$racial" : "$racial"}',
+                    if (levelGains != 0) 'Levels: ${levelGains > 0 ? "+$levelGains" : "$levelGains"}',
+                    'Total: $effective',
+                  ].join('\n'),
                   child: Text('$effective',
                       style: TextStyle(
                           fontWeight: FontWeight.bold,
-                          color: racial > 0
+                          fontSize: 12,
+                          color: effective > base
                               ? Colors.blue.shade700
                               : Colors.orange.shade700)),
                 ),
@@ -603,6 +605,7 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
           padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 4),
           child: Text(modStr,
               style: TextStyle(
+                  fontSize: 12,
                   color: mod >= 0 ? Colors.green.shade700 : Colors.red.shade700,
                   fontWeight: FontWeight.bold)),
         ),

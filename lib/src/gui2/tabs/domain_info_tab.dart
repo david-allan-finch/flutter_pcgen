@@ -67,8 +67,15 @@ class DomainInfoTabState extends State<DomainInfoTab> {
                 Expanded(
                   child: DropdownButton<String>(
                     isExpanded: true,
-                    value: deityKey.isEmpty ? null : deityKey,
-                    hint: const Text('— Select Deity —'),
+                    // Guard: set to null if the key isn't found in the list
+                    value: deityKey.isEmpty ||
+                            !deities.any((d) => d.getKeyName() == deityKey)
+                        ? null
+                        : deityKey,
+                    hint: deityKey.isNotEmpty &&
+                            !deities.any((d) => d.getKeyName() == deityKey)
+                        ? Text(deityKey, overflow: TextOverflow.ellipsis)
+                        : const Text('— Select Deity —'),
                     items: [
                       const DropdownMenuItem(value: '', child: Text('(None)')),
                       ...deities.map((d) => DropdownMenuItem(

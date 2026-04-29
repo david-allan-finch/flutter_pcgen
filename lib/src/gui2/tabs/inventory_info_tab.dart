@@ -108,19 +108,38 @@ class InventoryInfoTabState extends State<InventoryInfoTab>
               ),
               Expanded(
                 child: equipment.isEmpty
-                    ? const Center(child: Text('No equipment loaded.'))
+                    ? const Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(16),
+                          child: Text(
+                            'No equipment loaded.\n\nAdd equipment data to your campaign\'s equipment LST files.',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(color: Colors.grey),
+                          ),
+                        ))
                     : ListView.builder(
                         itemCount: filtered.length,
                         itemBuilder: (context, i) {
                           final item = filtered[i];
+                          // Build subtitle: cost + first type
+                          String cost = '';
+                          List<String> types = [];
+                          try { cost = item.getString(StringKey.cost) ?? ''; } catch (_) {}
+                          try {
+                            final tl = item.getSafeListFor(ListKey.getConstant<String>('TYPE'));
+                            types = tl.cast<String>().take(2).toList();
+                          } catch (_) {}
+                          final subtitle = [
+                            if (cost.isNotEmpty) '$cost gp',
+                            if (types.isNotEmpty) types.join('/'),
+                          ].join(' · ');
                           return ListTile(
                             dense: true,
                             selected: _selected == item,
                             title: Text(item.getDisplayName(),
                                 style: const TextStyle(fontSize: 12)),
-                            subtitle: item.getSourceURI() != null
-                                ? Text(Uri.parse(item.getSourceURI()!).pathSegments.last,
-                                    style: const TextStyle(fontSize: 10))
+                            subtitle: subtitle.isNotEmpty
+                                ? Text(subtitle, style: const TextStyle(fontSize: 10))
                                 : null,
                             onTap: () => setState(() => _selected = item),
                           );
