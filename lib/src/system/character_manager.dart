@@ -86,6 +86,8 @@ final class CharacterManager {
         'INT': 10, 'WIS': 10, 'CHA': 10,
       },
       'classLevels': <dynamic>[],
+      'classSpellBase': <String, String>{},
+      'classSpellSlots': <String, List<int>>{},
       'skillRanks': <String, dynamic>{},
       'selectedAbilities': <String, dynamic>{},
       'selectedDomains': <String>[],

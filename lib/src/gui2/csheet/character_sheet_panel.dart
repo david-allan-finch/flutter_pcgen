@@ -442,7 +442,7 @@ class _CharacterSheetView extends StatelessWidget {
                 spacing: 6,
                 runSpacing: 2,
                 children: feats.map((f) => Chip(
-                  label: Text(f, style: const TextStyle(fontSize: 11)),
+                  label: Text(_displayAbility(f), style: const TextStyle(fontSize: 11)),
                   padding: EdgeInsets.zero,
                   materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 )).toList(),
@@ -453,13 +453,20 @@ class _CharacterSheetView extends StatelessWidget {
               Text('${entry.key.toUpperCase()} (${entry.value.length})',
                   style: theme.textTheme.titleSmall),
               const SizedBox(height: 4),
-              Text(entry.value.join(', '),
+              Text((entry.value as List).map((s) => _displayAbility(s.toString())).join(', '),
                   style: const TextStyle(fontSize: 11)),
             ],
           ],
         ),
       ),
     );
+  }
+
+  /// Convert stored ability key (possibly "Key|AppliedTo") to display string.
+  String _displayAbility(String stored) {
+    final sep = stored.indexOf('|');
+    if (sep < 0) return stored;
+    return '${stored.substring(0, sep)} (${stored.substring(sep + 1)})';
   }
 
   Widget _companionsCard(BuildContext context, ThemeData theme, Map data) {

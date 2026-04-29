@@ -113,6 +113,7 @@ class DataSet {
   Skill? findSkill(String key) => _find(skills, key);
   Deity? findDeity(String key) => _find(deities, key);
   PCStat? findStat(String key) => _find(stats, key);
+  PCAlignment? findAlignment(String key) => _find(alignments, key);
 
   T? _find<T extends dynamic>(List<T> list, String key) {
     for (final item in list) {

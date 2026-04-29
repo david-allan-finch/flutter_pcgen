@@ -101,7 +101,7 @@ class CharacterTextExport {
         _line(buf, 'FEATS');
         _line(buf, '-' * 30);
         for (final f in feats) {
-          buf.writeln('  • $f');
+          buf.writeln('  • ${_displayAbility(f)}');
         }
         _line(buf, '');
       }
@@ -158,4 +158,10 @@ class CharacterTextExport {
   }
 
   static void _line(StringBuffer buf, String text) => buf.writeln(text);
+
+  static String _displayAbility(String stored) {
+    final sep = stored.indexOf('|');
+    if (sep < 0) return stored;
+    return '${stored.substring(0, sep)} (${stored.substring(sep + 1)})';
+  }
 }

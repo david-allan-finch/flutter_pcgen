@@ -60,10 +60,15 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
   late TextEditingController _deityController;
   late FocusNode _deityFocus;
 
-  // Player name / Age / Gender
+  // Player name / Age / Gender / Physical
   late TextEditingController _playerNameController;
   late TextEditingController _ageController;
   late TextEditingController _genderController;
+  late TextEditingController _heightController;
+  late TextEditingController _weightController;
+  late TextEditingController _eyeColorController;
+  late TextEditingController _hairColorController;
+  late TextEditingController _skinColorController;
 
   @override
   void initState() {
@@ -75,6 +80,11 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
     _playerNameController = TextEditingController();
     _ageController = TextEditingController();
     _genderController = TextEditingController();
+    _heightController = TextEditingController();
+    _weightController = TextEditingController();
+    _eyeColorController = TextEditingController();
+    _hairColorController = TextEditingController();
+    _skinColorController = TextEditingController();
   }
 
   @override
@@ -86,6 +96,11 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
     _playerNameController.dispose();
     _ageController.dispose();
     _genderController.dispose();
+    _heightController.dispose();
+    _weightController.dispose();
+    _eyeColorController.dispose();
+    _hairColorController.dispose();
+    _skinColorController.dispose();
     super.dispose();
   }
 
@@ -163,8 +178,7 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
       _deityController.text = deityKey;
     }
 
-    // Sync player name / age / gender when not focused (no pending flag needed
-    // since these fields save on submit, not on every keystroke)
+    // Sync player name / age / gender / physical when not focused
     String playerName = '';
     try { playerName = (character as dynamic).getPlayersName() as String? ?? ''; } catch (_) {}
     if (_playerNameController.text != playerName) _playerNameController.text = playerName;
@@ -177,6 +191,28 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
     try { age = (character as dynamic).getAge() as int? ?? 0; } catch (_) {}
     final ageStr = age > 0 ? '$age' : '';
     if (_ageController.text != ageStr) _ageController.text = ageStr;
+
+    int height = 0;
+    try { height = (character as dynamic).getHeight() as int? ?? 0; } catch (_) {}
+    final heightStr = height > 0 ? '$height' : '';
+    if (_heightController.text != heightStr) _heightController.text = heightStr;
+
+    int weight = 0;
+    try { weight = (character as dynamic).getWeight() as int? ?? 0; } catch (_) {}
+    final weightStr = weight > 0 ? '$weight' : '';
+    if (_weightController.text != weightStr) _weightController.text = weightStr;
+
+    String eyeColor = '';
+    try { eyeColor = (character as dynamic).getEyeColor() as String? ?? ''; } catch (_) {}
+    if (_eyeColorController.text != eyeColor) _eyeColorController.text = eyeColor;
+
+    String hairColor = '';
+    try { hairColor = (character as dynamic).getHairColor() as String? ?? ''; } catch (_) {}
+    if (_hairColorController.text != hairColor) _hairColorController.text = hairColor;
+
+    String skinColor = '';
+    try { skinColor = (character as dynamic).getSkinColor() as String? ?? ''; } catch (_) {}
+    if (_skinColorController.text != skinColor) _skinColorController.text = skinColor;
 
     final raceRef = character.getRaceRef();
     final raceObj = raceRef?.get();
@@ -219,6 +255,41 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
                     onDone: (v) {
                       final n = int.tryParse(v);
                       if (n != null) try { (character as dynamic).setAge(n); } catch (_) {}
+                    })),
+                ]),
+                const SizedBox(height: 4),
+                Row(children: [
+                  Expanded(child: _editRow('Height (in)', _heightController,
+                    labelWidth: 95,
+                    keyboardType: TextInputType.number,
+                    onDone: (v) {
+                      final n = int.tryParse(v);
+                      if (n != null) try { (character as dynamic).setHeight(n); } catch (_) {}
+                    })),
+                  const SizedBox(width: 8),
+                  Expanded(child: _editRow('Weight (lb)', _weightController,
+                    labelWidth: 95,
+                    keyboardType: TextInputType.number,
+                    onDone: (v) {
+                      final n = int.tryParse(v);
+                      if (n != null) try { (character as dynamic).setWeight(n); } catch (_) {}
+                    })),
+                ]),
+                const SizedBox(height: 4),
+                Row(children: [
+                  Expanded(child: _editRow('Eyes', _eyeColorController,
+                    onDone: (v) {
+                      try { (character as dynamic).setEyeColor(v); } catch (_) {}
+                    })),
+                  const SizedBox(width: 8),
+                  Expanded(child: _editRow('Hair', _hairColorController,
+                    onDone: (v) {
+                      try { (character as dynamic).setHairColor(v); } catch (_) {}
+                    })),
+                  const SizedBox(width: 8),
+                  Expanded(child: _editRow('Skin', _skinColorController,
+                    onDone: (v) {
+                      try { (character as dynamic).setSkinColor(v); } catch (_) {}
                     })),
                 ]),
                 const SizedBox(height: 6),
@@ -272,11 +343,12 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
     FocusNode? focusNode,
     String? hint,
     TextInputType? keyboardType,
+    double labelWidth = 80,
     void Function(String)? onChanged,
     void Function(String)? onDone,
   }) {
     return Row(children: [
-      SizedBox(width: 80,
+      SizedBox(width: labelWidth,
           child: Text('$label:', style: const TextStyle(fontWeight: FontWeight.bold))),
       Expanded(
         child: TextField(

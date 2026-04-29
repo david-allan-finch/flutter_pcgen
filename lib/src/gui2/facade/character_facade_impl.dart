@@ -382,11 +382,20 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
 
   int _statModByAbb(String abb) {
     final scores = _data['statScores'];
-    if (scores is Map) {
-      final score = (scores[abb] as num?)?.toInt() ?? 10;
-      return ((score - 10) / 2).floor();
+    int base = 10;
+    if (scores is Map) base = (scores[abb] as num?)?.toInt() ?? 10;
+    // Add level ASI gains
+    int levelGains = 0;
+    final levels = _data['classLevels'] as List? ?? [];
+    for (final l in levels) {
+      if (l is Map) {
+        final gains = l['statGains'] as Map?;
+        if (gains != null) {
+          levelGains += (gains[abb.toUpperCase()] as num?)?.toInt() ?? 0;
+        }
+      }
     }
-    return 0;
+    return ((base + levelGains - 10) / 2).floor();
   }
 
   // ---- Initiative ---------------------------------------------------------
@@ -519,8 +528,24 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
     return total;
   }
 
-  /// Base score + racial bonuses.
-  int getEffectiveScore(PCStat stat) => getScoreBase(stat) + getRacialBonus(stat);
+  /// Total stat gains from level-up ability score increases (PRESTAT in PCG).
+  int getLevelStatGains(PCStat stat) {
+    int total = 0;
+    final levels = _data['classLevels'] as List? ?? [];
+    for (final l in levels) {
+      if (l is Map) {
+        final gains = l['statGains'] as Map?;
+        if (gains != null) {
+          total += (gains[stat.getKeyName().toUpperCase()] as num?)?.toInt() ?? 0;
+        }
+      }
+    }
+    return total;
+  }
+
+  /// Base score + racial bonuses + level ASI gains.
+  int getEffectiveScore(PCStat stat) =>
+      getScoreBase(stat) + getRacialBonus(stat) + getLevelStatGains(stat);
 
   @override
   int getModTotal(PCStat stat) => ((getEffectiveScore(stat) - 10) / 2).floor();
@@ -654,6 +679,23 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
     if (list is List && list.remove(key)) notifyListeners();
   }
 
+  // ---- Physical appearance ------------------------------------------------
+
+  int getHeight() => (_data['height'] as num?)?.toInt() ?? 0;
+  void setHeight(int h) { _data['height'] = h; notifyListeners(); }
+
+  int getWeight() => (_data['weight'] as num?)?.toInt() ?? 0;
+  void setWeight(int w) { _data['weight'] = w; notifyListeners(); }
+
+  String getEyeColor() => _str('eyeColor');
+  void setEyeColor(String v) => _set('eyeColor', v);
+
+  String getHairColor() => _str('hairColor');
+  void setHairColor(String v) => _set('hairColor', v);
+
+  String getSkinColor() => _str('skinColor');
+  void setSkinColor(String v) => _set('skinColor', v);
+
   // ---- Biography ----------------------------------------------------------
 
   String getBiography() => _str('biography');
@@ -676,6 +718,20 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
       if (raceKey.isNotEmpty) {
         final race = (dataset as dynamic).findRace(raceKey);
         if (race != null) _raceRef.set(race);
+      }
+    } catch (_) {}
+    try {
+      final alignKey = _data['alignmentKey'] as String? ?? '';
+      if (alignKey.isNotEmpty) {
+        final align = (dataset as dynamic).findAlignment(alignKey);
+        if (align != null) _alignmentRef.set(align);
+      }
+    } catch (_) {}
+    try {
+      final deityKey = _data['deityKey'] as String? ?? '';
+      if (deityKey.isNotEmpty) {
+        final deity = (dataset as dynamic).findDeity(deityKey);
+        if (deity != null) _deityRef.set(deity);
       }
     } catch (_) {}
   }
