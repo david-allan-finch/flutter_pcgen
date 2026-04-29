@@ -41,3 +41,15 @@ app.*.map.json
 /android/app/release
 
 /errors.txt
+
+# Character save files — user data, never shipped
+characters/
+
+# Third-party LST data not licensed for distribution.
+# Place these alongside the project but they will not be committed.
+data/bahamut35e/
+data/Bahamut35e/
+data/*bahamut*/
+data/*Bahamut*/
+system/gameModes/Bahamut35e/
+system/gameModes/bahamut35e/
