@@ -18,7 +18,10 @@
 // Translation of pcgen.gui2.PCGenFrame
 
 import 'dart:convert' show JsonEncoder;
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as p;
 import 'package:flutter/services.dart';
 import 'package:flutter_pcgen/src/gui2/ui_context.dart';
 import 'package:flutter_pcgen/src/gui2/ui_property_context.dart';
@@ -727,73 +730,191 @@ class _LoadCharacterDialog extends StatefulWidget {
 }
 
 class _LoadCharacterDialogState extends State<_LoadCharacterDialog> {
-  late Future<List<dynamic>> _filesFuture;
+  List<File> _allFiles = [];
   bool _loading = false;
+  bool _scanning = true;
+  String _dir = '';
+  final TextEditingController _dirController = TextEditingController();
+  final TextEditingController _search = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    _filesFuture = CharacterFileIO.listSaved();
+    _loadFromDir(null);
+  }
+
+  @override
+  void dispose() {
+    _dirController.dispose();
+    _search.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadFromDir(String? override) async {
+    setState(() { _scanning = true; _allFiles = []; });
+    try {
+      final dirPath = override ?? await CharacterFileIO.getCharDir();
+      final dir = Directory(dirPath);
+      if (await dir.exists()) {
+        final files = dir
+            .listSync()
+            .whereType<File>()
+            .where((f) => f.path.endsWith('.pcg') || f.path.endsWith('.json'))
+            .toList()
+          ..sort((a, b) {
+            final an = p.basenameWithoutExtension(a.path).toLowerCase();
+            final bn = p.basenameWithoutExtension(b.path).toLowerCase();
+            return an.compareTo(bn);
+          });
+        setState(() {
+          _dir = dirPath;
+          _dirController.text = dirPath;
+          _allFiles = files;
+        });
+      } else {
+        setState(() {
+          _dir = dirPath;
+          _dirController.text = dirPath;
+        });
+      }
+    } catch (_) {}
+    setState(() => _scanning = false);
+  }
+
+  List<File> get _filtered {
+    final q = _search.text.trim().toLowerCase();
+    if (q.isEmpty) return _allFiles;
+    return _allFiles
+        .where((f) => p.basenameWithoutExtension(f.path).toLowerCase().contains(q))
+        .toList();
   }
 
   @override
   Widget build(BuildContext context) {
+    final filtered = _filtered;
+
     return Dialog(
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 480, maxHeight: 400),
+        constraints: const BoxConstraints(maxWidth: 520, maxHeight: 560),
         child: Padding(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              // Title
               Text('Open Character',
                   style: Theme.of(context).textTheme.titleLarge),
-              const SizedBox(height: 12),
-              Expanded(
-                child: FutureBuilder<List<dynamic>>(
-                  future: _filesFuture,
-                  builder: (context, snap) {
-                    if (snap.connectionState != ConnectionState.done) {
-                      return const Center(child: CircularProgressIndicator());
-                    }
-                    final files = snap.data ?? [];
-                    if (files.isEmpty) {
-                      return const Center(
-                        child: Text('No saved characters found.',
-                            style: TextStyle(color: Colors.grey)),
-                      );
-                    }
-                    return ListView.builder(
-                      itemCount: files.length,
-                      itemBuilder: (context, i) {
-                        final file = files[i] as dynamic;
-                        final name = file.path.toString().split('/').last.split('\\').last;
-                        return ListTile(
-                          leading: const Icon(Icons.person),
-                          title: Text(name.replaceAll('.pcg', '')),
-                          subtitle: Text(file.path as String),
-                          onTap: _loading
-                              ? null
-                              : () async {
-                                  setState(() => _loading = true);
-                                  await widget.onLoad(file.path as String);
-                                  if (mounted) Navigator.pop(context);
-                                },
-                        );
-                      },
-                    );
-                  },
-                ),
-              ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 10),
+
+              // Folder row
               Row(
-                mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: const Text('Cancel'),
+                  Expanded(
+                    child: TextField(
+                      controller: _dirController,
+                      style: const TextStyle(fontSize: 12),
+                      decoration: const InputDecoration(
+                        labelText: 'Folder',
+                        border: OutlineInputBorder(),
+                        isDense: true,
+                        contentPadding:
+                            EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                      ),
+                      onSubmitted: (v) => _loadFromDir(v.trim()),
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  IconButton(
+                    tooltip: 'Reload folder',
+                    icon: const Icon(Icons.refresh),
+                    onPressed: () => _loadFromDir(_dirController.text.trim()),
                   ),
                 ],
+              ),
+              const SizedBox(height: 8),
+
+              // Search
+              TextField(
+                controller: _search,
+                autofocus: true,
+                decoration: const InputDecoration(
+                  prefixIcon: Icon(Icons.search, size: 18),
+                  hintText: 'Search characters…',
+                  border: OutlineInputBorder(),
+                  isDense: true,
+                  contentPadding:
+                      EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                ),
+                onChanged: (_) => setState(() {}),
+              ),
+              const SizedBox(height: 6),
+
+              // Count label
+              Text(
+                _scanning
+                    ? 'Scanning…'
+                    : '${filtered.length} character${filtered.length == 1 ? '' : 's'}',
+                style: const TextStyle(fontSize: 11, color: Colors.grey),
+              ),
+              const SizedBox(height: 4),
+
+              // File list
+              Expanded(
+                child: _scanning
+                    ? const Center(child: CircularProgressIndicator())
+                    : filtered.isEmpty
+                        ? Center(
+                            child: Text(
+                              _allFiles.isEmpty
+                                  ? 'No characters found in this folder.'
+                                  : 'No matches for "${_search.text}".',
+                              style: const TextStyle(color: Colors.grey),
+                              textAlign: TextAlign.center,
+                            ),
+                          )
+                        : ListView.builder(
+                            itemCount: filtered.length,
+                            itemBuilder: (context, i) {
+                              final file = filtered[i];
+                              final name =
+                                  p.basenameWithoutExtension(file.path);
+                              final ext = p.extension(file.path);
+                              return ListTile(
+                                dense: true,
+                                leading: Icon(
+                                  ext == '.json'
+                                      ? Icons.data_object
+                                      : Icons.person,
+                                  size: 20,
+                                ),
+                                title: Text(name,
+                                    style: const TextStyle(fontSize: 13)),
+                                trailing: _loading
+                                    ? const SizedBox(
+                                        width: 16,
+                                        height: 16,
+                                        child: CircularProgressIndicator(
+                                            strokeWidth: 2))
+                                    : null,
+                                onTap: _loading
+                                    ? null
+                                    : () async {
+                                        setState(() => _loading = true);
+                                        await widget.onLoad(file.path);
+                                        if (mounted) Navigator.pop(context);
+                                      },
+                              );
+                            },
+                          ),
+              ),
+
+              const SizedBox(height: 8),
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cancel'),
+                ),
               ),
             ],
           ),
