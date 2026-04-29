@@ -244,6 +244,23 @@ class GenericLoader<T extends CDOMObject> extends LstObjectFileLoader<T> {
         case 'RACESUBTYPE':
           try { obj.addToListFor(ListKey.getConstant<String>('TYPE'), 'RACESUBTYPE:$value'); } catch (_) {}
           return;
+        case 'ABILITY':
+          // ABILITY:Category|AUTOMATIC|Name[|!PRE...] — store automatic ability names
+          // so racial stat bonuses from ability chains can be resolved later.
+          final abParts = value.split('|');
+          if (abParts.length >= 3 &&
+              abParts[1].trim().toUpperCase() == 'AUTOMATIC') {
+            final rawName = abParts[2].trim();
+            // Strip any leading conditional prefix (e.g. name starts with '!')
+            if (rawName.isNotEmpty && !rawName.startsWith('!') &&
+                !rawName.startsWith('PRE')) {
+              try {
+                obj.addToListFor(
+                  ListKey.getConstant<String>('AUTO_ABILITIES'), rawName);
+              } catch (_) {}
+            }
+          }
+          return;
         default:
           break; // fall through to registered handlers
       }

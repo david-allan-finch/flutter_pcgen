@@ -157,7 +157,7 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
   @override
   void setRace(Object race) {
     _data['raceKey'] = (race as dynamic).getKeyName() as String? ?? '';
-    // Do NOT put the Race object itself into _data — it is not JSON-serialisable.
+    _data.remove('racialStatBonuses'); // invalidate cache
     _raceRef.set(race);
     notifyListeners();
   }
@@ -504,7 +504,16 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
   }
 
   /// Racial (and template) bonus to [stat] from BONUS:STAT tokens.
+  /// Reads from the cached bonus map (populated by restoreFromDataset) which
+  /// includes bonuses from the full auto-ability chain (e.g. Gnome ~ Rock).
   int getRacialBonus(PCStat stat) {
+    // Prefer the pre-computed cache built by _cacheRacialBonuses.
+    final cache = _data['racialStatBonuses'] as Map?;
+    if (cache != null && cache.isNotEmpty) {
+      return (cache[stat.getKeyName().toUpperCase()] as int?) ?? 0;
+    }
+    // Fallback: read STAT_BONUS directly from the race object (races that have
+    // BONUS:STAT directly rather than through an ability chain).
     int total = 0;
     final race = _raceRef.get();
     if (race != null) {
@@ -717,7 +726,12 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
       final raceKey = _data['raceKey'] as String? ?? '';
       if (raceKey.isNotEmpty) {
         final race = (dataset as dynamic).findRace(raceKey);
-        if (race != null) _raceRef.set(race);
+        if (race != null) {
+          _raceRef.set(race);
+          // Collect racial stat bonuses from the race object AND from any
+          // abilities it automatically grants (e.g. Gnome ~ Rock has BONUS:STAT).
+          _cacheRacialBonuses(race, dataset);
+        }
       }
     } catch (_) {}
     try {
@@ -732,6 +746,47 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
       if (deityKey.isNotEmpty) {
         final deity = (dataset as dynamic).findDeity(deityKey);
         if (deity != null) _deityRef.set(deity);
+      }
+    } catch (_) {}
+  }
+
+  /// Walk the automatic-ability chain of [obj] (race or ability) and accumulate
+  /// all STAT_BONUS values into [_data]['racialStatBonuses'].
+  void _cacheRacialBonuses(dynamic obj, dynamic dataset, [Set<String>? seen]) {
+    seen ??= {};
+
+    // Collect direct STAT_BONUS entries on this object.
+    try {
+      final bonusList = (obj as dynamic)
+          .getSafeListFor(ListKey.getConstant<String>('STAT_BONUS')) as List?;
+      if (bonusList != null) {
+        final cache = (_data['racialStatBonuses'] ??= <String, int>{}) as Map;
+        for (final b in bonusList) {
+          if (b is String) {
+            final idx = b.indexOf(':');
+            if (idx > 0) {
+              final stat  = b.substring(0, idx).toUpperCase();
+              final bonus = int.tryParse(b.substring(idx + 1)) ?? 0;
+              cache[stat] = (cache[stat] as int? ?? 0) + bonus;
+            }
+          }
+        }
+      }
+    } catch (_) {}
+
+    // Recurse into AUTO_ABILITIES.
+    try {
+      final autoAbilities = (obj as dynamic)
+          .getSafeListFor(ListKey.getConstant<String>('AUTO_ABILITIES')) as List?;
+      if (autoAbilities != null) {
+        for (final name in autoAbilities) {
+          if (name is String && seen.add(name)) {
+            try {
+              final ability = (dataset as dynamic).findAbilityByName(name);
+              if (ability != null) _cacheRacialBonuses(ability, dataset, seen);
+            } catch (_) {}
+          }
+        }
       }
     } catch (_) {}
   }

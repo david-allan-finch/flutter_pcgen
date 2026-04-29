@@ -115,6 +115,17 @@ class DataSet {
   PCStat? findStat(String key) => _find(stats, key);
   PCAlignment? findAlignment(String key) => _find(alignments, key);
 
+  /// Find an ability by key name across all categories (case-insensitive).
+  Ability? findAbilityByName(String name) {
+    final lower = name.toLowerCase();
+    for (final list in abilities.values) {
+      for (final ab in list) {
+        if (ab.getKeyName().toLowerCase() == lower) return ab;
+      }
+    }
+    return null;
+  }
+
   T? _find<T extends dynamic>(List<T> list, String key) {
     for (final item in list) {
       if ((item as dynamic).getKeyName().toLowerCase() == key.toLowerCase()) {
