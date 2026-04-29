@@ -54,6 +54,19 @@ class ClassInfoTabState extends State<ClassInfoTab> {
 
   // ---- Class browser --------------------------------------------------------
 
+  String _classCategory(PCClass cls) {
+    try {
+      final tl = cls.getSafeListFor(ListKey.getConstant<String>('TYPE'));
+      if (tl.isNotEmpty) {
+        // First TYPE component, before any '.'
+        final first = tl.cast<String>().first;
+        final dot = first.indexOf('.');
+        return dot > 0 ? first.substring(0, dot) : first;
+      }
+    } catch (_) {}
+    return 'Other';
+  }
+
   Widget _buildList(List<PCClass> classes) {
     final query = _search.text.trim().toLowerCase();
     final filtered = query.isEmpty
@@ -61,6 +74,17 @@ class ClassInfoTabState extends State<ClassInfoTab> {
         : classes
             .where((c) => c.getDisplayName().toLowerCase().contains(query))
             .toList();
+
+    // Group by TYPE category
+    final grouped = <String, List<PCClass>>{};
+    for (final cls in filtered) {
+      grouped.putIfAbsent(_classCategory(cls), () => []).add(cls);
+    }
+    final categories = grouped.keys.toList()..sort();
+    for (final cat in categories) {
+      grouped[cat]!.sort((a, b) =>
+          a.getDisplayName().toLowerCase().compareTo(b.getDisplayName().toLowerCase()));
+    }
 
     return Column(
       children: [
@@ -81,7 +105,7 @@ class ClassInfoTabState extends State<ClassInfoTab> {
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
           child: Align(
             alignment: Alignment.centerLeft,
-            child: Text('${filtered.length} classes',
+            child: Text('${filtered.length} classes in ${categories.length} types',
                 style: Theme.of(context).textTheme.bodySmall),
           ),
         ),
@@ -89,16 +113,29 @@ class ClassInfoTabState extends State<ClassInfoTab> {
           child: classes.isEmpty
               ? const Center(child: Text('No classes loaded.'))
               : ListView.builder(
-                  itemCount: filtered.length,
-                  itemBuilder: (context, i) {
-                    final cls = filtered[i];
-                    final isSelected = _selected == cls;
-                    return ListTile(
-                      dense: true,
-                      selected: isSelected,
-                      title: Text(cls.getDisplayName(),
-                          style: const TextStyle(fontSize: 12)),
-                      onTap: () => setState(() => _selected = cls),
+                  itemCount: categories.length,
+                  itemBuilder: (context, ci) {
+                    final cat = categories[ci];
+                    final items = grouped[cat]!;
+                    return ExpansionTile(
+                      key: PageStorageKey('cls_$cat'),
+                      initiallyExpanded: query.isNotEmpty || categories.length <= 4,
+                      tilePadding: const EdgeInsets.symmetric(horizontal: 8),
+                      title: Text(cat,
+                          style: const TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 13)),
+                      trailing: Text('${items.length}',
+                          style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                      children: items.map((cls) => ListTile(
+                        dense: true,
+                        contentPadding: const EdgeInsets.only(left: 28, right: 8),
+                        selected: _selected == cls,
+                        selectedTileColor: Theme.of(context)
+                            .colorScheme.primaryContainer.withAlpha(80),
+                        title: Text(cls.getDisplayName(),
+                            style: const TextStyle(fontSize: 12)),
+                        onTap: () => setState(() => _selected = cls),
+                      )).toList(),
                     );
                   },
                 ),

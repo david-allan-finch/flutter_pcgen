@@ -50,11 +50,36 @@ class RaceInfoTabState extends State<RaceInfoTab> {
     );
   }
 
+  String _raceType(Race race) {
+    try {
+      final tl = race.getSafeListFor(ListKey.getConstant<String>('TYPE'));
+      final raceType = tl.cast<String>()
+          .firstWhere((t) => t.startsWith('RACETYPE:'), orElse: () => '');
+      if (raceType.isNotEmpty) return raceType.substring(9);
+      // Fallback: use first non-meta type
+      final plain = tl.cast<String>()
+          .firstWhere((t) => !t.startsWith('RACESUBTYPE:'), orElse: () => '');
+      if (plain.isNotEmpty) return plain;
+    } catch (_) {}
+    return 'Other';
+  }
+
   Widget _buildList(List<Race> races) {
     final query = _search.text.trim().toLowerCase();
     final filtered = query.isEmpty
         ? races
         : races.where((r) => r.getDisplayName().toLowerCase().contains(query)).toList();
+
+    // Group by RACETYPE
+    final grouped = <String, List<Race>>{};
+    for (final race in filtered) {
+      grouped.putIfAbsent(_raceType(race), () => []).add(race);
+    }
+    final categories = grouped.keys.toList()..sort();
+    for (final cat in categories) {
+      grouped[cat]!.sort((a, b) =>
+          a.getDisplayName().toLowerCase().compareTo(b.getDisplayName().toLowerCase()));
+    }
 
     return Column(
       children: [
@@ -75,7 +100,7 @@ class RaceInfoTabState extends State<RaceInfoTab> {
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
           child: Align(
             alignment: Alignment.centerLeft,
-            child: Text('${filtered.length} races',
+            child: Text('${filtered.length} races in ${categories.length} types',
                 style: Theme.of(context).textTheme.bodySmall),
           ),
         ),
@@ -83,15 +108,29 @@ class RaceInfoTabState extends State<RaceInfoTab> {
           child: races.isEmpty
               ? const Center(child: Text('No races loaded.'))
               : ListView.builder(
-                  itemCount: filtered.length,
-                  itemBuilder: (context, i) {
-                    final race = filtered[i];
-                    final isSelected = _selected == race;
-                    return ListTile(
-                      dense: true,
-                      selected: isSelected,
-                      title: Text(race.getDisplayName()),
-                      onTap: () => setState(() => _selected = race),
+                  itemCount: categories.length,
+                  itemBuilder: (context, ci) {
+                    final cat = categories[ci];
+                    final items = grouped[cat]!;
+                    return ExpansionTile(
+                      key: PageStorageKey('race_$cat'),
+                      initiallyExpanded: query.isNotEmpty || categories.length <= 4,
+                      tilePadding: const EdgeInsets.symmetric(horizontal: 8),
+                      title: Text(cat,
+                          style: const TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 13)),
+                      trailing: Text('${items.length}',
+                          style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                      children: items.map((race) => ListTile(
+                        dense: true,
+                        contentPadding: const EdgeInsets.only(left: 28, right: 8),
+                        selected: _selected == race,
+                        selectedTileColor: Theme.of(context)
+                            .colorScheme.primaryContainer.withAlpha(80),
+                        title: Text(race.getDisplayName(),
+                            style: const TextStyle(fontSize: 12)),
+                        onTap: () => setState(() => _selected = race),
+                      )).toList(),
                     );
                   },
                 ),
