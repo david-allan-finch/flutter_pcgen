@@ -73,15 +73,67 @@ class InventoryInfoTabState extends State<InventoryInfoTab>
     );
   }
 
+  IconData _categoryIcon(String cat) {
+    switch (cat.toLowerCase()) {
+      case 'weapon':   return Icons.sports_martial_arts;
+      case 'armor':    return Icons.shield;
+      case 'shield':   return Icons.shield_outlined;
+      case 'ammunition': return Icons.arrow_forward;
+      case 'goods':    return Icons.shopping_bag;
+      case 'magic':    return Icons.auto_fix_high;
+      case 'potion':   return Icons.local_drink;
+      case 'scroll':   return Icons.description;
+      case 'ring':     return Icons.circle_outlined;
+      case 'wand':     return Icons.architecture;
+      case 'rod':      return Icons.linear_scale;
+      case 'staff':    return Icons.linear_scale;
+      default:         return Icons.inventory_2_outlined;
+    }
+  }
+
+  /// Extract the primary TYPE category from an equipment item.
+  String _primaryType(Equipment item) {
+    try {
+      final tl = item.getSafeListFor(ListKey.getConstant<String>('TYPE'));
+      if (tl.isNotEmpty) {
+        final first = tl.cast<String>().first;
+        // Strip RACETYPE:/RACESUBTYPE: prefixes stored by generic_loader
+        if (first.startsWith('RACETYPE:') || first.startsWith('RACESUBTYPE:')) {
+          return tl.cast<String>().skip(1).firstWhere(
+            (t) => !t.startsWith('RACETYPE:') && !t.startsWith('RACESUBTYPE:'),
+            orElse: () => 'Other',
+          );
+        }
+        return first;
+      }
+    } catch (_) {}
+    return 'Other';
+  }
+
   Widget _buildPurchaseTab(dynamic character, List<Equipment> equipment) {
     final query = _search.text.trim().toLowerCase();
     final filtered = query.isEmpty
         ? equipment
-        : equipment.where((e) => e.getDisplayName().toLowerCase().contains(query)).toList();
+        : equipment
+            .where((e) => e.getDisplayName().toLowerCase().contains(query))
+            .toList();
+
+    // Group by primary type, sorted alphabetically within each group
+    final grouped = <String, List<Equipment>>{};
+    for (final item in filtered) {
+      final cat = _primaryType(item);
+      grouped.putIfAbsent(cat, () => []).add(item);
+    }
+    // Sort categories; sort items within each category
+    final categories = grouped.keys.toList()..sort();
+    for (final cat in categories) {
+      grouped[cat]!.sort((a, b) =>
+          a.getDisplayName().toLowerCase().compareTo(b.getDisplayName().toLowerCase()));
+    }
 
     return Row(
       children: [
-        // Available equipment
+        // Available equipment tree
         Expanded(
           child: Column(
             children: [
@@ -102,8 +154,10 @@ class InventoryInfoTabState extends State<InventoryInfoTab>
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 child: Align(
                   alignment: Alignment.centerLeft,
-                  child: Text('${filtered.length} items',
-                      style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                  child: Text(
+                    '${filtered.length} items in ${categories.length} categories',
+                    style: const TextStyle(fontSize: 11, color: Colors.grey),
+                  ),
                 ),
               ),
               Expanded(
@@ -118,30 +172,44 @@ class InventoryInfoTabState extends State<InventoryInfoTab>
                           ),
                         ))
                     : ListView.builder(
-                        itemCount: filtered.length,
-                        itemBuilder: (context, i) {
-                          final item = filtered[i];
-                          // Build subtitle: cost + first type
-                          String cost = '';
-                          List<String> types = [];
-                          try { cost = item.getString(StringKey.cost) ?? ''; } catch (_) {}
-                          try {
-                            final tl = item.getSafeListFor(ListKey.getConstant<String>('TYPE'));
-                            types = tl.cast<String>().take(2).toList();
-                          } catch (_) {}
-                          final subtitle = [
-                            if (cost.isNotEmpty) '$cost gp',
-                            if (types.isNotEmpty) types.join('/'),
-                          ].join(' · ');
-                          return ListTile(
-                            dense: true,
-                            selected: _selected == item,
-                            title: Text(item.getDisplayName(),
-                                style: const TextStyle(fontSize: 12)),
-                            subtitle: subtitle.isNotEmpty
-                                ? Text(subtitle, style: const TextStyle(fontSize: 10))
-                                : null,
-                            onTap: () => setState(() => _selected = item),
+                        itemCount: categories.length,
+                        itemBuilder: (context, ci) {
+                          final cat = categories[ci];
+                          final items = grouped[cat]!;
+                          // Auto-expand when searching
+                          return ExpansionTile(
+                            key: PageStorageKey('eq_cat_$cat'),
+                            initiallyExpanded: query.isNotEmpty || categories.length <= 5,
+                            tilePadding: const EdgeInsets.symmetric(horizontal: 8),
+                            leading: Icon(_categoryIcon(cat), size: 18),
+                            title: Text(cat,
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold, fontSize: 13)),
+                            trailing: Text('${items.length}',
+                                style: const TextStyle(
+                                    fontSize: 11, color: Colors.grey)),
+                            children: items.map((item) {
+                              String cost = '';
+                              try { cost = item.getString(StringKey.cost) ?? ''; } catch (_) {}
+                              return ListTile(
+                                dense: true,
+                                contentPadding: const EdgeInsets.only(
+                                    left: 32, right: 8),
+                                selected: _selected == item,
+                                selectedTileColor: Theme.of(context)
+                                    .colorScheme
+                                    .primaryContainer
+                                    .withAlpha(80),
+                                title: Text(item.getDisplayName(),
+                                    style: const TextStyle(fontSize: 12)),
+                                trailing: cost.isNotEmpty
+                                    ? Text('$cost gp',
+                                        style: const TextStyle(
+                                            fontSize: 11, color: Colors.grey))
+                                    : null,
+                                onTap: () => setState(() => _selected = item),
+                              );
+                            }).toList(),
                           );
                         },
                       ),

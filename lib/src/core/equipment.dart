@@ -118,8 +118,23 @@ class Equipment extends PObject {
 
   @override
   String getName() => _modifiedName ?? getKeyName();
+
+  /// Display name: prefer OUTPUTNAME if set, otherwise use the display name
+  /// set by setName(). Falls back to key name if still empty.
   @override
-  void setName(String name) { setKeyName(name); }
+  String getDisplayName() {
+    final output = getString(StringKey.outputName);
+    if (output != null && output.isNotEmpty) return output;
+    final dn = super.getDisplayName();
+    if (dn.isNotEmpty) return dn;
+    return getKeyName();
+  }
+
+  @override
+  void setName(String name) {
+    setDisplayName(name); // keep _displayName in sync
+    setKeyName(name);
+  }
 
   void setModifiedName(String name) { _modifiedName = name; }
 
