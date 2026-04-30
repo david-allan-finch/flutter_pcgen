@@ -242,11 +242,75 @@ class GenericLoader<T extends CDOMObject> extends LstObjectFileLoader<T> {
           } catch (_) {}
           return;
         case 'SIZE':
-          try { obj.putString(StringKey.sizeformula, value); } catch (_) {}
+          // SIZE:M — creature size (F D T S M L H G C P)
+          try {
+            obj.putString(StringKey.sizeformula, value.trim());
+          } catch (_) {}
           return;
         case 'MOVE':
-          // MOVE:Walk,30 — store raw movement string
-          try { obj.putString(StringKey.tempvalue, value); } catch (_) {}
+          // MOVE:Walk,30,Fly,60,Swim,20 — movement speeds (type,feet pairs)
+          try {
+            obj.putString(StringKey.tempvalue, value);
+            // Also parse into structured map
+            final parts = value.split(',');
+            final moveMap = <String, int>{};
+            for (int i = 0; i + 1 < parts.length; i += 2) {
+              final type  = parts[i].trim();
+              final speed = int.tryParse(parts[i + 1].trim()) ?? 0;
+              if (type.isNotEmpty) moveMap[type] = speed;
+            }
+            if (moveMap.isNotEmpty) {
+              obj.putObject(ObjectKey.getConstant<Map>('MOVE_SPEEDS'), moveMap);
+            }
+          } catch (_) {}
+          return;
+        case 'LANGBONUS':
+          // LANGBONUS:Goblin,Orc,Giant — bonus language choices offered to character
+          for (final lang in value.split(',')) {
+            final l = lang.trim();
+            if (l.isNotEmpty) {
+              try {
+                obj.addToListFor(ListKey.getConstant<String>('LANG_BONUS'), l);
+              } catch (_) {}
+            }
+          }
+          return;
+        case 'STARTFEATS':
+          try {
+            obj.putObject(ObjectKey.getConstant<int>('START_FEATS'),
+                int.tryParse(value) ?? 0);
+          } catch (_) {}
+          return;
+        case 'UNENCUMBEREDMOVE':
+          // UNENCUMBEREDMOVE:HeavyLoad|HeavyArmor — ignore for now
+          return;
+        case 'FACT':
+          // FACT:FieldName|Value — e.g. FACT:BaseSize|M, FACT:ClassType|PC
+          {
+            final pipeIdx = value.indexOf('|');
+            if (pipeIdx > 0) {
+              final factName = value.substring(0, pipeIdx).toUpperCase();
+              final factVal  = value.substring(pipeIdx + 1).trim();
+              switch (factName) {
+                case 'BASESIZE':
+                  try { obj.putString(StringKey.sizeformula, factVal); } catch (_) {}
+                  break;
+                case 'CLASSTYPE':
+                  try { obj.putString(StringKey.classType, factVal); } catch (_) {}
+                  break;
+                case 'ABB':
+                  try { obj.putString(StringKey.abbKr, factVal); } catch (_) {}
+                  break;
+                case 'SPELLTYPE':
+                  break; // used by class loader
+                default:
+                  break;
+              }
+            }
+          }
+          return;
+        case 'GROUP':
+          // GROUP:UNSELECTED etc. — ignore for now
           return;
         case 'XTRASKILLPTSPERLVL':
           // Extra skill points per level (bonus, e.g. Human gets +1)

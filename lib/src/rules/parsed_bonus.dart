@@ -176,8 +176,15 @@ class ParsedPrereq {
       }
     }
     int matched = 0;
-    for (final key in ctx.selectedAbilityKeys(category)) {
-      if (names.any((n) => key.toLowerCase() == n || key.toLowerCase().startsWith(n))) {
+    for (final storedKey in ctx.selectedAbilityKeys(category)) {
+      // storedKey may be "AbilityName|Choice" — compare using base key only
+      final baseKey = storedKey.contains('|')
+          ? storedKey.substring(0, storedKey.indexOf('|')).toLowerCase()
+          : storedKey.toLowerCase();
+      if (names.any((n) =>
+          baseKey == n ||
+          baseKey.startsWith(n) ||
+          n.startsWith(baseKey))) {
         matched++;
       }
     }

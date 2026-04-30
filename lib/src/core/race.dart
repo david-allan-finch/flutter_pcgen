@@ -21,6 +21,7 @@ import 'package:flutter_pcgen/src/cdom/enumeration/formula_key.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/integer_key.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/list_key.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/object_key.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/string_key.dart';
 import 'package:flutter_pcgen/src/core/pcobject.dart';
 
 /// Represents a character race.
@@ -64,6 +65,54 @@ final class Race extends PObject {
   /// Returns the monster class for this race (MONCLASS token).
   dynamic getMonsterClass() =>
       getSafeObject(ObjectKey.getConstant<dynamic>('MONSTER_CLASS'));
+
+  // ---- Race traits exposed to character facade ----------------------------
+
+  /// Size abbreviation: F D T S M L H G C P (Medium = 'M').
+  String getSize() => getSafeString(StringKey.sizeformula);
+
+  /// Movement speeds as {type: feet} map, e.g. {'Walk': 30, 'Swim': 20}.
+  Map<String, int> getMoveSpeeds() {
+    try {
+      final obj = getSafeObject(ObjectKey.getConstant<Map>('MOVE_SPEEDS'));
+      if (obj is Map) return Map<String, int>.from(obj);
+    } catch (_) {}
+    // Fall back to parsing the raw MOVE string
+    final raw = getSafeString(StringKey.tempvalue);
+    if (raw.isEmpty) return {};
+    final parts = raw.split(',');
+    final result = <String, int>{};
+    for (int i = 0; i + 1 < parts.length; i += 2) {
+      final type  = parts[i].trim();
+      final speed = int.tryParse(parts[i + 1].trim()) ?? 0;
+      if (type.isNotEmpty) result[type] = speed;
+    }
+    return result;
+  }
+
+  /// Languages automatically known by this race (AUTO:LANG token).
+  List<String> getAutoLanguages() {
+    try {
+      final list = getSafeListFor(ListKey.getConstant<String>('AUTO_LANG')) as List?;
+      return list?.cast<String>() ?? const [];
+    } catch (_) {
+      return const [];
+    }
+  }
+
+  /// Bonus language choices offered to characters of this race (LANGBONUS token).
+  List<String> getBonusLanguageChoices() {
+    try {
+      final list = getSafeListFor(ListKey.getConstant<String>('LANG_BONUS')) as List?;
+      return list?.cast<String>() ?? const [];
+    } catch (_) {
+      return const [];
+    }
+  }
+
+  /// Starting feats granted by the race (STARTFEATS token).
+  int getStartFeats() =>
+      getSafeObject(ObjectKey.getConstant<int>('START_FEATS')) as int? ?? 0;
 
   @override
   int get hashCode => getKeyName().hashCode;

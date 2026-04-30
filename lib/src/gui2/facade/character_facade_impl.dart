@@ -167,8 +167,36 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
     _data['raceKey'] = (race as dynamic).getKeyName() as String? ?? '';
     _data.remove('racialStatBonuses'); // invalidate cache
     _raceRef.set(race);
+    _applyRaceTraits(race);
     _rebuild();
     notifyListeners();
+  }
+
+  /// Grant automatic languages and store size/speed from the race object.
+  void _applyRaceTraits(dynamic race) {
+    try {
+      // Size
+      final size = (race as dynamic).getSize() as String? ?? '';
+      if (size.isNotEmpty) _data['raceSize'] = size;
+
+      // Movement speeds
+      final speeds = (race as dynamic).getMoveSpeeds() as Map<String, int>?;
+      if (speeds != null && speeds.isNotEmpty) _data['raceSpeeds'] = speeds;
+
+      // Auto languages — add to character's language keys (no duplicates)
+      final autoLangs = (race as dynamic).getAutoLanguages() as List<String>? ?? [];
+      if (autoLangs.isNotEmpty) {
+        final langKeys = (_data['languageKeys'] ??= <String>[]) as List;
+        for (final lang in autoLangs) {
+          if (!langKeys.contains(lang)) langKeys.add(lang);
+        }
+      }
+
+      // Bonus language choices — store for UI to offer
+      final bonusLangs =
+          (race as dynamic).getBonusLanguageChoices() as List<String>? ?? [];
+      _data['raceBonusLanguages'] = bonusLangs;
+    } catch (_) {}
   }
 
   String getRaceKey() => _data['raceKey'] as String? ?? '';
@@ -850,6 +878,22 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
     if (list is List && list.remove(key)) { _rebuild(); notifyListeners(); }
   }
 
+  // ---- Race traits --------------------------------------------------------
+
+  String getRaceSize() => _data['raceSize'] as String? ?? 'M';
+
+  Map<String, int> getRaceSpeeds() {
+    final m = _data['raceSpeeds'];
+    if (m is Map) return Map<String, int>.from(m);
+    return const {'Walk': 30};
+  }
+
+  List<String> getRaceBonusLanguages() {
+    final l = _data['raceBonusLanguages'];
+    if (l is List) return l.cast<String>();
+    return const [];
+  }
+
   // ---- Physical appearance ------------------------------------------------
 
   int getHeight() => (_data['height'] as num?)?.toInt() ?? 0;
@@ -890,9 +934,17 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
         final race = (dataset as dynamic).findRace(raceKey);
         if (race != null) {
           _raceRef.set(race);
-          // Collect racial stat bonuses from the race object AND from any
-          // abilities it automatically grants (e.g. Gnome ~ Rock has BONUS:STAT).
           _cacheRacialBonuses(race, dataset);
+          // Restore size/speed/language data without re-adding duplicate languages
+          // (they're already in _data from the saved PCG file)
+          try {
+            final size = (race as dynamic).getSize() as String? ?? '';
+            if (size.isNotEmpty) _data['raceSize'] ??= size;
+            final speeds = (race as dynamic).getMoveSpeeds() as Map<String, int>?;
+            if (speeds != null && speeds.isNotEmpty) _data['raceSpeeds'] ??= speeds;
+            _data['raceBonusLanguages'] =
+                (race as dynamic).getBonusLanguageChoices() as List<String>? ?? [];
+          } catch (_) {}
         }
       }
     } catch (_) {}

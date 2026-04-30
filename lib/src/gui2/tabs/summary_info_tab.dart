@@ -402,6 +402,11 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
                 const SizedBox(height: 6),
                 _labelledValue('Race', raceName),
                 _labelledValue('Class', _classLevelSummary(character)),
+                const SizedBox(height: 4),
+                // Size and speed from race
+                Row(children: [
+                  Expanded(child: _buildSizeSpeed(character)),
+                ]),
                 const SizedBox(height: 6),
                 if (alignments.isNotEmpty)
                   Row(children: [
@@ -433,6 +438,42 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
         );
       },
     );
+  }
+
+  Widget _buildSizeSpeed(dynamic character) {
+    String size = 'M';
+    Map speeds = const {'Walk': 30};
+    try { size   = (character as dynamic).getRaceSize() as String? ?? 'M'; } catch (_) {}
+    try { speeds = (character as dynamic).getRaceSpeeds() as Map? ?? const {'Walk': 30}; } catch (_) {}
+
+    final sizeName = _sizeLabel(size);
+    final speedStr = speeds.entries
+        .map((e) => '${e.key} ${e.value}ft')
+        .join(', ');
+
+    return Row(
+      children: [
+        const SizedBox(width: 80,
+            child: Text('Size / Speed:', style: TextStyle(fontWeight: FontWeight.bold))),
+        Text('$sizeName  •  $speedStr',
+            style: const TextStyle(fontSize: 12)),
+      ],
+    );
+  }
+
+  String _sizeLabel(String abbr) {
+    switch (abbr.toUpperCase()) {
+      case 'F': return 'Fine';
+      case 'D': return 'Diminutive';
+      case 'T': return 'Tiny';
+      case 'S': return 'Small';
+      case 'M': return 'Medium';
+      case 'L': return 'Large';
+      case 'H': return 'Huge';
+      case 'G': return 'Gargantuan';
+      case 'C': return 'Colossal';
+      default:  return abbr;
+    }
   }
 
   Widget _editRow(String label, TextEditingController ctrl, {
@@ -475,6 +516,16 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
     final available = dataset?.languages ?? const <Language>[];
     final selected = _getLanguageKeys(character);
 
+    // Racial bonus language choices not yet learned
+    List<String> bonusChoices = const [];
+    try {
+      bonusChoices =
+          (character as dynamic).getRaceBonusLanguages() as List<String>? ?? [];
+    } catch (_) {}
+    final unlearnedBonus = bonusChoices
+        .where((l) => !selected.contains(l))
+        .toList();
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(12),
@@ -508,6 +559,27 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
                   );
                 }).toList(),
               ),
+            // Racial bonus language choices not yet taken
+            if (unlearnedBonus.isNotEmpty) ...[
+              const SizedBox(height: 6),
+              Text('Racial bonus language choices:',
+                  style: TextStyle(
+                      fontSize: 11,
+                      color: Colors.grey.shade600,
+                      fontStyle: FontStyle.italic)),
+              const SizedBox(height: 4),
+              Wrap(
+                spacing: 4,
+                runSpacing: 4,
+                children: unlearnedBonus.map((lang) => ActionChip(
+                  label: Text('+ $lang', style: const TextStyle(fontSize: 11)),
+                  backgroundColor: Colors.green.shade50,
+                  onPressed: character == null
+                      ? null
+                      : () => _addLanguage(character, lang),
+                )).toList(),
+              ),
+            ],
           ],
         ),
       ),
