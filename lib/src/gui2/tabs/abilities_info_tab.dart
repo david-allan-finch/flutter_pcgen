@@ -2,7 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/list_key.dart';
-import 'package:flutter_pcgen/src/cdom/enumeration/object_key.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/object_key.dart' as cdom;
 import 'package:flutter_pcgen/src/cdom/enumeration/string_key.dart';
 import 'package:flutter_pcgen/src/core/ability.dart';
 import 'package:flutter_pcgen/src/core/data_set.dart';
@@ -339,9 +339,9 @@ class AbilitiesInfoTabState extends State<AbilitiesInfoTab>
     if (ability != null) {
       try {
         choose = ability.getSafeObject(
-            ObjectKey.getConstant<ParsedChoose>('PARSED_CHOOSE')) as ParsedChoose?;
+            cdom.ObjectKey.getConstant<ParsedChoose>('PARSED_CHOOSE')) as ParsedChoose?;
         multOk = ability.getSafeObject(
-            ObjectKey.getConstant<bool>('MULT_OK')) as bool? ?? false;
+            cdom.ObjectKey.getConstant<bool>('MULT_OK')) as bool? ?? false;
       } catch (_) {}
     }
 
