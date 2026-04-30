@@ -66,6 +66,54 @@ class PCClass extends PObject {
   void clearClassLevels() => _levelMap.clear();
 
   // ---------------------------------------------------------------------------
+  // Spell slot tables (CAST: and KNOWN: per level)
+  // ---------------------------------------------------------------------------
+
+  // Stored as Map<int, List<int>> — level → slots per spell level
+  final Map<int, List<int>> _castSlots  = {};
+  final Map<int, List<int>> _knownSlots = {};
+  // Abilities granted at each class level: level → [abilityName, ...]
+  final Map<int, List<String>> _levelAbilities = {};
+
+  void setCastSlots(int level, List<int> slots) => _castSlots[level] = slots;
+  void setKnownSlots(int level, List<int> slots) => _knownSlots[level] = slots;
+
+  /// Spell slots at [level] (the CAST: table row).
+  List<int> getCastSlotsAt(int level) => _castSlots[level] ?? const [];
+
+  /// Spells known at [level] (the KNOWN: table row).
+  List<int> getKnownSlotsAt(int level) => _knownSlots[level] ?? const [];
+
+  /// All levels that have CAST data defined.
+  List<int> get definedCastLevels => _castSlots.keys.toList()..sort();
+
+  /// Whether this class has any spell progression defined.
+  bool get hasSpells => _castSlots.isNotEmpty;
+
+  /// Cumulative spells per day at character level [clsLevel].
+  /// Returns the CAST: row for [clsLevel], or empty if none defined.
+  List<int> getSpellsPerDayAt(int clsLevel) {
+    if (_castSlots.isEmpty) return const [];
+    // Find the highest defined level ≤ clsLevel
+    int? key;
+    for (final k in _castSlots.keys) {
+      if (k <= clsLevel && (key == null || k > key)) key = k;
+    }
+    return key != null ? _castSlots[key]! : const [];
+  }
+
+  /// Add an ability name granted at [level].
+  void addLevelAbility(int level, String abilityName) =>
+      _levelAbilities.putIfAbsent(level, () => []).add(abilityName);
+
+  /// Ability names granted at exactly [level].
+  List<String> getAbilitiesAtLevel(int level) =>
+      List.unmodifiable(_levelAbilities[level] ?? const []);
+
+  /// All level→abilities entries.
+  Map<int, List<String>> get allLevelAbilities => Map.unmodifiable(_levelAbilities);
+
+  // ---------------------------------------------------------------------------
   // Basic class properties
   // ---------------------------------------------------------------------------
 
@@ -90,6 +138,9 @@ class PCClass extends PObject {
 
   String getHD() => getSafeString(StringKey.hdFormula);
   String getClassType() => getSafeString(StringKey.classType);
+
+  /// Spellcasting ability abbreviation from SPELLSTAT token (e.g. 'WIS', 'INT').
+  String getSpellStat() => getSafeString(StringKey.spellStat);
 
   /// Returns the BAB progression type: 'Full', 'ThreeQuarters', 'Half', or '' (unknown).
   String getBabProgression() => getSafeString(StringKey.masterBabFormula);

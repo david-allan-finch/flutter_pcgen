@@ -78,21 +78,74 @@ class PCClassLoader extends LstObjectFileLoader<PCClass> {
       return null;
     }
 
-    // Class-level definition: "ClassName    <level>" (tab-separated)
-    // The level is an integer; this line applies to a specific PCClassLevel.
-    // In the full implementation this would check firstToken for a level number
-    // and apply to the PCClassLevel. For now we apply to the class as a whole.
+    // Class level definition line: first field is a level number.
+    // e.g.: "1\tCAST:0,1\tKNOWN:4,2\tABILITY:Class|AUTOMATIC|Barbarian"
+    final levelNum = int.tryParse(firstToken);
+    if (levelNum != null) {
+      if (target != null) {
+        _parseLevelLine(target, levelNum, fields.sublist(1));
+      }
+      return null; // level lines don't change the current class object
+    }
 
-    // New class or .MOD handled by parent
+    // New class (or .MOD of existing) — first field is class name.
+    final isMod = firstToken.endsWith('.MOD');
+    final className = isMod
+        ? firstToken.substring(0, firstToken.length - 4)
+        : firstToken;
+
     PCClass pcClass = target ?? PCClass();
     if (target == null) {
-      pcClass.setName(firstToken);
+      pcClass.setName(className);
       pcClass.setSourceURI(source.getURI().toString());
       context.getReferenceContext().register(pcClass);
     }
 
     _parseLineIntoClass(context, pcClass, source, restOfLine);
     return null;
+  }
+
+  /// Parse a numbered class-level line (e.g. "1\tCAST:0,1\tKNOWN:4,2\tABILITY:...").
+  void _parseLevelLine(PCClass pcClass, int level, List<String> fields) {
+    for (final field in fields) {
+      final tok = field.trim();
+      if (tok.isEmpty) continue;
+      final (tag, value) = LstUtils.splitToken(tok);
+      switch (tag.toUpperCase()) {
+        case 'CAST':
+          // CAST:0,2,1 — slots per spell level (SL0, SL1, SL2…) at this class level
+          final slots = value.split(',').map((s) => int.tryParse(s.trim()) ?? 0).toList();
+          pcClass.setCastSlots(level, slots);
+          break;
+        case 'KNOWN':
+          // KNOWN:4,2 — spells known per spell level at this class level
+          final known = value.split(',').map((s) => int.tryParse(s.trim()) ?? 0).toList();
+          pcClass.setKnownSlots(level, known);
+          break;
+        case 'ABILITY':
+          // ABILITY:Category|AUTOMATIC|Name
+          final parts = value.split('|');
+          if (parts.length >= 3 && parts[1].trim().toUpperCase() == 'AUTOMATIC') {
+            final name = parts[2].trim();
+            if (name.isNotEmpty && !name.startsWith('!') && !name.startsWith('PRE')) {
+              pcClass.addLevelAbility(level, name);
+            }
+          }
+          break;
+        case 'BONUS':
+          // Per-level bonus (e.g. sneak attack at certain rogue levels)
+          final parsed = ParsedBonus.parse(value);
+          if (parsed != null) {
+            try {
+              pcClass.addToListFor(
+                ListKey.getConstant<ParsedBonus>('PARSED_BONUS'), parsed);
+            } catch (_) {}
+          }
+          break;
+        default:
+          break;
+      }
+    }
   }
 
   void _parseLineIntoClass(

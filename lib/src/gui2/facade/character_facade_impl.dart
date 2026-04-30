@@ -628,11 +628,31 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
     final levels = (_data['classLevels'] ??= <dynamic>[]) as List;
     for (final cls in classes) {
       final hd = int.tryParse(cls.getHD()) ?? 8;
+
+      // Class level in this class after adding this level
+      final newClsLevel = levels.where(
+            (l) => l is Map && l['classKey'] == cls.getKeyName()).length + 1;
+
       levels.add({
         'className': cls.getDisplayName(),
         'classKey':  cls.getKeyName(),
         'hp': hd,
       });
+
+      // Auto-grant class abilities defined for this level
+      final abilities = cls.getAbilitiesAtLevel(newClsLevel);
+      if (abilities.isNotEmpty) {
+        final selectedAbilities =
+            (_data['selectedAbilities'] ??= <String, dynamic>{}) as Map;
+        for (final abilName in abilities) {
+          // Abilities from class levels go into their category
+          // (we store under 'Class Ability' to keep them separate from FEAT)
+          final cat = 'Class Ability';
+          final list =
+              (selectedAbilities[cat] ??= <String>[]) as List;
+          if (!list.contains(abilName)) list.add(abilName);
+        }
+      }
     }
     _rebuild();
     notifyListeners();
