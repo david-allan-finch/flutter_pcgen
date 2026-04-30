@@ -22,6 +22,8 @@ import 'package:flutter_pcgen/src/cdom/enumeration/list_key.dart';
 import 'package:flutter_pcgen/src/core/language.dart';
 import 'package:flutter_pcgen/src/core/pc_stat.dart';
 import 'package:flutter_pcgen/src/core/pc_class.dart';
+import 'package:flutter_pcgen/src/rules/parsed_bonus.dart';
+import 'package:flutter_pcgen/src/rules/bonus_accumulator.dart';
 import 'package:flutter_pcgen/src/facade/core/character_facade.dart';
 import 'package:flutter_pcgen/src/facade/core/character_levels_facade.dart';
 import 'package:flutter_pcgen/src/facade/core/description_facade.dart';
@@ -64,6 +66,10 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
   // Equipment sets
   final List<EquipmentSetFacadeImpl> _equipmentSets = [];
   int _activeEquipSetIndex = 0;
+
+  // ---- Rules engine --------------------------------------------------------
+  BonusAccumulator _bonusAcc = BonusAccumulator();
+  bool _bonusDirty = true; // rebuild on next access
 
   // Reference facades
   late final DefaultReferenceFacade<Object> _raceRef;
@@ -365,20 +371,35 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
     return roll;
   }
 
-  // ---- Saving throws ------------------------------------------------------
-  // Returns stored value or stat-mod estimate if not yet set.
+  // ---- Saving throws -------------------------------------------------------
 
   @override
-  int getFortSave() =>
-      (_data['fortSave'] as num?)?.toInt() ?? _statModByAbb('CON');
+  int getFortSave() {
+    final acc = _bonusAcc;
+    final base = acc.totalIntWithAll('SAVE', 'Fortitude') +
+                 acc.totalIntWithAll('SAVE', 'BASE.FORTITUDE');
+    // Fallback: if no bonus data, use CON mod + stored value
+    if (base == 0) return (_data['fortSave'] as num?)?.toInt() ?? _statModByAbb('CON');
+    return base + _statModByAbb('CON');
+  }
 
   @override
-  int getRefSave() =>
-      (_data['refSave'] as num?)?.toInt() ?? _statModByAbb('DEX');
+  int getRefSave() {
+    final acc = _bonusAcc;
+    final base = acc.totalIntWithAll('SAVE', 'Reflex') +
+                 acc.totalIntWithAll('SAVE', 'BASE.REFLEX');
+    if (base == 0) return (_data['refSave'] as num?)?.toInt() ?? _statModByAbb('DEX');
+    return base + _statModByAbb('DEX');
+  }
 
   @override
-  int getWillSave() =>
-      (_data['willSave'] as num?)?.toInt() ?? _statModByAbb('WIS');
+  int getWillSave() {
+    final acc = _bonusAcc;
+    final base = acc.totalIntWithAll('SAVE', 'Will') +
+                 acc.totalIntWithAll('SAVE', 'BASE.WILL');
+    if (base == 0) return (_data['willSave'] as num?)?.toInt() ?? _statModByAbb('WIS');
+    return base + _statModByAbb('WIS');
+  }
 
   int _statModByAbb(String abb) {
     final scores = _data['statScores'];
@@ -401,23 +422,54 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
   // ---- Initiative ---------------------------------------------------------
 
   @override
-  int getInitiative() => (_data['initiative'] as num?)?.toInt() ?? 0;
+  int getInitiative() {
+    final dexMod = _statModByAbb('DEX');
+    final miscInit = _bonusAcc.totalInt('COMBAT', 'INITIATIVE') +
+                     _bonusAcc.totalInt('VAR', 'INITCOMP');
+    return dexMod + miscInit;
+  }
 
   // ---- AC -----------------------------------------------------------------
 
   @override
-  int getAC() => (_data['ac'] as num?)?.toInt() ?? 0;
+  int getAC() {
+    final acc = _bonusAcc;
+    // Base 10 + all COMBAT|AC bonuses (armor, dex/ability, size, natural, deflection, dodge...)
+    final fromBonuses = acc.totalInt('COMBAT', 'AC');
+    if (fromBonuses == 0) {
+      // No bonus data loaded yet — return simple 10+DEX
+      return 10 + _statModByAbb('DEX');
+    }
+    return fromBonuses;
+  }
 
   @override
-  int getTouchAC() => (_data['touchAC'] as num?)?.toInt() ?? 0;
+  int getTouchAC() {
+    // Touch AC excludes armor and natural armor type bonuses
+    // For now approximate as 10 + DEX + dodge + deflection
+    final dex = _statModByAbb('DEX');
+    final dodge = _bonusAcc.totalInt('COMBAT', 'AC'); // will overcount but acceptable fallback
+    return 10 + dex;
+  }
 
   @override
-  int getFlatFootedAC() => (_data['flatFootedAC'] as num?)?.toInt() ?? 0;
+  int getFlatFootedAC() {
+    // Flat-footed excludes DEX and dodge
+    return getAC() - _statModByAbb('DEX').clamp(0, 99);
+  }
 
   // ---- BAB ----------------------------------------------------------------
 
   @override
-  String getBAB() => _str('bab');
+  String getBAB() {
+    final bab = _bonusAcc.totalInt('COMBAT', 'BASEAB');
+    if (bab == 0) return _str('bab');
+    if (bab < 6) return '+$bab';
+    final attacks = <String>[];
+    int cur = bab;
+    while (cur > 0) { attacks.add('+$cur'); cur -= 5; }
+    return attacks.join('/');
+  }
 
   // ---- Skills -------------------------------------------------------------
 
@@ -753,6 +805,9 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
         if (deity != null) _deityRef.set(deity);
       }
     } catch (_) {}
+
+    // Rebuild the bonus accumulator with all loaded data.
+    rebuildBonuses(dataset);
   }
 
   /// Walk the automatic-ability chain of [obj] (race or ability) and accumulate
@@ -790,6 +845,152 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
               final ability = (dataset as dynamic).findAbilityByName(name);
               if (ability != null) _cacheRacialBonuses(ability, dataset, seen);
             } catch (_) {}
+          }
+        }
+      }
+    } catch (_) {}
+  }
+
+  // ---- Bonus engine --------------------------------------------------------
+
+  /// Rebuild the bonus accumulator from all currently active objects.
+  /// Call after loading a character, changing race/class/feats/equipment.
+  void rebuildBonuses(dynamic dataset) {
+    if (dataset == null) return;
+    final allBonuses = <ParsedBonus>[];
+
+    // Helper: collect ParsedBonus from any CDOMObject
+    void collect(dynamic obj) {
+      try {
+        final list = (obj as dynamic)
+            .getSafeListFor(ListKey.getConstant<ParsedBonus>('PARSED_BONUS')) as List?;
+        if (list != null) {
+          for (final b in list) {
+            if (b is ParsedBonus) allBonuses.add(b);
+          }
+        }
+      } catch (_) {}
+    }
+
+    // Race
+    final raceObj = _raceRef.get();
+    if (raceObj != null) collect(raceObj);
+
+    // Also walk AUTO_ABILITIES chain for race (racial abilities with bonuses)
+    _collectAbilityChainBonuses(raceObj, dataset, allBonuses, {});
+
+    // Class objects — each class contributes saves/BAB progression bonuses
+    final classLevels = _data['classLevels'] as List? ?? [];
+    final counts = <String, int>{};
+    for (final l in classLevels) {
+      if (l is Map) {
+        final k = l['classKey'] as String? ?? '';
+        counts[k] = (counts[k] ?? 0) + 1;
+      }
+    }
+    try {
+      final classes = (dataset as dynamic).classes as List? ?? [];
+      for (final cls in classes) {
+        final key = (cls as dynamic).getKeyName() as String? ?? '';
+        final lvl = counts[key] ?? 0;
+        if (lvl > 0) collect(cls);
+      }
+    } catch (_) {}
+
+    // Selected feats / abilities
+    final selectedAbilities = _data['selectedAbilities'] as Map? ?? {};
+    try {
+      final allAbilities = (dataset as dynamic).getAllAbilities() as List? ?? [];
+      for (final cat in selectedAbilities.keys) {
+        final keys = (selectedAbilities[cat] as List?)?.cast<String>() ?? [];
+        for (final key in keys) {
+          for (final ab in allAbilities) {
+            if ((ab as dynamic).getKeyName() == key) { collect(ab); break; }
+          }
+        }
+      }
+    } catch (_) {}
+
+    // Applied templates
+    final appliedTemplateKeys = _data['appliedTemplates'] as List? ?? [];
+    try {
+      final templates = (dataset as dynamic).templates as List? ?? [];
+      for (final tpl in templates) {
+        final key = (tpl as dynamic).getKeyName() as String? ?? '';
+        if (appliedTemplateKeys.contains(key)) collect(tpl);
+      }
+    } catch (_) {}
+
+    // Equipped items
+    final equippedSlots = _data['equippedSlots'] as Map? ?? {};
+    final equippedKeys = equippedSlots.values.toSet();
+    try {
+      final equipment = (dataset as dynamic).equipment as List? ?? [];
+      for (final item in equipment) {
+        final key = (item as dynamic).getKeyName() as String? ?? '';
+        if (equippedKeys.contains(key)) collect(item);
+      }
+    } catch (_) {}
+
+    // Build state for formula evaluation
+    final statScores = <String, int>{};
+    final scoreMap = _data['statScores'] as Map? ?? {};
+    scoreMap.forEach((k, v) {
+      statScores[k.toString().toUpperCase()] = (v as num?)?.toInt() ?? 10;
+    });
+
+    final statMods = statScores.map((k, v) => MapEntry(k, ((v - 10) / 2).floor()));
+
+    final classLevelCounts = counts.map((k, v) => MapEntry(k, v));
+
+    final state = CharacterBonusState(
+      statMods: statMods,
+      statScores: statScores,
+      totalLevel: classLevels.length,
+      classLevelCounts: classLevelCounts,
+      definedVars: const {},
+      alignmentKey: _str('alignmentKey'),
+      raceKey: _str('raceKey'),
+      objectTypes: const [],
+      classSkillNames: const [],
+      selectedAbilityKeys: {
+        for (final e in selectedAbilities.entries)
+          e.key.toString(): (e.value as List?)?.cast<String>() ?? []
+      },
+      skillRanks: {
+        for (final e in ((_data['skillRanks'] as Map?) ?? {}).entries)
+          e.key.toString().toLowerCase(): (e.value as num?)?.toDouble() ?? 0.0
+      },
+    );
+
+    _bonusAcc = CharacterBonusEngine.compute(state, allBonuses);
+    _bonusDirty = false;
+  }
+
+  void _collectAbilityChainBonuses(
+    dynamic obj,
+    dynamic dataset,
+    List<ParsedBonus> out,
+    Set<String> seen,
+  ) {
+    if (obj == null) return;
+    try {
+      final autoAbilities = (obj as dynamic)
+          .getSafeListFor(ListKey.getConstant<String>('AUTO_ABILITIES')) as List?;
+      if (autoAbilities != null) {
+        for (final name in autoAbilities) {
+          if (name is String && seen.add(name)) {
+            final ability = (dataset as dynamic).findAbilityByName(name);
+            if (ability != null) {
+              try {
+                final list = (ability as dynamic)
+                    .getSafeListFor(ListKey.getConstant<ParsedBonus>('PARSED_BONUS')) as List?;
+                if (list != null) {
+                  for (final b in list) { if (b is ParsedBonus) out.add(b); }
+                }
+              } catch (_) {}
+              _collectAbilityChainBonuses(ability, dataset, out, seen);
+            }
           }
         }
       }

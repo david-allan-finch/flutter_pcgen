@@ -26,6 +26,7 @@ import 'package:flutter_pcgen/src/persistence/lst/lst_utils.dart';
 import 'package:flutter_pcgen/src/rules/context/load_context.dart';
 import 'package:flutter_pcgen/src/persistence/lst/lst_object_file_loader.dart';
 import 'package:flutter_pcgen/src/persistence/lst/source_entry.dart';
+import 'package:flutter_pcgen/src/rules/parsed_bonus.dart';
 
 // Generic loader for CDOMObjects — creates an instance via [factory] then applies LST tokens.
 class GenericLoader<T extends CDOMObject> extends LstObjectFileLoader<T> {
@@ -278,51 +279,57 @@ class GenericLoader<T extends CDOMObject> extends LstObjectFileLoader<T> {
     }
   }
 
-  /// Parse BONUS: subtypes we care about (STAT, CHECKS).
-  /// Only processes unconditional bonuses (no trailing PRE conditions).
+  /// Parse a BONUS: token and store as a [ParsedBonus] on the object.
+  ///
+  /// All bonus categories are stored uniformly so the rules engine can
+  /// evaluate them at runtime against the current character state.
+  /// Additionally, STAT and CHECKS bonuses are stored in the legacy
+  /// STAT_BONUS / masterCheckFormula fields for backward compatibility.
   void _parseBonusToken(T obj, String value) {
-    // value is everything after 'BONUS:' e.g. 'STAT|STR|2' or 'CHECKS|BASE.Fortitude|CL/2+2'
-    final parts = value.split('|');
-    if (parts.length < 3) return;
-    // Skip conditional bonuses (have a 4th+ segment starting with PRE)
-    if (parts.length > 3 && parts[3].toUpperCase().startsWith('PRE')) return;
+    final bonus = ParsedBonus.parse(value);
+    if (bonus == null) return;
 
-    final bonusType = parts[0].toUpperCase();
+    // Store as structured ParsedBonus for the rules engine.
+    try {
+      obj.addToListFor(
+        ListKey.getConstant<ParsedBonus>('PARSED_BONUS'),
+        bonus,
+      );
+    } catch (_) {}
 
-    switch (bonusType) {
-      case 'STAT':
-        // BONUS:STAT|STR,CON|2  or  BONUS:STAT|STR|-2
-        final statNames = parts[1].split(',');
-        final bonus = int.tryParse(parts[2]);
-        if (bonus == null) return;
-        for (final stat in statNames) {
-          final s = stat.trim().toUpperCase();
+    // ---- Legacy compatibility: STAT and CHECKS ----
+
+    if (bonus.category == 'STAT') {
+      // Only for simple integer formulas (no prerequisite) — the BFS racial
+      // bonus chain still uses STAT_BONUS strings.
+      final intVal = int.tryParse(bonus.formula);
+      if (intVal != null && bonus.prereqs.isEmpty) {
+        for (final tgt in bonus.targets) {
+          final s = tgt.toUpperCase();
           if (s.isNotEmpty) {
             try {
               obj.addToListFor(
                 ListKey.getConstant<String>('STAT_BONUS'),
-                '$s:$bonus',
+                '$s:$intVal',
               );
             } catch (_) {}
           }
         }
-        break;
+      }
+    }
 
-      case 'CHECKS':
-        // BONUS:CHECKS|BASE.Fortitude|CL/2+2
-        // Store raw so PCClass.isSaveGood() can interpret it.
-        final saveName = parts[1].toUpperCase();
-        final formula  = parts[2].toLowerCase();
-        String saveKey = '';
-        if (saveName.contains('FORT')) saveKey = 'Fortitude';
-        else if (saveName.contains('REF'))  saveKey = 'Reflex';
-        else if (saveName.contains('WILL')) saveKey = 'Will';
-        if (saveKey.isEmpty) return;
-
+    if (bonus.category == 'CHECKS' || bonus.category == 'SAVE') {
+      // Derive Good/Poor save for PCClass.isSaveGood() fallback.
+      final saveParts = bonus.targets.join(',').toUpperCase();
+      final formula   = bonus.formula.toLowerCase();
+      String saveKey = '';
+      if (saveParts.contains('FORT')) saveKey = 'Fortitude';
+      else if (saveParts.contains('REF'))  saveKey = 'Reflex';
+      else if (saveParts.contains('WILL') || saveParts.contains('WIL')) saveKey = 'Will';
+      if (saveKey.isNotEmpty) {
         final isGood = formula.contains('/2') || formula.contains('*.5') ||
-            formula.contains('*0.5') || formula.contains('+2');
+            formula.contains('*0.5') || formula.contains('+2') || formula.contains('cl');
         final type = isGood ? 'Good' : 'Poor';
-
         try {
           final existing = obj.getString(StringKey.masterCheckFormula) ?? '';
           if (!existing.contains(saveKey)) {
@@ -330,10 +337,7 @@ class GenericLoader<T extends CDOMObject> extends LstObjectFileLoader<T> {
             obj.putString(StringKey.masterCheckFormula, updated);
           }
         } catch (_) {}
-        break;
-
-      default:
-        break;
+      }
     }
   }
 
