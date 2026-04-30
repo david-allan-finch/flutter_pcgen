@@ -24,6 +24,7 @@ import 'package:flutter_pcgen/src/core/pc_stat.dart';
 import 'package:flutter_pcgen/src/core/pc_class.dart';
 import 'package:flutter_pcgen/src/rules/parsed_bonus.dart';
 import 'package:flutter_pcgen/src/rules/bonus_accumulator.dart';
+import 'package:flutter_pcgen/src/rules/formula_evaluator.dart';
 import 'package:flutter_pcgen/src/facade/core/character_facade.dart';
 import 'package:flutter_pcgen/src/facade/core/character_levels_facade.dart';
 import 'package:flutter_pcgen/src/facade/core/description_facade.dart';
@@ -329,7 +330,8 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
   @override
   int getHP() => (_data['hp'] as num?)?.toInt() ?? getMaxHP();
 
-  /// Maximum hit points — sum of per-level HP values plus CON modifier per level.
+  /// Maximum hit points — sum of per-level HP plus CON modifier per level
+  /// plus BONUS:HP bonuses (Toughness feat, temporary effects, etc.).
   @override
   int getMaxHP() {
     final levels = _data['classLevels'] as List? ?? [];
@@ -338,12 +340,14 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
       if (l is Map) total += (l['hp'] as num?)?.toInt() ?? 0;
     }
     if (total > 0) {
-      // Add CON modifier × number of levels
       final conMod = _statModByAbb('CON');
       total += conMod * levels.length;
-      return total.clamp(levels.length, 9999); // minimum 1 HP per level
+      // Add BONUS:HP|CURRENTMAX and BONUS:HP|BONUS from accumulator
+      total += _bonusAcc.totalInt('HP', 'CURRENTMAX') +
+               _bonusAcc.totalInt('HP', 'BONUS') +
+               _bonusAcc.totalInt('HP', 'WOUNDPOINTS');
+      return total.clamp(levels.length, 9999);
     }
-    // Fall back to stored maxHp if no per-level data yet.
     return (_data['maxHp'] as num?)?.toInt() ?? 0;
   }
 
@@ -501,11 +505,79 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
   }
 
   /// BONUS:SKILL total for a skill (from feats, racial traits, items, etc.)
+  /// Also resolves BONUS:SKILL|LIST|N bonuses from CHOOSE-based abilities.
   int getSkillBonus(String displayName, String keyName) {
     final acc = _bonusAcc;
-    // Try both display name and key name as targets
-    return acc.totalIntWithAll('SKILL', displayName.toUpperCase()) +
-           acc.totalIntWithAll('SKILL', keyName.toUpperCase());
+    int total = acc.totalIntWithAll('SKILL', displayName.toUpperCase()) +
+                acc.totalIntWithAll('SKILL', keyName.toUpperCase());
+
+    // Resolve LIST bonuses: check abilityChoices for any that match this skill
+    try {
+      final data = _data;
+      final choices = data['abilityChoices'] as Map? ?? {};
+      final selectedAbilities = data['selectedAbilities'] as Map? ?? {};
+      // Gather all selected keys across categories
+      final allSelected = <String>[];
+      for (final cat in selectedAbilities.values) {
+        if (cat is List) allSelected.addAll(cat.cast<String>());
+      }
+      for (final storedKey in allSelected) {
+        final choice = choices[storedKey] as String?;
+        if (choice == null) continue;
+        // Does this choice match the skill we're computing?
+        if (choice.toLowerCase() != displayName.toLowerCase() &&
+            choice.toLowerCase() != keyName.toLowerCase()) continue;
+        // Look up the LIST bonus on the ability
+        total += _listBonusForAbility(storedKey, 'SKILL');
+      }
+    } catch (_) {}
+
+    return total;
+  }
+
+  int _listBonusForAbility(String storedKey, String category) {
+    // storedKey may be "AbilityName|Choice" — base key is before '|'
+    final baseKey = storedKey.contains('|')
+        ? storedKey.substring(0, storedKey.indexOf('|'))
+        : storedKey;
+
+    try {
+      final dataset = _dataset;
+      if (dataset == null) return 0;
+      final abilities = (dataset as dynamic).getAllAbilities() as List? ?? [];
+      for (final ab in abilities) {
+        if ((ab as dynamic).getKeyName() != baseKey) continue;
+        // Sum BONUS:SKILL|LIST|N entries on this ability
+        final bonuses = (ab as dynamic)
+            .getSafeListFor(ListKey.getConstant<ParsedBonus>('PARSED_BONUS')) as List?;
+        if (bonuses == null) return 0;
+        int sum = 0;
+        for (final b in bonuses) {
+          if (b is! ParsedBonus) continue;
+          if (b.category != category) continue;
+          if (!b.targets.any((t) => t.toUpperCase() == 'LIST')) continue;
+          // Evaluate the formula with current character context
+          sum += b.evaluate(_buildFormulaCtx()).truncate();
+        }
+        return sum;
+      }
+    } catch (_) {}
+    return 0;
+  }
+
+  FormulaContext _buildFormulaCtx() {
+    final statScores = <String, int>{};
+    (_data['statScores'] as Map? ?? {}).forEach((k, v) {
+      statScores[k.toString().toUpperCase()] = (v as num?)?.toInt() ?? 10;
+    });
+    final statMods =
+        statScores.map((k, v) => MapEntry(k, ((v - 10) / 2).floor()));
+    final classLevels = _data['classLevels'] as List? ?? [];
+    return FormulaContext(
+      statMods: statMods,
+      statScores: statScores,
+      totalLevel: classLevels.length,
+    );
   }
 
   @override
@@ -841,7 +913,28 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
 
     // Cache dataset and rebuild the bonus accumulator with all loaded data.
     _dataset = dataset;
+
+    // Rebuild abilityChoices from stored "Key|Choice" entries so LIST bonuses
+    // resolve correctly after loading a saved character.
+    _rebuildChoicesMap();
+
     rebuildBonuses(dataset);
+  }
+
+  void _rebuildChoicesMap() {
+    final selectedAbilities = _data['selectedAbilities'] as Map? ?? {};
+    final choices = (_data['abilityChoices'] ??= <String, String>{}) as Map;
+    choices.clear();
+    for (final cat in selectedAbilities.values) {
+      if (cat is! List) continue;
+      for (final stored in cat) {
+        final s = stored.toString();
+        final pipe = s.indexOf('|');
+        if (pipe > 0) {
+          choices[s] = s.substring(pipe + 1);
+        }
+      }
+    }
   }
 
   /// Called after any mutation that could affect bonus totals.

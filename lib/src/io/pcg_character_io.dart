@@ -332,6 +332,7 @@ class PCGCharacterIO {
       'languageKeys': <String>[],
       'gear': <dynamic>[],
       'equippedSlots': <String, String>{},
+      'abilityChoices': <String, String>{},
       'companions': <dynamic>[],
       'tempBonuses': <dynamic>[],
       'knownSpells': <dynamic>[],

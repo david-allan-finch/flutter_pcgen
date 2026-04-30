@@ -27,6 +27,7 @@ import 'package:flutter_pcgen/src/rules/context/load_context.dart';
 import 'package:flutter_pcgen/src/persistence/lst/lst_object_file_loader.dart';
 import 'package:flutter_pcgen/src/persistence/lst/source_entry.dart';
 import 'package:flutter_pcgen/src/rules/parsed_bonus.dart';
+import 'package:flutter_pcgen/src/rules/parsed_choose.dart';
 
 // Generic loader for CDOMObjects — creates an instance via [factory] then applies LST tokens.
 class GenericLoader<T extends CDOMObject> extends LstObjectFileLoader<T> {
@@ -178,6 +179,28 @@ class GenericLoader<T extends CDOMObject> extends LstObjectFileLoader<T> {
         case 'STAT':
           // STAT:CL (for spell level checks)
           break;
+        case 'MULT':
+          // MULT:YES — feat/ability can be taken multiple times (once per CHOOSE selection)
+          try {
+            obj.putObject(ObjectKey.getConstant<bool>('MULT_OK'),
+                value.toUpperCase() == 'YES');
+          } catch (_) {}
+          return;
+        case 'STACK':
+          // STACK:YES/NO — whether multiple instances of the same bonus stack
+          try {
+            obj.putObject(ObjectKey.getConstant<bool>('STACK_OK'),
+                value.toUpperCase() == 'YES');
+          } catch (_) {}
+          return;
+        case 'SELECT':
+          // SELECT:N — number of choices to make (default 1)
+          return;
+        case 'COST':
+          // COST:N — point cost (e.g. for ability pools)
+          return;
+        case 'VISIBLE':
+          return;
         case 'CRITRANGE':
         case 'CRITMULT':
         case 'FUMBLERANGE':
@@ -279,13 +302,52 @@ class GenericLoader<T extends CDOMObject> extends LstObjectFileLoader<T> {
       return;
     }
 
-    if (tag.toUpperCase() == 'AUTO' || tag.toUpperCase() == 'CHOOSE') {
+    if (tag.toUpperCase() == 'CHOOSE') {
+      final choose = ParsedChoose.parse(value);
+      try {
+        obj.putObject(ObjectKey.getConstant<ParsedChoose>('PARSED_CHOOSE'), choose);
+      } catch (_) {}
+      return;
+    }
+
+    if (tag.toUpperCase() == 'AUTO') {
+      _parseAutoToken(obj, value);
       return;
     }
 
     // Registered token handlers (added via addTokenHandler).
     for (final handler in _tokenHandlers) {
       handler(context, obj, token, source);
+    }
+  }
+
+  /// Parse AUTO: tokens. Currently handles AUTO:LANG and AUTO:WEAPONPROF.
+  void _parseAutoToken(T obj, String value) {
+    final pipeIdx = value.indexOf('|');
+    final autoType = pipeIdx > 0
+        ? value.substring(0, pipeIdx).toUpperCase()
+        : value.toUpperCase();
+    final autoValue = pipeIdx > 0 ? value.substring(pipeIdx + 1) : '';
+
+    if (autoType == 'LANG') {
+      // AUTO:LANG|Common|Elvish|%LIST
+      for (final lang in autoValue.split('|')) {
+        final l = lang.trim();
+        if (l.isNotEmpty && !l.startsWith('%')) {
+          try {
+            obj.addToListFor(ListKey.getConstant<String>('AUTO_LANG'), l);
+          } catch (_) {}
+        }
+      }
+    } else if (autoType == 'WEAPONPROF') {
+      for (final prof in autoValue.split('|')) {
+        final p = prof.trim();
+        if (p.isNotEmpty && !p.startsWith('%') && !p.startsWith('TYPE=')) {
+          try {
+            obj.addToListFor(ListKey.getConstant<String>('AUTO_WEAPONPROF'), p);
+          } catch (_) {}
+        }
+      }
     }
   }
 

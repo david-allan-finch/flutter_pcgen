@@ -1,13 +1,15 @@
 // Translation of pcgen.gui2.tabs.AbilitiesInfoTab
 
 import 'package:flutter/material.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/list_key.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/object_key.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/string_key.dart';
 import 'package:flutter_pcgen/src/core/ability.dart';
 import 'package:flutter_pcgen/src/core/data_set.dart';
 import 'package:flutter_pcgen/src/core/pc_class.dart';
 import 'package:flutter_pcgen/src/gui2/app_state.dart';
 import 'package:flutter_pcgen/src/rules/parsed_bonus.dart';
-import 'package:flutter_pcgen/src/cdom/enumeration/list_key.dart';
+import 'package:flutter_pcgen/src/rules/parsed_choose.dart';
 
 class AbilitiesInfoTab extends StatefulWidget {
   const AbilitiesInfoTab({super.key});
@@ -273,13 +275,25 @@ class AbilitiesInfoTabState extends State<AbilitiesInfoTab>
                         itemCount: selectedKeys.length,
                         itemBuilder: (context, i) {
                           final key = selectedKeys[i];
+                          // key may be "AbilityName|Choice" for MULT:YES abilities
+                          final pipeIdx = key.indexOf('|');
+                          final baseKey = pipeIdx > 0
+                              ? key.substring(0, pipeIdx)
+                              : key;
+                          final choice = pipeIdx > 0
+                              ? key.substring(pipeIdx + 1)
+                              : '';
                           final ability = available
-                              .where((a) => a.getKeyName() == key)
+                              .where((a) => a.getKeyName() == baseKey)
                               .firstOrNull;
+                          final displayName = ability?.getDisplayName() ?? baseKey;
                           return ListTile(
                             dense: true,
-                            title: Text(ability?.getDisplayName() ?? key,
-                                style: const TextStyle(fontSize: 12)),
+                            title: Text(
+                              choice.isNotEmpty
+                                  ? '$displayName ($choice)'
+                                  : displayName,
+                              style: const TextStyle(fontSize: 12)),
                             trailing: IconButton(
                               icon: const Icon(Icons.remove_circle_outline,
                                   size: 16, color: Colors.red),
@@ -310,8 +324,67 @@ class AbilitiesInfoTabState extends State<AbilitiesInfoTab>
   }
 
   void _addAbility(dynamic character, String category, String key) {
+    // Check if this ability has a CHOOSE token requiring selection
+    final dataset = loadedDataSet.value;
+    Ability? ability;
     try {
-      (character as dynamic).addSelectedAbility(category, key);
+      final abilities = dataset?.getAllAbilities() ?? [];
+      ability = abilities.cast<Ability?>().firstWhere(
+            (a) => a?.getKeyName() == key,
+            orElse: () => null);
+    } catch (_) {}
+
+    ParsedChoose? choose;
+    bool multOk = false;
+    if (ability != null) {
+      try {
+        choose = ability.getSafeObject(
+            ObjectKey.getConstant<ParsedChoose>('PARSED_CHOOSE')) as ParsedChoose?;
+        multOk = ability.getSafeObject(
+            ObjectKey.getConstant<bool>('MULT_OK')) as bool? ?? false;
+      } catch (_) {}
+    }
+
+    if (choose != null && choose.requiresSelection) {
+      _showChoiceDialog(character, category, key, choose, multOk, dataset);
+    } else {
+      try {
+        (character as dynamic).addSelectedAbility(category, key);
+        currentCharacter.notifyListeners();
+        setState(() {});
+      } catch (_) {}
+    }
+  }
+
+  Future<void> _showChoiceDialog(
+    dynamic character,
+    String category,
+    String abilityKey,
+    ParsedChoose choose,
+    bool multOk,
+    DataSet? dataset,
+  ) async {
+    final selection = await showDialog<String>(
+      context: context,
+      builder: (_) => _ChoiceDialog(
+        choose: choose,
+        dataset: dataset,
+        character: character,
+      ),
+    );
+    if (selection == null || selection.isEmpty) return;
+
+    // Store as "AbilityKey|Selection" so the same ability can be taken
+    // multiple times with different choices (MULT:YES).
+    final storedKey = multOk ? '$abilityKey|$selection' : abilityKey;
+    try {
+      (character as dynamic).addSelectedAbility(category, storedKey);
+      // Store the choice mapping for BONUS:%LIST resolution
+      try {
+        final data = (character as dynamic).toJson() as Map<String, dynamic>;
+        final choices = (data['abilityChoices'] ??= <String, String>{}) as Map;
+        choices[storedKey] = selection;
+      } catch (_) {}
       currentCharacter.notifyListeners();
       setState(() {});
     } catch (_) {}
@@ -432,6 +505,131 @@ class AbilitiesInfoTabState extends State<AbilitiesInfoTab>
     }
 
     return feats;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Choice picker dialog
+// ---------------------------------------------------------------------------
+
+class _ChoiceDialog extends StatefulWidget {
+  final ParsedChoose choose;
+  final DataSet? dataset;
+  final dynamic character;
+
+  const _ChoiceDialog({
+    required this.choose,
+    required this.dataset,
+    required this.character,
+  });
+
+  @override
+  State<_ChoiceDialog> createState() => _ChoiceDialogState();
+}
+
+class _ChoiceDialogState extends State<_ChoiceDialog> {
+  String _filter = '';
+  final TextEditingController _filterCtrl = TextEditingController();
+
+  @override
+  void dispose() {
+    _filterCtrl.dispose();
+    super.dispose();
+  }
+
+  List<String> _buildOptions() {
+    final choose = widget.choose;
+    switch (choose.type) {
+      case ChooseType.skill:
+        final skills = widget.dataset?.skills ?? [];
+        return skills
+            .where((s) {
+              if (choose.skillTypeFilters.isEmpty) return true;
+              try {
+                final types =
+                    s.getSafeListFor(ListKey.getConstant<String>('TYPE')) as List?;
+                if (types == null) return false;
+                return choose.skillTypeFilters.any(
+                    (f) => types.any((t) => t.toString().toLowerCase() == f.toLowerCase()));
+              } catch (_) { return true; }
+            })
+            .map((s) => s.getDisplayName())
+            .toList();
+
+      case ChooseType.weaponProficiency:
+        final equipment = widget.dataset?.equipment ?? [];
+        final weapons = <String>{};
+        for (final eq in equipment) {
+          try {
+            final types =
+                eq.getSafeListFor(ListKey.getConstant<String>('TYPE')) as List?;
+            if (types != null &&
+                types.any((t) => t.toString().toLowerCase().contains('weapon'))) {
+              weapons.add(eq.getDisplayName());
+            }
+          } catch (_) {}
+        }
+        return weapons.toList()..sort();
+
+      case ChooseType.string:
+        return List.of(choose.options);
+
+      default:
+        return [];
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final all = _buildOptions();
+    final filtered = _filter.isEmpty
+        ? all
+        : all
+            .where((o) => o.toLowerCase().contains(_filter.toLowerCase()))
+            .toList();
+
+    return AlertDialog(
+      title: Text(widget.choose.title,
+          style: const TextStyle(fontSize: 15)),
+      content: SizedBox(
+        width: 300,
+        height: 360,
+        child: Column(
+          children: [
+            TextField(
+              controller: _filterCtrl,
+              decoration: const InputDecoration(
+                prefixIcon: Icon(Icons.search),
+                hintText: 'Filter…',
+                isDense: true,
+                border: OutlineInputBorder(),
+              ),
+              onChanged: (v) => setState(() => _filter = v),
+            ),
+            const SizedBox(height: 8),
+            Expanded(
+              child: filtered.isEmpty
+                  ? const Center(child: Text('No options found.'))
+                  : ListView.builder(
+                      itemCount: filtered.length,
+                      itemBuilder: (context, i) => ListTile(
+                        dense: true,
+                        title: Text(filtered[i],
+                            style: const TextStyle(fontSize: 13)),
+                        onTap: () => Navigator.pop(context, filtered[i]),
+                      ),
+                    ),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
+      ],
+    );
   }
 }
 
