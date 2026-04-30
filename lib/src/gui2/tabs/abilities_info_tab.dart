@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/string_key.dart';
 import 'package:flutter_pcgen/src/core/ability.dart';
 import 'package:flutter_pcgen/src/core/data_set.dart';
+import 'package:flutter_pcgen/src/core/pc_class.dart';
 import 'package:flutter_pcgen/src/gui2/app_state.dart';
 
 class AbilitiesInfoTab extends StatefulWidget {
@@ -44,12 +45,81 @@ class AbilitiesInfoTabState extends State<AbilitiesInfoTab>
         return ValueListenableBuilder(
           valueListenable: currentCharacter,
           builder: (context, character, _) {
+            final featBudget = _computeFeatBudget(character, dataset);
+            final featUsed   = character != null
+                ? (_getSelectedKeys(character, 'FEAT')).length
+                : 0;
+
             return Column(
               children: [
                 TabBar(
                   controller: _catTabController,
                   isScrollable: true,
                   tabs: _kCategories.map((c) => Tab(text: c)).toList(),
+                ),
+                // Feat budget bar — only show on FEAT tab
+                AnimatedBuilder(
+                  animation: _catTabController,
+                  builder: (context, _) {
+                    if (_catTabController.index != 0) return const SizedBox.shrink();
+                    final remaining = featBudget - featUsed;
+                    final over = remaining < 0;
+                    return Container(
+                      color: over
+                          ? Colors.red.shade50
+                          : remaining == 0
+                              ? Colors.green.shade50
+                              : null,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 4),
+                      child: Row(children: [
+                        Text(
+                          'Feats: $featUsed / $featBudget used',
+                          style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: over
+                                  ? Colors.red.shade700
+                                  : remaining == 0
+                                      ? Colors.green.shade700
+                                      : Colors.grey.shade700),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: LinearProgressIndicator(
+                            value: featBudget > 0
+                                ? (featUsed / featBudget).clamp(0.0, 1.0)
+                                : 0,
+                            backgroundColor: Colors.grey.shade200,
+                            color: over
+                                ? Colors.red
+                                : remaining == 0
+                                    ? Colors.green
+                                    : Theme.of(context).colorScheme.primary,
+                          ),
+                        ),
+                        if (over)
+                          Padding(
+                            padding: const EdgeInsets.only(left: 8),
+                            child: Text(
+                              '${-remaining} over budget',
+                              style: TextStyle(
+                                  fontSize: 11, color: Colors.red.shade700),
+                            ),
+                          )
+                        else if (remaining > 0)
+                          Padding(
+                            padding: const EdgeInsets.only(left: 8),
+                            child: Text(
+                              '$remaining remaining',
+                              style: TextStyle(
+                                  fontSize: 11,
+                                  color: Colors.grey.shade600),
+                            ),
+                          ),
+                      ]),
+                    );
+                  },
                 ),
                 Padding(
                   padding: const EdgeInsets.all(8),
@@ -232,5 +302,61 @@ class AbilitiesInfoTabState extends State<AbilitiesInfoTab>
       currentCharacter.notifyListeners();
       setState(() {});
     } catch (_) {}
+  }
+
+  // 3.5e feat budget:
+  //   • 1 feat at level 1, then every 3 character levels (3, 6, 9, 12…)
+  //   • Humans get 1 bonus feat
+  //   • Fighters get 1 bonus feat at level 1 and every 2 fighter levels (2, 4, 6…)
+  //   • Wizards get 1 bonus metamagic/item-creation feat at level 5, 10, 15, 20
+  int _computeFeatBudget(dynamic character, DataSet? dataset) {
+    if (character == null) return 0;
+
+    List classLevels = [];
+    String raceKey = '';
+    try {
+      final data = (character as dynamic).toJson() as Map<String, dynamic>;
+      classLevels = data['classLevels'] as List? ?? [];
+      raceKey = data['raceKey'] as String? ?? '';
+    } catch (_) {}
+
+    final totalLevel = classLevels.length;
+    if (totalLevel == 0) return 1; // even a level-0 character gets 1 feat eventually
+
+    // Base feats: 1 at level 1, then +1 every 3 levels
+    int feats = 1 + (totalLevel / 3).floor();
+
+    // Racial bonus feat (Human, Half-Human races in 3.5e)
+    final raceKeyLower = raceKey.toLowerCase();
+    if (raceKeyLower.contains('human') && !raceKeyLower.contains('halfhuman') == false ||
+        raceKeyLower == 'human' ||
+        raceKeyLower.startsWith('human_')) {
+      feats += 1;
+    }
+
+    // Class bonus feats
+    final classes = dataset?.classes ?? const <PCClass>[];
+    final counts = <String, int>{};
+    for (final l in classLevels) {
+      if (l is Map) {
+        final k = l['classKey'] as String? ?? '';
+        counts[k] = (counts[k] ?? 0) + 1;
+      }
+    }
+    for (final entry in counts.entries) {
+      final cls = classes.where((c) => c.getKeyName() == entry.key).firstOrNull;
+      if (cls == null) continue;
+      final clsName = cls.getDisplayName().toLowerCase();
+      final lvl = entry.value;
+      if (clsName.contains('fighter')) {
+        // Fighter: 1 bonus feat at lvl 1, then every 2 levels
+        feats += 1 + ((lvl - 1) / 2).floor();
+      } else if (clsName.contains('wizard')) {
+        // Wizard: bonus feat at 5, 10, 15, 20
+        feats += (lvl / 5).floor();
+      }
+    }
+
+    return feats;
   }
 }

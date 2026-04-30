@@ -211,17 +211,29 @@ class PCGCharacterIO {
     final funds = (data['funds'] as num?)?.toDouble() ?? 0.0;
     buf.writeln('# Character Equipment');
     buf.writeln('MONEY:${funds.toStringAsFixed(0)}');
+    final equippedSlots = data['equippedSlots'] as Map? ?? {};
+    // Build reverse map: itemKey → slot name
+    final keyToSlot = <String, String>{};
+    equippedSlots.forEach((slot, key) {
+      if (key is String && key.isNotEmpty) keyToSlot[key] = slot as String;
+    });
+
     if (gear.isNotEmpty) {
       int eqOrder = 1;
       for (final item in gear) {
         if (item is Map) {
           final name = item['name'] as String? ?? '';
+          final key  = item['key']  as String? ?? '';
           final qty  = (item['qty']  as num?)?.toInt() ?? 1;
           final cost = (item['cost'] as num?)?.toDouble() ?? 0.0;
-          final wt = (item['weight'] as num?)?.toDouble() ?? 0.0;
+          final wt   = (item['weight'] as num?)?.toDouble() ?? 0.0;
+          final slot = keyToSlot[key];
+          final locationPart = slot != null
+              ? '|LOCATION:${_slotToPcgenLocation(slot)}'
+              : '';
           buf.writeln(
               'EQUIPNAME:$name|OUTPUTORDER:${eqOrder++}|COST:$cost|WT:$wt'
-              '|QUANTITY:$qty.0');
+              '|QUANTITY:$qty.0$locationPart');
         }
       }
     }
@@ -319,6 +331,7 @@ class PCGCharacterIO {
       'appliedTemplates': <String>[],
       'languageKeys': <String>[],
       'gear': <dynamic>[],
+      'equippedSlots': <String, String>{},
       'companions': <dynamic>[],
       'tempBonuses': <dynamic>[],
       'knownSpells': <dynamic>[],
@@ -709,12 +722,13 @@ class PCGCharacterIO {
   }
 
   static void _readEquip(Map<String, dynamic> data, String value) {
-    // EQUIPNAME:Longsword +1|OUTPUTORDER:2|COST:5015.0|WT:4.0|QUANTITY:1.0|...
+    // EQUIPNAME:Longsword +1|OUTPUTORDER:2|COST:5015.0|WT:4.0|QUANTITY:1.0|LOCATION:Primary Hand|...
     final nameEnd = value.indexOf('|');
     final itemName = nameEnd > 0 ? value.substring(0, nameEnd).trim() : value.trim();
     double qty    = 1;
     double cost   = 0;
     double weight = 0;
+    String location = '';
     for (final p in value.split('|').skip(1)) {
       final up = p.toUpperCase();
       if (up.startsWith('QUANTITY:') || up.startsWith('QTY:')) {
@@ -723,15 +737,77 @@ class PCGCharacterIO {
         cost = double.tryParse(p.substring(5).trim()) ?? 0;
       } else if (up.startsWith('WT:')) {
         weight = double.tryParse(p.substring(3).trim()) ?? 0;
+      } else if (up.startsWith('LOCATION:')) {
+        location = p.substring(9).trim();
       }
     }
+    final key = itemName.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '_');
     (data['gear'] as List).add({
       'name':   itemName,
-      'key':    itemName.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '_'),
+      'key':    key,
       'qty':    qty.toInt(),
       'cost':   cost,
       'weight': weight,
     });
+    // Map PCGen Java location names to our slot names
+    if (location.isNotEmpty) {
+      final slot = _pcgenLocationToSlot(location);
+      if (slot != null) {
+        final eq = (data['equippedSlots'] ??= <String, String>{}) as Map;
+        eq[slot] = key;
+      }
+    }
+  }
+
+  static String _slotToPcgenLocation(String slot) {
+    switch (slot) {
+      case 'Primary Hand':  return 'Primary Hand';
+      case 'Off Hand':      return 'Secondary Hand';
+      case 'Head':          return 'Head';
+      case 'Eyes':          return 'Eyes';
+      case 'Neck':          return 'Neck';
+      case 'Shoulders':     return 'Shoulders';
+      case 'Back':          return 'Back';
+      case 'Armor':         return 'Body';
+      case 'Torso':         return 'Torso';
+      case 'Arms':          return 'Arms';
+      case 'Hands':         return 'Hands';
+      case 'Ring (Left)':   return 'Left Ring';
+      case 'Ring (Right)':  return 'Right Ring';
+      case 'Belt':          return 'Waist';
+      case 'Feet':          return 'Feet';
+      case 'Ammunition':    return 'Ammunition';
+      case 'Carried':       return 'Carried';
+      default:              return slot;
+    }
+  }
+
+  static String? _pcgenLocationToSlot(String location) {
+    switch (location.toLowerCase()) {
+      case 'primary hand':   return 'Primary Hand';
+      case 'secondary hand':
+      case 'off hand':       return 'Off Hand';
+      case 'head':           return 'Head';
+      case 'eyes':           return 'Eyes';
+      case 'neck':           return 'Neck';
+      case 'shoulders':      return 'Shoulders';
+      case 'back':           return 'Back';
+      case 'body':
+      case 'armor':          return 'Armor';
+      case 'torso':          return 'Torso';
+      case 'arms':           return 'Arms';
+      case 'hands':          return 'Hands';
+      case 'left ring':
+      case 'ring (left)':    return 'Ring (Left)';
+      case 'right ring':
+      case 'ring (right)':   return 'Ring (Right)';
+      case 'waist':
+      case 'belt':           return 'Belt';
+      case 'feet':           return 'Feet';
+      case 'ammunition':     return 'Ammunition';
+      case 'carried':        return 'Carried';
+      default:               return null;
+    }
   }
 
   static void _readSpell(Map<String, dynamic> data, String value) {
