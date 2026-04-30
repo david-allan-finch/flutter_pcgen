@@ -33,12 +33,17 @@ class FormulaContext {
   /// Named variables defined via DEFINE: tokens (VAR storage).
   final Map<String, double> variables;
 
+  /// When evaluating a bonus from a specific class object, this is set to
+  /// that class's level so classlevel("APPLIEDAS=NONEPIC") returns correctly.
+  final int currentClassLevel;
+
   const FormulaContext({
     this.statMods = const {},
     this.statScores = const {},
     this.totalLevel = 0,
     this.classLevels = const {},
     this.variables = const {},
+    this.currentClassLevel = 0,
   });
 
   /// Resolve a variable name to a numeric value.
@@ -69,8 +74,17 @@ class FormulaContext {
   }
 
   /// Class level for a specific class (case-insensitive partial match).
+  /// Special argument "APPLIEDAS=NONEPIC" means "this class's current level"
+  /// — uses [currentClassLevel] when set, otherwise [totalLevel].
   double classLevel([String? className]) {
-    if (className == null || className.isEmpty) return totalLevel.toDouble();
+    if (className == null || className.isEmpty) {
+      return (currentClassLevel > 0 ? currentClassLevel : totalLevel).toDouble();
+    }
+    final upper = className.toUpperCase();
+    // PCGen special forms: return current class level context
+    if (upper.startsWith('APPLIEDAS=') || upper == 'CL' || upper.isEmpty) {
+      return (currentClassLevel > 0 ? currentClassLevel : totalLevel).toDouble();
+    }
     final lower = className.toLowerCase();
     for (final entry in classLevels.entries) {
       if (entry.key.toLowerCase() == lower ||

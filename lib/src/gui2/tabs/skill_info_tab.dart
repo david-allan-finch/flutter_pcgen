@@ -1,6 +1,7 @@
 // Translation of pcgen.gui2.tabs.SkillInfoTab
 
 import 'package:flutter/material.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/list_key.dart';
 import 'package:flutter_pcgen/src/core/data_set.dart';
 import 'package:flutter_pcgen/src/core/pc_class.dart';
 import 'package:flutter_pcgen/src/core/pc_stat.dart';
@@ -322,12 +323,25 @@ class SkillInfoTabState extends State<SkillInfoTab> {
           final key = l['classKey'] as String? ?? '';
           if (seenKeys.add(key)) {
             final cls = classes.where((c) => c.getKeyName() == key).firstOrNull;
-            if (cls != null) {
-              final raw = cls.getRawClassSkills();
-              if (raw.isNotEmpty) {
-                for (final s in raw.split('|')) {
-                  if (!s.startsWith('TYPE=')) result.add(s.trim());
+            if (cls == null) continue;
+
+            // Prefer the structured CLASS_SKILLS list (populated from CSKILL token)
+            try {
+              final skillList = cls.getSafeListFor(
+                  ListKey.getConstant<String>('CLASS_SKILLS')) as List?;
+              if (skillList != null && skillList.isNotEmpty) {
+                for (final s in skillList) {
+                  if (s is String && s.isNotEmpty) result.add(s);
                 }
+                continue; // skip raw fallback if structured list found
+              }
+            } catch (_) {}
+
+            // Fallback: parse the raw CSKILL string
+            final raw = cls.getRawClassSkills();
+            if (raw.isNotEmpty) {
+              for (final s in raw.split('|')) {
+                if (s.isNotEmpty && !s.startsWith('TYPE=')) result.add(s.trim());
               }
             }
           }

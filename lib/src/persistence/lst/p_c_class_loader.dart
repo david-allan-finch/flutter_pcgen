@@ -137,7 +137,19 @@ class PCClassLoader extends LstObjectFileLoader<PCClass> {
         try { pcClass.putObject(ObjectKey.getConstant<int>('START_SKILL_PTS'), int.tryParse(value) ?? 2); } catch (_) {}
         break;
       case 'CSKILL':
-        // Class skills: CSKILL:Climb|TYPE=Craft|... — store raw for now
+        // Class skills: CSKILL:Acrobatics|Climb|TYPE=Knowledge|...
+        // Store each skill name individually; TYPE=xxx entries are kept raw
+        // for later matching by skill type.
+        for (final s in value.split('|')) {
+          final skill = s.trim();
+          if (skill.isNotEmpty) {
+            try {
+              pcClass.addToListFor(
+                ListKey.getConstant<String>('CLASS_SKILLS'), skill);
+            } catch (_) {}
+          }
+        }
+        // Also store raw for backward compat
         try { pcClass.putString(StringKey.listtype, value); } catch (_) {}
         break;
       case 'OUTPUTNAME':
@@ -219,12 +231,75 @@ class PCClassLoader extends LstObjectFileLoader<PCClass> {
           }
         }
         break;
+      case 'SPELLSTAT':
+        // SPELLSTAT:WIS — spellcasting ability for this class
+        try { pcClass.putString(StringKey.spellStat, value); } catch (_) {}
+        break;
+      case 'MEMORIZE':
+        // MEMORIZE:YES/NO — prepared vs spontaneous caster
+        try {
+          pcClass.putObject(ObjectKey.getConstant<bool>('MEMORIZE'),
+              value.toUpperCase() == 'YES');
+        } catch (_) {}
+        break;
+      case 'SPELLBOOK':
+        try {
+          pcClass.putObject(ObjectKey.getConstant<bool>('SPELLBOOK'),
+              value.toUpperCase() == 'YES');
+        } catch (_) {}
+        break;
+      case 'LANGBONUS':
+        // LANGBONUS:Abyssal,Celestial,Infernal — bonus language choices
+        for (final lang in value.split(',')) {
+          final l = lang.trim();
+          if (l.isNotEmpty) {
+            try {
+              pcClass.addToListFor(
+                ListKey.getConstant<String>('LANG_BONUS'), l);
+            } catch (_) {}
+          }
+        }
+        break;
+      case 'CAST':
+        // Per-level spell slots: stored on CLASSABILITIESLEVEL objects
+        // At this point we're processing a level line, handled by parseLine
+        break;
+      case 'KNOWN':
+        break;
+      case 'KNOWNSPELLS':
+        // KNOWNSPELLS:LEVEL=0|LEVEL=1|... — all spells of these levels are known
+        try { pcClass.putString(StringKey.knownSpellFormula, value); } catch (_) {}
+        break;
+      case 'VISIBLE':
+        break;
+      case 'MAXLEVEL':
+        try {
+          pcClass.putObject(ObjectKey.getConstant<int>('MAX_LEVEL'),
+              int.tryParse(value) ?? 20);
+        } catch (_) {}
+        break;
+      case 'EXCLASS':
+        // Ex-class name — ignore for now
+        break;
+      case 'CASTERLEVEL':
+      case 'BONUS:CASTERLEVEL':
+        break;
       case 'INTMOD':
-        // INTMOD:YES/NO — whether INT modifier applies to skill points
-        // (affects first-level skill point calculation; stored for now)
+        break;
+      case 'DEFINE':
+        // DEFINE:VarName|initialValue — initialise a variable
+        // Store for later use in formula evaluation
+        final pipeIdx = value.indexOf('|');
+        if (pipeIdx > 0) {
+          // Store defined variables as VAR_DEFINES list entries
+          try {
+            pcClass.addToListFor(
+              ListKey.getConstant<String>('VAR_DEFINES'),
+              '${value.substring(0, pipeIdx)}=${value.substring(pipeIdx + 1)}');
+          } catch (_) {}
+        }
         break;
       default:
-        // CAST, KNOWN, SPELLLIST, PRExxx, etc. — not yet implemented
         break;
     }
   }

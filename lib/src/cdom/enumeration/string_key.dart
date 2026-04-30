@@ -71,4 +71,6 @@ enum StringKey {
   duration,
   spellRange,
   spellComponents,
+  spellStat,
+  knownSpellFormula,
 }

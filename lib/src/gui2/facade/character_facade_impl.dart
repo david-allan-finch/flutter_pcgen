@@ -898,7 +898,9 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
     // Also walk AUTO_ABILITIES chain for race (racial abilities with bonuses)
     _collectAbilityChainBonuses(raceObj, dataset, allBonuses, {});
 
-    // Class objects — each class contributes saves/BAB progression bonuses
+    // Class objects — evaluated per-class so classlevel() returns the right value.
+    // We don't collect class bonuses into allBonuses (which uses a single context);
+    // instead we evaluate them immediately with a per-class FormulaContext.
     final classLevels = _data['classLevels'] as List? ?? [];
     final counts = <String, int>{};
     for (final l in classLevels) {
@@ -907,12 +909,24 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
         counts[k] = (counts[k] ?? 0) + 1;
       }
     }
+    // Collect class-specific bonuses separately — to be applied below with
+    // per-class level context.
+    final classBonuses = <String, List<ParsedBonus>>{}; // classKey → bonuses
     try {
       final classes = (dataset as dynamic).classes as List? ?? [];
       for (final cls in classes) {
         final key = (cls as dynamic).getKeyName() as String? ?? '';
         final lvl = counts[key] ?? 0;
-        if (lvl > 0) collect(cls);
+        if (lvl == 0) continue;
+        final bonuses = <ParsedBonus>[];
+        try {
+          final list = (cls as dynamic)
+              .getSafeListFor(ListKey.getConstant<ParsedBonus>('PARSED_BONUS')) as List?;
+          if (list != null) {
+            for (final b in list) { if (b is ParsedBonus) bonuses.add(b); }
+          }
+        } catch (_) {}
+        if (bonuses.isNotEmpty) classBonuses[key] = bonuses;
       }
     } catch (_) {}
 
@@ -983,6 +997,47 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
     );
 
     _bonusAcc = CharacterBonusEngine.compute(state, allBonuses);
+
+    // Evaluate class-specific bonuses with per-class level context.
+    // This ensures classlevel("APPLIEDAS=NONEPIC") returns the correct
+    // per-class level (e.g. Fighter 3 contributes BAB 3, not total level).
+    for (final entry in classBonuses.entries) {
+      final clsKey = entry.key;
+      final clsLvl = counts[clsKey] ?? 0;
+      if (clsLvl == 0) continue;
+
+      final clsFormulaCtx = FormulaContext(
+        statMods:           statMods,
+        statScores:         statScores,
+        totalLevel:         classLevels.length,
+        classLevels:        classLevelCounts,
+        variables:          const {},
+        currentClassLevel:  clsLvl,
+      );
+
+      final prereqCtx = _SimplePrereqCtxFacade(
+        alignmentKey: _str('alignmentKey'),
+        raceKey: _str('raceKey'),
+        totalLevel: classLevels.length,
+        statMods: statMods,
+        statScores: statScores,
+        selectedAbilities: {
+          for (final e in selectedAbilities.entries)
+            e.key.toString(): (e.value as List?)?.cast<String>() ?? []
+        },
+        skillRanks: {
+          for (final e in ((_data['skillRanks'] as Map?) ?? {}).entries)
+            e.key.toString().toLowerCase(): (e.value as num?)?.toDouble() ?? 0.0
+        },
+      );
+
+      for (final bonus in entry.value) {
+        if (!bonus.checkPrereqs(prereqCtx)) continue;
+        final value = bonus.evaluate(clsFormulaCtx);
+        _bonusAcc.add(bonus, value);
+      }
+    }
+
     _bonusDirty = false;
   }
 
@@ -1021,4 +1076,55 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
 
   @override
   dynamic noSuchMethod(Invocation i) => super.noSuchMethod(i);
+}
+
+// ---------------------------------------------------------------------------
+// Minimal PrereqContext used inside rebuildBonuses for class bonus evaluation
+// ---------------------------------------------------------------------------
+
+class _SimplePrereqCtxFacade implements PrereqContext {
+  @override final String alignmentKey;
+  @override final String raceKey;
+  @override final int totalLevel;
+  @override final List<String> objectTypes = const [];
+  @override final List<String> classSkillNames = const [];
+  final Map<String, int> _statMods;
+  final Map<String, int> _statScores;
+  final Map<String, List<String>> _selectedAbilities;
+  final Map<String, double> _skillRanks;
+
+  _SimplePrereqCtxFacade({
+    required this.alignmentKey,
+    required this.raceKey,
+    required this.totalLevel,
+    required Map<String, int> statMods,
+    required Map<String, int> statScores,
+    required Map<String, List<String>> selectedAbilities,
+    required Map<String, double> skillRanks,
+  })  : _statMods = statMods,
+        _statScores = statScores,
+        _selectedAbilities = selectedAbilities,
+        _skillRanks = skillRanks;
+
+  @override
+  List<String> selectedAbilityKeys([String? category]) {
+    if (category == null) return _selectedAbilities.values.expand((l) => l).toList();
+    return _selectedAbilities[category] ?? [];
+  }
+
+  @override
+  double getVariable(String name) {
+    final upper = name.toUpperCase();
+    if (_statMods.containsKey(upper)) return _statMods[upper]!.toDouble();
+    if (upper.endsWith('SCORE')) {
+      final abb = upper.substring(0, upper.length - 5);
+      if (_statScores.containsKey(abb)) return _statScores[abb]!.toDouble();
+    }
+    if (upper == 'TL' || upper == 'CL') return totalLevel.toDouble();
+    return 0.0;
+  }
+
+  @override
+  double getSkillRanks(String skillName) =>
+      _skillRanks[skillName.toLowerCase()] ?? 0.0;
 }
