@@ -1,6 +1,7 @@
 // Translation of pcgen.gui2.tabs.TemplateInfoTab
 
 import 'package:flutter/material.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/list_key.dart';
 import 'package:flutter_pcgen/src/core/data_set.dart';
 import 'package:flutter_pcgen/src/core/pc_template.dart';
 import 'package:flutter_pcgen/src/gui2/app_state.dart';
@@ -13,16 +14,25 @@ class TemplateInfoTab extends StatefulWidget {
 }
 
 class TemplateInfoTabState extends State<TemplateInfoTab> {
-  dynamic _character;
   PCTemplate? _selected;
   final TextEditingController _search = TextEditingController();
-
-  void setCharacter(dynamic character) => setState(() => _character = character);
 
   @override
   void dispose() {
     _search.dispose();
     super.dispose();
+  }
+
+  String _templateType(PCTemplate tpl) {
+    try {
+      final tl = tpl.getSafeListFor(ListKey.getConstant<String>('TYPE'));
+      if (tl.isNotEmpty) {
+        final first = tl.cast<String>().first;
+        final dot = first.indexOf('.');
+        return dot > 0 ? first.substring(0, dot) : first;
+      }
+    } catch (_) {}
+    return 'Other';
   }
 
   @override
@@ -34,166 +44,277 @@ class TemplateInfoTabState extends State<TemplateInfoTab> {
           valueListenable: currentCharacter,
           builder: (context, character, _) {
             final templates = dataset?.templates ?? const <PCTemplate>[];
-            return _buildContent(character, templates);
+            final appliedKeys = character != null ? _getAppliedKeys(character) : const <String>[];
+            return Row(
+              children: [
+                SizedBox(width: 240, child: _buildTree(templates, appliedKeys)),
+                const VerticalDivider(width: 1),
+                Expanded(child: _buildDetail(character, appliedKeys)),
+              ],
+            );
           },
         );
       },
     );
   }
 
-  Widget _buildContent(dynamic character, List<PCTemplate> templates) {
+  // ---- Left: tree view -------------------------------------------------------
+
+  Widget _buildTree(List<PCTemplate> templates, List<String> appliedKeys) {
     final query = _search.text.trim().toLowerCase();
     final filtered = query.isEmpty
         ? templates
-        : templates.where((t) => t.getDisplayName().toLowerCase().contains(query)).toList();
+        : templates
+            .where((t) => t.getDisplayName().toLowerCase().contains(query))
+            .toList();
 
-    final appliedKeys = character != null ? _getAppliedKeys(character) : const <String>[];
+    final grouped = <String, List<PCTemplate>>{};
+    for (final tpl in filtered) {
+      grouped.putIfAbsent(_templateType(tpl), () => []).add(tpl);
+    }
+    final categories = grouped.keys.toList()..sort();
+    for (final cat in categories) {
+      grouped[cat]!.sort((a, b) =>
+          a.getDisplayName().toLowerCase().compareTo(b.getDisplayName().toLowerCase()));
+    }
 
-    return Row(
+    return Column(
       children: [
-        // Available panel
-        Expanded(
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(8),
-                child: TextField(
-                  controller: _search,
-                  decoration: const InputDecoration(
-                    prefixIcon: Icon(Icons.search),
-                    hintText: 'Filter templates…',
-                    border: OutlineInputBorder(),
-                    isDense: true,
-                  ),
-                  onChanged: (_) => setState(() {}),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text('Available (${filtered.length})',
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-                ),
-              ),
-              Expanded(
-                child: templates.isEmpty
-                    ? const Center(child: Text('No templates loaded.'))
-                    : ListView.builder(
-                        itemCount: filtered.length,
-                        itemBuilder: (context, i) {
-                          final tpl = filtered[i];
-                          final isSelected = _selected == tpl;
-                          final isApplied = appliedKeys.contains(tpl.getKeyName());
-                          return ListTile(
-                            dense: true,
-                            selected: isSelected,
-                            title: Text(tpl.getDisplayName(),
-                                style: const TextStyle(fontSize: 12)),
-                            tileColor: isApplied ? Colors.blue.withOpacity(0.07) : null,
-                            trailing: isApplied
-                                ? const Icon(Icons.check_circle, color: Colors.blue, size: 16)
-                                : null,
-                            onTap: () => setState(() => _selected = tpl),
-                          );
-                        },
-                      ),
-              ),
-            ],
+        Padding(
+          padding: const EdgeInsets.all(8),
+          child: TextField(
+            controller: _search,
+            decoration: const InputDecoration(
+              prefixIcon: Icon(Icons.search),
+              hintText: 'Filter templates…',
+              border: OutlineInputBorder(),
+              isDense: true,
+            ),
+            onChanged: (_) => setState(() {}),
           ),
         ),
-        const VerticalDivider(width: 1),
-        // Detail / applied panel
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                child: Text('Applied Templates (${appliedKeys.length})',
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-              ),
-              if (_selected != null && character != null)
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(_selected!.getDisplayName(),
-                          style: Theme.of(context).textTheme.titleSmall),
-                      if (_selected!.getSourceURI() != null)
-                        Text(Uri.parse(_selected!.getSourceURI()!).pathSegments.last,
-                            style: Theme.of(context).textTheme.bodySmall),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          ElevatedButton.icon(
-                            icon: const Icon(Icons.add, size: 14),
-                            label: const Text('Apply'),
-                            onPressed: appliedKeys.contains(_selected!.getKeyName())
-                                ? null
-                                : () => _applyTemplate(character, _selected!.getKeyName()),
-                          ),
-                          const SizedBox(width: 8),
-                          OutlinedButton.icon(
-                            icon: const Icon(Icons.remove, size: 14),
-                            label: const Text('Remove'),
-                            onPressed: appliedKeys.contains(_selected!.getKeyName())
-                                ? () => _removeTemplate(character, _selected!.getKeyName())
-                                : null,
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              const Divider(),
-              Expanded(
-                child: appliedKeys.isEmpty
-                    ? const Center(
-                        child: Text('No templates applied.',
-                            style: TextStyle(color: Colors.grey, fontStyle: FontStyle.italic)))
-                    : ListView.builder(
-                        itemCount: appliedKeys.length,
-                        itemBuilder: (context, i) {
-                          final key = appliedKeys[i];
-                          final tpl = (loadedDataSet.value?.templates ?? [])
-                              .where((t) => t.getKeyName() == key)
-                              .firstOrNull;
-                          return ListTile(
-                            dense: true,
-                            title: Text(tpl?.getDisplayName() ?? key,
-                                style: const TextStyle(fontSize: 12)),
-                            trailing: IconButton(
-                              icon: const Icon(Icons.remove_circle_outline,
-                                  size: 16, color: Colors.red),
-                              onPressed: character == null
-                                  ? null
-                                  : () => _removeTemplate(character, key),
-                            ),
-                          );
-                        },
-                      ),
-              ),
-            ],
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+                '${filtered.length} templates in ${categories.length} types',
+                style: Theme.of(context).textTheme.bodySmall),
           ),
+        ),
+        Expanded(
+          child: templates.isEmpty
+              ? const Center(child: Text('No templates loaded.'))
+              : ListView.builder(
+                  itemCount: categories.length,
+                  itemBuilder: (context, ci) {
+                    final cat = categories[ci];
+                    final items = grouped[cat]!;
+                    return ExpansionTile(
+                      key: PageStorageKey('tpl_$cat'),
+                      initiallyExpanded: query.isNotEmpty || categories.length <= 5,
+                      tilePadding: const EdgeInsets.symmetric(horizontal: 8),
+                      title: Text(cat,
+                          style: const TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 13)),
+                      trailing: Text('${items.length}',
+                          style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                      children: items.map((tpl) {
+                        final isApplied = appliedKeys.contains(tpl.getKeyName());
+                        return ListTile(
+                          dense: true,
+                          contentPadding:
+                              const EdgeInsets.only(left: 28, right: 8),
+                          selected: _selected == tpl,
+                          selectedTileColor: Theme.of(context)
+                              .colorScheme
+                              .primaryContainer
+                              .withAlpha(80),
+                          tileColor: isApplied
+                              ? Colors.blue.withOpacity(0.06)
+                              : null,
+                          title: Text(tpl.getDisplayName(),
+                              style: const TextStyle(fontSize: 12)),
+                          trailing: isApplied
+                              ? const Icon(Icons.check_circle,
+                                  color: Colors.blue, size: 14)
+                              : null,
+                          onTap: () => setState(() => _selected = tpl),
+                        );
+                      }).toList(),
+                    );
+                  },
+                ),
         ),
       ],
     );
   }
 
+  // ---- Right: detail + applied list -----------------------------------------
+
+  Widget _buildDetail(dynamic character, List<String> appliedKeys) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (_selected != null && character != null)
+          _buildSelectedInfo(_selected!, character, appliedKeys)
+        else
+          const Padding(
+            padding: EdgeInsets.all(16),
+            child: Text('Select a template on the left to see details.',
+                style: TextStyle(color: Colors.grey, fontStyle: FontStyle.italic)),
+          ),
+        const Divider(height: 1),
+        Expanded(child: _buildAppliedList(character, appliedKeys)),
+      ],
+    );
+  }
+
+  Widget _buildSelectedInfo(
+      PCTemplate tpl, dynamic character, List<String> appliedKeys) {
+    final isApplied = appliedKeys.contains(tpl.getKeyName());
+    String sourceStr = '';
+    try {
+      final uri = tpl.getSourceURI();
+      if (uri != null) sourceStr = Uri.parse(uri).pathSegments.last;
+    } catch (_) {}
+
+    return Padding(
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(children: [
+            Expanded(
+              child: Text(tpl.getDisplayName(),
+                  style: Theme.of(context).textTheme.titleMedium),
+            ),
+            ElevatedButton.icon(
+              icon: const Icon(Icons.add, size: 14),
+              label: const Text('Apply'),
+              onPressed: isApplied
+                  ? null
+                  : () => _applyTemplate(character, tpl.getKeyName()),
+            ),
+            const SizedBox(width: 8),
+            OutlinedButton.icon(
+              icon: const Icon(Icons.remove, size: 14),
+              label: const Text('Remove'),
+              style: OutlinedButton.styleFrom(foregroundColor: Colors.red),
+              onPressed: isApplied
+                  ? () => _removeTemplate(character, tpl.getKeyName())
+                  : null,
+            ),
+          ]),
+          if (sourceStr.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Text(sourceStr,
+                  style: Theme.of(context).textTheme.bodySmall),
+            ),
+          const SizedBox(height: 4),
+          Wrap(spacing: 12, children: [
+            _chip('Type', _templateType(tpl)),
+            if (isApplied) _chip('Status', 'Applied'),
+          ]),
+        ],
+      ),
+    );
+  }
+
+  Widget _chip(String label, String value) => Padding(
+        padding: const EdgeInsets.only(bottom: 2),
+        child: RichText(
+          text: TextSpan(
+            style: const TextStyle(fontSize: 12),
+            children: [
+              TextSpan(
+                  text: '$label: ',
+                  style: const TextStyle(
+                      fontWeight: FontWeight.bold, color: Colors.grey)),
+              TextSpan(
+                  text: value,
+                  style: const TextStyle(color: Colors.black87)),
+            ],
+          ),
+        ),
+      );
+
+  Widget _buildAppliedList(dynamic character, List<String> appliedKeys) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
+          child: Text(
+            'Applied Templates (${appliedKeys.length})',
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+          ),
+        ),
+        const Divider(height: 1),
+        if (appliedKeys.isEmpty)
+          const Expanded(
+            child: Center(
+              child: Text('No templates applied.',
+                  style:
+                      TextStyle(color: Colors.grey, fontStyle: FontStyle.italic)),
+            ),
+          )
+        else
+          Expanded(
+            child: ListView.builder(
+              itemCount: appliedKeys.length,
+              itemBuilder: (context, i) {
+                final key = appliedKeys[i];
+                final tpl = (loadedDataSet.value?.templates ?? [])
+                    .where((t) => t.getKeyName() == key)
+                    .firstOrNull;
+                return ListTile(
+                  dense: true,
+                  title: Text(tpl?.getDisplayName() ?? key,
+                      style: const TextStyle(fontSize: 12)),
+                  subtitle: tpl != null
+                      ? Text(_templateType(tpl),
+                          style: const TextStyle(fontSize: 11))
+                      : null,
+                  trailing: character == null
+                      ? null
+                      : IconButton(
+                          icon: const Icon(Icons.remove_circle_outline,
+                              size: 16, color: Colors.red),
+                          onPressed: () => _removeTemplate(character, key),
+                        ),
+                );
+              },
+            ),
+          ),
+      ],
+    );
+  }
+
+  // ---- Actions ---------------------------------------------------------------
+
   List<String> _getAppliedKeys(dynamic character) {
-    try { return (character as dynamic).getAppliedTemplateKeys() as List<String>? ?? []; }
-    catch (_) { return []; }
+    try {
+      return (character as dynamic).getAppliedTemplateKeys() as List<String>? ?? [];
+    } catch (_) {
+      return [];
+    }
   }
 
   void _applyTemplate(dynamic character, String key) {
-    try { (character as dynamic).applyTemplateKey(key); currentCharacter.notifyListeners(); setState(() {}); }
-    catch (_) {}
+    try {
+      (character as dynamic).applyTemplateKey(key);
+      currentCharacter.notifyListeners();
+      setState(() {});
+    } catch (_) {}
   }
 
   void _removeTemplate(dynamic character, String key) {
-    try { (character as dynamic).removeTemplateKey(key); currentCharacter.notifyListeners(); setState(() {}); }
-    catch (_) {}
+    try {
+      (character as dynamic).removeTemplateKey(key);
+      currentCharacter.notifyListeners();
+      setState(() {});
+    } catch (_) {}
   }
 }

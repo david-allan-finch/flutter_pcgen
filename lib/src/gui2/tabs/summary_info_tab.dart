@@ -1,21 +1,7 @@
-//
 // Copyright 2010 (C) Connor Petty <cpmeister@users.sourceforge.net>
-//
-// This library is free software; you can redistribute it and/or
-// modify it under the terms of the GNU Lesser General Public
-// License as published by the Free Software Foundation; either
-// version 2.1 of the License, or (at your option) any later version.
-//
-// This library is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-// Lesser General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public
-// License along with this library; if not, write to the Free Software
-// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-//
-// Translation of pcgen.gui2.tabs.SummaryInfoTab
+// LGPL 2.1 — Translation of pcgen.gui2.tabs.SummaryInfoTab
+
+import 'dart:math' show Random;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -29,11 +15,23 @@ import 'package:flutter_pcgen/src/gui2/tabs/character_info_tab.dart';
 import 'package:flutter_pcgen/src/gui2/tabs/tab_title.dart';
 import 'package:flutter_pcgen/src/gui2/tabs/todo_handler.dart';
 
-/// Standard 3.5e ability score abbreviations in order.
 const _kDefaultStatKeys = ['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'];
 
-/// The Summary tab — displays key character attributes, stats, class levels,
-/// and saves. Fully reactive via ValueListenableBuilders on global app state.
+// ---- Stat allocation modes --------------------------------------------------
+enum _StatMode { manual, standardArray, pointBuy, roll }
+
+// 3.5e point-buy cost table: index = score - 8
+const _kPointBuyCost = [0, 1, 2, 3, 4, 5, 6, 8, 10, 13, 16];
+
+int _pointBuyCostFor(int score) {
+  final idx = score - 8;
+  if (idx < 0) return 0;
+  if (idx >= _kPointBuyCost.length) return _kPointBuyCost.last;
+  return _kPointBuyCost[idx];
+}
+
+const _kStandardArray = [15, 14, 13, 12, 10, 8];
+
 class SummaryInfoTabWidget extends StatefulWidget implements TodoHandler {
   const SummaryInfoTabWidget({super.key});
 
@@ -48,15 +46,10 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
     implements CharacterInfoTab {
   final TabTitle _tabTitle = TabTitle.withTitle('Summary', null);
 
-  // Name editing
   late TextEditingController _nameController;
   bool _nameEditPending = false;
-
-  // HP editing
   late TextEditingController _hpController;
   bool _hpEditPending = false;
-
-  // Player name / Age / Gender / Physical
   late TextEditingController _playerNameController;
   late TextEditingController _ageController;
   late TextEditingController _genderController;
@@ -65,6 +58,75 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
   late TextEditingController _eyeColorController;
   late TextEditingController _hairColorController;
   late TextEditingController _skinColorController;
+
+  // ---- Stat allocation state ------------------------------------------------
+  _StatMode _statMode = _StatMode.manual;
+  int _pointBuyPool = 25;
+
+  // Standard Array / Roll: unassigned pool values and current assignments.
+  // _poolValues: remaining unassigned values; _assignments: statKey→assigned value (null = unassigned)
+  List<int> _poolValues = [];
+  final Map<String, int?> _assignments = {};
+
+  // Roll mode generated scores (before assignment)
+  List<int> _rolledScores = [];
+
+  void _initAssignmentMode(List<String> statKeys, _StatMode mode) {
+    _assignments.clear();
+    for (final k in statKeys) {
+      _assignments[k] = null;
+    }
+    if (mode == _StatMode.standardArray) {
+      _poolValues = List.of(_kStandardArray);
+    } else if (mode == _StatMode.roll) {
+      _rolledScores = _rollStats(statKeys.length);
+      _poolValues = List.of(_rolledScores);
+    }
+  }
+
+  List<int> _rollStats(int count) {
+    final rng = Random();
+    return List.generate(count, (_) {
+      final rolls = List.generate(4, (_) => rng.nextInt(6) + 1)..sort();
+      return rolls.skip(1).fold(0, (a, b) => a + b); // drop lowest
+    });
+  }
+
+  void _assignValue(dynamic character, List<PCStat> statObjects,
+      List<String> statKeys, String statKey, int value) {
+    // If stat already had a value, return it to pool
+    final old = _assignments[statKey];
+    if (old != null) _poolValues.add(old);
+    _poolValues.remove(value);
+    _assignments[statKey] = value;
+
+    // Write to character
+    final idx = statKeys.indexOf(statKey);
+    if (idx >= 0 && idx < statObjects.length) {
+      try {
+        (character as dynamic).setScoreBase(statObjects[idx], value);
+        currentCharacter.notifyListeners();
+      } catch (_) {}
+    }
+    setState(() {});
+  }
+
+  void _clearAssignment(dynamic character, List<PCStat> statObjects,
+      List<String> statKeys, String statKey) {
+    final old = _assignments[statKey];
+    if (old == null) return;
+    _poolValues.add(old);
+    _poolValues.sort((a, b) => b.compareTo(a));
+    _assignments[statKey] = null;
+    final idx = statKeys.indexOf(statKey);
+    if (idx >= 0 && idx < statObjects.length) {
+      try {
+        (character as dynamic).setScoreBase(statObjects[idx], 10);
+        currentCharacter.notifyListeners();
+      } catch (_) {}
+    }
+    setState(() {});
+  }
 
   @override
   void initState() {
@@ -98,13 +160,10 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
 
   @override
   TabTitle getTabTitle() => _tabTitle;
-
   @override
   ModelMap createModels(dynamic character) => ModelMap();
-
   @override
   void restoreModels(ModelMap models) {}
-
   @override
   void storeModels(ModelMap models) {}
 
@@ -121,7 +180,6 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
         return ValueListenableBuilder(
           valueListenable: loadedDataSet,
           builder: (context, dataset, _) {
-            // Stat list: prefer loaded stats, fall back to hardcoded 3.5e list.
             final statKeys = (dataset != null && dataset.stats.isNotEmpty)
                 ? dataset.stats.map((s) => s.getKeyName()).toList()
                 : _kDefaultStatKeys;
@@ -134,6 +192,8 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  _buildProgressCard(character),
+                  const SizedBox(height: 12),
                   _buildIdentitySection(character),
                   const SizedBox(height: 12),
                   _buildLanguagesSection(character, dataset),
@@ -154,16 +214,88 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
     );
   }
 
+  // ---- Character Progress card ---------------------------------------------
+
+  Widget _buildProgressCard(dynamic character) {
+    Map<String, dynamic> data = {};
+    try { data = (character as dynamic).toJson() as Map<String, dynamic>; } catch (_) {}
+
+    final charName   = data['name'] as String? ?? '';
+    final raceKey    = data['raceKey'] as String? ?? '';
+    final classLevels = data['classLevels'] as List? ?? [];
+    final statScores = data['statScores'] as Map? ?? {};
+    final skillRanks  = data['skillRanks']  as Map? ?? {};
+    final abilities   = data['selectedAbilities'] as Map? ?? {};
+    final feats       = (abilities['FEAT'] as List?)?.isNotEmpty ?? false;
+
+    final statsSet = statScores.values.any((v) => (v as num?)?.toInt() != 10);
+    final hasSkills = skillRanks.values.any((v) => (v as num? ?? 0) > 0);
+    final hasClass  = classLevels.isNotEmpty;
+
+    final items = [
+      _ProgressItem('Name',   charName.isNotEmpty,  charName.isNotEmpty ? charName : 'Not set'),
+      _ProgressItem('Race',   raceKey.isNotEmpty,   raceKey.isNotEmpty  ? raceKey  : 'Not selected'),
+      _ProgressItem('Class',  hasClass,              hasClass ? '${classLevels.length} level(s)' : 'No class chosen'),
+      _ProgressItem('Stats',  statsSet,              statsSet ? 'Assigned' : 'All default (10) — use allocation below'),
+      _ProgressItem('Skills', hasSkills || !hasClass,'${hasSkills ? "Some ranks spent" : hasClass ? "No ranks spent yet" : "N/A"}'),
+      _ProgressItem('Feats',  feats || !hasClass,    feats ? 'Feats selected' : hasClass ? 'No feats selected' : 'N/A'),
+    ];
+
+    final done = items.where((i) => i.done).length;
+
+    return Card(
+      child: ExpansionTile(
+        initiallyExpanded: done < items.length,
+        title: Row(children: [
+          Text('Character Progress', style: Theme.of(context).textTheme.titleMedium),
+          const SizedBox(width: 8),
+          Text('$done / ${items.length}',
+              style: TextStyle(
+                  fontSize: 12,
+                  color: done == items.length ? Colors.green.shade700 : Colors.orange.shade700,
+                  fontWeight: FontWeight.bold)),
+        ]),
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+            child: Column(
+              children: items.map((item) => Padding(
+                padding: const EdgeInsets.symmetric(vertical: 3),
+                child: Row(children: [
+                  Icon(
+                    item.done ? Icons.check_circle : Icons.radio_button_unchecked,
+                    size: 16,
+                    color: item.done ? Colors.green.shade600 : Colors.orange.shade600,
+                  ),
+                  const SizedBox(width: 8),
+                  SizedBox(
+                    width: 60,
+                    child: Text(item.label,
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                  ),
+                  Expanded(
+                    child: Text(item.detail,
+                        style: TextStyle(
+                            fontSize: 12,
+                            color: item.done ? Colors.grey.shade700 : Colors.orange.shade700)),
+                  ),
+                ]),
+              )).toList(),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   // ---- Identity section -----------------------------------------------------
 
   Widget _buildIdentitySection(dynamic character) {
-    // Sync name only when not actively editing
     final charName = (character as dynamic).getName() as String? ?? '';
     if (!_nameEditPending && _nameController.text != charName) {
       _nameController.text = charName;
     }
 
-    // Sync player name / age / gender / physical when not focused
     String playerName = '';
     try { playerName = (character as dynamic).getPlayersName() as String? ?? ''; } catch (_) {}
     if (_playerNameController.text != playerName) _playerNameController.text = playerName;
@@ -231,9 +363,7 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
                 const SizedBox(height: 4),
                 Row(children: [
                   Expanded(child: _editRow('Gender', _genderController,
-                    onDone: (v) {
-                      try { (character as dynamic).setGender(v); } catch (_) {}
-                    })),
+                    onDone: (v) { try { (character as dynamic).setGender(v); } catch (_) {} })),
                   const SizedBox(width: 8),
                   Expanded(child: _editRow('Age', _ageController,
                     keyboardType: TextInputType.number,
@@ -245,16 +375,14 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
                 const SizedBox(height: 4),
                 Row(children: [
                   Expanded(child: _editRow('Height (in)', _heightController,
-                    labelWidth: 95,
-                    keyboardType: TextInputType.number,
+                    labelWidth: 95, keyboardType: TextInputType.number,
                     onDone: (v) {
                       final n = int.tryParse(v);
                       if (n != null) try { (character as dynamic).setHeight(n); } catch (_) {}
                     })),
                   const SizedBox(width: 8),
                   Expanded(child: _editRow('Weight (lb)', _weightController,
-                    labelWidth: 95,
-                    keyboardType: TextInputType.number,
+                    labelWidth: 95, keyboardType: TextInputType.number,
                     onDone: (v) {
                       final n = int.tryParse(v);
                       if (n != null) try { (character as dynamic).setWeight(n); } catch (_) {}
@@ -263,25 +391,18 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
                 const SizedBox(height: 4),
                 Row(children: [
                   Expanded(child: _editRow('Eyes', _eyeColorController,
-                    onDone: (v) {
-                      try { (character as dynamic).setEyeColor(v); } catch (_) {}
-                    })),
+                    onDone: (v) { try { (character as dynamic).setEyeColor(v); } catch (_) {} })),
                   const SizedBox(width: 8),
                   Expanded(child: _editRow('Hair', _hairColorController,
-                    onDone: (v) {
-                      try { (character as dynamic).setHairColor(v); } catch (_) {}
-                    })),
+                    onDone: (v) { try { (character as dynamic).setHairColor(v); } catch (_) {} })),
                   const SizedBox(width: 8),
                   Expanded(child: _editRow('Skin', _skinColorController,
-                    onDone: (v) {
-                      try { (character as dynamic).setSkinColor(v); } catch (_) {}
-                    })),
+                    onDone: (v) { try { (character as dynamic).setSkinColor(v); } catch (_) {} })),
                 ]),
                 const SizedBox(height: 6),
                 _labelledValue('Race', raceName),
                 _labelledValue('Class', _classLevelSummary(character)),
                 const SizedBox(height: 6),
-                // Alignment dropdown
                 if (alignments.isNotEmpty)
                   Row(children: [
                     const SizedBox(width: 80,
@@ -292,7 +413,7 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
                         value: alignKey.isEmpty ? null : alignKey,
                         hint: const Text('— Select —'),
                         items: alignments.map((a) {
-                          final key = (a as dynamic).getKeyName() as String;
+                          final key  = (a as dynamic).getKeyName()    as String;
                           final name = (a as dynamic).getDisplayName() as String;
                           return DropdownMenuItem(value: key, child: Text(name));
                         }).toList(),
@@ -314,7 +435,6 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
     );
   }
 
-  /// A labelled text field row that commits on submit/unfocus.
   Widget _editRow(String label, TextEditingController ctrl, {
     FocusNode? focusNode,
     String? hint,
@@ -345,14 +465,9 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
   }
 
   String _classLevelSummary(dynamic character) {
-    try {
-      return (character as dynamic).getClassLevelSummary() as String? ?? '';
-    } catch (_) {
-      return '';
-    }
+    try { return (character as dynamic).getClassLevelSummary() as String? ?? ''; }
+    catch (_) { return ''; }
   }
-
-  // ---- Stats section --------------------------------------------------------
 
   // ---- Languages section ----------------------------------------------------
 
@@ -366,25 +481,22 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Text('Languages', style: Theme.of(context).textTheme.titleMedium),
-                const Spacer(),
-                if (available.isNotEmpty && character != null)
-                  TextButton.icon(
-                    icon: const Icon(Icons.add, size: 14),
-                    label: const Text('Add'),
-                    onPressed: () => _showAddLanguageDialog(context, character, available, selected),
-                  ),
-              ],
-            ),
+            Row(children: [
+              Text('Languages', style: Theme.of(context).textTheme.titleMedium),
+              const Spacer(),
+              if (available.isNotEmpty && character != null)
+                TextButton.icon(
+                  icon: const Icon(Icons.add, size: 14),
+                  label: const Text('Add'),
+                  onPressed: () => _showAddLanguageDialog(context, character, available, selected),
+                ),
+            ]),
             if (selected.isEmpty)
               const Text('No languages selected.',
                   style: TextStyle(color: Colors.grey, fontSize: 12))
             else
               Wrap(
-                spacing: 6,
-                runSpacing: 4,
+                spacing: 6, runSpacing: 4,
                 children: selected.map((key) {
                   final lang = available.where((l) => l.getKeyName() == key).firstOrNull;
                   return InputChip(
@@ -442,8 +554,7 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
       builder: (_) => AlertDialog(
         title: const Text('Add Language'),
         content: SizedBox(
-          width: 280,
-          height: 360,
+          width: 280, height: 360,
           child: ListView.builder(
             itemCount: available.length,
             itemBuilder: (context, i) {
@@ -452,77 +563,116 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
               return ListTile(
                 dense: true,
                 title: Text(lang.getDisplayName()),
-                trailing: isSelected
-                    ? const Icon(Icons.check, color: Colors.green)
-                    : null,
-                onTap: isSelected
-                    ? null
-                    : () {
-                        _addLanguage(character, lang.getKeyName());
-                        Navigator.pop(context);
-                      },
+                trailing: isSelected ? const Icon(Icons.check, color: Colors.green) : null,
+                onTap: isSelected ? null : () {
+                  _addLanguage(character, lang.getKeyName());
+                  Navigator.pop(context);
+                },
               );
             },
           ),
         ),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
-          ),
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Close')),
         ],
       ),
     );
   }
 
-  Widget _buildStatsSection(
-      dynamic character, List<String> statKeys, List<PCStat> statObjects) {
+  // ---- Stats section --------------------------------------------------------
+
+  Widget _buildStatsSection(dynamic character, List<String> statKeys, List<PCStat> statObjects) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Ability Scores',
-                style: Theme.of(context).textTheme.titleMedium),
+            Text('Ability Scores', style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 8),
-            Table(
-              columnWidths: const {
-                0: FixedColumnWidth(52),
-                1: FixedColumnWidth(60),
-                2: FixedColumnWidth(44),
-                3: FixedColumnWidth(50),
-                4: FixedColumnWidth(40),
-              },
-              defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-              children: [
-                TableRow(
-                  decoration: BoxDecoration(
-                      color: Theme.of(context).highlightColor),
-                  children: const [
-                    Padding(padding: EdgeInsets.symmetric(vertical: 4, horizontal: 4),
-                        child: Text('Stat', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12))),
-                    Padding(padding: EdgeInsets.symmetric(vertical: 4, horizontal: 4),
-                        child: Text('Base', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12))),
-                    Padding(padding: EdgeInsets.symmetric(vertical: 4, horizontal: 4),
-                        child: Text('Race', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12))),
-                    Padding(padding: EdgeInsets.symmetric(vertical: 4, horizontal: 4),
-                        child: Text('Total', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12))),
-                    Padding(padding: EdgeInsets.symmetric(vertical: 4, horizontal: 4),
-                        child: Text('Mod', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12))),
-                  ],
-                ),
-                for (int i = 0; i < statKeys.length; i++)
-                  _buildStatRow(
-                    character,
-                    statKeys[i],
-                    i < statObjects.length ? statObjects[i] : null,
-                  ),
-              ],
-            ),
+            // Mode selector
+            _buildModeSelector(character, statKeys, statObjects),
+            const SizedBox(height: 8),
+            // Mode-specific controls
+            if (_statMode == _StatMode.pointBuy)
+              _buildPointBuyControls(character, statKeys, statObjects)
+            else if (_statMode == _StatMode.standardArray || _statMode == _StatMode.roll)
+              _buildPoolControls(character, statKeys, statObjects)
+            else
+              _buildManualTable(character, statKeys, statObjects),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildModeSelector(dynamic character, List<String> statKeys, List<PCStat> statObjects) {
+    final modes = [
+      (_StatMode.manual,        'Manual'),
+      (_StatMode.standardArray, 'Standard Array'),
+      (_StatMode.pointBuy,      'Point Buy'),
+      (_StatMode.roll,          'Dice Roll'),
+    ];
+    return Wrap(
+      spacing: 6, runSpacing: 4,
+      children: modes.map((m) {
+        final (mode, label) = m;
+        final selected = _statMode == mode;
+        return ChoiceChip(
+          label: Text(label, style: const TextStyle(fontSize: 12)),
+          selected: selected,
+          onSelected: (_) {
+            setState(() {
+              _statMode = mode;
+              if (mode == _StatMode.standardArray || mode == _StatMode.roll) {
+                _initAssignmentMode(statKeys, mode);
+              } else if (mode == _StatMode.pointBuy) {
+                // Set all stats to 10 as starting point for point buy
+                for (int i = 0; i < statKeys.length && i < statObjects.length; i++) {
+                  try {
+                    (character as dynamic).setScoreBase(statObjects[i], 10);
+                  } catch (_) {}
+                }
+                currentCharacter.notifyListeners();
+              }
+            });
+          },
+        );
+      }).toList(),
+    );
+  }
+
+  // ---- Manual mode (existing table) ----------------------------------------
+
+  Widget _buildManualTable(dynamic character, List<String> statKeys, List<PCStat> statObjects) {
+    return Table(
+      columnWidths: const {
+        0: FixedColumnWidth(52),
+        1: FixedColumnWidth(60),
+        2: FixedColumnWidth(44),
+        3: FixedColumnWidth(50),
+        4: FixedColumnWidth(40),
+      },
+      defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+      children: [
+        TableRow(
+          decoration: BoxDecoration(color: Theme.of(context).highlightColor),
+          children: const [
+            Padding(padding: EdgeInsets.symmetric(vertical: 4, horizontal: 4),
+                child: Text('Stat', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12))),
+            Padding(padding: EdgeInsets.symmetric(vertical: 4, horizontal: 4),
+                child: Text('Base', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12))),
+            Padding(padding: EdgeInsets.symmetric(vertical: 4, horizontal: 4),
+                child: Text('Race', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12))),
+            Padding(padding: EdgeInsets.symmetric(vertical: 4, horizontal: 4),
+                child: Text('Total', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12))),
+            Padding(padding: EdgeInsets.symmetric(vertical: 4, horizontal: 4),
+                child: Text('Mod', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12))),
+          ],
+        ),
+        for (int i = 0; i < statKeys.length; i++)
+          _buildStatRow(character, statKeys[i], i < statObjects.length ? statObjects[i] : null),
+      ],
     );
   }
 
@@ -539,9 +689,8 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
     final mod = ((effective - 10) / 2).floor();
     final modStr = mod >= 0 ? '+$mod' : '$mod';
 
-    // Race column: show bonus with sign, greyed when zero
-    String racialStr = racial == 0 ? '—' : (racial > 0 ? '+$racial' : '$racial');
-    Color racialColor = racial > 0
+    final racialStr = racial == 0 ? '—' : (racial > 0 ? '+$racial' : '$racial');
+    final racialColor = racial > 0
         ? Colors.blue.shade700
         : racial < 0 ? Colors.orange.shade700 : Colors.grey.shade400;
 
@@ -551,8 +700,7 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
           padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 4),
           child: Tooltip(
             message: statObj?.getDisplayName() ?? statKey,
-            child: Text(statKey,
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+            child: Text(statKey, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
           ),
         ),
         Padding(
@@ -570,7 +718,6 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
             },
           ),
         ),
-        // Race column
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 4),
           child: Text(racialStr,
@@ -579,12 +726,10 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
                   fontWeight: racial != 0 ? FontWeight.bold : FontWeight.normal,
                   color: racialColor)),
         ),
-        // Total column — tooltip shows breakdown if there are any adjustments
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 4),
           child: (racial == 0 && levelGains == 0)
-              ? Text('$effective',
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12))
+              ? Text('$effective', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12))
               : Tooltip(
                   message: [
                     'Base: $base',
@@ -594,11 +739,8 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
                   ].join('\n'),
                   child: Text('$effective',
                       style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 12,
-                          color: effective > base
-                              ? Colors.blue.shade700
-                              : Colors.orange.shade700)),
+                          fontWeight: FontWeight.bold, fontSize: 12,
+                          color: effective > base ? Colors.blue.shade700 : Colors.orange.shade700)),
                 ),
         ),
         Padding(
@@ -613,14 +755,279 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
     );
   }
 
+  // ---- Point Buy controls --------------------------------------------------
+
+  Widget _buildPointBuyControls(dynamic character, List<String> statKeys, List<PCStat> statObjects) {
+    // Current scores
+    final scores = <String, int>{};
+    for (int i = 0; i < statKeys.length && i < statObjects.length; i++) {
+      int base = 10;
+      try { base = (character as dynamic).getScoreBase(statObjects[i]) as int? ?? 10; } catch (_) {}
+      scores[statKeys[i]] = base.clamp(8, 18);
+    }
+
+    // Total points spent
+    int spent = 0;
+    for (final s in scores.values) spent += _pointBuyCostFor(s);
+    final remaining = _pointBuyPool - spent;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Pool selector + remaining display
+        Row(children: [
+          const Text('Pool:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+          const SizedBox(width: 8),
+          ...[15, 20, 25, 28, 32].map((pool) => Padding(
+            padding: const EdgeInsets.only(right: 4),
+            child: ChoiceChip(
+              label: Text('$pool', style: const TextStyle(fontSize: 11)),
+              selected: _pointBuyPool == pool,
+              onSelected: (_) => setState(() => _pointBuyPool = pool),
+            ),
+          )),
+          const SizedBox(width: 12),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(
+              color: remaining < 0 ? Colors.red.shade50 : Colors.green.shade50,
+              border: Border.all(
+                  color: remaining < 0 ? Colors.red : Colors.green),
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Text('$remaining pts remaining',
+                style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                    color: remaining < 0 ? Colors.red.shade700 : Colors.green.shade700)),
+          ),
+        ]),
+        const SizedBox(height: 8),
+        // Stat rows with +/- buttons
+        for (int i = 0; i < statKeys.length && i < statObjects.length; i++) ...[
+          _buildPointBuyRow(character, statKeys[i], statObjects[i],
+              scores[statKeys[i]]!, remaining),
+          if (i < statKeys.length - 1) const Divider(height: 4),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildPointBuyRow(dynamic character, String statKey, PCStat statObj,
+      int score, int remaining) {
+    int racial = 0;
+    int levelGains = 0;
+    try { racial     = (character as dynamic).getRacialBonus(statObj)    as int? ?? 0; } catch (_) {}
+    try { levelGains = (character as dynamic).getLevelStatGains(statObj) as int? ?? 0; } catch (_) {}
+
+    final cost      = _pointBuyCostFor(score);
+    final costUp    = score < 18 ? _pointBuyCostFor(score + 1) - cost : 999;
+    final canInc    = score < 18 && costUp <= remaining;
+    final canDec    = score > 8;
+    final effective = score + racial + levelGains;
+    final mod       = ((effective - 10) / 2).floor();
+
+    void setScore(int newScore) {
+      try {
+        (character as dynamic).setScoreBase(statObj, newScore);
+        currentCharacter.notifyListeners();
+        setState(() {});
+      } catch (_) {}
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Row(children: [
+        SizedBox(width: 40, child: Text(statKey,
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12))),
+        IconButton(
+          icon: const Icon(Icons.remove_circle_outline, size: 18),
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints(minWidth: 24, minHeight: 24),
+          onPressed: canDec ? () => setScore(score - 1) : null,
+        ),
+        SizedBox(
+          width: 36,
+          child: Text('$score',
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+        ),
+        IconButton(
+          icon: const Icon(Icons.add_circle_outline, size: 18),
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints(minWidth: 24, minHeight: 24),
+          onPressed: canInc ? () => setScore(score + 1) : null,
+        ),
+        const SizedBox(width: 4),
+        SizedBox(
+          width: 38,
+          child: Text('(${cost}pt)',
+              style: TextStyle(fontSize: 10, color: Colors.grey.shade600)),
+        ),
+        if (racial != 0 || levelGains != 0) ...[
+          const SizedBox(width: 4),
+          Text('→ $effective',
+              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+        ],
+        const SizedBox(width: 8),
+        Text(mod >= 0 ? '+$mod' : '$mod',
+            style: TextStyle(
+                fontSize: 12, fontWeight: FontWeight.bold,
+                color: mod >= 0 ? Colors.green.shade700 : Colors.red.shade700)),
+      ]),
+    );
+  }
+
+  // ---- Standard Array / Roll controls --------------------------------------
+
+  Widget _buildPoolControls(dynamic character, List<String> statKeys, List<PCStat> statObjects) {
+    final sortedPool = List.of(_poolValues)..sort((a, b) => b.compareTo(a));
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Pool chips + roll/reset button
+        Row(children: [
+          const Text('Available: ', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+          Expanded(
+            child: Wrap(
+              spacing: 4, runSpacing: 4,
+              children: sortedPool.map((v) => Chip(
+                label: Text('$v', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+              )).toList(),
+            ),
+          ),
+          if (_statMode == _StatMode.roll) ...[
+            const SizedBox(width: 8),
+            ElevatedButton.icon(
+              icon: const Icon(Icons.casino, size: 14),
+              label: const Text('Reroll', style: TextStyle(fontSize: 12)),
+              onPressed: () {
+                setState(() {
+                  _initAssignmentMode(statKeys, _StatMode.roll);
+                  // Clear current assignments from character
+                  for (int i = 0; i < statKeys.length && i < statObjects.length; i++) {
+                    try { (character as dynamic).setScoreBase(statObjects[i], 10); } catch (_) {}
+                  }
+                  currentCharacter.notifyListeners();
+                });
+              },
+            ),
+          ],
+          const SizedBox(width: 4),
+          TextButton(
+            onPressed: () {
+              setState(() {
+                _assignments.clear();
+                if (_statMode == _StatMode.standardArray) {
+                  _poolValues = List.of(_kStandardArray);
+                } else {
+                  _poolValues = List.of(_rolledScores);
+                }
+                for (final k in statKeys) _assignments[k] = null;
+                for (int i = 0; i < statKeys.length && i < statObjects.length; i++) {
+                  try { (character as dynamic).setScoreBase(statObjects[i], 10); } catch (_) {}
+                }
+                currentCharacter.notifyListeners();
+              });
+            },
+            child: const Text('Clear', style: TextStyle(fontSize: 12)),
+          ),
+        ]),
+        const SizedBox(height: 8),
+        // Stat assignment rows
+        for (int i = 0; i < statKeys.length; i++) ...[
+          _buildAssignmentRow(character, statKeys, statObjects, statKeys[i],
+              i < statObjects.length ? statObjects[i] : null, sortedPool),
+          if (i < statKeys.length - 1) const Divider(height: 4),
+        ],
+        if (_poolValues.isEmpty && _assignments.values.every((v) => v != null))
+          Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: Text('✓ All stats assigned',
+                style: TextStyle(color: Colors.green.shade700, fontWeight: FontWeight.bold)),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildAssignmentRow(dynamic character, List<String> statKeys,
+      List<PCStat> statObjects, String statKey, PCStat? statObj, List<int> sortedPool) {
+    final assigned = _assignments[statKey];
+    int racial = 0;
+    int levelGains = 0;
+    if (statObj != null) {
+      try { racial     = (character as dynamic).getRacialBonus(statObj)    as int? ?? 0; } catch (_) {}
+      try { levelGains = (character as dynamic).getLevelStatGains(statObj) as int? ?? 0; } catch (_) {}
+    }
+    final effective = (assigned ?? 10) + racial + levelGains;
+    final mod = ((effective - 10) / 2).floor();
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Row(children: [
+        SizedBox(width: 40,
+            child: Text(statKey,
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12))),
+        const SizedBox(width: 8),
+        // Dropdown to pick from available pool
+        DropdownButton<int>(
+          value: assigned,
+          hint: const Text('—', style: TextStyle(fontSize: 12)),
+          isDense: true,
+          items: [
+            if (assigned != null)
+              DropdownMenuItem(
+                value: assigned,
+                child: Text('$assigned (clear)',
+                    style: const TextStyle(fontSize: 12)),
+              ),
+            ...sortedPool.where((v) => v != assigned).map((v) =>
+              DropdownMenuItem(
+                value: v,
+                child: Text('$v', style: const TextStyle(fontSize: 12)),
+              )),
+          ],
+          onChanged: (v) {
+            if (v == assigned) {
+              _clearAssignment(character, statObjects, statKeys, statKey);
+            } else if (v != null) {
+              _assignValue(character, statObjects, statKeys, statKey, v);
+            }
+          },
+        ),
+        const SizedBox(width: 12),
+        if (assigned != null) ...[
+          if (racial != 0 || levelGains != 0) ...[
+            Text('→ $effective',
+                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+            const SizedBox(width: 8),
+          ],
+          Text(mod >= 0 ? '+$mod' : '$mod',
+              style: TextStyle(
+                  fontSize: 12, fontWeight: FontWeight.bold,
+                  color: mod >= 0 ? Colors.green.shade700 : Colors.red.shade700)),
+          const SizedBox(width: 8),
+          IconButton(
+            icon: const Icon(Icons.clear, size: 14),
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(minWidth: 20, minHeight: 20),
+            onPressed: () => _clearAssignment(character, statObjects, statKeys, statKey),
+          ),
+        ] else
+          Text('—', style: TextStyle(color: Colors.grey.shade400, fontSize: 12)),
+      ]),
+    );
+  }
+
   // ---- Combat section -------------------------------------------------------
 
-  Widget _buildCombatSection(dynamic character, List<String> statKeys,
-      List<PCStat> statObjects) {
+  Widget _buildCombatSection(dynamic character, List<String> statKeys, List<PCStat> statObjects) {
     final dataset = loadedDataSet.value;
     final dexMod = _getStatMod(character, statKeys, statObjects, 'DEX');
-    final bab = _computeBab(character, dataset);
-    final initiative = dexMod;
+    final bab    = _computeBab(character, dataset);
 
     return Card(
       child: Padding(
@@ -630,76 +1037,58 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
           children: [
             Text('Combat', style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 8),
-            Row(
-              children: [
-                _combatChip('Initiative', _fmtMod(initiative)),
-                const SizedBox(width: 12),
-                _combatChip('BAB', _babSequence(bab)),
-                const SizedBox(width: 12),
-                _combatChip('AC', '${10 + dexMod}'),
-              ],
-            ),
+            Row(children: [
+              _combatChip('Initiative', _fmtMod(dexMod)),
+              const SizedBox(width: 12),
+              _combatChip('BAB', _babSequence(bab)),
+              const SizedBox(width: 12),
+              _combatChip('AC', '${10 + dexMod}'),
+            ]),
           ],
         ),
       ),
     );
   }
 
-  /// Full attack sequence string: '+6/+1' for BAB 6, '+11/+6/+1' for 11, etc.
   String _babSequence(int bab) {
     if (bab <= 0) return '+0';
     if (bab < 6) return '+$bab';
     final attacks = <String>[];
     int current = bab;
-    while (current > 0) {
-      attacks.add('+$current');
-      current -= 5;
-    }
+    while (current > 0) { attacks.add('+$current'); current -= 5; }
     return attacks.join('/');
   }
 
-  /// Compute BAB from class levels and each class's BAB progression type.
   int _computeBab(dynamic character, DataSet? dataset) {
     List classLevels = [];
     try { classLevels = ((character as dynamic).toJson()['classLevels'] as List?) ?? []; } catch (_) {}
     if (classLevels.isEmpty) return 0;
     final classes = dataset?.classes ?? const <PCClass>[];
-
-    // Count levels per class key.
     final counts = <String, int>{};
     for (final l in classLevels) {
-      if (l is Map) {
-        final k = l['classKey'] as String? ?? '';
-        counts[k] = (counts[k] ?? 0) + 1;
-      }
+      if (l is Map) { final k = l['classKey'] as String? ?? ''; counts[k] = (counts[k] ?? 0) + 1; }
     }
-
-    // Sum BAB contribution from each class.
     double total = 0.0;
     for (final entry in counts.entries) {
       final cls = classes.where((c) => c.getKeyName() == entry.key).firstOrNull;
       final bab = cls?.getBabProgression() ?? '';
-      final rate = bab == 'Full' ? 1.0 : bab == 'Half' ? 0.5 : 0.75;
-      total += entry.value * rate;
+      total += entry.value * (bab == 'Full' ? 1.0 : bab == 'Half' ? 0.5 : 0.75);
     }
     return total.floor();
   }
 
   Widget _combatChip(String label, String value) {
-    return Column(
-      children: [
-        Text(label, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
-        const SizedBox(height: 2),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-          decoration: BoxDecoration(
+    return Column(children: [
+      Text(label, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+      const SizedBox(height: 2),
+      Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        decoration: BoxDecoration(
             border: Border.all(color: Colors.grey),
-            borderRadius: BorderRadius.circular(6),
-          ),
-          child: Text(value, style: const TextStyle(fontWeight: FontWeight.bold)),
-        ),
-      ],
-    );
+            borderRadius: BorderRadius.circular(6)),
+        child: Text(value, style: const TextStyle(fontWeight: FontWeight.bold)),
+      ),
+    ]);
   }
 
   // ---- Saves section --------------------------------------------------------
@@ -708,9 +1097,7 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
       List<PCStat> statObjects, String key) {
     final idx = statKeys.indexOf(key);
     if (idx >= 0 && idx < statObjects.length) {
-      try {
-        return (character as dynamic).getModTotal(statObjects[idx]) as int? ?? 0;
-      } catch (_) {}
+      try { return (character as dynamic).getModTotal(statObjects[idx]) as int? ?? 0; } catch (_) {}
     }
     return 0;
   }
@@ -719,13 +1106,11 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
 
   Widget _buildSavesSection(dynamic character, List<String> statKeys,
       List<PCStat> statObjects, DataSet? dataset) {
-    // Standard 3.5e saves with governing stat abbreviations.
     const saves = [
       ('Fortitude', 'Fort', 'CON'),
       ('Reflex',    'Ref',  'DEX'),
       ('Will',      'Will', 'WIS'),
     ];
-
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(12),
@@ -751,64 +1136,44 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
     );
   }
 
-  /// Compute a saving throw total using class levels + stat modifier.
-  /// Uses 3.5e Good (floor(L/2)+2) / Poor (floor(L/3)) progression per class.
   int _computeSave(String saveName, String statAbb, dynamic character,
       List<String> statKeys, List<PCStat> statObjects, DataSet? dataset) {
     final statMod = _getStatMod(character, statKeys, statObjects, statAbb);
     if (dataset == null) return statMod;
-
     List classLevels = [];
-    try {
-      classLevels = ((character as dynamic).toJson()['classLevels'] as List?) ?? [];
-    } catch (_) {}
+    try { classLevels = ((character as dynamic).toJson()['classLevels'] as List?) ?? []; } catch (_) {}
     if (classLevels.isEmpty) return statMod;
-
     final counts = <String, int>{};
     for (final l in classLevels) {
-      if (l is Map) {
-        final k = l['classKey'] as String? ?? '';
-        counts[k] = (counts[k] ?? 0) + 1;
-      }
+      if (l is Map) { final k = l['classKey'] as String? ?? ''; counts[k] = (counts[k] ?? 0) + 1; }
     }
-
     double base = 0;
-    bool hasGoodClass = false;
+    bool hasGood = false;
     for (final entry in counts.entries) {
-      final cls = dataset.classes
-          .where((c) => c.getKeyName() == entry.key)
-          .firstOrNull;
+      final cls = dataset.classes.where((c) => c.getKeyName() == entry.key).firstOrNull;
       final isGood = cls?.isSaveGood(saveName) ?? false;
       if (isGood) {
-        // Good save: floor(L/2) + 2 per class, but +2 bonus counted once
         base += entry.value / 2;
-        if (!hasGoodClass) { base += 2; hasGoodClass = true; }
+        if (!hasGood) { base += 2; hasGood = true; }
       } else {
         base += entry.value / 3;
       }
     }
-
     return base.floor() + statMod;
   }
 
   Widget _saveChip(String label, String value) {
-    return Column(
-      children: [
-        Text(label,
-            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
-        const SizedBox(height: 2),
-        Container(
-          padding:
-              const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-          decoration: BoxDecoration(
+    return Column(children: [
+      Text(label, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+      const SizedBox(height: 2),
+      Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        decoration: BoxDecoration(
             border: Border.all(color: Colors.grey),
-            borderRadius: BorderRadius.circular(6),
-          ),
-          child: Text(value,
-              style: const TextStyle(fontWeight: FontWeight.bold)),
-        ),
-      ],
-    );
+            borderRadius: BorderRadius.circular(6)),
+        child: Text(value, style: const TextStyle(fontWeight: FontWeight.bold)),
+      ),
+    ]);
   }
 
   // ---- Class level section --------------------------------------------------
@@ -817,13 +1182,10 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
     final summary = _classLevelSummary(character);
     int totalLevel = 0;
     try { totalLevel = (character as dynamic).getTotalCharacterLevel() as int? ?? 0; } catch (_) {}
+    int currentHp = 0, maxHp = 0;
+    try { currentHp = (character as dynamic).getHP()    as int? ?? 0; } catch (_) {}
+    try { maxHp     = (character as dynamic).getMaxHP() as int? ?? 0; } catch (_) {}
 
-    int currentHp = 0;
-    int maxHp = 0;
-    try { currentHp = (character as dynamic).getHP() as int? ?? 0; } catch (_) {}
-    try { maxHp    = (character as dynamic).getMaxHP() as int? ?? 0; } catch (_) {}
-
-    // Sync current HP controller when not editing
     if (!_hpEditPending && _hpController.text != '$currentHp') {
       _hpController.text = '$currentHp';
     }
@@ -841,72 +1203,65 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
             const SizedBox(height: 4),
             _buildXPRow(character, totalLevel),
             const SizedBox(height: 8),
-            // HP row: current / max
-            Row(
-              children: [
-                const SizedBox(width: 80,
-                    child: Text('HP:', style: TextStyle(fontWeight: FontWeight.bold))),
-                // Current HP (editable)
-                SizedBox(
-                  width: 52,
-                  child: TextField(
-                    controller: _hpController,
-                    keyboardType: TextInputType.number,
-                    textAlign: TextAlign.center,
-                    decoration: const InputDecoration(
-                      border: OutlineInputBorder(),
-                      isDense: true,
-                      contentPadding: EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-                      hintText: 'cur',
-                    ),
-                    onChanged: (_) => _hpEditPending = true,
-                    onSubmitted: (v) {
+            Row(children: [
+              const SizedBox(width: 80,
+                  child: Text('HP:', style: TextStyle(fontWeight: FontWeight.bold))),
+              SizedBox(
+                width: 52,
+                child: TextField(
+                  controller: _hpController,
+                  keyboardType: TextInputType.number,
+                  textAlign: TextAlign.center,
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(), isDense: true,
+                    contentPadding: EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+                    hintText: 'cur',
+                  ),
+                  onChanged: (_) => _hpEditPending = true,
+                  onSubmitted: (v) {
+                    _hpEditPending = false;
+                    final n = int.tryParse(v);
+                    if (n != null) {
+                      try { (character as dynamic).setHP(n); } catch (_) {}
+                      currentCharacter.notifyListeners();
+                    }
+                  },
+                  onEditingComplete: () {
+                    _hpEditPending = false;
+                    final n = int.tryParse(_hpController.text);
+                    if (n != null) {
+                      try { (character as dynamic).setHP(n); } catch (_) {}
+                      currentCharacter.notifyListeners();
+                    }
+                  },
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 6),
+                child: Text('/ $maxHp max',
+                    style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
+              ),
+              if (maxHp > 0)
+                Tooltip(
+                  message: 'Restore to full ($maxHp HP)',
+                  child: TextButton.icon(
+                    icon: const Icon(Icons.favorite, size: 14, color: Colors.green),
+                    label: const Text('Full', style: TextStyle(fontSize: 12)),
+                    style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4)),
+                    onPressed: () {
                       _hpEditPending = false;
-                      final n = int.tryParse(v);
-                      if (n != null) {
-                        try { (character as dynamic).setHP(n); } catch (_) {}
-                        currentCharacter.notifyListeners();
-                      }
-                    },
-                    onEditingComplete: () {
-                      _hpEditPending = false;
-                      final n = int.tryParse(_hpController.text);
-                      if (n != null) {
-                        try { (character as dynamic).setHP(n); } catch (_) {}
-                        currentCharacter.notifyListeners();
-                      }
+                      try { (character as dynamic).setHP(maxHp); } catch (_) {}
+                      currentCharacter.notifyListeners();
+                      setState(() {});
                     },
                   ),
                 ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 6),
-                  child: Text('/ $maxHp max',
-                      style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
-                ),
-                // Heal / Full buttons
-                if (maxHp > 0) ...[
-                  Tooltip(
-                    message: 'Restore to full ($maxHp HP)',
-                    child: TextButton.icon(
-                      icon: const Icon(Icons.favorite, size: 14, color: Colors.green),
-                      label: const Text('Full', style: TextStyle(fontSize: 12)),
-                      style: TextButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4)),
-                      onPressed: () {
-                        _hpEditPending = false;
-                        try { (character as dynamic).setHP(maxHp); } catch (_) {}
-                        currentCharacter.notifyListeners();
-                        setState(() {});
-                      },
-                    ),
-                  ),
-                ],
-                if (maxHp == 0 && totalLevel > 0)
-                  Text('(set HP in Class tab)',
-                      style: TextStyle(fontSize: 11, color: Colors.grey.shade500,
-                          fontStyle: FontStyle.italic)),
-              ],
-            ),
+              if (maxHp == 0 && totalLevel > 0)
+                Text('(set HP in Class tab)',
+                    style: TextStyle(fontSize: 11, color: Colors.grey.shade500,
+                        fontStyle: FontStyle.italic)),
+            ]),
           ],
         ),
       ),
@@ -915,103 +1270,75 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
 
   // ---- XP row ---------------------------------------------------------------
 
-  // 3.5e XP thresholds — cumulative XP needed to reach each level.
   static const List<int> _kXpTable = [
-    0,       // level 1
-    1000,    // level 2
-    3000,    // level 3
-    6000,    // level 4
-    10000,   // level 5
-    15000,   // level 6
-    21000,   // level 7
-    28000,   // level 8
-    36000,   // level 9
-    45000,   // level 10
-    55000,   // level 11
-    66000,   // level 12
-    78000,   // level 13
-    91000,   // level 14
-    105000,  // level 15
-    120000,  // level 16
-    136000,  // level 17
-    153000,  // level 18
-    171000,  // level 19
-    190000,  // level 20
+    0, 1000, 3000, 6000, 10000, 15000, 21000, 28000, 36000, 45000,
+    55000, 66000, 78000, 91000, 105000, 120000, 136000, 153000, 171000, 190000,
   ];
 
   int _xpForLevel(int level) {
     if (level <= 0) return 0;
     if (level - 1 < _kXpTable.length) return _kXpTable[level - 1];
-    // Beyond table: extrapolate
     return _kXpTable.last + (level - _kXpTable.length) * 21000;
   }
 
   Widget _buildXPRow(dynamic character, int totalLevel) {
     int xp = 0;
     try { xp = (character as dynamic).getXP() as int? ?? 0; } catch (_) {}
-
     final currentThreshold = _xpForLevel(totalLevel);
-    final nextThreshold = _xpForLevel(totalLevel + 1);
-    final xpInLevel = xp - currentThreshold;
-    final xpNeeded = nextThreshold - currentThreshold;
-    final readyToLevel = xp >= nextThreshold;
+    final nextThreshold    = _xpForLevel(totalLevel + 1);
+    final xpInLevel        = xp - currentThreshold;
+    final xpNeeded         = nextThreshold - currentThreshold;
+    final readyToLevel     = xp >= nextThreshold;
 
-    return Row(
-      children: [
-        const SizedBox(width: 80, child: Text('XP:', style: TextStyle(fontWeight: FontWeight.bold))),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(children: [
-              Text('$xp', style: const TextStyle(fontWeight: FontWeight.bold)),
-              Text(' / $nextThreshold',
-                  style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
-              if (readyToLevel)
-                const Padding(
-                  padding: EdgeInsets.only(left: 8),
-                  child: Text('★ Ready to level up!',
-                      style: TextStyle(color: Colors.amber,
-                          fontWeight: FontWeight.bold, fontSize: 12)),
-                ),
-            ]),
-            SizedBox(
-              width: 160,
-              height: 5,
-              child: LinearProgressIndicator(
-                value: xpNeeded > 0
-                    ? (xpInLevel / xpNeeded).clamp(0.0, 1.0)
-                    : 1.0,
-                backgroundColor: Colors.grey.shade300,
-                color: readyToLevel ? Colors.amber : null,
+    return Row(children: [
+      const SizedBox(width: 80, child: Text('XP:', style: TextStyle(fontWeight: FontWeight.bold))),
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(children: [
+            Text('$xp', style: const TextStyle(fontWeight: FontWeight.bold)),
+            Text(' / $nextThreshold',
+                style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
+            if (readyToLevel)
+              const Padding(
+                padding: EdgeInsets.only(left: 8),
+                child: Text('★ Ready to level up!',
+                    style: TextStyle(color: Colors.amber,
+                        fontWeight: FontWeight.bold, fontSize: 12)),
               ),
+          ]),
+          SizedBox(
+            width: 160, height: 5,
+            child: LinearProgressIndicator(
+              value: xpNeeded > 0 ? (xpInLevel / xpNeeded).clamp(0.0, 1.0) : 1.0,
+              backgroundColor: Colors.grey.shade300,
+              color: readyToLevel ? Colors.amber : null,
             ),
-          ],
-        ),
-        const SizedBox(width: 8),
-        SizedBox(
-          width: 72,
-          child: TextField(
-            keyboardType: TextInputType.number,
-            decoration: const InputDecoration(
-              hintText: '+XP',
-              border: OutlineInputBorder(),
-              isDense: true,
-              contentPadding: EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-            ),
-            onSubmitted: (v) {
-              final gain = int.tryParse(v);
-              if (gain != null && gain != 0) {
-                try {
-                  (character as dynamic).adjustXP(gain);
-                  currentCharacter.notifyListeners();
-                  setState(() {});
-                } catch (_) {}
-              }
-            },
           ),
+        ],
+      ),
+      const SizedBox(width: 8),
+      SizedBox(
+        width: 72,
+        child: TextField(
+          keyboardType: TextInputType.number,
+          decoration: const InputDecoration(
+            hintText: '+XP', border: OutlineInputBorder(), isDense: true,
+            contentPadding: EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+          ),
+          onSubmitted: (v) {
+            final gain = int.tryParse(v);
+            if (gain != null && gain != 0) {
+              try {
+                (character as dynamic).adjustXP(gain);
+                currentCharacter.notifyListeners();
+                setState(() {});
+              } catch (_) {}
+            }
+          },
         ),
-      ],
-    );
+      ),
+    ]);
   }
 
   // ---- Helpers --------------------------------------------------------------
@@ -1019,30 +1346,31 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
   Widget _labelledValue(String label, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 3),
-      child: Row(
-        children: [
-          SizedBox(
-            width: 80,
-            child: Text('$label:',
-                style: const TextStyle(fontWeight: FontWeight.bold)),
-          ),
-          Expanded(child: Text(value)),
-        ],
-      ),
+      child: Row(children: [
+        SizedBox(width: 80,
+            child: Text('$label:', style: const TextStyle(fontWeight: FontWeight.bold))),
+        Expanded(child: Text(value)),
+      ]),
     );
   }
 }
 
-/// An editable integer field for ability score input.
+// ---- Progress item data class ----------------------------------------------
+
+class _ProgressItem {
+  final String label;
+  final bool done;
+  final String detail;
+  const _ProgressItem(this.label, this.done, this.detail);
+}
+
+// ---- Editable integer field for ability score input ----------------------
+
 class _StatScoreField extends StatefulWidget {
   final int initialValue;
   final ValueChanged<int> onChanged;
 
-  const _StatScoreField({
-    super.key,
-    required this.initialValue,
-    required this.onChanged,
-  });
+  const _StatScoreField({super.key, required this.initialValue, required this.onChanged});
 
   @override
   State<_StatScoreField> createState() => _StatScoreFieldState();
@@ -1073,9 +1401,7 @@ class _StatScoreFieldState extends State<_StatScoreField> {
 
   void _commit() {
     final parsed = int.tryParse(_controller.text);
-    if (parsed != null) {
-      widget.onChanged(parsed.clamp(1, 30));
-    }
+    if (parsed != null) widget.onChanged(parsed.clamp(1, 30));
   }
 
   @override
@@ -1087,10 +1413,8 @@ class _StatScoreFieldState extends State<_StatScoreField> {
         keyboardType: TextInputType.number,
         inputFormatters: [FilteringTextInputFormatter.digitsOnly],
         decoration: const InputDecoration(
-          border: OutlineInputBorder(),
-          isDense: true,
-          contentPadding:
-              EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+          border: OutlineInputBorder(), isDense: true,
+          contentPadding: EdgeInsets.symmetric(horizontal: 6, vertical: 6),
         ),
         onSubmitted: (_) => _commit(),
         onEditingComplete: _commit,
