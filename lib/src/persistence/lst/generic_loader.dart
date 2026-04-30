@@ -122,6 +122,44 @@ class GenericLoader<T extends CDOMObject> extends LstObjectFileLoader<T> {
             );
           } catch (_) {}
           return;
+        case 'ACCHECK':
+          // ACCHECK:-5 — armor check penalty (negative = penalty)
+          try {
+            obj.putObject(
+              ObjectKey.getConstant<int>('ACCHECK'),
+              int.tryParse(value.trim()) ?? 0,
+            );
+          } catch (_) {}
+          return;
+        case 'MAXDEX':
+          // MAXDEX:2 — maximum DEX bonus to AC while wearing this armor
+          try {
+            final v = int.tryParse(value.trim());
+            if (v != null) {
+              obj.putObject(ObjectKey.getConstant<int>('MAXDEX'), v);
+            }
+          } catch (_) {}
+          return;
+        case 'SPELLFAILURE':
+          // SPELLFAILURE:30 — arcane spell failure chance in percent
+          try {
+            obj.putObject(
+              ObjectKey.getConstant<int>('SPELLFAILURE'),
+              int.tryParse(value.trim()) ?? 0,
+            );
+          } catch (_) {}
+          return;
+        case 'EQMOD':
+          // EQMOD:STEEL|LEATHER — modifier keys; store raw for future processing
+          try {
+            for (final mod in value.split('|')) {
+              final m = mod.trim();
+              if (m.isNotEmpty) {
+                obj.addToListFor(ListKey.getConstant<String>('EQMOD_KEYS'), m);
+              }
+            }
+          } catch (_) {}
+          return;
         case 'PROFICIENCY':
           // PROFICIENCY:WEAPON|SwordLong — store weapon proficiency name
           try {
@@ -201,8 +239,17 @@ class GenericLoader<T extends CDOMObject> extends LstObjectFileLoader<T> {
           return;
         case 'VISIBLE':
           return;
-        case 'CRITRANGE':
         case 'CRITMULT':
+          // CRITMULT:x2 — critical hit multiplier
+          try { obj.putString(StringKey.region, value.trim()); } catch (_) {}
+          return;
+        case 'CRITRANGE':
+          // CRITRANGE:1 means 20 (1 die face), 3 means 18-20
+          try {
+            obj.putObject(ObjectKey.getConstant<int>('CRITRANGE'),
+                int.tryParse(value.trim()) ?? 1);
+          } catch (_) {}
+          return;
         case 'FUMBLERANGE':
         case 'BONUSSPELLLEVEL':
         case 'BASESTATSCORE':
@@ -213,8 +260,6 @@ class GenericLoader<T extends CDOMObject> extends LstObjectFileLoader<T> {
         case 'HANDS':
         case 'FACE':
         case 'REACH':
-        case 'UNENCUMBEREDMOVE':
-          // Numeric/complex tokens — skip for now
           return;
         case 'KEY_STAT':
           // Skill key ability stat abbreviation (e.g. KEY_STAT:STR).
@@ -222,6 +267,15 @@ class GenericLoader<T extends CDOMObject> extends LstObjectFileLoader<T> {
             obj.putObject(
               ObjectKey.getConstant<dynamic>('KEY_STAT'),
               KeyStatRef(value),
+            );
+          } catch (_) {}
+          return;
+        case 'ACHECK':
+          // ACHECK:YES/NO/WEIGHT — does armor check penalty apply to this skill?
+          try {
+            obj.putObject(
+              ObjectKey.getConstant<bool>('ACHECK'),
+              value.toUpperCase() == 'YES' || value.toUpperCase() == 'WEIGHT',
             );
           } catch (_) {}
           return;

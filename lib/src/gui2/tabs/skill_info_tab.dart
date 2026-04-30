@@ -135,9 +135,9 @@ class SkillInfoTabState extends State<SkillInfoTab> {
     final keyStatAbb = _safeKeyStatAbb(skill);
     final statMod = _statMod(character, keyStatAbb, stats);
     final ranks = _getRanks(character, skill);
-    // Add any BONUS:SKILL bonuses from feats, items, etc.
     final skillBonus = _getSkillBonus(character, skill.getDisplayName(), skill.getKeyName());
-    final total = ranks + statMod + skillBonus;
+    final acp = skill.hasArmorCheckPenalty() ? _getACP(character) : 0;
+    final total = ranks + statMod + skillBonus + acp;
 
     return Container(
       color: shaded ? Colors.black.withOpacity(0.03) : null,
@@ -281,6 +281,13 @@ class SkillInfoTabState extends State<SkillInfoTab> {
     if (character == null) return 0;
     try {
       return (character as dynamic).getSkillBonus(displayName, keyName) as int? ?? 0;
+    } catch (_) { return 0; }
+  }
+
+  int _getACP(dynamic character) {
+    if (character == null) return 0;
+    try {
+      return (character as dynamic).getArmorCheckPenalty() as int? ?? 0;
     } catch (_) { return 0; }
   }
 

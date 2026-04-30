@@ -6,6 +6,7 @@ import 'package:flutter_pcgen/src/core/pc_class.dart';
 import 'package:flutter_pcgen/src/gui2/app_state.dart';
 import 'package:flutter_pcgen/src/gui2/facade/character_facade_impl.dart';
 import 'package:flutter_pcgen/src/io/character_text_export.dart';
+import 'package:flutter_pcgen/src/rules/parsed_bonus.dart';
 
 /// Rendered character sheet panel.
 /// Shows a formatted, printable-style character sheet using live character data.
@@ -57,6 +58,12 @@ class _CharacterSheetView extends StatelessWidget {
           const SizedBox(height: 12),
           // Class levels
           _classLevelsCard(context, theme, data),
+          const SizedBox(height: 12),
+          // Weapons
+          _weaponsCard(context, theme, data),
+          const SizedBox(height: 12),
+          // Armor
+          _armorCard(context, theme, data),
           const SizedBox(height: 12),
           // Skills (top 20 by rank)
           _skillsCard(context, theme, data),
@@ -416,6 +423,187 @@ class _CharacterSheetView extends StatelessWidget {
     );
   }
 
+  Widget _weaponsCard(BuildContext context, ThemeData theme, Map data) {
+    final dataset = loadedDataSet.value;
+    if (dataset == null) return const SizedBox.shrink();
+
+    final equippedSlots = data['equippedSlots'] as Map? ?? {};
+    // Weapon slots
+    const weaponSlots = ['Primary Hand', 'Off Hand'];
+    final weapons = <_WeaponEntry>[];
+
+    for (final slot in weaponSlots) {
+      final key = equippedSlots[slot] as String?;
+      if (key == null) continue;
+      final item = dataset.equipment
+          .where((e) => e.getKeyName() == key)
+          .firstOrNull;
+      if (item == null) continue;
+
+      final dmg     = item.getDamageString();
+      final critR   = item.getCritRange();
+      final critM   = item.getCritMult();
+      final wield   = item.getWieldName();
+      final thrRange = critR == 1 ? '20' : '${21 - critR}–20';
+
+      // Compute attack bonus: BAB + STR or DEX
+      int bab = 0;
+      int strMod = 0;
+      try { bab    = (character as dynamic).getBABAsInt()    as int? ?? 0; } catch (_) {}
+      try { strMod = _tryGet(() => (character as dynamic).getStatModByAbb('STR')) as int? ?? 0; } catch (_) {}
+
+      final atkBonus = bab + strMod;
+      final atkStr   = atkBonus >= 0 ? '+$atkBonus' : '$atkBonus';
+
+      weapons.add(_WeaponEntry(
+        slot: slot,
+        name: item.getDisplayName(),
+        attack: atkStr,
+        damage: dmg.isNotEmpty ? dmg : '—',
+        crit: critM.isNotEmpty ? '$thrRange / $critM' : thrRange,
+        wield: wield,
+      ));
+    }
+
+    if (weapons.isEmpty) return const SizedBox.shrink();
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('WEAPONS', style: theme.textTheme.titleSmall),
+            const SizedBox(height: 6),
+            Table(
+              columnWidths: const {
+                0: FlexColumnWidth(2),
+                1: FixedColumnWidth(55),
+                2: FixedColumnWidth(55),
+                3: FlexColumnWidth(1.5),
+                4: FlexColumnWidth(1),
+              },
+              defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+              children: [
+                TableRow(
+                  decoration: BoxDecoration(color: theme.highlightColor),
+                  children: const [
+                    _th('Name'), _th('Attack'), _th('Damage'),
+                    _th('Crit'), _th('Slot'),
+                  ],
+                ),
+                for (final w in weapons)
+                  TableRow(children: [
+                    _td(w.name),
+                    _td(w.attack),
+                    _td(w.damage),
+                    _td(w.crit),
+                    _td(w.slot),
+                  ]),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _armorCard(BuildContext context, ThemeData theme, Map data) {
+    final dataset = loadedDataSet.value;
+    if (dataset == null) return const SizedBox.shrink();
+
+    final equippedSlots = data['equippedSlots'] as Map? ?? {};
+    const armorSlots = ['Armor', 'Off Hand']; // shield in off hand
+    final armors = <_ArmorEntry>[];
+
+    for (final slot in armorSlots) {
+      final key = equippedSlots[slot] as String?;
+      if (key == null) continue;
+      final item = dataset.equipment
+          .where((e) => e.getKeyName() == key)
+          .firstOrNull;
+      if (item == null) continue;
+      if (!item.isArmor() && !item.isShield()) continue;
+
+      int acBonus = 0;
+      try {
+        final bonuses = item.getSafeListFor(
+            ListKey.getConstant<ParsedBonus>('PARSED_BONUS')) as List?;
+        if (bonuses != null) {
+          for (final b in bonuses) {
+            if (b is ParsedBonus && b.category == 'COMBAT' &&
+                b.targets.any((t) => t.toUpperCase() == 'AC')) {
+              acBonus += int.tryParse(b.formula) ?? 0;
+            }
+          }
+        }
+      } catch (_) {}
+
+      armors.add(_ArmorEntry(
+        slot: slot,
+        name: item.getDisplayName(),
+        acBonus: acBonus,
+        maxDex: item.getMaxDex(),
+        acp: item.getAcCheck(),
+        spellFail: item.getSpellFailure(),
+      ));
+    }
+
+    if (armors.isEmpty) return const SizedBox.shrink();
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('ARMOR & SHIELDS', style: theme.textTheme.titleSmall),
+            const SizedBox(height: 6),
+            Table(
+              columnWidths: const {
+                0: FlexColumnWidth(2),
+                1: FixedColumnWidth(55),
+                2: FixedColumnWidth(55),
+                3: FixedColumnWidth(50),
+                4: FixedColumnWidth(55),
+              },
+              defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+              children: [
+                TableRow(
+                  decoration: BoxDecoration(color: theme.highlightColor),
+                  children: const [
+                    _th('Name'), _th('AC Bonus'), _th('Max DEX'),
+                    _th('ACP'), _th('Spell Fail'),
+                  ],
+                ),
+                for (final a in armors)
+                  TableRow(children: [
+                    _td(a.name),
+                    _td('+${a.acBonus}'),
+                    _td(a.maxDex != null ? '${a.maxDex}' : '—'),
+                    _td(a.acp < 0 ? '${a.acp}' : '—'),
+                    _td(a.spellFail > 0 ? '${a.spellFail}%' : '—'),
+                  ]),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  static Widget _th(String text) => Padding(
+        padding: const EdgeInsets.symmetric(vertical: 3, horizontal: 4),
+        child: Text(text,
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11,
+                color: Colors.grey)),
+      );
+
+  static Widget _td(String text) => Padding(
+        padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 4),
+        child: Text(text, style: const TextStyle(fontSize: 11)),
+      );
+
   Widget _featsCard(BuildContext context, ThemeData theme, Map data) {
     final selected = data['selectedAbilities'] as Map? ?? {};
     final feats = (selected['FEAT'] as List?)?.cast<String>() ?? [];
@@ -502,4 +690,27 @@ class _CharacterSheetView extends StatelessWidget {
   dynamic _tryGet(dynamic Function() fn) {
     try { return fn(); } catch (_) { return null; }
   }
+}
+
+// ---------------------------------------------------------------------------
+// Simple data classes for weapon/armor rows
+// ---------------------------------------------------------------------------
+
+class _WeaponEntry {
+  final String slot, name, attack, damage, crit, wield;
+  const _WeaponEntry({
+    required this.slot, required this.name, required this.attack,
+    required this.damage, required this.crit, required this.wield,
+  });
+}
+
+class _ArmorEntry {
+  final String slot, name;
+  final int acBonus, acp, spellFail;
+  final int? maxDex;
+  const _ArmorEntry({
+    required this.slot, required this.name,
+    required this.acBonus, required this.acp,
+    required this.spellFail, this.maxDex,
+  });
 }

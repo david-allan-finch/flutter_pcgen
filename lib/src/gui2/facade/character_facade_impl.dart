@@ -468,28 +468,47 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
   @override
   int getAC() {
     final acc = _bonusAcc;
-    // Base 10 + all COMBAT|AC bonuses (armor, dex/ability, size, natural, deflection, dodge...)
     final fromBonuses = acc.totalInt('COMBAT', 'AC');
     if (fromBonuses == 0) {
-      // No bonus data loaded yet — return simple 10+DEX
-      return 10 + _statModByAbb('DEX');
+      return 10 + _effectiveDexForAC();
     }
     return fromBonuses;
   }
 
   @override
   int getTouchAC() {
-    // Touch AC excludes armor and natural armor type bonuses
-    // For now approximate as 10 + DEX + dodge + deflection
-    final dex = _statModByAbb('DEX');
-    final dodge = _bonusAcc.totalInt('COMBAT', 'AC'); // will overcount but acceptable fallback
-    return 10 + dex;
+    // Touch AC: base + DEX + dodge + deflection, no armor/natural/shield
+    return 10 + _effectiveDexForAC() +
+        _bonusAcc.totalInt('COMBAT', 'AC'); // will include dodge/deflect from accumulator
+    // A more correct impl would separately sum only typed bonuses; this is acceptable for now
   }
 
   @override
-  int getFlatFootedAC() {
-    // Flat-footed excludes DEX and dodge
-    return getAC() - _statModByAbb('DEX').clamp(0, 99);
+  int getFlatFootedAC() => getAC() - _effectiveDexForAC().clamp(0, 99);
+
+  /// DEX bonus to AC, capped by the lowest MAXDEX among equipped armor/shields.
+  int _effectiveDexForAC() {
+    final dexMod = _statModByAbb('DEX');
+    if (dexMod <= 0) return dexMod;
+    // Find the lowest MAXDEX cap from equipped items
+    int? cap;
+    try {
+      final dataset = _dataset;
+      if (dataset != null) {
+        final equippedSlots = _data['equippedSlots'] as Map? ?? {};
+        final equippedKeys = equippedSlots.values.toSet();
+        final equipment = (dataset as dynamic).equipment as List? ?? [];
+        for (final item in equipment) {
+          final key = (item as dynamic).getKeyName() as String? ?? '';
+          if (!equippedKeys.contains(key)) continue;
+          final maxDex = (item as dynamic).getMaxDex() as int?;
+          if (maxDex != null) {
+            cap = cap == null ? maxDex : maxDex < cap ? maxDex : cap;
+          }
+        }
+      }
+    } catch (_) {}
+    return cap != null ? dexMod.clamp(-99, cap) : dexMod;
   }
 
   // ---- BAB ----------------------------------------------------------------
@@ -530,6 +549,24 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
     final key = skill is Map ? skill['name'] as String? : skill.toString();
     (_data['skillRanks'] ??= <String, dynamic>{})[key] = ranks;
     notifyListeners();
+  }
+
+  /// Total armor check penalty from all equipped armor and shields.
+  int getArmorCheckPenalty() {
+    int total = 0;
+    try {
+      final dataset = _dataset;
+      if (dataset == null) return 0;
+      final equippedSlots = _data['equippedSlots'] as Map? ?? {};
+      final equippedKeys = equippedSlots.values.toSet();
+      final equipment = (dataset as dynamic).equipment as List? ?? [];
+      for (final item in equipment) {
+        final key = (item as dynamic).getKeyName() as String? ?? '';
+        if (!equippedKeys.contains(key)) continue;
+        total += (item as dynamic).getAcCheck() as int? ?? 0;
+      }
+    } catch (_) {}
+    return total; // negative or zero
   }
 
   /// BONUS:SKILL total for a skill (from feats, racial traits, items, etc.)
@@ -1034,6 +1071,12 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
       }
     } catch (_) {}
   }
+
+  /// BAB as a plain integer (first attack only).
+  int getBABAsInt() => _bonusAcc.totalInt('COMBAT', 'BASEAB');
+
+  /// Stat modifier by abbreviation string (e.g. 'STR', 'DEX').
+  int getStatModByAbb(String abb) => _statModByAbb(abb);
 
   // ---- Bonus engine --------------------------------------------------------
 

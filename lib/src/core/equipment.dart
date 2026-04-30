@@ -242,6 +242,56 @@ class Equipment extends PObject {
     return wield?.toString() ?? '';
   }
 
+  /// Armor check penalty (0 or negative). E.g. Chainmail → -5.
+  int getAcCheck() =>
+      getSafeObject(ObjectKey.getConstant<int>('ACCHECK')) as int? ?? 0;
+
+  /// Maximum DEX bonus to AC while wearing this armor (null = no cap).
+  int? getMaxDex() =>
+      getSafeObject(ObjectKey.getConstant<int>('MAXDEX')) as int?;
+
+  /// Arcane spell failure chance in percent.
+  int getSpellFailure() =>
+      getSafeObject(ObjectKey.getConstant<int>('SPELLFAILURE')) as int? ?? 0;
+
+  /// Critical threat range (1 = 20 only, 3 = 18-20).
+  int getCritRange() =>
+      getSafeObject(ObjectKey.getConstant<int>('CRITRANGE')) as int? ?? 1;
+
+  /// Critical multiplier string (e.g. "x2", "x3").
+  String getCritMult() => getSafeString(StringKey.region);
+
+  /// Weapon damage string (e.g. "1d8", "2d6").
+  String getDamageString() => getSafeString(StringKey.damage);
+
+  /// True if this item is a weapon.
+  bool isWeapon() {
+    try {
+      final types = getSafeListFor(ListKey.getConstant<String>('TYPE')) as List?;
+      return types?.any((t) => t.toString().toLowerCase() == 'weapon') ?? false;
+    } catch (_) { return false; }
+  }
+
+  /// True if this item is armor.
+  bool isArmor() {
+    try {
+      final types = getSafeListFor(ListKey.getConstant<String>('TYPE')) as List?;
+      return types?.any((t) {
+        final s = t.toString().toLowerCase();
+        return s == 'armor' || s == 'light armor' ||
+               s == 'medium armor' || s == 'heavy armor';
+      }) ?? false;
+    } catch (_) { return false; }
+  }
+
+  /// True if this item is a shield.
+  bool isShield() {
+    try {
+      final types = getSafeListFor(ListKey.getConstant<String>('TYPE')) as List?;
+      return types?.any((t) => t.toString().toLowerCase() == 'shield') ?? false;
+    } catch (_) { return false; }
+  }
+
   String getArmorType() {
     final at = getSafeObject(ObjectKey.getConstant<dynamic>('ARMOR_TYPE'));
     return at?.toString() ?? '';

@@ -49,6 +49,10 @@ final class Skill extends PObject {
           as bool? ??
       false;
 
+  /// Returns true if armor check penalty applies to this skill (ACHECK:YES).
+  bool hasArmorCheckPenalty() =>
+      getSafeObject(ObjectKey.getConstant<bool>('ACHECK')) as bool? ?? false;
+
   /// Returns raw bonus objects for this skill for the given character.
   List<dynamic> getRawBonusList(dynamic pc) =>
       getSafeListFor<dynamic>(ListKey.getConstant<dynamic>('BONUS'));
