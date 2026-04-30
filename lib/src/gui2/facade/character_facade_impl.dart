@@ -70,6 +70,7 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
   // ---- Rules engine --------------------------------------------------------
   BonusAccumulator _bonusAcc = BonusAccumulator();
   bool _bonusDirty = true; // rebuild on next access
+  dynamic _dataset; // cached dataset reference for incremental rebuilds
 
   // Reference facades
   late final DefaultReferenceFacade<Object> _raceRef;
@@ -165,6 +166,7 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
     _data['raceKey'] = (race as dynamic).getKeyName() as String? ?? '';
     _data.remove('racialStatBonuses'); // invalidate cache
     _raceRef.set(race);
+    _rebuild();
     notifyListeners();
   }
 
@@ -498,6 +500,14 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
     notifyListeners();
   }
 
+  /// BONUS:SKILL total for a skill (from feats, racial traits, items, etc.)
+  int getSkillBonus(String displayName, String keyName) {
+    final acc = _bonusAcc;
+    // Try both display name and key name as targets
+    return acc.totalIntWithAll('SKILL', displayName.toUpperCase()) +
+           acc.totalIntWithAll('SKILL', keyName.toUpperCase());
+  }
+
   @override
   int getSkillPointsRemaining() => (_data['skillPointsRemaining'] as num?)?.toInt() ?? 0;
 
@@ -618,13 +628,13 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
     final levels = (_data['classLevels'] ??= <dynamic>[]) as List;
     for (final cls in classes) {
       final hd = int.tryParse(cls.getHD()) ?? 8;
-      // Max HP at every level (user can edit or re-roll afterward).
       levels.add({
         'className': cls.getDisplayName(),
         'classKey':  cls.getKeyName(),
         'hp': hd,
       });
     }
+    _rebuild();
     notifyListeners();
   }
 
@@ -633,6 +643,7 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
     final list = _data['classLevels'];
     if (list is! List) return;
     for (int i = 0; i < count && list.isNotEmpty; i++) list.removeLast();
+    _rebuild();
     notifyListeners();
   }
 
@@ -683,6 +694,7 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
     final list = (map[categoryKey] ??= <String>[]) as List;
     if (!list.contains(abilityKey)) {
       list.add(abilityKey);
+      _rebuild();
       notifyListeners();
     }
   }
@@ -692,6 +704,7 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
     if (map is! Map) return;
     final list = map[categoryKey];
     if (list is List && list.remove(abilityKey)) {
+      _rebuild();
       notifyListeners();
     }
   }
@@ -737,12 +750,12 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
 
   void applyTemplateKey(String key) {
     final list = (_data['appliedTemplates'] ??= <String>[]) as List;
-    if (!list.contains(key)) { list.add(key); notifyListeners(); }
+    if (!list.contains(key)) { list.add(key); _rebuild(); notifyListeners(); }
   }
 
   void removeTemplateKey(String key) {
     final list = _data['appliedTemplates'];
-    if (list is List && list.remove(key)) notifyListeners();
+    if (list is List && list.remove(key)) { _rebuild(); notifyListeners(); }
   }
 
   // ---- Physical appearance ------------------------------------------------
@@ -806,8 +819,14 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
       }
     } catch (_) {}
 
-    // Rebuild the bonus accumulator with all loaded data.
+    // Cache dataset and rebuild the bonus accumulator with all loaded data.
+    _dataset = dataset;
     rebuildBonuses(dataset);
+  }
+
+  /// Called after any mutation that could affect bonus totals.
+  void _rebuild() {
+    if (_dataset != null) rebuildBonuses(_dataset);
   }
 
   /// Walk the automatic-ability chain of [obj] (race or ability) and accumulate

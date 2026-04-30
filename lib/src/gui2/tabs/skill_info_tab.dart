@@ -134,7 +134,9 @@ class SkillInfoTabState extends State<SkillInfoTab> {
     final keyStatAbb = _safeKeyStatAbb(skill);
     final statMod = _statMod(character, keyStatAbb, stats);
     final ranks = _getRanks(character, skill);
-    final total = ranks + statMod;
+    // Add any BONUS:SKILL bonuses from feats, items, etc.
+    final skillBonus = _getSkillBonus(character, skill.getDisplayName(), skill.getKeyName());
+    final total = ranks + statMod + skillBonus;
 
     return Container(
       color: shaded ? Colors.black.withOpacity(0.03) : null,
@@ -272,6 +274,13 @@ class SkillInfoTabState extends State<SkillInfoTab> {
 
   String _safeKeyStatAbb(Skill skill) {
     try { return skill.getKeyStatAbb(); } catch (_) { return ''; }
+  }
+
+  int _getSkillBonus(dynamic character, String displayName, String keyName) {
+    if (character == null) return 0;
+    try {
+      return (character as dynamic).getSkillBonus(displayName, keyName) as int? ?? 0;
+    } catch (_) { return 0; }
   }
 
   String _fmtMod(int mod) => mod >= 0 ? '+$mod' : '$mod';

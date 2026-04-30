@@ -198,6 +198,19 @@ class _Parser {
       return _parseNumber();
     }
 
+    // String literal: "ClassName" — used as argument to classlevel() etc.
+    // Treat as class level lookup directly.
+    if (c == '"' || c == "'") {
+      final quote = c;
+      _pos++;
+      final start = _pos;
+      while (_pos < _src.length && _src[_pos] != quote) _pos++;
+      final str = _src.substring(start, _pos);
+      if (_pos < _src.length) _pos++; // consume closing quote
+      // Return class level for the named class
+      return _ctx.classLevel(str);
+    }
+
     // Identifier / function call
     if (_isAlpha(c) || c == '_') {
       return _parseIdentifierOrCall();
@@ -232,6 +245,33 @@ class _Parser {
     // Function call?
     if (_cur() == '(') {
       _pos++; // consume '('
+
+      // Special case: classlevel("ClassName") and mastervar("VarName") —
+      // we need the raw string argument, not a numeric evaluation.
+      final nameLower = name.toLowerCase();
+      if (nameLower == 'classlevel' || nameLower == 'mastervar' || nameLower == 'var') {
+        _skipWs();
+        double result = 0;
+        if (_cur() == '"' || _cur() == "'") {
+          final quote = _cur();
+          _pos++;
+          final start = _pos;
+          while (_pos < _src.length && _src[_pos] != quote) _pos++;
+          final str = _src.substring(start, _pos);
+          if (_pos < _src.length) _pos++;
+          if (nameLower == 'classlevel') {
+            result = _ctx.classLevel(str);
+          } else {
+            result = _ctx.resolve(str) ?? 0.0;
+          }
+        } else if (_cur() != ')') {
+          result = parseExpr();
+        }
+        _skipWs();
+        if (_cur() == ')') _pos++;
+        return result;
+      }
+
       final args = <double>[];
       _skipWs();
       if (_cur() != ')') {
@@ -244,7 +284,7 @@ class _Parser {
         }
       }
       if (_cur() == ')') _pos++;
-      return _callFunction(name.toLowerCase(), args);
+      return _callFunction(nameLower, args);
     }
 
     // Variable resolved from context, possibly followed by comparison

@@ -267,9 +267,19 @@ class GenericLoader<T extends CDOMObject> extends LstObjectFileLoader<T> {
       }
     }
 
-    // Skip PRE/AUTO/CHOOSE and remaining BONUS subtypes.
-    if (LstUtils.isPrereqToken(tag) ||
-        tag.toUpperCase() == 'AUTO' || tag.toUpperCase() == 'CHOOSE') {
+    // Store PRE tokens as ParsedPrereq for the rules engine.
+    if (LstUtils.isPrereqToken(tag)) {
+      final prereq = ParsedPrereq.parse('$tag:$value');
+      if (prereq != null) {
+        try {
+          obj.addToListFor(
+            ListKey.getConstant<ParsedPrereq>('PARSED_PREREQ'), prereq);
+        } catch (_) {}
+      }
+      return;
+    }
+
+    if (tag.toUpperCase() == 'AUTO' || tag.toUpperCase() == 'CHOOSE') {
       return;
     }
 

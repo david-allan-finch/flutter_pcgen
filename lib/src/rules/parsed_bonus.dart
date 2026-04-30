@@ -93,6 +93,14 @@ class ParsedPrereq {
       case 'PREPCLEVEL':
         result = _evalPcLevel(ctx);
         break;
+      case 'PREBASESIZEEQ':
+      case 'PREBASESIZELT':
+      case 'PREBASESIZELTEQ':
+      case 'PREBASESIZEGT':
+      case 'PREBASESIZEGTEQ':
+        // Size prerequisites — optimistically pass until size tracking is implemented
+        result = true;
+        break;
       case 'PRERULE':
         // Game rule toggles — treat as always satisfied for now
         result = true;

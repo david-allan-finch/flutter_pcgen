@@ -27,6 +27,7 @@ import 'package:flutter_pcgen/src/persistence/lst/lst_utils.dart';
 import 'package:flutter_pcgen/src/rules/context/load_context.dart';
 import 'package:flutter_pcgen/src/persistence/lst/lst_object_file_loader.dart';
 import 'package:flutter_pcgen/src/persistence/lst/source_entry.dart';
+import 'package:flutter_pcgen/src/rules/parsed_bonus.dart';
 
 /// Loads PCClass (and SubClass / SubstitutionClass) objects from LST files.
 ///
@@ -170,11 +171,19 @@ class PCClassLoader extends LstObjectFileLoader<PCClass> {
         }
         break;
       case 'BONUS':
+        // Store as ParsedBonus for the rules engine.
+        final parsed = ParsedBonus.parse(value);
+        if (parsed != null) {
+          try {
+            pcClass.addToListFor(
+              ListKey.getConstant<ParsedBonus>('PARSED_BONUS'), parsed);
+          } catch (_) {}
+        }
+        // Legacy BAB / save detection for backward compatibility.
         final parts = value.split('|');
         if (parts.length >= 3) {
           final bonusType = parts[0].toUpperCase();
           if (bonusType == 'COMBAT' && parts[1].toUpperCase() == 'BASEAB') {
-            // BAB progression detection
             final formula = parts[2].toLowerCase();
             String babType;
             if (!formula.contains('*') && !formula.contains('/') &&
@@ -190,14 +199,13 @@ class PCClassLoader extends LstObjectFileLoader<PCClass> {
             if (pcClass.getString(StringKey.masterBabFormula) == null) {
               pcClass.putString(StringKey.masterBabFormula, babType);
             }
-          } else if (bonusType == 'CHECKS') {
-            // Save type detection — Good or Poor
+          } else if (bonusType == 'CHECKS' || bonusType == 'SAVE') {
             final saveName = parts[1].toUpperCase();
             final formula  = parts[2].toLowerCase();
             String saveKey = '';
             if (saveName.contains('FORT')) saveKey = 'Fortitude';
             else if (saveName.contains('REF'))  saveKey = 'Reflex';
-            else if (saveName.contains('WILL')) saveKey = 'Will';
+            else if (saveName.contains('WILL') || saveName.contains('WIL')) saveKey = 'Will';
             if (saveKey.isNotEmpty) {
               final isGood = formula.contains('/2') || formula.contains('*.5') ||
                   formula.contains('*0.5') || formula.contains('+2');

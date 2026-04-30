@@ -6,6 +6,8 @@ import 'package:flutter_pcgen/src/core/ability.dart';
 import 'package:flutter_pcgen/src/core/data_set.dart';
 import 'package:flutter_pcgen/src/core/pc_class.dart';
 import 'package:flutter_pcgen/src/gui2/app_state.dart';
+import 'package:flutter_pcgen/src/rules/parsed_bonus.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/list_key.dart';
 
 class AbilitiesInfoTab extends StatefulWidget {
   const AbilitiesInfoTab({super.key});
@@ -192,10 +194,21 @@ class AbilitiesInfoTabState extends State<AbilitiesInfoTab>
                         selectedKeys.contains(ability.getKeyName());
                     String? desc;
                     try { desc = ability.getString(StringKey.description); } catch (_) {}
+
+                    final prereqResult = character != null
+                        ? _checkPrereqs(character, ability)
+                        : (true, '');
+                    final qualifies = prereqResult.$1;
+                    final prereqMsg = prereqResult.$2;
+
                     return ListTile(
                       dense: true,
                       title: Text(ability.getDisplayName(),
-                          style: const TextStyle(fontSize: 12)),
+                          style: TextStyle(
+                              fontSize: 12,
+                              color: (!qualifies && !isSelected)
+                                  ? Colors.grey.shade500
+                                  : null)),
                       subtitle: desc != null && desc.isNotEmpty
                           ? Text(desc,
                               maxLines: 1,
@@ -204,11 +217,19 @@ class AbilitiesInfoTabState extends State<AbilitiesInfoTab>
                           : null,
                       tileColor: isSelected
                           ? Colors.green.withOpacity(0.07)
-                          : null,
+                          : (!qualifies && !isSelected)
+                              ? Colors.grey.withOpacity(0.04)
+                              : null,
                       trailing: isSelected
                           ? const Icon(Icons.check_circle,
                               color: Colors.green, size: 16)
-                          : null,
+                          : (!qualifies && prereqMsg.isNotEmpty)
+                              ? Tooltip(
+                                  message: prereqMsg,
+                                  child: const Icon(Icons.lock_outline,
+                                      size: 14, color: Colors.grey),
+                                )
+                              : null,
                       onTap: character == null
                           ? null
                           : () {
@@ -304,6 +325,59 @@ class AbilitiesInfoTabState extends State<AbilitiesInfoTab>
     } catch (_) {}
   }
 
+  /// Returns (qualifies, failureMessage). Empty message means no prereqs or passes.
+  (bool, String) _checkPrereqs(dynamic character, Ability ability) {
+    try {
+      final prereqList = ability
+          .getSafeListFor(ListKey.getConstant<ParsedPrereq>('PARSED_PREREQ')) as List?;
+      if (prereqList == null || prereqList.isEmpty) return (true, '');
+
+      final ctx = _buildPrereqContext(character);
+      final failures = <String>[];
+      for (final p in prereqList) {
+        if (p is ParsedPrereq && !p.evaluate(ctx)) {
+          failures.add('${p.type}:${p.raw}');
+        }
+      }
+      if (failures.isEmpty) return (true, '');
+      return (false, 'Requires: ${failures.join(", ")}');
+    } catch (_) {
+      return (true, '');
+    }
+  }
+
+  _SimplePrereqCtx _buildPrereqContext(dynamic character) {
+    Map<String, dynamic> data = {};
+    try { data = (character as dynamic).toJson() as Map<String, dynamic>; } catch (_) {}
+
+    final statScores = <String, int>{};
+    (data['statScores'] as Map? ?? {}).forEach((k, v) {
+      statScores[k.toString().toUpperCase()] = (v as num?)?.toInt() ?? 10;
+    });
+    final statMods = statScores.map((k, v) => MapEntry(k, ((v - 10) / 2).floor()));
+
+    final classLevels = data['classLevels'] as List? ?? [];
+    final totalLevel = classLevels.length;
+    final selectedAbilities = data['selectedAbilities'] as Map? ?? {};
+    final skillRanks = <String, double>{};
+    (data['skillRanks'] as Map? ?? {}).forEach((k, v) {
+      skillRanks[k.toString().toLowerCase()] = (v as num?)?.toDouble() ?? 0;
+    });
+
+    return _SimplePrereqCtx(
+      alignmentKey: data['alignmentKey'] as String? ?? '',
+      raceKey: data['raceKey'] as String? ?? '',
+      totalLevel: totalLevel,
+      statMods: statMods,
+      statScores: statScores,
+      selectedAbilities: {
+        for (final e in selectedAbilities.entries)
+          e.key.toString(): (e.value as List?)?.cast<String>() ?? []
+      },
+      skillRanks: skillRanks,
+    );
+  }
+
   // 3.5e feat budget:
   //   • 1 feat at level 1, then every 3 character levels (3, 6, 9, 12…)
   //   • Humans get 1 bonus feat
@@ -359,4 +433,52 @@ class AbilitiesInfoTabState extends State<AbilitiesInfoTab>
 
     return feats;
   }
+}
+
+// ---------------------------------------------------------------------------
+// Minimal PrereqContext for the abilities tab prerequisite checker
+// ---------------------------------------------------------------------------
+
+class _SimplePrereqCtx implements PrereqContext {
+  @override final String alignmentKey;
+  @override final String raceKey;
+  @override final int totalLevel;
+  @override final List<String> objectTypes = const [];
+  @override final List<String> classSkillNames = const [];
+  final Map<String, int> statMods;
+  final Map<String, int> statScores;
+  final Map<String, List<String>> _selectedAbilities;
+  final Map<String, double> skillRanks;
+
+  _SimplePrereqCtx({
+    required this.alignmentKey,
+    required this.raceKey,
+    required this.totalLevel,
+    required this.statMods,
+    required this.statScores,
+    required Map<String, List<String>> selectedAbilities,
+    required this.skillRanks,
+  }) : _selectedAbilities = selectedAbilities;
+
+  @override
+  List<String> selectedAbilityKeys([String? category]) {
+    if (category == null) return _selectedAbilities.values.expand((l) => l).toList();
+    return _selectedAbilities[category] ?? [];
+  }
+
+  @override
+  double getVariable(String name) {
+    final upper = name.toUpperCase();
+    if (statMods.containsKey(upper)) return statMods[upper]!.toDouble();
+    if (upper.endsWith('SCORE')) {
+      final abb = upper.substring(0, upper.length - 5);
+      if (statScores.containsKey(abb)) return statScores[abb]!.toDouble();
+    }
+    if (upper == 'TL' || upper == 'CL') return totalLevel.toDouble();
+    return 0.0;
+  }
+
+  @override
+  double getSkillRanks(String skillName) =>
+      skillRanks[skillName.toLowerCase()] ?? 0.0;
 }
