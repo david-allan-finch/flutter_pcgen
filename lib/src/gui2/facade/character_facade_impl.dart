@@ -711,38 +711,9 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
   /// Reads from the cached bonus map (populated by restoreFromDataset) which
   /// includes bonuses from the full auto-ability chain (e.g. Gnome ~ Rock).
   int getRacialBonus(PCStat stat) {
-    // Prefer the pre-computed cache built by _cacheRacialBonuses.
-    final cache = _data['racialStatBonuses'] as Map?;
-    if (cache != null && cache.isNotEmpty) {
-      return (cache[stat.getKeyName().toUpperCase()] as int?) ?? 0;
-    }
-    // Fallback: read STAT_BONUS directly from the race object (races that have
-    // BONUS:STAT directly rather than through an ability chain).
-    int total = 0;
-    final race = _raceRef.get();
-    if (race != null) {
-      try {
-        final bonusList = (race as dynamic)
-            .getSafeListFor(ListKey.getConstant<String>('STAT_BONUS')) as List?;
-        debugPrint('[facade] getRacialBonus ${stat.getKeyName()} '
-            'race=${(race as dynamic).getKeyName()} STAT_BONUS=$bonusList');
-        if (bonusList != null) {
-          for (final b in bonusList) {
-            if (b is String) {
-              final idx = b.indexOf(':');
-              if (idx > 0 &&
-                  b.substring(0, idx).toUpperCase() ==
-                      stat.getKeyName().toUpperCase()) {
-                total += int.tryParse(b.substring(idx + 1)) ?? 0;
-              }
-            }
-          }
-        }
-      } catch (e) {
-        debugPrint('[facade] getRacialBonus error: $e');
-      }
-    }
-    return total;
+    // Use the bonus accumulator — it captures BONUS:STAT from all active
+    // objects (race, templates, etc.) regardless of which dataset loaded them.
+    return _bonusAcc.totalIntWithAll('STAT', stat.getKeyName().toUpperCase());
   }
 
   /// Total stat gains from level-up ability score increases (PRESTAT in PCG).
@@ -760,9 +731,17 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
     return total;
   }
 
-  /// Base score + racial bonuses + level ASI gains.
-  int getEffectiveScore(PCStat stat) =>
-      getScoreBase(stat) + getRacialBonus(stat) + getLevelStatGains(stat);
+  /// Base score + all BONUS:STAT contributions + level ASI gains.
+  /// Reads from the bonus accumulator so racial, enhancement, inherent, etc.
+  /// bonuses are all included regardless of data source (3.5e, PF2e, 5e).
+  int getEffectiveScore(PCStat stat) {
+    final key = stat.getKeyName().toUpperCase();
+    final accBonus = _bonusAcc.totalIntWithAll('STAT', key);
+    final base = getScoreBase(stat);
+    final lvl = getLevelStatGains(stat);
+    debugPrint('[facade] getEffectiveScore $key base=$base acc=$accBonus lvl=$lvl');
+    return base + accBonus + lvl;
+  }
 
   @override
   int getModTotal(PCStat stat) => ((getEffectiveScore(stat) - 10) / 2).floor();
