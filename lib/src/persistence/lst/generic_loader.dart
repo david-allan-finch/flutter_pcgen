@@ -53,6 +53,10 @@ class GenericLoader<T extends CDOMObject> extends LstObjectFileLoader<T> {
     po.putObject(ObjectKey.sourceCampaign, source.getCampaign());
     po.setSourceURI(source.getURI());
 
+    if (fields[0] == 'Elf') {
+      debugPrint('[loader] Elf parseLine isNew=$isNew uri=${source.getURI()} fields=${fields.length}');
+    }
+
     if (isNew) {
       context.getReferenceContext().register(po);
     }
@@ -573,6 +577,9 @@ class GenericLoader<T extends CDOMObject> extends LstObjectFileLoader<T> {
   /// Additionally, STAT and CHECKS bonuses are stored in the legacy
   /// STAT_BONUS / masterCheckFormula fields for backward compatibility.
   void _parseBonusToken(T obj, String value) {
+    if (obj.getKeyName() == 'Elf') {
+      debugPrint('[loader] Elf BONUS value=$value');
+    }
     final bonus = ParsedBonus.parse(value);
     if (bonus == null) return;
 
