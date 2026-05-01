@@ -318,8 +318,11 @@ class AbilitiesInfoTabState extends State<AbilitiesInfoTab>
     try {
       final result =
           (character as dynamic).getSelectedAbilityKeys(category);
-      return result is List ? result.cast<String>() : [];
-    } catch (_) {
+      final list = result is List ? result.cast<String>() : <String>[];
+      if (list.isNotEmpty) debugPrint('[abilities] selectedKeys $category=$list');
+      return list;
+    } catch (e) {
+      debugPrint('[abilities] _getSelectedKeys error $category: $e');
       return [];
     }
   }

@@ -17,6 +17,7 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.persistence.lst.GenericLoader
+import 'package:flutter/foundation.dart';
 import 'package:flutter_pcgen/src/cdom/base/cdom_object.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/list_key.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/object_key.dart';
@@ -598,9 +599,15 @@ class GenericLoader<T extends CDOMObject> extends LstObjectFileLoader<T> {
                 ListKey.getConstant<String>('STAT_BONUS'),
                 '$s:$intVal',
               );
-            } catch (_) {}
+              debugPrint('[loader] STAT_BONUS added ${obj.getKeyName()} $s:$intVal');
+            } catch (e) {
+              debugPrint('[loader] STAT_BONUS error ${obj.getKeyName()}: $e');
+            }
           }
         }
+      } else {
+        debugPrint('[loader] BONUS:STAT skipped ${obj.getKeyName()} '
+            'formula=${bonus.formula} intVal=$intVal prereqs=${bonus.prereqs.length}');
       }
     }
 
