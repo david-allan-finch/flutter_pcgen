@@ -58,14 +58,14 @@ class GenericLoader<T extends CDOMObject> extends LstObjectFileLoader<T> {
     }
 
     for (int i = 1; i < fields.length; i++) {
-      _processToken(context, po, source, fields[i]);
+      processToken(context, po, source, fields[i]);
     }
 
     completeObject(context, source, po);
     return null; // one line per object
   }
 
-  void _processToken(LoadContext context, T obj, SourceEntry source, String token) {
+  void processToken(LoadContext context, T obj, SourceEntry source, String token) {
     if (token.trim().isEmpty) return;
 
     // Dispatch common tokens understood by all CDOMObjects.

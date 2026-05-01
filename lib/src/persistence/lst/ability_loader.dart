@@ -69,7 +69,7 @@ class AbilityLoader extends GenericLoader<Ability> {
     // Delegate all remaining tokens to GenericLoader's shared processor
     // (BONUS, PRExxx, CHOOSE, AUTO, TYPE, DESC, MULT, STACK, DEFINE, …)
     for (final token in remaining) {
-      _processToken(context, anAbility, source, token);
+      processToken(context, anAbility, source, token);
     }
 
     completeObject(context, source, anAbility);
