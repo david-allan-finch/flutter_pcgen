@@ -42,6 +42,7 @@ import 'package:flutter_pcgen/src/core/armor_prof.dart';
 import 'package:flutter_pcgen/src/core/spell/spell.dart';
 import 'package:flutter_pcgen/src/facade/core/ui_delegate.dart';
 import 'package:flutter_pcgen/src/rules/context/load_context.dart' hide Campaign, CampaignSourceEntry;
+import 'package:flutter_pcgen/src/rules/context/runtime_load_context.dart';
 import 'package:flutter_pcgen/src/system/p_c_gen_task.dart';
 import 'package:flutter_pcgen/src/system/language_bundle.dart';
 import 'package:flutter_pcgen/src/persistence/persistence_layer_exception.dart';
@@ -134,6 +135,12 @@ class SourceFileLoader extends PCGenTask {
 
     final total = _fileLists.values.fold(0, (sum, list) => sum + list.length);
     setMaximum(total);
+
+    // Always create a fresh context for each source load so that switching
+    // campaigns (e.g. SRD 3.5e → PF2e) starts clean and objects from the
+    // previous session don't pollute the new registry.
+    final freshContext = RuntimeLoadContext();
+    _selectedGame.setModeContext(freshContext);
 
     LoadContext context;
     try {
