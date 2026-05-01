@@ -465,6 +465,29 @@ class _CharacterSheetView extends StatelessWidget {
       ));
     }
 
+    // Add natural attacks from race
+    try {
+      final natAttacks = (character as dynamic).getNaturalAttacks() as List<String>? ?? [];
+      for (final entry in natAttacks) {
+        final parts = entry.split(':');
+        if (parts.length >= 3) {
+          final name = parts[0];
+          final count = parts[1];
+          final dmg = parts[2];
+          int bab = 0;
+          try { bab = (character as dynamic).getBABAsInt() as int? ?? 0; } catch (_) {}
+          weapons.add(_WeaponEntry(
+            slot: 'Natural',
+            name: '$name (×$count)',
+            attack: bab >= 0 ? '+$bab' : '$bab',
+            damage: dmg,
+            crit: '20 / x2',
+            wield: 'Natural',
+          ));
+        }
+      }
+    } catch (_) {}
+
     if (weapons.isEmpty) return const SizedBox.shrink();
 
     return Card(
@@ -487,7 +510,7 @@ class _CharacterSheetView extends StatelessWidget {
               children: [
                 TableRow(
                   decoration: BoxDecoration(color: theme.highlightColor),
-                  children: const [
+                  children: [
                     _th('Name'), _th('Attack'), _th('Damage'),
                     _th('Crit'), _th('Slot'),
                   ],
@@ -571,7 +594,7 @@ class _CharacterSheetView extends StatelessWidget {
               children: [
                 TableRow(
                   decoration: BoxDecoration(color: theme.highlightColor),
-                  children: const [
+                  children: [
                     _th('Name'), _th('AC Bonus'), _th('Max DEX'),
                     _th('ACP'), _th('Spell Fail'),
                   ],

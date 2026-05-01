@@ -465,6 +465,12 @@ class SpellsInfoTabState extends State<SpellsInfoTab>
         final level = spell['level'] as int? ?? 0;
         final isPrepared = prepared?.any((p) => p['name'] == name) ?? false;
 
+        // Compute spell DC for known spells
+        int dc = 0;
+        try {
+          dc = (character as dynamic).getSpellSaveDC(level) as int? ?? 0;
+        } catch (_) {}
+
         return ListTile(
           dense: true,
           leading: CircleAvatar(
@@ -472,6 +478,9 @@ class SpellsInfoTabState extends State<SpellsInfoTab>
             child: Text('$level', style: const TextStyle(fontSize: 10)),
           ),
           title: Text(name, style: const TextStyle(fontSize: 12)),
+          subtitle: dc > 0
+              ? Text('DC $dc', style: const TextStyle(fontSize: 10, color: Colors.grey))
+              : null,
           trailing: Row(
             mainAxisSize: MainAxisSize.min,
             children: [

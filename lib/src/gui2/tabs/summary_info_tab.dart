@@ -407,6 +407,8 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
                 Row(children: [
                   Expanded(child: _buildSizeSpeed(character)),
                 ]),
+                const SizedBox(height: 4),
+                _buildVisionRow(character),
                 const SizedBox(height: 6),
                 if (alignments.isNotEmpty)
                   Row(children: [
@@ -459,6 +461,17 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
             style: const TextStyle(fontSize: 12)),
       ],
     );
+  }
+
+  Widget _buildVisionRow(dynamic character) {
+    List<String> visions = const [];
+    try { visions = (character as dynamic).getVisionTypes() as List<String>? ?? []; } catch (_) {}
+    if (visions.isEmpty) return const SizedBox.shrink();
+    return Row(children: [
+      const SizedBox(width: 80,
+          child: Text('Vision:', style: TextStyle(fontWeight: FontWeight.bold))),
+      Expanded(child: Text(visions.join(', '), style: const TextStyle(fontSize: 12))),
+    ]);
   }
 
   String _sizeLabel(String abbr) {

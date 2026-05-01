@@ -241,7 +241,7 @@ class GenericLoader<T extends CDOMObject> extends LstObjectFileLoader<T> {
           return;
         case 'CRITMULT':
           // CRITMULT:x2 — critical hit multiplier
-          try { obj.putString(StringKey.region, value.trim()); } catch (_) {}
+          try { obj.putString(StringKey.critMult, value.trim()); } catch (_) {}
           return;
         case 'CRITRANGE':
           // CRITRANGE:1 means 20 (1 die face), 3 means 18-20
@@ -269,6 +269,32 @@ class GenericLoader<T extends CDOMObject> extends LstObjectFileLoader<T> {
               KeyStatRef(value),
             );
           } catch (_) {}
+          return;
+        case 'VISION':
+          // VISION:Darkvision (60')|Low-Light Vision
+          for (final v in value.split('|')) {
+            final vt = v.trim();
+            if (vt.isNotEmpty) {
+              try { obj.addToListFor(ListKey.getConstant<String>('VISION_TYPES'), vt); } catch (_) {}
+            }
+          }
+          return;
+        case 'NATURALATTACKS':
+          // NATURALATTACKS:Bite,Weapon.Natural.Melee.Bludgeoning,*1,1d6|Claw,...,*2,1d4
+          for (final attack in value.split('|')) {
+            final parts = attack.split(',');
+            if (parts.length >= 4) {
+              final name   = parts[0].trim();
+              final count  = parts[2].trim().replaceAll('*', '');
+              final damage = parts[3].trim();
+              try {
+                obj.addToListFor(
+                  ListKey.getConstant<String>('NATURAL_ATTACKS'),
+                  '$name:$count:$damage',
+                );
+              } catch (_) {}
+            }
+          }
           return;
         case 'ACHECK':
           // ACHECK:YES/NO/WEIGHT — does armor check penalty apply to this skill?

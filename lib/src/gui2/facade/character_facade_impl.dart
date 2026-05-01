@@ -1072,6 +1072,62 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
     } catch (_) {}
   }
 
+  /// Named variable resolved from DEFINE/BONUS:VAR processing.
+  double getVariable(String name) {
+    final vars = _data['charVariables'];
+    if (vars is Map) {
+      return (vars[name] as num?)?.toDouble() ??
+             (vars[name.toUpperCase()] as num?)?.toDouble() ?? 0.0;
+    }
+    return 0.0;
+  }
+
+  /// Bonus to skill points per level from BONUS:MODSKILLPOINTS (e.g. Pathfinder INT bonus feats).
+  int getSkillPointBonus() => _bonusAcc.totalInt('MODSKILLPOINTS', 'NUMBER');
+
+  /// Spell save DC for a spell of [spellLevel] using the primary spellcasting stat.
+  int getSpellSaveDC(int spellLevel, [String? spellcastingClassKey]) {
+    String spellStat = 'INT';
+    try {
+      final dataset = _dataset;
+      if (dataset != null && spellcastingClassKey != null) {
+        final classes = (dataset as dynamic).classes as List? ?? [];
+        for (final cls in classes) {
+          if ((cls as dynamic).getKeyName() == spellcastingClassKey) {
+            spellStat = (cls as dynamic).getSpellStat() as String? ?? 'INT';
+            if (spellStat.isEmpty) spellStat = 'INT';
+            break;
+          }
+        }
+      }
+    } catch (_) {}
+    return 10 + spellLevel + _statModByAbb(spellStat);
+  }
+
+  /// Natural attacks from race (name:count:damage strings).
+  List<String> getNaturalAttacks() {
+    try {
+      final race = _raceRef.get();
+      if (race != null) {
+        return (race as dynamic).getNaturalAttacks() as List<String>? ?? [];
+      }
+    } catch (_) {}
+    return [];
+  }
+
+  /// Vision types from race (and eventually templates).
+  List<String> getVisionTypes() {
+    final result = <String>{};
+    try {
+      final race = _raceRef.get();
+      if (race != null) {
+        final visions = (race as dynamic).getVisionTypes() as List<String>? ?? [];
+        result.addAll(visions);
+      }
+    } catch (_) {}
+    return result.toList();
+  }
+
   /// BAB as a plain integer (first attack only).
   int getBABAsInt() => _bonusAcc.totalInt('COMBAT', 'BASEAB');
 
@@ -1162,25 +1218,128 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
       }
     } catch (_) {}
 
-    // Equipped items
+    // Equipped items + their EQMOD bonuses
     final equippedSlots = _data['equippedSlots'] as Map? ?? {};
     final equippedKeys = equippedSlots.values.toSet();
     try {
       final equipment = (dataset as dynamic).equipment as List? ?? [];
+      // Build a key→object map for EQMOD lookups (EQMODs are also Equipment)
+      final equipByKey = <String, dynamic>{};
+      for (final item in equipment) {
+        final k = (item as dynamic).getKeyName() as String? ?? '';
+        if (k.isNotEmpty) equipByKey[k] = item;
+      }
+
       for (final item in equipment) {
         final key = (item as dynamic).getKeyName() as String? ?? '';
-        if (equippedKeys.contains(key)) collect(item);
+        if (!equippedKeys.contains(key)) continue;
+        collect(item);
+        // Collect bonuses from each EQMOD applied to this item
+        try {
+          final eqmodKeys = (item as dynamic)
+              .getSafeListFor(ListKey.getConstant<String>('EQMOD_KEYS')) as List?;
+          if (eqmodKeys != null) {
+            for (final mk in eqmodKeys) {
+              if (mk is String) {
+                final mod = equipByKey[mk];
+                if (mod != null) collect(mod);
+              }
+            }
+          }
+        } catch (_) {}
       }
     } catch (_) {}
 
-    // Build state for formula evaluation
+    // ---- Pass 1: Collect DEFINE variables from all active objects ----
+    final charVars = <String, double>{};
+
+    void collectDefines(dynamic obj) {
+      try {
+        final defines = (obj as dynamic)
+            .getSafeListFor(ListKey.getConstant<String>('VAR_DEFINES')) as List?;
+        if (defines != null) {
+          for (final d in defines) {
+            if (d is String) {
+              final eq = d.indexOf('=');
+              if (eq > 0) {
+                final varName = d.substring(0, eq).trim();
+                final defVal = double.tryParse(d.substring(eq + 1).trim()) ?? 0.0;
+                charVars.putIfAbsent(varName, () => defVal);
+              }
+            }
+          }
+        }
+      } catch (_) {}
+    }
+
+    if (raceObj != null) collectDefines(raceObj);
+    try {
+      final classes = (dataset as dynamic).classes as List? ?? [];
+      for (final cls in classes) {
+        if ((counts[(cls as dynamic).getKeyName() as String? ?? ''] ?? 0) > 0) {
+          collectDefines(cls);
+        }
+      }
+    } catch (_) {}
+    try {
+      final allAbilities = (dataset as dynamic).getAllAbilities() as List? ?? [];
+      for (final cat in selectedAbilities.values) {
+        if (cat is! List) continue;
+        for (final key in cat.cast<String>()) {
+          for (final ab in allAbilities) {
+            if ((ab as dynamic).getKeyName() == key) { collectDefines(ab); break; }
+          }
+        }
+      }
+    } catch (_) {}
+
+    // ---- Pass 2: Evaluate BONUS:VAR to accumulate variable values ----
     final statScores = <String, int>{};
     final scoreMap = _data['statScores'] as Map? ?? {};
     scoreMap.forEach((k, v) {
       statScores[k.toString().toUpperCase()] = (v as num?)?.toInt() ?? 10;
     });
-
     final statMods = statScores.map((k, v) => MapEntry(k, ((v - 10) / 2).floor()));
+
+    // Quick formula context with current stats + initial vars for VAR resolution
+    final varFormulaCtx = FormulaContext(
+      statMods: statMods, statScores: statScores,
+      totalLevel: classLevels.length, variables: charVars,
+    );
+    for (final bonus in allBonuses) {
+      if (bonus.category != 'VAR') continue;
+      final val = bonus.evaluate(varFormulaCtx);
+      for (final target in bonus.targets) {
+        charVars[target] = (charVars[target] ?? 0.0) + val;
+      }
+    }
+    // Also evaluate VAR bonuses from class objects (per-class level context)
+    try {
+      final classes = (dataset as dynamic).classes as List? ?? [];
+      for (final cls in classes) {
+        final clsKey = (cls as dynamic).getKeyName() as String? ?? '';
+        final clsLvl = counts[clsKey] ?? 0;
+        if (clsLvl == 0) continue;
+        final clsVarCtx = FormulaContext(
+          statMods: statMods, statScores: statScores,
+          totalLevel: classLevels.length, variables: charVars,
+          currentClassLevel: clsLvl,
+        );
+        final bonusList = (cls as dynamic)
+            .getSafeListFor(ListKey.getConstant<ParsedBonus>('PARSED_BONUS')) as List?;
+        if (bonusList == null) continue;
+        for (final b in bonusList) {
+          if (b is! ParsedBonus || b.category != 'VAR') continue;
+          final val = b.evaluate(clsVarCtx);
+          for (final t in b.targets) {
+            charVars[t] = (charVars[t] ?? 0.0) + val;
+          }
+        }
+      }
+    } catch (_) {}
+
+    // Store resolved variables for getVariable() access
+    _data['charVariables'] = Map<String, double>.from(charVars);
 
     final classLevelCounts = counts.map((k, v) => MapEntry(k, v));
 
@@ -1189,7 +1348,7 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
       statScores: statScores,
       totalLevel: classLevels.length,
       classLevelCounts: classLevelCounts,
-      definedVars: const {},
+      definedVars: charVars,
       alignmentKey: _str('alignmentKey'),
       raceKey: _str('raceKey'),
       objectTypes: const [],
@@ -1219,7 +1378,7 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
         statScores:         statScores,
         totalLevel:         classLevels.length,
         classLevels:        classLevelCounts,
-        variables:          const {},
+        variables:          charVars,
         currentClassLevel:  clsLvl,
       );
 

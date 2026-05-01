@@ -100,6 +100,22 @@ final class Race extends PObject {
     }
   }
 
+  /// Vision types (e.g. 'Darkvision (60\')', 'Low-Light Vision').
+  List<String> getVisionTypes() {
+    try {
+      final list = getSafeListFor(ListKey.getConstant<String>('VISION_TYPES')) as List?;
+      return list?.cast<String>() ?? const [];
+    } catch (_) { return const []; }
+  }
+
+  /// Natural attacks from NATURALATTACKS token (list of 'Name:Count:Damage').
+  List<String> getNaturalAttacks() {
+    try {
+      final list = getSafeListFor(ListKey.getConstant<String>('NATURAL_ATTACKS')) as List?;
+      return list?.cast<String>() ?? const [];
+    } catch (_) { return const []; }
+  }
+
   /// Bonus language choices offered to characters of this race (LANGBONUS token).
   List<String> getBonusLanguageChoices() {
     try {

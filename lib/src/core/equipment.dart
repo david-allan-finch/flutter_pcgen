@@ -259,38 +259,10 @@ class Equipment extends PObject {
       getSafeObject(ObjectKey.getConstant<int>('CRITRANGE')) as int? ?? 1;
 
   /// Critical multiplier string (e.g. "x2", "x3").
-  String getCritMult() => getSafeString(StringKey.region);
+  String getCritMult() => getSafeString(StringKey.critMult);
 
   /// Weapon damage string (e.g. "1d8", "2d6").
   String getDamageString() => getSafeString(StringKey.damage);
-
-  /// True if this item is a weapon.
-  bool isWeapon() {
-    try {
-      final types = getSafeListFor(ListKey.getConstant<String>('TYPE')) as List?;
-      return types?.any((t) => t.toString().toLowerCase() == 'weapon') ?? false;
-    } catch (_) { return false; }
-  }
-
-  /// True if this item is armor.
-  bool isArmor() {
-    try {
-      final types = getSafeListFor(ListKey.getConstant<String>('TYPE')) as List?;
-      return types?.any((t) {
-        final s = t.toString().toLowerCase();
-        return s == 'armor' || s == 'light armor' ||
-               s == 'medium armor' || s == 'heavy armor';
-      }) ?? false;
-    } catch (_) { return false; }
-  }
-
-  /// True if this item is a shield.
-  bool isShield() {
-    try {
-      final types = getSafeListFor(ListKey.getConstant<String>('TYPE')) as List?;
-      return types?.any((t) => t.toString().toLowerCase() == 'shield') ?? false;
-    } catch (_) { return false; }
-  }
 
   String getArmorType() {
     final at = getSafeObject(ObjectKey.getConstant<dynamic>('ARMOR_TYPE'));

@@ -73,4 +73,5 @@ enum StringKey {
   spellComponents,
   spellStat,
   knownSpellFormula,
+  critMult,
 }

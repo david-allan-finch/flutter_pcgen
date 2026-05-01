@@ -53,13 +53,13 @@ class SkillInfoTabState extends State<SkillInfoTab> {
 
     final intMod = _statMod(character, 'INT', stats);
     final totalLevels = _totalLevels(character);
-    // Use real class skill points from the last class level if available.
+    final modSkillBonus = _getSkillPointBonus(character);
     final pool = totalLevels > 0
-        ? (_computeSkillPool(character, classes, intMod, totalLevels))
+        ? (_computeSkillPool(character, classes, intMod, totalLevels) + modSkillBonus)
         : 0;
-    final spent = _totalRanksSpent(character, skills);
-    // Build class skills set for highlighting.
     final classSkillNames = _buildClassSkillNames(character, classes);
+    // Cross-class costs: class skills cost 1pt/rank, cross-class cost 2pt/rank
+    final spent = _totalPointsSpent(character, skills, classSkillNames);
     final remaining = pool - spent;
 
     return Column(
@@ -86,10 +86,18 @@ class SkillInfoTabState extends State<SkillInfoTab> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    Text('Skill points: $remaining remaining / $pool total',
-                        style: Theme.of(context).textTheme.bodySmall),
-                    Text('Ranks spent: $spent',
-                        style: Theme.of(context).textTheme.bodySmall),
+                    Text(
+                      '$remaining / $pool pts remaining',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: remaining < 0
+                            ? Colors.red.shade700
+                            : Colors.grey.shade700,
+                        fontWeight: remaining < 0 ? FontWeight.bold : FontWeight.normal,
+                      ),
+                    ),
+                    Text('C = class skill (1pt)  CC = cross-class (2pt)',
+                        style: TextStyle(fontSize: 10, color: Colors.grey.shade500)),
                   ],
                 ),
             ],
@@ -118,8 +126,9 @@ class SkillInfoTabState extends State<SkillInfoTab> {
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       child: Row(
         children: const [
-          SizedBox(width: 160, child: Text('Skill', style: style)),
-          SizedBox(width: 40, child: Text('Stat', style: style, textAlign: TextAlign.center)),
+          SizedBox(width: 24, child: Text('Type', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 10, color: Colors.grey))),
+          SizedBox(width: 148, child: Text('Skill', style: style)),
+          SizedBox(width: 36, child: Text('Stat', style: style, textAlign: TextAlign.center)),
           SizedBox(width: 28, child: Text('Mod', style: style, textAlign: TextAlign.center)),
           SizedBox(width: 80, child: Text('Ranks', style: style, textAlign: TextAlign.center)),
           SizedBox(width: 44, child: Text('Total', style: style, textAlign: TextAlign.center)),
@@ -145,15 +154,22 @@ class SkillInfoTabState extends State<SkillInfoTab> {
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
         child: Row(
           children: [
+            // Class/cross-class badge
             SizedBox(
-              width: 160,
+              width: 24,
+              child: Text(
+                isClassSkill ? 'C' : 'CC',
+                style: TextStyle(
+                  fontSize: 9,
+                  fontWeight: FontWeight.bold,
+                  color: isClassSkill ? Colors.green.shade700 : Colors.orange.shade700,
+                ),
+              ),
+            ),
+            SizedBox(
+              width: 148,
               child: Row(
                 children: [
-                  if (isClassSkill)
-                    const Padding(
-                      padding: EdgeInsets.only(right: 2),
-                      child: Icon(Icons.star, size: 10, color: Colors.amber),
-                    ),
                   Expanded(
                     child: Text(skill.getDisplayName(),
                         style: TextStyle(
@@ -166,7 +182,7 @@ class SkillInfoTabState extends State<SkillInfoTab> {
               ),
             ),
             SizedBox(
-              width: 40,
+              width: 36,
               child: Text(keyStatAbb,
                   textAlign: TextAlign.center,
                   style: const TextStyle(fontSize: 11, color: Colors.grey)),
@@ -264,13 +280,23 @@ class SkillInfoTabState extends State<SkillInfoTab> {
     }
   }
 
-  int _totalRanksSpent(dynamic character, List<Skill> skills) {
+  // Cross-class skills cost 2 points per rank; class skills cost 1.
+  int _totalPointsSpent(dynamic character, List<Skill> skills, Set<String> classSkillNames) {
     if (character == null) return 0;
     int total = 0;
     for (final skill in skills) {
-      total += _getRanks(character, skill);
+      final ranks = _getRanks(character, skill);
+      if (ranks == 0) continue;
+      final isClass = classSkillNames.contains(skill.getDisplayName()) ||
+          classSkillNames.contains(skill.getKeyName());
+      total += isClass ? ranks : ranks * 2;
     }
     return total;
+  }
+
+  int _getSkillPointBonus(dynamic character) {
+    if (character == null) return 0;
+    try { return (character as dynamic).getSkillPointBonus() as int? ?? 0; } catch (_) { return 0; }
   }
 
   String _safeKeyStatAbb(Skill skill) {
