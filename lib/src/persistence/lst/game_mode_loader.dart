@@ -17,7 +17,9 @@
 //
 // Translation of pcgen.persistence.lst.GameModeLoader
 
+import 'package:flutter_pcgen/src/core/ability_category.dart';
 import 'package:flutter_pcgen/src/core/game_mode.dart';
+import 'package:flutter_pcgen/src/persistence/lst/ability_category_loader.dart';
 
 /// Utility class (no instances) that parses individual lines from game mode
 /// configuration files (miscinfo.lst, statsandchecks.lst, etc.).
@@ -133,9 +135,25 @@ final class GameModeLoader {
         gm.setWeaponReachFormula(value);
       case 'XPENABLED':
         gm.setXPEnabled(value.toLowerCase() != 'no');
+      case 'ABILITYCATEGORY':
+        // ABILITYCATEGORY:FEAT  VISIBLE:YES  EDITABLE:YES  ... — register game-mode
+        // level ability categories (e.g. FEAT, Internal) so that ability LST files
+        // can reference them by name during source loading.
+        _parseAbilityCategory(value);
       default:
-        // Unknown token — ignored; full implementation uses GameModeLstToken registry
         break;
+    }
+  }
+
+  static final _abilityCategoryLoader = AbilityCategoryLoader();
+
+  static void _parseAbilityCategory(String value) {
+    try {
+      _abilityCategoryLoader.parseLine(null, 'ABILITYCATEGORY:$value', Uri());
+    } catch (_) {
+      // Fallback: just register the category name with no extra properties.
+      final name = value.split('\t').first.trim();
+      if (name.isNotEmpty) AbilityCategory(name);
     }
   }
 }

@@ -56,8 +56,6 @@ class EquipInfoTab extends StatefulWidget {
 }
 
 class EquipInfoTabState extends State<EquipInfoTab> {
-  // The gear item currently selected in the left panel for assignment.
-  int? _selectedGearIndex;
 
   void setCharacter(dynamic character) => setState(() {});
 
@@ -99,7 +97,6 @@ class EquipInfoTabState extends State<EquipInfoTab> {
 
   Widget _buildGearPanel(
       dynamic character, List<Map<String, dynamic>> gear, Map<String, String> equipped) {
-    // Count how many times each gear index is equipped across all slots.
     final usedKeys = equipped.values.toSet();
 
     return Column(
@@ -110,16 +107,11 @@ class EquipInfoTabState extends State<EquipInfoTab> {
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
           child: const Row(
             children: [
-              Expanded(
-                child: Text('Carried Gear',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-              ),
-              SizedBox(
-                width: 32,
-                child: Text('Qty',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 11, color: Colors.grey)),
-              ),
+              Expanded(child: Text('Carried Gear',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13))),
+              SizedBox(width: 32, child: Text('Qty',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 11, color: Colors.grey))),
             ],
           ),
         ),
@@ -128,7 +120,7 @@ class EquipInfoTabState extends State<EquipInfoTab> {
           const Expanded(
             child: Center(
               child: Text(
-                'No items in gear.\nPurchase items in the Inventory tab.',
+                'No items in gear.\nPurchase items in the Inventory tab first.',
                 textAlign: TextAlign.center,
                 style: TextStyle(color: Colors.grey, fontStyle: FontStyle.italic),
               ),
@@ -144,45 +136,20 @@ class EquipInfoTabState extends State<EquipInfoTab> {
                 final qty = item['qty'] as int? ?? 1;
                 final key = item['key'] as String? ?? '';
                 final isEquipped = usedKeys.contains(key);
-                final isSelected = _selectedGearIndex == i;
-
                 return ListTile(
                   dense: true,
-                  selected: isSelected,
-                  selectedTileColor:
-                      Theme.of(context).colorScheme.primaryContainer.withAlpha(80),
                   tileColor: isEquipped ? Colors.green.withOpacity(0.05) : null,
                   title: Text(name, style: const TextStyle(fontSize: 12)),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (isEquipped)
-                        const Padding(
-                          padding: EdgeInsets.only(right: 4),
-                          child: Icon(Icons.check_circle_outline,
-                              size: 13, color: Colors.green),
-                        ),
-                      Text('×$qty',
-                          style: const TextStyle(fontSize: 11, color: Colors.grey)),
-                    ],
-                  ),
-                  onTap: () => setState(() {
-                    _selectedGearIndex = isSelected ? null : i;
-                  }),
+                  trailing: Row(mainAxisSize: MainAxisSize.min, children: [
+                    if (isEquipped)
+                      const Padding(
+                        padding: EdgeInsets.only(right: 4),
+                        child: Icon(Icons.check_circle_outline, size: 13, color: Colors.green),
+                      ),
+                    Text('×$qty', style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                  ]),
                 );
               },
-            ),
-          ),
-        if (_selectedGearIndex != null)
-          Container(
-            color: Theme.of(context).colorScheme.primaryContainer.withAlpha(40),
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            child: Text(
-              'Tap a slot on the right to equip ${gear[_selectedGearIndex!]['name']}',
-              style: TextStyle(
-                  fontSize: 11,
-                  color: Theme.of(context).colorScheme.primary,
-                  fontStyle: FontStyle.italic),
             ),
           ),
       ],
@@ -224,62 +191,44 @@ class EquipInfoTabState extends State<EquipInfoTab> {
   Widget _buildSlotRow(dynamic character, String slot, String? equippedName,
       String? equippedKey, List<Map<String, dynamic>> gear) {
     final isOccupied = equippedName != null;
-    final canAssign = _selectedGearIndex != null;
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 3),
       child: Row(
         children: [
-          // Slot label
           SizedBox(
             width: 110,
             child: Text(slot,
-                style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 12,
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12,
                     color: Colors.grey.shade700)),
           ),
-          // Equipped item (or empty tap target)
           Expanded(
             child: InkWell(
-              onTap: canAssign
-                  ? () => _equipToSlot(character, slot, gear[_selectedGearIndex!])
-                  : null,
+              // Tapping any slot opens a picker of all carried gear
+              onTap: gear.isEmpty ? null : () => _pickItemForSlot(character, slot, gear),
               borderRadius: BorderRadius.circular(4),
               child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
                   border: Border.all(
-                    color: canAssign && !isOccupied
-                        ? Theme.of(context).colorScheme.primary.withOpacity(0.5)
-                        : Colors.grey.shade300,
-                    width: canAssign && !isOccupied ? 1.5 : 1,
+                    color: isOccupied
+                        ? Colors.green.shade300
+                        : gear.isEmpty ? Colors.grey.shade200 : Colors.grey.shade400,
                   ),
                   borderRadius: BorderRadius.circular(4),
-                  color: isOccupied
-                      ? Colors.green.withOpacity(0.07)
-                      : canAssign
-                          ? Theme.of(context)
-                              .colorScheme
-                              .primary
-                              .withOpacity(0.03)
-                          : null,
+                  color: isOccupied ? Colors.green.withOpacity(0.07) : null,
                 ),
                 child: Text(
-                  equippedName ?? (canAssign ? 'Tap to equip…' : '—'),
+                  equippedName ?? (gear.isEmpty ? '—' : 'Tap to equip…'),
                   style: TextStyle(
                     fontSize: 12,
-                    color: isOccupied
-                        ? Colors.black87
-                        : Colors.grey.shade500,
+                    color: isOccupied ? Colors.black87 : Colors.grey.shade500,
                     fontStyle: isOccupied ? FontStyle.normal : FontStyle.italic,
                   ),
                 ),
               ),
             ),
           ),
-          // Unequip button
           if (isOccupied)
             Padding(
               padding: const EdgeInsets.only(left: 4),
@@ -297,6 +246,28 @@ class EquipInfoTabState extends State<EquipInfoTab> {
         ],
       ),
     );
+  }
+
+  Future<void> _pickItemForSlot(dynamic character, String slot,
+      List<Map<String, dynamic>> gear) async {
+    final picked = await showDialog<Map<String, dynamic>>(
+      context: context,
+      builder: (_) => SimpleDialog(
+        title: Text('Equip to $slot', style: const TextStyle(fontSize: 15)),
+        children: gear.map((item) {
+          final name = item['name'] as String? ?? 'Unknown';
+          final qty = item['qty'] as int? ?? 1;
+          return SimpleDialogOption(
+            onPressed: () => Navigator.pop(context, item),
+            child: Row(children: [
+              Expanded(child: Text(name, style: const TextStyle(fontSize: 13))),
+              Text('×$qty', style: const TextStyle(fontSize: 11, color: Colors.grey)),
+            ]),
+          );
+        }).toList(),
+      ),
+    );
+    if (picked != null) _equipToSlot(character, slot, picked);
   }
 
   // ---- Footer: weight + load -----------------------------------------------

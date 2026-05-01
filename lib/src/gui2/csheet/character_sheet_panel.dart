@@ -143,30 +143,21 @@ class _CharacterSheetView extends StatelessWidget {
     final baseScores = data['statScores'] as Map? ?? {};
     const statOrder = ['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'];
 
-    // Compute racial bonuses from race object's STAT_BONUS list.
-    final racialBonuses = <String, int>{};
-    try {
-      final race = _tryGet(() => (character as dynamic).getRaceRef()?.get());
-      if (race != null) {
-        final bonusList = (race as dynamic)
-            .getSafeListFor(ListKey.getConstant<String>('STAT_BONUS')) as List?;
-        if (bonusList != null) {
-          for (final b in bonusList) {
-            if (b is String) {
-              final idx = b.indexOf(':');
-              if (idx > 0) {
-                racialBonuses[b.substring(0, idx).toUpperCase()] =
-                    (racialBonuses[b.substring(0, idx).toUpperCase()] ?? 0) +
-                        (int.tryParse(b.substring(idx + 1)) ?? 0);
-              }
-            }
-          }
-        }
+    // Use the facade's getModTotal / getEffectiveScore which reads from the
+    // bonus accumulator — correct for all game systems.
+    final dataset = loadedDataSet.value;
+    final statObjects = dataset?.stats ?? [];
+
+    int _effectiveTotal(String abbr) {
+      try {
+        final stat = statObjects.firstWhere((s) => s.getKeyName() == abbr);
+        return (character as dynamic).getEffectiveScore(stat) as int? ?? 10;
+      } catch (_) {
+        return (baseScores[abbr] as num?)?.toInt() ?? 10;
       }
-    } catch (_) {}
+    }
 
     // Compute saves using class progressions.
-    final dataset = loadedDataSet.value;
     final classLevels = data['classLevels'] as List? ?? [];
     final counts = <String, int>{};
     for (final l in classLevels) {
@@ -177,9 +168,8 @@ class _CharacterSheetView extends StatelessWidget {
     }
 
     int _computeSave(String saveName, String statAbb) {
-      final baseScore = (baseScores[statAbb] as num?)?.toInt() ?? 10;
-      final racial = racialBonuses[statAbb] ?? 0;
-      final statMod = ((baseScore + racial - 10) / 2).floor();
+      final total = _effectiveTotal(statAbb);
+      final statMod = ((total - 10) / 2).floor();
       if (dataset == null) return statMod;
       double base = 0;
       bool hasGood = false;
@@ -222,8 +212,8 @@ class _CharacterSheetView extends StatelessWidget {
                 ]),
                 ...statOrder.map((s) {
                   final base = (baseScores[s] as num?)?.toInt() ?? 10;
-                  final racial = racialBonuses[s] ?? 0;
-                  final total = base + racial;
+                  final total = _effectiveTotal(s);
+                  final bonus = total - base;
                   final mod = ((total - 10) / 2).floor();
                   return TableRow(children: [
                     Padding(padding: const EdgeInsets.symmetric(vertical: 2),
@@ -235,8 +225,8 @@ class _CharacterSheetView extends StatelessWidget {
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
-                              color: racial > 0 ? Colors.blue.shade700
-                                  : racial < 0 ? Colors.orange.shade700 : null,
+                              color: bonus > 0 ? Colors.blue.shade700
+                                  : bonus < 0 ? Colors.orange.shade700 : null,
                             ))),
                     Padding(padding: const EdgeInsets.symmetric(vertical: 2),
                         child: Text(mod >= 0 ? '+$mod' : '$mod',

@@ -56,12 +56,11 @@ class AbilityLoader extends GenericLoader<Ability> {
 
     if (isNew) {
       if (categoryToken != null) {
-        final cat = AbilityCategory.getCategory(categoryToken);
-        if (cat != null) {
-          anAbility.setCDOMCategory(cat);
-        } else {
-          return null; // unknown category — skip
-        }
+        // Use get-or-create so abilities with categories not yet registered
+        // (e.g. from campaign files loaded in a different order) still load.
+        final cat = AbilityCategory.getCategory(categoryToken)
+            ?? AbilityCategory(categoryToken);
+        anAbility.setCDOMCategory(cat);
       }
       context.getReferenceContext().register(anAbility);
     }
