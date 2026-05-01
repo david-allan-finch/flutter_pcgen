@@ -168,6 +168,11 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
     _data.remove('racialStatBonuses'); // invalidate cache
     _raceRef.set(race);
     _applyRaceTraits(race);
+    // Cache racial bonuses immediately so stat display updates even before the
+    // first full rebuildBonuses (e.g. when _dataset is already set).
+    if (_dataset != null) {
+      _cacheRacialBonuses(race, _dataset);
+    }
     _rebuild();
     notifyListeners();
   }
@@ -719,6 +724,8 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
       try {
         final bonusList = (race as dynamic)
             .getSafeListFor(ListKey.getConstant<String>('STAT_BONUS')) as List?;
+        debugPrint('[facade] getRacialBonus ${stat.getKeyName()} '
+            'race=${(race as dynamic).getKeyName()} STAT_BONUS=$bonusList');
         if (bonusList != null) {
           for (final b in bonusList) {
             if (b is String) {
@@ -731,7 +738,9 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
             }
           }
         }
-      } catch (_) {}
+      } catch (e) {
+        debugPrint('[facade] getRacialBonus error: $e');
+      }
     }
     return total;
   }
@@ -849,10 +858,13 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
   void addSelectedAbility(String categoryKey, String abilityKey) {
     final map = (_data['selectedAbilities'] ??= <String, dynamic>{}) as Map;
     final list = (map[categoryKey] ??= <String>[]) as List;
+    debugPrint('[facade] addSelectedAbility cat=$categoryKey key=$abilityKey '
+        'already=${list.contains(abilityKey)} dataset=${_dataset != null}');
     if (!list.contains(abilityKey)) {
       list.add(abilityKey);
       _rebuild();
       notifyListeners();
+      debugPrint('[facade] addSelectedAbility done list=$list');
     }
   }
 
@@ -890,12 +902,104 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
 
   void addDomainKey(String key) {
     final list = (_data['selectedDomains'] ??= <String>[]) as List;
-    if (!list.contains(key)) { list.add(key); notifyListeners(); }
+    if (!list.contains(key)) {
+      list.add(key);
+      _grantDomainBenefits(key);
+      _rebuild();
+      notifyListeners();
+    }
   }
 
   void removeDomainKey(String key) {
     final list = _data['selectedDomains'];
-    if (list is List && list.remove(key)) notifyListeners();
+    if (list is List && list.remove(key)) {
+      _revokeDomainBenefits(key);
+      _rebuild();
+      notifyListeners();
+    }
+  }
+
+  /// Auto-grant abilities and domain spells when a domain is selected.
+  void _grantDomainBenefits(String domainKey) {
+    try {
+      final dataset = _dataset;
+      if (dataset == null) return;
+      final domains = (dataset as dynamic).domains as List? ?? [];
+      for (final d in domains) {
+        if ((d as dynamic).getKeyName() != domainKey) continue;
+
+        // Grant ABILITY:...|AUTOMATIC| entries from domain
+        final autoAbilities = (d as dynamic).getAutoGrantedAbilities()
+            as List<String>? ?? [];
+        if (autoAbilities.isNotEmpty) {
+          final selectedAbilities =
+              (_data['selectedAbilities'] ??= <String, dynamic>{}) as Map;
+          for (final abilName in autoAbilities) {
+            final cat = 'Special Ability';
+            final catList = (selectedAbilities[cat] ??= <String>[]) as List;
+            if (!catList.contains(abilName)) catList.add(abilName);
+          }
+        }
+
+        // Store domain spells in domainSpells map: domainKey → {level: spellName}
+        final spellMap = (d as dynamic).getDomainSpellMap()
+            as Map<int, String>? ?? {};
+        if (spellMap.isNotEmpty) {
+          final domainSpells =
+              (_data['domainSpells'] ??= <String, dynamic>{}) as Map;
+          domainSpells[domainKey] = {
+            for (final e in spellMap.entries) '${e.key}': e.value,
+          };
+        }
+        break;
+      }
+    } catch (_) {}
+  }
+
+  /// Remove auto-granted abilities when a domain is removed.
+  void _revokeDomainBenefits(String domainKey) {
+    try {
+      final dataset = _dataset;
+      if (dataset == null) return;
+      final domains = (dataset as dynamic).domains as List? ?? [];
+      for (final d in domains) {
+        if ((d as dynamic).getKeyName() != domainKey) continue;
+
+        final autoAbilities = (d as dynamic).getAutoGrantedAbilities()
+            as List<String>? ?? [];
+        if (autoAbilities.isNotEmpty) {
+          final selectedAbilities = _data['selectedAbilities'] as Map? ?? {};
+          for (final abilName in autoAbilities) {
+            final catList = selectedAbilities['Special Ability'] as List?;
+            catList?.remove(abilName);
+          }
+        }
+
+        // Remove domain spells
+        (_data['domainSpells'] as Map?)?.remove(domainKey);
+        break;
+      }
+    } catch (_) {}
+  }
+
+  /// All domain spells for selected domains: list of {domain, level, spell}.
+  List<Map<String, dynamic>> getDomainSpells() {
+    final result = <Map<String, dynamic>>[];
+    final domainSpells = _data['domainSpells'] as Map? ?? {};
+    for (final entry in domainSpells.entries) {
+      final domainKey = entry.key as String;
+      final spells = entry.value as Map? ?? {};
+      for (final se in spells.entries) {
+        final level = int.tryParse(se.key.toString()) ?? 0;
+        result.add({
+          'domain': domainKey,
+          'level': level,
+          'spell': se.value as String? ?? '',
+        });
+      }
+    }
+    result.sort((a, b) => (a['level'] as int).compareTo(b['level'] as int));
+    return result;
   }
 
   // ---- Template keys -------------------------------------------------------

@@ -47,4 +47,43 @@ final class Domain extends PObject {
   /// Returns the NUM_CHOICES formula.
   dynamic getNumChoices() =>
       getSafeObject(ObjectKey.getConstant<dynamic>('NUM_CHOICES'));
+
+  // ---- Domain spells & abilities -------------------------------------------
+
+  /// Domain spells: list of 'Level:SpellName' strings from SPELLLEVEL token.
+  /// E.g. ['1:Burning Hands', '2:Produce Flame', ...] for the Fire domain.
+  List<String> getDomainSpellEntries() {
+    try {
+      final list =
+          getSafeListFor(ListKey.getConstant<String>('DOMAIN_SPELLS')) as List?;
+      return list?.cast<String>() ?? const [];
+    } catch (_) {
+      return const [];
+    }
+  }
+
+  /// Returns a sorted map of level → spell name for this domain.
+  Map<int, String> getDomainSpellMap() {
+    final result = <int, String>{};
+    for (final entry in getDomainSpellEntries()) {
+      final colon = entry.indexOf(':');
+      if (colon > 0) {
+        final level = int.tryParse(entry.substring(0, colon));
+        final spell = entry.substring(colon + 1);
+        if (level != null && spell.isNotEmpty) result[level] = spell;
+      }
+    }
+    return result;
+  }
+
+  /// Ability names automatically granted by this domain (ABILITY:|AUTOMATIC| tokens).
+  List<String> getAutoGrantedAbilities() {
+    try {
+      final list =
+          getSafeListFor(ListKey.getConstant<String>('AUTO_ABILITIES')) as List?;
+      return list?.cast<String>() ?? const [];
+    } catch (_) {
+      return const [];
+    }
+  }
 }

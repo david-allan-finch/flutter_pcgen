@@ -3,6 +3,7 @@
 //
 // Shows carried gear and allows assigning items to body slots.
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_pcgen/src/gui2/app_state.dart';
 
@@ -409,10 +410,15 @@ class EquipInfoTabState extends State<EquipInfoTab> {
     try {
       final data = (character as dynamic).toJson() as Map<String, dynamic>;
       final eq = (data['equippedSlots'] ??= <String, String>{}) as Map;
-      eq[slot] = item['key'] as String? ?? '';
+      final itemKey = item['key'] as String? ?? '';
+      debugPrint('[equip] _equipToSlot slot=$slot itemKey=$itemKey');
+      eq[slot] = itemKey;
+      debugPrint('[equip] equippedSlots after: $eq');
       currentCharacter.notifyListeners();
       setState(() => _selectedGearIndex = null);
-    } catch (_) {}
+    } catch (e, st) {
+      debugPrint('[equip] _equipToSlot error: $e\n$st');
+    }
   }
 
   void _unequipSlot(dynamic character, String slot) {

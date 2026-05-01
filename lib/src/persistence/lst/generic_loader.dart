@@ -239,6 +239,11 @@ class GenericLoader<T extends CDOMObject> extends LstObjectFileLoader<T> {
           return;
         case 'VISIBLE':
           return;
+        case 'SPELLLEVEL':
+          // SPELLLEVEL:DOMAIN|Fire=1|Burning Hands|Fire=2|Produce Flame|...
+          // SPELLLEVEL:Wizard=3|Sorcerer=3 (on spell objects — stored differently)
+          _parseSpellLevel(obj, value);
+          return;
         case 'CRITMULT':
           // CRITMULT:x2 — critical hit multiplier
           try { obj.putString(StringKey.critMult, value.trim()); } catch (_) {}
@@ -462,6 +467,71 @@ class GenericLoader<T extends CDOMObject> extends LstObjectFileLoader<T> {
     // Registered token handlers (added via addTokenHandler).
     for (final handler in _tokenHandlers) {
       handler(context, obj, token, source);
+    }
+  }
+
+  /// Parse SPELLLEVEL: token.
+  ///
+  /// On domain objects: SPELLLEVEL:DOMAIN|DomainName=Level|SpellName|...
+  ///   → stores 'Level:SpellName' in DOMAIN_SPELLS list
+  /// On spell objects: SPELLLEVEL:Wizard=3|Cleric=5|...
+  ///   → stores 'ClassName=Level' pairs in SPELL_CLASS_LEVELS list (for class spell lists)
+  void _parseSpellLevel(T obj, String value) {
+    final parts = value.split('|');
+    if (parts.isEmpty) return;
+
+    if (parts[0].toUpperCase() == 'DOMAIN') {
+      // Domain spell list: alternating DomainName=Level, SpellName pairs
+      // e.g.: DOMAIN|Fire=1|Burning Hands|Fire=2|Produce Flame
+      int i = 1;
+      while (i + 1 < parts.length) {
+        final levelPart = parts[i].trim();   // e.g. "Fire=1"
+        final spellName = parts[i + 1].trim();
+        final eq = levelPart.indexOf('=');
+        if (eq > 0 && spellName.isNotEmpty) {
+          final level = int.tryParse(levelPart.substring(eq + 1));
+          if (level != null) {
+            try {
+              obj.addToListFor(
+                ListKey.getConstant<String>('DOMAIN_SPELLS'),
+                '$level:$spellName',
+              );
+            } catch (_) {}
+          }
+        }
+        i += 2;
+      }
+    } else {
+      // Spell object class list: e.g. Wizard=3|Sorcerer=3|Cleric=5
+      // Store the raw class=level pairs for spell lookup by class
+      final classLevels = <String>[];
+      for (final p in parts) {
+        final eq = p.indexOf('=');
+        if (eq > 0) {
+          final cls   = p.substring(0, eq).trim();
+          final level = int.tryParse(p.substring(eq + 1).trim());
+          if (cls.isNotEmpty && level != null) {
+            classLevels.add('$cls=$level');
+            // Also update the CLASSES: (campaignSetting) string for backward compat
+            try {
+              final existing =
+                  obj.getString(StringKey.campaignSetting) ?? '';
+              if (!existing.contains('$cls=')) {
+                final updated = existing.isEmpty
+                    ? '$cls=$level'
+                    : '$existing|$cls=$level';
+                obj.putString(StringKey.campaignSetting, updated);
+              }
+            } catch (_) {}
+          }
+        }
+      }
+      for (final cl in classLevels) {
+        try {
+          obj.addToListFor(
+            ListKey.getConstant<String>('SPELL_CLASS_LEVELS'), cl);
+        } catch (_) {}
+      }
     }
   }
 

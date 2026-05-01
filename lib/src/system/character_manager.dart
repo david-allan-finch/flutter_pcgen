@@ -98,7 +98,14 @@ final class CharacterManager {
       'tempBonuses': <dynamic>[],
       'knownSpells': <dynamic>[],
       'preparedSpells': <dynamic>[],
+      'equippedSlots': <String, String>{},
+      'abilityChoices': <String, String>{},
     });
+    // Wire the dataset so _rebuild() works immediately (race bonuses, feat
+    // bonuses, etc. take effect as soon as the user makes selections).
+    if (dataset != null) {
+      try { facade.restoreFromDataset(dataset); } catch (_) {}
+    }
     _characters.addElement(facade);
     return facade;
   }

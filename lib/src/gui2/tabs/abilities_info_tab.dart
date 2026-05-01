@@ -1,5 +1,6 @@
 // Translation of pcgen.gui2.tabs.AbilitiesInfoTab
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/list_key.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/object_key.dart' as cdom;
@@ -332,7 +333,9 @@ class AbilitiesInfoTabState extends State<AbilitiesInfoTab>
       ability = abilities.cast<Ability?>().firstWhere(
             (a) => a?.getKeyName() == key,
             orElse: () => null);
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('[abilities] _addAbility: ability lookup error: $e');
+    }
 
     ParsedChoose? choose;
     bool multOk = false;
@@ -342,17 +345,25 @@ class AbilitiesInfoTabState extends State<AbilitiesInfoTab>
             cdom.ObjectKey.getConstant<ParsedChoose>('PARSED_CHOOSE')) as ParsedChoose?;
         multOk = ability.getSafeObject(
             cdom.ObjectKey.getConstant<bool>('MULT_OK')) as bool? ?? false;
-      } catch (_) {}
+      } catch (e) {
+        debugPrint('[abilities] _addAbility: CHOOSE lookup error: $e');
+      }
     }
+
+    debugPrint('[abilities] _addAbility cat=$category key=$key '
+        'ability=${ability?.getKeyName()} choose=${choose?.type} multOk=$multOk');
 
     if (choose != null && choose.requiresSelection) {
       _showChoiceDialog(character, category, key, choose, multOk, dataset);
     } else {
       try {
         (character as dynamic).addSelectedAbility(category, key);
+        debugPrint('[abilities] addSelectedAbility ok');
         currentCharacter.notifyListeners();
         setState(() {});
-      } catch (_) {}
+      } catch (e, st) {
+        debugPrint('[abilities] addSelectedAbility error: $e\n$st');
+      }
     }
   }
 
