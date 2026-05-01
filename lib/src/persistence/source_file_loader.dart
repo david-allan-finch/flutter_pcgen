@@ -136,17 +136,17 @@ class SourceFileLoader extends PCGenTask {
     final total = _fileLists.values.fold(0, (sum, list) => sum + list.length);
     setMaximum(total);
 
-    // Always create a fresh context for each source load so that switching
-    // campaigns (e.g. SRD 3.5e → PF2e) starts clean and objects from the
-    // previous session don't pollute the new registry.
-    final freshContext = RuntimeLoadContext();
-    _selectedGame.setModeContext(freshContext);
+    // Each game mode keeps its own context (so 3.5e and PF2e never pollute each
+    // other). Within a single load call we always reset so the selected campaigns
+    // are the sole source of truth — previously loaded campaigns for this mode
+    // are cleared. Characters sharing the same game mode reuse the same context
+    // without reloading.
+    _selectedGame.setModeContext(RuntimeLoadContext());
 
     LoadContext context;
     try {
       context = _selectedGame.getModeContext();
     } catch (_) {
-      // modeContext not yet initialised — nothing can be loaded
       return;
     }
 
