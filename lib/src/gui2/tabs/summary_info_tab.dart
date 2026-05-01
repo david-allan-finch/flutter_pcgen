@@ -539,6 +539,19 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
         .where((l) => !selected.contains(l))
         .toList();
 
+    // INT modifier grants bonus language slots in 3.5e/PF
+    int intLangSlots = 0;
+    try {
+      final data = (character as dynamic).toJson() as Map<String, dynamic>;
+      final scores = data['statScores'] as Map? ?? {};
+      final intScore = (scores['INT'] as num?)?.toInt() ?? 10;
+      intLangSlots = ((intScore - 10) / 2).floor().clamp(0, 20);
+    } catch (_) {}
+    // Rough estimate: auto-lang count = number of known languages minus INT extras
+    final autoLangCount = _getAutoLangCount(character);
+    final intSlotsUsed = (selected.length - autoLangCount).clamp(0, 99);
+    final intSlotsRemaining = (intLangSlots - intSlotsUsed).clamp(0, 99);
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(12),
@@ -547,6 +560,19 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
           children: [
             Row(children: [
               Text('Languages', style: Theme.of(context).textTheme.titleMedium),
+              if (intLangSlots > 0)
+                Padding(
+                  padding: const EdgeInsets.only(left: 8),
+                  child: Text(
+                    '($intSlotsRemaining INT bonus slot${intSlotsRemaining == 1 ? '' : 's'} remaining)',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: intSlotsRemaining > 0
+                          ? Colors.blue.shade700
+                          : Colors.grey.shade500,
+                    ),
+                  ),
+                ),
               const Spacer(),
               if (available.isNotEmpty && character != null)
                 TextButton.icon(
@@ -597,6 +623,17 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
         ),
       ),
     );
+  }
+
+  int _getAutoLangCount(dynamic character) {
+    // Returns the number of languages the race grants automatically
+    try {
+      final race = (character as dynamic).getRaceRef()?.get();
+      if (race != null) {
+        return ((race as dynamic).getAutoLanguages() as List?)?.length ?? 0;
+      }
+    } catch (_) {}
+    return 0;
   }
 
   List<String> _getLanguageKeys(dynamic character) {

@@ -504,6 +504,12 @@ class AbilitiesInfoTabState extends State<AbilitiesInfoTab>
       }
     }
 
+    // Add BONUS:ABILITYPOOL|FEAT|N from accumulator
+    try {
+      final poolBonus = (character as dynamic).getFeatPoolBonus() as int? ?? 0;
+      feats += poolBonus;
+    } catch (_) {}
+
     return feats;
   }
 }

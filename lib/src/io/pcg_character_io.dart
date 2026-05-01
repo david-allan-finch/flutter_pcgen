@@ -239,6 +239,29 @@ class PCGCharacterIO {
     }
     buf.writeln();
 
+    // Temporary bonuses
+    final tempBonuses = data['tempBonuses'] as List? ?? [];
+    if (tempBonuses.isNotEmpty) {
+      buf.writeln('# Temporary Bonuses');
+      for (final tb in tempBonuses) {
+        if (tb is Map) {
+          final name     = tb['name']      as String? ?? '';
+          final category = tb['category']  as String? ?? 'COMBAT';
+          final target   = tb['target']    as String? ?? 'AC';
+          final value    = tb['value']     as String? ?? '0';
+          final bonusType= tb['bonusType'] as String? ?? '';
+          final active   = tb['active']    as bool?   ?? true;
+          if (name.isNotEmpty) {
+            buf.writeln('TEMPBONUS:PC|$category|$target|$value'
+                '${bonusType.isNotEmpty ? "|TYPE=$bonusType" : ""}'
+                '|TEMPBONUSTARGET:PC|SOURCE:$name'
+                '${active ? "" : "|INACTIVE"}');
+          }
+        }
+      }
+      buf.writeln();
+    }
+
     // Deity & Domains
     final deityKey = data['deityKey'] as String? ?? '';
     buf.writeln('# Character Deity/Domain');

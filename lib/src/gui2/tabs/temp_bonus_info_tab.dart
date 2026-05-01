@@ -129,74 +129,126 @@ class TempBonusInfoTabState extends State<TempBonusInfoTab> {
     } catch (_) {}
   }
 
+  // Category → available targets
+  static const _kBonusTypes = {
+    'COMBAT':  ['AC', 'BASEAB', 'TOHIT', 'DAMAGE', 'INITIATIVE'],
+    'SAVE':    ['ALL', 'Fortitude', 'Reflex', 'Will'],
+    'STAT':    ['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'],
+    'SKILL':   ['ALL'],
+    'HP':      ['CURRENTMAX'],
+  };
+  static const _kBonusSubtypes = [
+    'Morale', 'Luck', 'Competence', 'Circumstance', 'Insight',
+    'Resistance', 'Sacred', 'Profane', 'Enhancement', 'Dodge',
+    '', // untyped (stacks)
+  ];
+
   void _showAddBonusDialog(BuildContext context, dynamic character) {
-    final nameController = TextEditingController();
-    final valueController = TextEditingController(text: '+2');
-    String stat = 'AC';
-    final stats = ['AC', 'ATK', 'DAM', 'SAVE', 'SKILL', 'ABILITY', 'OTHER'];
+    final nameCtrl  = TextEditingController();
+    final valueCtrl = TextEditingController(text: '2');
+    String category  = 'COMBAT';
+    String target    = 'AC';
+    String bonusType = 'Morale';
 
     showDialog(
       context: context,
       builder: (_) => StatefulBuilder(
-        builder: (ctx, setS) => AlertDialog(
-          title: const Text('Add Temporary Bonus'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: nameController,
-                autofocus: true,
-                decoration: const InputDecoration(
-                  labelText: 'Source (e.g. Bless, Bull\'s Strength)',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 12),
-              Row(children: [
-                Expanded(
-                  child: DropdownButton<String>(
-                    isExpanded: true,
-                    value: stat,
-                    items: stats.map((s) =>
-                        DropdownMenuItem(value: s, child: Text(s))).toList(),
-                    onChanged: (v) => setS(() => stat = v ?? stat),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: TextField(
-                    controller: valueController,
+        builder: (ctx, setS) {
+          final targets = _kBonusTypes[category] ?? ['AC'];
+          if (!targets.contains(target)) target = targets.first;
+          return AlertDialog(
+            title: const Text('Add Temporary Bonus'),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: nameCtrl,
+                    autofocus: true,
                     decoration: const InputDecoration(
-                      labelText: 'Value',
+                      labelText: 'Source (e.g. Bless, Bull\'s Strength)',
                       border: OutlineInputBorder(),
                     ),
                   ),
-                ),
-              ]),
-            ],
-          ),
-          actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
-            ElevatedButton(
-              onPressed: () {
-                if (nameController.text.isNotEmpty) {
-                  _addBonus(character, nameController.text, stat, valueController.text);
-                  Navigator.pop(ctx);
-                }
-              },
-              child: const Text('Add'),
+                  const SizedBox(height: 10),
+                  Row(children: [
+                    Expanded(
+                      child: DropdownButtonFormField<String>(
+                        value: category,
+                        decoration: const InputDecoration(labelText: 'Category', border: OutlineInputBorder(), isDense: true),
+                        items: _kBonusTypes.keys.map((c) =>
+                            DropdownMenuItem(value: c, child: Text(c))).toList(),
+                        onChanged: (v) => setS(() { category = v!; target = _kBonusTypes[v]!.first; }),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: DropdownButtonFormField<String>(
+                        value: targets.contains(target) ? target : targets.first,
+                        decoration: const InputDecoration(labelText: 'Target', border: OutlineInputBorder(), isDense: true),
+                        items: targets.map((t) =>
+                            DropdownMenuItem(value: t, child: Text(t))).toList(),
+                        onChanged: (v) => setS(() => target = v!),
+                      ),
+                    ),
+                  ]),
+                  const SizedBox(height: 10),
+                  Row(children: [
+                    Expanded(
+                      child: DropdownButtonFormField<String>(
+                        value: bonusType,
+                        decoration: const InputDecoration(labelText: 'Bonus Type', border: OutlineInputBorder(), isDense: true),
+                        items: _kBonusSubtypes.map((t) =>
+                            DropdownMenuItem(value: t, child: Text(t.isEmpty ? 'Untyped (stacks)' : t))).toList(),
+                        onChanged: (v) => setS(() => bonusType = v!),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    SizedBox(
+                      width: 80,
+                      child: TextField(
+                        controller: valueCtrl,
+                        keyboardType: const TextInputType.numberWithOptions(signed: true),
+                        decoration: const InputDecoration(labelText: 'Value', border: OutlineInputBorder(), isDense: true),
+                      ),
+                    ),
+                  ]),
+                ],
+              ),
             ),
-          ],
-        ),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+              ElevatedButton(
+                onPressed: () {
+                  if (nameCtrl.text.isNotEmpty) {
+                    _addBonus(character, nameCtrl.text, category, target,
+                        valueCtrl.text.replaceAll('+', ''), bonusType);
+                    Navigator.pop(ctx);
+                  }
+                },
+                child: const Text('Add'),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
 
-  void _addBonus(dynamic character, String name, String stat, String value) {
+  void _addBonus(dynamic character, String name, String category,
+      String target, String value, String bonusType) {
     try {
       final data = (character as dynamic).toJson() as Map<String, dynamic>;
       final list = (data['tempBonuses'] ??= <Map<String, dynamic>>[]) as List;
-      list.add({'name': name, 'stat': stat, 'value': value, 'active': true});
+      list.add({
+        'name': name,
+        'category': category,
+        'target': target,
+        'stat': '$category|$target', // backward compat display
+        'value': value,
+        'bonusType': bonusType,
+        'active': true,
+      });
       currentCharacter.notifyListeners();
       setState(() {});
     } catch (_) {}

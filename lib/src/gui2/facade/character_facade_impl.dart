@@ -1082,6 +1082,9 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
     return 0.0;
   }
 
+  /// Extra feats from BONUS:ABILITYPOOL|FEAT|N (e.g. from feats or race).
+  int getFeatPoolBonus() => _bonusAcc.totalInt('ABILITYPOOL', 'FEAT');
+
   /// Bonus to skill points per level from BONUS:MODSKILLPOINTS (e.g. Pathfinder INT bonus feats).
   int getSkillPointBonus() => _bonusAcc.totalInt('MODSKILLPOINTS', 'NUMBER');
 
@@ -1405,7 +1408,36 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
       }
     }
 
+    // Apply active temporary bonuses (spell effects, rage, etc.)
+    _applyTempBonuses();
+
     _bonusDirty = false;
+  }
+
+  void _applyTempBonuses() {
+    final tempBonuses = _data['tempBonuses'] as List? ?? [];
+    for (final entry in tempBonuses) {
+      if (entry is! Map) continue;
+      final active = entry['active'] as bool? ?? true;
+      if (!active) continue;
+
+      final category = (entry['category'] as String? ?? 'COMBAT').toUpperCase();
+      final target   = (entry['target']   as String? ?? 'AC').toUpperCase();
+      final formula  = (entry['value']    as String? ?? '0').replaceAll('+', '');
+      final bonusType = (entry['bonusType'] as String? ?? '');
+
+      final value = double.tryParse(formula) ?? 0.0;
+      if (value == 0) continue;
+
+      final tempBonus = ParsedBonus(
+        category: category,
+        targets: [target],
+        formula: formula,
+        bonusType: bonusType,
+        stack: bonusType.isEmpty ? BonusStack.normal : BonusStack.normal,
+      );
+      _bonusAcc.add(tempBonus, value);
+    }
   }
 
   void _collectAbilityChainBonuses(
