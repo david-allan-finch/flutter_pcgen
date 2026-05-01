@@ -318,11 +318,8 @@ class AbilitiesInfoTabState extends State<AbilitiesInfoTab>
     try {
       final result =
           (character as dynamic).getSelectedAbilityKeys(category);
-      final list = result is List ? result.cast<String>() : <String>[];
-      if (list.isNotEmpty) debugPrint('[abilities] selectedKeys $category=$list');
-      return list;
-    } catch (e) {
-      debugPrint('[abilities] _getSelectedKeys error $category: $e');
+      return result is List ? result.cast<String>() : [];
+    } catch (_) {
       return [];
     }
   }
@@ -336,9 +333,7 @@ class AbilitiesInfoTabState extends State<AbilitiesInfoTab>
       ability = abilities.cast<Ability?>().firstWhere(
             (a) => a?.getKeyName() == key,
             orElse: () => null);
-    } catch (e) {
-      debugPrint('[abilities] _addAbility: ability lookup error: $e');
-    }
+    } catch (_) {}
 
     ParsedChoose? choose;
     bool multOk = false;
@@ -348,25 +343,17 @@ class AbilitiesInfoTabState extends State<AbilitiesInfoTab>
             cdom.ObjectKey.getConstant<ParsedChoose>('PARSED_CHOOSE')) as ParsedChoose?;
         multOk = ability.getSafeObject(
             cdom.ObjectKey.getConstant<bool>('MULT_OK')) as bool? ?? false;
-      } catch (e) {
-        debugPrint('[abilities] _addAbility: CHOOSE lookup error: $e');
-      }
+      } catch (_) {}
     }
-
-    debugPrint('[abilities] _addAbility cat=$category key=$key '
-        'ability=${ability?.getKeyName()} choose=${choose?.type} multOk=$multOk');
 
     if (choose != null && choose.requiresSelection) {
       _showChoiceDialog(character, category, key, choose, multOk, dataset);
     } else {
       try {
         (character as dynamic).addSelectedAbility(category, key);
-        debugPrint('[abilities] addSelectedAbility ok');
         currentCharacter.notifyListeners();
         setState(() {});
-      } catch (e, st) {
-        debugPrint('[abilities] addSelectedAbility error: $e\n$st');
-      }
+      } catch (_) {}
     }
   }
 

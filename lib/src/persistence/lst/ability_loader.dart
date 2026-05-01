@@ -16,22 +16,24 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.persistence.lst.AbilityLoader
-import 'package:flutter_pcgen/src/cdom/enumeration/list_key.dart';
-import 'package:flutter_pcgen/src/cdom/enumeration/object_key.dart';
-import 'package:flutter_pcgen/src/cdom/enumeration/string_key.dart';
 import 'package:flutter_pcgen/src/core/ability.dart';
 import 'package:flutter_pcgen/src/core/ability_category.dart';
-import 'package:flutter_pcgen/src/persistence/lst/lst_utils.dart';
 import 'package:flutter_pcgen/src/rules/context/load_context.dart';
-import 'package:flutter_pcgen/src/persistence/lst/lst_object_file_loader.dart';
+import 'package:flutter_pcgen/src/persistence/lst/generic_loader.dart';
 import 'package:flutter_pcgen/src/persistence/lst/source_entry.dart';
 
-// Loads Ability objects from LST files.
-class AbilityLoader extends LstObjectFileLoader<Ability> {
+/// Loads Ability objects from LST files.
+///
+/// Extends GenericLoader so BONUS, PRExxx, CHOOSE, AUTO, TYPE, DESC, MULT,
+/// STACK, DEFINE, etc. are all handled by the shared token processor.
+/// The only extra work here is extracting CATEGORY: before delegating.
+class AbilityLoader extends GenericLoader<Ability> {
+  AbilityLoader() : super(() => Ability());
+
   @override
   Ability? parseLine(LoadContext context, Ability? ability, String lstLine, SourceEntry source) {
-    Ability anAbility = ability ?? Ability();
     final bool isNew = ability == null;
+    final Ability anAbility = ability ?? Ability();
 
     final fields = lstLine.split('\t');
     if (fields.isEmpty) return null;
@@ -39,14 +41,15 @@ class AbilityLoader extends LstObjectFileLoader<Ability> {
     anAbility.setName(fields[0]);
     anAbility.setSourceURI(source.getURI());
 
+    // Extract CATEGORY: first — it determines which registry bucket to use
+    // and must be applied before registration.
     String? categoryToken;
     final remaining = <String>[];
-
     for (int i = 1; i < fields.length; i++) {
-      final token = fields[i];
+      final token = fields[i].trim();
       if (token.startsWith('CATEGORY:')) {
-        categoryToken = token.substring(9);
-      } else {
+        categoryToken = token.substring(9).trim();
+      } else if (token.isNotEmpty) {
         remaining.add(token);
       }
     }
@@ -57,58 +60,20 @@ class AbilityLoader extends LstObjectFileLoader<Ability> {
         if (cat != null) {
           anAbility.setCDOMCategory(cat);
         } else {
-          // Invalid category — skip
-          return null;
+          return null; // unknown category — skip
         }
       }
       context.getReferenceContext().register(anAbility);
     }
 
-    // Process remaining tokens (BONUS, PRExxx, TYPE, etc.)
+    // Delegate all remaining tokens to GenericLoader's shared processor
+    // (BONUS, PRExxx, CHOOSE, AUTO, TYPE, DESC, MULT, STACK, DEFINE, …)
     for (final token in remaining) {
-      _processToken(context, anAbility, token, source);
+      _processToken(context, anAbility, source, token);
     }
 
     completeObject(context, source, anAbility);
     return null;
-  }
-
-  void _processToken(LoadContext context, Ability obj, String token, SourceEntry source) {
-    final (tag, value) = LstUtils.splitToken(token);
-    if (value.isEmpty) return;
-    switch (tag.toUpperCase()) {
-      case 'TYPE':
-        for (final t in value.split('.')) {
-          if (t.isNotEmpty) {
-            try { obj.addToListFor(ListKey.getConstant<String>('TYPE'), t); } catch (_) {}
-          }
-        }
-        break;
-      case 'DESC':
-        obj.putString(StringKey.description, value);
-        break;
-      case 'SOURCELONG':
-        obj.putString(StringKey.sourceLong, value);
-        break;
-      case 'SOURCESHORT':
-        obj.putString(StringKey.sourceShort, value);
-        break;
-      case 'OUTPUTNAME':
-        obj.putString(StringKey.outputName, value);
-        break;
-      case 'MULT':
-        obj.putObject(ObjectKey.multipleAllowed, value.toUpperCase() == 'YES');
-        break;
-      case 'STACK':
-        obj.putObject(ObjectKey.stacks, value.toUpperCase() == 'YES');
-        break;
-      case 'SORTKEY':
-        obj.putString(StringKey.sortKey, value);
-        break;
-      default:
-        // PRE, BONUS, CHOOSE, AUTO, etc. — skipped for now
-        break;
-    }
   }
 
   @override

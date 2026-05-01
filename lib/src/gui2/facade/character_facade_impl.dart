@@ -739,7 +739,6 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
     final accBonus = _bonusAcc.totalIntWithAll('STAT', key);
     final base = getScoreBase(stat);
     final lvl = getLevelStatGains(stat);
-    debugPrint('[facade] getEffectiveScore $key base=$base acc=$accBonus lvl=$lvl');
     return base + accBonus + lvl;
   }
 
@@ -837,13 +836,10 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
   void addSelectedAbility(String categoryKey, String abilityKey) {
     final map = (_data['selectedAbilities'] ??= <String, dynamic>{}) as Map;
     final list = (map[categoryKey] ??= <String>[]) as List;
-    debugPrint('[facade] addSelectedAbility cat=$categoryKey key=$abilityKey '
-        'already=${list.contains(abilityKey)} dataset=${_dataset != null}');
     if (!list.contains(abilityKey)) {
       list.add(abilityKey);
       _rebuild();
       notifyListeners();
-      debugPrint('[facade] addSelectedAbility done list=$list');
     }
   }
 

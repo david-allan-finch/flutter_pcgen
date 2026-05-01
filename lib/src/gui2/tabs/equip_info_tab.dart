@@ -410,15 +410,10 @@ class EquipInfoTabState extends State<EquipInfoTab> {
     try {
       final data = (character as dynamic).toJson() as Map<String, dynamic>;
       final eq = (data['equippedSlots'] ??= <String, String>{}) as Map;
-      final itemKey = item['key'] as String? ?? '';
-      debugPrint('[equip] _equipToSlot slot=$slot itemKey=$itemKey');
-      eq[slot] = itemKey;
-      debugPrint('[equip] equippedSlots after: $eq');
+      eq[slot] = item['key'] as String? ?? '';
       currentCharacter.notifyListeners();
       setState(() => _selectedGearIndex = null);
-    } catch (e, st) {
-      debugPrint('[equip] _equipToSlot error: $e\n$st');
-    }
+    } catch (_) {}
   }
 
   void _unequipSlot(dynamic character, String slot) {

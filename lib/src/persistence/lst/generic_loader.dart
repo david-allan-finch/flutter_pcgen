@@ -53,10 +53,6 @@ class GenericLoader<T extends CDOMObject> extends LstObjectFileLoader<T> {
     po.putObject(ObjectKey.sourceCampaign, source.getCampaign());
     po.setSourceURI(source.getURI());
 
-    if (fields[0] == 'Elf') {
-      debugPrint('[loader] Elf parseLine isNew=$isNew uri=${source.getURI()} fields=${fields.length}');
-    }
-
     if (isNew) {
       context.getReferenceContext().register(po);
     }
@@ -112,6 +108,20 @@ class GenericLoader<T extends CDOMObject> extends LstObjectFileLoader<T> {
         case 'STATMOD':
           return;
         case 'DEFINE':
+          // DEFINE:VarName|initialValue — store for two-pass VAR resolution.
+          try {
+            final pipe = value.indexOf('|');
+            if (pipe > 0) {
+              final varName = value.substring(0, pipe).trim();
+              final initVal = value.substring(pipe + 1).trim();
+              if (varName.isNotEmpty) {
+                obj.addToListFor(
+                  ListKey.getConstant<String>('VAR_DEFINES'),
+                  '$varName=$initVal',
+                );
+              }
+            }
+          } catch (_) {}
           return;
         case 'BONUS':
           _parseBonusToken(obj, value);
@@ -577,9 +587,6 @@ class GenericLoader<T extends CDOMObject> extends LstObjectFileLoader<T> {
   /// Additionally, STAT and CHECKS bonuses are stored in the legacy
   /// STAT_BONUS / masterCheckFormula fields for backward compatibility.
   void _parseBonusToken(T obj, String value) {
-    if (obj.getKeyName() == 'Elf') {
-      debugPrint('[loader] Elf BONUS value=$value');
-    }
     final bonus = ParsedBonus.parse(value);
     if (bonus == null) return;
 
@@ -606,15 +613,9 @@ class GenericLoader<T extends CDOMObject> extends LstObjectFileLoader<T> {
                 ListKey.getConstant<String>('STAT_BONUS'),
                 '$s:$intVal',
               );
-              debugPrint('[loader] STAT_BONUS added ${obj.getKeyName()} $s:$intVal');
-            } catch (e) {
-              debugPrint('[loader] STAT_BONUS error ${obj.getKeyName()}: $e');
-            }
+            } catch (_) {}
           }
         }
-      } else {
-        debugPrint('[loader] BONUS:STAT skipped ${obj.getKeyName()} '
-            'formula=${bonus.formula} intVal=$intVal prereqs=${bonus.prereqs.length}');
       }
     }
 
