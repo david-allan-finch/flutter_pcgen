@@ -1,75 +1,69 @@
-# Flutter PCGen — TODO
-
-Based on port audit (April 2026). ~70–75% complete. Domain model and UI framework are largely done;
-the app is not yet functional because data loading is unimplemented and the character creation flow
-is incomplete.
+# PCGen Flutter Port — TODO & Port Needs
 
 ---
 
-## Blocking: Data Loading
+## User TODO — implement only when asked
 
-Nothing works end-to-end until game data can actually be read from disk.
+### Done
+- [x] a) Feat page: "Qualifies" filter chip — show only feats the character can select
+- [x] b) Skill page: "Class" filter chip — show only class skills
+- [x] c) Craft / Knowledge / Perform skills: collapsible tree (grouped by Base (Subtype))
 
-- [x] Implement `SystemLoader` / `LstSystemLoader.loadSystemResources()` — runs `GameModeFileLoader` then `CampaignFileLoader`
-- [x] Wire `app.dart` initialization to real loaders (replaced placeholder `Future.delayed` timers)
-- [x] Implement `CampaignLoader.loadCampaignLstFile()` — parses all .pcc tokens, builds `CampaignSourceEntry` lists, resolves sub-campaign dependencies
-- [x] Add `LstLineFileLoader.loadLstFile(dynamic, Uri)` — enables `TraitLoader`/`LocationLoader` to load via bare URI
-- [x] Add trait, location, equip-slot loading to `GameModeFileLoader._loadGameModeFiles()`
-- [ ] Implement `PersistenceManager` — wire up LST file I/O via the persistence/lst infrastructure
-- [ ] Resolve asset paths on each platform (use `path_provider` for data directory lookup)
-
-## Blocking: Character Creation Flow
-
-- [x] Implement source selection dialog — `AdvancedSourceSelectionPanel` shows real campaigns from `Globals`, grouped by game mode with checkboxes and search filter
-- [x] Wire Load button — calls `SourceFileLoader` with selected campaigns; dialog shows spinner and closes on completion
-- [x] Wire `PCGenFrame.showSourceSelectionDialog()` to real dialog (was a stub snackbar)
-- [x] Call `startPCGenFrame()` from `initState` so source selection auto-shows on launch
-- [x] Implement `SourceFileLoader._collectFileEntries()` — harvests all `FILE_*` lists from selected campaigns
-- [ ] Implement new-character wizard / campaign chooser
-- [ ] Implement `util/chooser` — the chooser dialogs used throughout character building
-  (race chooser, class chooser, feat chooser, skill allocator, etc.)
-
-## Core Gaps
-
-- [ ] Implement `base/calculation` — the variable/modifier calculation framework
-  (may partially overlap with `formula/`; audit overlap before starting)
-- [ ] Complete `formula/` — currently mostly interface stubs (~24 lines/file avg);
-  flesh out solver, function evaluation, operator implementations
-- [ ] Complete `util/` — only enumerations exist; add missing helpers used across the codebase
-- [ ] Implement `util/fop` — XSL-FO / PDF export (or decide on a Flutter-native alternative)
-
-## GUI
-
-- [ ] Wire character sheet tabs to real loaded data (tabs exist but models are not populated)
-- [ ] Implement preferences UI (shell exists in `gui3/`, needs actual preference binding)
-- [ ] Implement source management UI (add/remove/enable sources)
-- [ ] Implement kit application dialog
-- [ ] Audit `gui2/` for any tabs that are structural shells without real logic
-
-## Testing
-
-- [ ] Add unit tests for core game mechanics (bonus calculation, prerequisite evaluation, spell slots)
-- [ ] Add unit tests for LST token parsing once loaders are implemented
-- [ ] Add integration tests for character create → save → load round-trip
-- [ ] Expand `widget_test.dart` beyond the smoke test
-
-## Polish / Later
-
-- [ ] Implement character save/load (`.pcg` file format)
-- [ ] Implement character export (HTML/PDF output sheets via the `output/` system)
-- [ ] Platform testing: verify file I/O and asset paths work on Android and iOS
-- [ ] Add error handling for missing or malformed data files
-- [ ] Decide on `util/fop` strategy — port FOP, use a Dart PDF lib, or drop PDF support
+### Pending
+*(add new items here)*
 
 ---
 
-## Done (port audit findings)
+## Port Needs — things the port still requires to be complete
 
-- [x] Full domain model — `cdom/`, `core/` (~95%+ coverage vs Java)
-- [x] All 19 character sheet tabs — stateful Flutter widgets in `gui2/tabs/`
-- [x] Facade layer — complete abstraction over game data
-- [x] Output/publish system — character sheet model factories and channels
-- [x] Plugin message architecture — `pluginmgr/` functional
-- [x] Rules engine structure — token library, persistence registry
-- [x] Logging system
-- [x] Preloader splash screen with progress bar
+### Data Loading
+- [ ] LoadContext not reset when switching campaigns of same game mode mid-session
+- [ ] PRECLASS prereq evaluation (class levels not yet in PrereqContext)
+- [ ] `BONUS:SKILL|LIST|2` — LIST resolution uses `abilityChoices` map for chosen skill (Skill Focus bonus)
+- [ ] `BONUS:CASTERLEVEL` handling
+- [ ] `TEMPBONUS` token on abilities (temporary bonus application)
+- [ ] `ADDSPELLLEVEL` token on feats
+- [ ] `QUALIFY` token — override prereqs for an ability
+- [ ] `ADD:CLASSSKILLS|skill1|skill2` — class-granted extra class skills
+- [ ] `SERVESAS:RACE|Human|Orc` token (PF2e race alternates)
+
+### Rules Engine
+- [ ] PRECLASS prereq — needs class level data in PrereqContext
+- [ ] Per-level class abilities (ABILITY: at level lines) applied when levelling up
+- [ ] Unarmed damage from UDAM token fed into character sheet
+- [ ] Spell resistance (SR token) displayed and factored in
+- [ ] Damage reduction (DR token) displayed on character sheet
+- [ ] Innate spells (SPELLS token) displayed in spells tab
+- [ ] `BONUS:COMBAT|TOHIT|...` and other combat bonuses used in attack calculation
+- [ ] `BONUS:COMBAT|DAMAGE|...` used in damage calculation
+- [ ] Domain auto-grant: granted abilities shown in Special Ability tab
+- [ ] Domain spells shown in domain tab
+
+### Character Sheet / UI
+- [ ] Character sheet stat block reads from accumulator for ALL bonuses (not just racial)
+- [ ] Attack/damage calculation wired to bonus accumulator
+- [ ] Equipment ACP applied to skill rolls (partially done)
+- [ ] Equipment MAXDEX cap applied to DEX-based AC
+- [ ] Armor/shield AC bonus shown on sheet
+- [ ] Natural attacks from race shown in weapons section
+- [ ] Movement speed from race shown on sheet
+- [ ] Languages tab wired to auto-granted and bonus language choices
+- [ ] Deity weapon proficiency auto-grant
+- [ ] Non-proficient weapon penalty (−4 to attack)
+
+### Save / Load
+- [ ] Domain selections persisted in PCG save file
+- [ ] Ability choices (Skill Focus → Perception) persisted correctly
+- [ ] Equipment location (equipped slot) persisted in PCG save file
+
+### Export
+- [ ] HTML character sheet export
+- [ ] PDF character sheet export
+
+### Testing
+- [ ] Unit tests: bonus accumulator stacking rules
+- [ ] Unit tests: prerequisite evaluation
+- [ ] Unit tests: LST token parsing round-trip
+- [ ] Integration test: character create → save → load
+
+---
