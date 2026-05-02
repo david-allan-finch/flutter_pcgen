@@ -252,8 +252,6 @@ class GenericLoader<T extends CDOMObject> extends LstObjectFileLoader<T> {
         case 'COST':
           // COST:N — point cost (e.g. for ability pools)
           return;
-        case 'VISIBLE':
-          return;
         case 'SPELLLEVEL':
           // SPELLLEVEL:DOMAIN|Fire=1|Burning Hands|Fire=2|Produce Flame|...
           // SPELLLEVEL:Wizard=3|Sorcerer=3 (on spell objects — stored differently)
@@ -276,10 +274,6 @@ class GenericLoader<T extends CDOMObject> extends LstObjectFileLoader<T> {
         case 'STATRANGE':
         case 'MAXLEVEL':
         case 'MAXHD':
-        case 'LEGS':
-        case 'HANDS':
-        case 'FACE':
-        case 'REACH':
           return;
         case 'KEY_STAT':
           // Skill key ability stat abbreviation (e.g. KEY_STAT:STR).
@@ -339,29 +333,6 @@ class GenericLoader<T extends CDOMObject> extends LstObjectFileLoader<T> {
               ObjectKey.getConstant<bool>('EXCLUSIVE', defaultValue: false),
               value.toUpperCase() == 'YES',
             );
-          } catch (_) {}
-          return;
-        case 'SIZE':
-          // SIZE:M — creature size (F D T S M L H G C P)
-          try {
-            obj.putString(StringKey.sizeformula, value.trim());
-          } catch (_) {}
-          return;
-        case 'MOVE':
-          // MOVE:Walk,30,Fly,60,Swim,20 — movement speeds (type,feet pairs)
-          try {
-            obj.putString(StringKey.tempvalue, value);
-            // Also parse into structured map
-            final parts = value.split(',');
-            final moveMap = <String, int>{};
-            for (int i = 0; i + 1 < parts.length; i += 2) {
-              final type  = parts[i].trim();
-              final speed = int.tryParse(parts[i + 1].trim()) ?? 0;
-              if (type.isNotEmpty) moveMap[type] = speed;
-            }
-            if (moveMap.isNotEmpty) {
-              obj.putObject(ObjectKey.getConstant<Map>('MOVE_SPEEDS'), moveMap);
-            }
           } catch (_) {}
           return;
         case 'LANGBONUS':
