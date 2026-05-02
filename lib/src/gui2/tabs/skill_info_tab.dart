@@ -18,6 +18,9 @@ class SkillInfoTab extends StatefulWidget {
 class SkillInfoTabState extends State<SkillInfoTab> {
   dynamic _character;
   final TextEditingController _search = TextEditingController();
+  bool _classSkillsOnly = false;
+  // Groups collapsed by default; user taps header to expand
+  final Set<String> _expandedGroups = {};
 
   void setCharacter(dynamic character) => setState(() => _character = character);
 
@@ -47,9 +50,17 @@ class SkillInfoTabState extends State<SkillInfoTab> {
 
   Widget _buildContent(dynamic character, List<Skill> skills, List<PCStat> stats, List<PCClass> classes) {
     final query = _search.text.trim().toLowerCase();
-    final filtered = query.isEmpty
+    final classSkillNames = _buildClassSkillNames(character, classes);
+
+    var filtered = query.isEmpty
         ? skills
         : skills.where((s) => s.getDisplayName().toLowerCase().contains(query)).toList();
+
+    if (_classSkillsOnly) {
+      filtered = filtered.where((s) =>
+          classSkillNames.contains(s.getDisplayName()) ||
+          classSkillNames.contains(s.getKeyName())).toList();
+    }
 
     final intMod = _statMod(character, 'INT', stats);
     final totalLevels = _totalLevels(character);
@@ -57,7 +68,6 @@ class SkillInfoTabState extends State<SkillInfoTab> {
     final pool = totalLevels > 0
         ? (_computeSkillPool(character, classes, intMod, totalLevels) + modSkillBonus)
         : 0;
-    final classSkillNames = _buildClassSkillNames(character, classes);
     // Cross-class costs: class skills cost 1pt/rank, cross-class cost 2pt/rank
     final spent = _totalPointsSpent(character, skills, classSkillNames);
     final remaining = pool - spent;
@@ -81,7 +91,15 @@ class SkillInfoTabState extends State<SkillInfoTab> {
                   onChanged: (_) => setState(() {}),
                 ),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: 8),
+              FilterChip(
+                label: const Text('Class', style: TextStyle(fontSize: 12)),
+                selected: _classSkillsOnly,
+                onSelected: (v) => setState(() => _classSkillsOnly = v),
+                visualDensity: VisualDensity.compact,
+                tooltip: 'Show only class skills',
+              ),
+              const SizedBox(width: 8),
               if (character != null)
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
@@ -106,17 +124,97 @@ class SkillInfoTabState extends State<SkillInfoTab> {
         // Column headers
         _buildHeader(),
         const Divider(height: 1),
-        // Skill rows
+        // Skill rows (with collapsible groups for Craft/Knowledge/Perform/Profession)
         Expanded(
           child: skills.isEmpty
               ? const Center(child: Text('No skills loaded.'))
-              : ListView.builder(
-                  itemCount: filtered.length,
-                  itemBuilder: (context, i) =>
-                      _buildRow(character, filtered[i], stats, i.isEven, classSkillNames),
-                ),
+              : _buildSkillTree(character, filtered, stats, classSkillNames),
         ),
       ],
+    );
+  }
+
+  // Returns the group key (e.g. "Craft", "Knowledge") for skills like
+  // "Craft (Armorsmithing)", or null for ungrouped skills.
+  static String? _groupKey(Skill skill) {
+    final name = skill.getDisplayName();
+    final paren = name.indexOf(' (');
+    if (paren <= 0) return null;
+    return name.substring(0, paren);
+  }
+
+  Widget _buildSkillTree(dynamic character, List<Skill> skills,
+      List<PCStat> stats, Set<String> classSkillNames) {
+    // Build ordered list of rows to display: ungrouped skills stay flat;
+    // grouped skills are collapsed under a header by default.
+    final rows = <Widget>[];
+    int rowIndex = 0;
+
+    // Group skills by prefix
+    final groups = <String, List<Skill>>{};
+    final ungrouped = <Skill>[];
+    for (final s in skills) {
+      final key = _groupKey(s);
+      if (key != null) {
+        groups.putIfAbsent(key, () => []).add(s);
+      } else {
+        ungrouped.add(s);
+      }
+    }
+
+    // Ungrouped skills interleaved in original order
+    for (final s in skills) {
+      final key = _groupKey(s);
+      if (key != null) {
+        // First time we see this group → insert header
+        final groupSkills = groups[key]!;
+        if (groupSkills.first == s) {
+          final isExpanded = _expandedGroups.contains(key);
+          final isClassSkill = groupSkills.any((gs) =>
+              classSkillNames.contains(gs.getDisplayName()) ||
+              classSkillNames.contains(gs.getKeyName()));
+          rows.add(_buildGroupHeader(key, groupSkills.length, isExpanded, isClassSkill));
+          if (isExpanded) {
+            for (final gs in groupSkills) {
+              rows.add(Padding(
+                padding: const EdgeInsets.only(left: 16),
+                child: _buildRow(character, gs, stats, rowIndex.isEven, classSkillNames, indent: true),
+              ));
+              rowIndex++;
+            }
+          }
+        }
+      } else {
+        rows.add(_buildRow(character, s, stats, rowIndex.isEven, classSkillNames));
+        rowIndex++;
+      }
+    }
+
+    return ListView(children: rows);
+  }
+
+  Widget _buildGroupHeader(String group, int count, bool expanded, bool isClassSkill) {
+    return InkWell(
+      onTap: () => setState(() {
+        if (expanded) _expandedGroups.remove(group); else _expandedGroups.add(group);
+      }),
+      child: Container(
+        color: Colors.grey.shade100,
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+        child: Row(children: [
+          Icon(expanded ? Icons.expand_less : Icons.expand_more,
+              size: 16, color: Colors.grey.shade600),
+          const SizedBox(width: 4),
+          Text(group,
+              style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12,
+                  color: isClassSkill ? Colors.green.shade700 : Colors.orange.shade700)),
+          const SizedBox(width: 6),
+          Text('($count skills)',
+              style: TextStyle(fontSize: 11, color: Colors.grey.shade500)),
+        ]),
+      ),
     );
   }
 
@@ -138,7 +236,7 @@ class SkillInfoTabState extends State<SkillInfoTab> {
   }
 
   Widget _buildRow(dynamic character, Skill skill, List<PCStat> stats, bool shaded,
-      Set<String> classSkills) {
+      Set<String> classSkills, {bool indent = false}) {
     final isClassSkill = classSkills.contains(skill.getDisplayName()) ||
         classSkills.contains(skill.getKeyName());
     final keyStatAbb = _safeKeyStatAbb(skill);

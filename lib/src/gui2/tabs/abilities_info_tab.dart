@@ -24,6 +24,7 @@ class AbilitiesInfoTabState extends State<AbilitiesInfoTab>
   dynamic _character;
   late final TabController _catTabController;
   final TextEditingController _search = TextEditingController();
+  bool _qualifiesOnly = false;
 
   static const _kCategories = ['FEAT', 'Special Ability', 'Class Ability'];
 
@@ -127,17 +128,29 @@ class AbilitiesInfoTabState extends State<AbilitiesInfoTab>
                   },
                 ),
                 Padding(
-                  padding: const EdgeInsets.all(8),
-                  child: TextField(
-                    controller: _search,
-                    decoration: const InputDecoration(
-                      prefixIcon: Icon(Icons.search),
-                      hintText: 'Filter…',
-                      border: OutlineInputBorder(),
-                      isDense: true,
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  child: Row(children: [
+                    Expanded(
+                      child: TextField(
+                        controller: _search,
+                        decoration: const InputDecoration(
+                          prefixIcon: Icon(Icons.search),
+                          hintText: 'Filter…',
+                          border: OutlineInputBorder(),
+                          isDense: true,
+                        ),
+                        onChanged: (_) => setState(() {}),
+                      ),
                     ),
-                    onChanged: (_) => setState(() {}),
-                  ),
+                    const SizedBox(width: 8),
+                    FilterChip(
+                      label: const Text('Qualifies', style: TextStyle(fontSize: 12)),
+                      selected: _qualifiesOnly,
+                      onSelected: (v) => setState(() => _qualifiesOnly = v),
+                      visualDensity: VisualDensity.compact,
+                      tooltip: 'Show only feats this character qualifies for',
+                    ),
+                  ]),
                 ),
                 Expanded(
                   child: TabBarView(
@@ -160,14 +173,23 @@ class AbilitiesInfoTabState extends State<AbilitiesInfoTab>
   Widget _buildCategoryView(
       dynamic character, List<Ability> available, String category) {
     final query = _search.text.trim().toLowerCase();
-    final filtered = query.isEmpty
+    final selectedKeys =
+        character != null ? _getSelectedKeys(character, category) : const <String>[];
+
+    var filtered = query.isEmpty
         ? available
         : available
             .where((a) => a.getDisplayName().toLowerCase().contains(query))
             .toList();
 
-    final selectedKeys =
-        character != null ? _getSelectedKeys(character, category) : const <String>[];
+    // "Qualifies only" — hide entries the character doesn't meet prereqs for,
+    // but always show already-selected ones so they can be removed.
+    if (_qualifiesOnly && character != null) {
+      filtered = filtered.where((a) {
+        if (selectedKeys.contains(a.getKeyName())) return true;
+        return _checkPrereqs(character, a).$1;
+      }).toList();
+    }
 
     if (available.isEmpty) {
       return Center(
