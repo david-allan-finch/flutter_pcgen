@@ -383,7 +383,7 @@ class EquipInfoTabState extends State<EquipInfoTab> {
       final eq = (data['equippedSlots'] ??= <String, String>{}) as Map;
       eq[slot] = item['key'] as String? ?? '';
       currentCharacter.notifyListeners();
-      setState(() => _selectedGearIndex = null);
+      setState(() {});
     } catch (_) {}
   }
 
