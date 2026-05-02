@@ -74,4 +74,7 @@ enum StringKey {
   spellStat,
   knownSpellFormula,
   critMult,
+  altName,       // base item name for EQMODs
+  abbreviation,  // favored class for races
+  altText,       // miscellaneous alternate text field
 }

@@ -102,11 +102,45 @@ class ParsedPrereq {
         result = true;
         break;
       case 'PRERULE':
-        // Game rule toggles — treat as always satisfied for now
-        result = true;
+        result = true; // game rule toggles — optimistically pass
         break;
       case 'PREMULT':
         result = _evalMult(ctx);
+        break;
+      case 'PRETOTALAB':
+        // PRETOTALAB:N,minBAB — character BAB must be ≥ minBAB
+        result = _evalTotalAb(ctx);
+        break;
+      case 'PRECLASS':
+        // PRECLASS:N,ClassName=minLevel
+        result = _evalPreClass(ctx);
+        break;
+      case 'PREFEAT':
+        // PREFEAT:N,FeatName — reuse PREABILITY logic
+        result = _evalAbility(ctx);
+        break;
+      case 'PREHANDSEQ':
+      case 'PREHANDSGTEQ':
+      case 'PREHANDSLT':
+      case 'PRESPELLTYPE':
+      case 'PRESPELLSCHOOL':
+      case 'PRESPELLSCHOOLSUB':
+      case 'PRESPELLCAST':
+      case 'PRECAMPAIGN':
+      case 'PREAGEGTEQ':
+      case 'PREAGERANGE':
+      case 'PREGENDER':
+      case 'PREDEITY':
+      case 'PREDEITYALIGN':
+      case 'PREDOMAIN':
+      case 'PREITEM':
+      case 'PREARMORTYPE':
+      case 'PREWEAPONPROF':
+      case 'PREWIELD':
+      case 'PRELEVEL':
+      case 'PRELEVELMAX':
+      case 'PRESREQ':
+        result = true; // optimistic pass for unimplemented prereqs
         break;
       default:
         result = true; // unknown prereq: optimistically pass
@@ -218,6 +252,39 @@ class ParsedPrereq {
     // PREPCLEVEL:N — total level >= N
     final needed = int.tryParse(raw.trim()) ?? 0;
     return ctx.totalLevel >= needed;
+  }
+
+  bool _evalTotalAb(PrereqContext ctx) {
+    // PRETOTALAB:N,minBAB — raw = 'N,minBAB'
+    final comma = raw.indexOf(',');
+    if (comma < 0) return true;
+    final minBab = double.tryParse(raw.substring(comma + 1).trim()) ?? 0;
+    // Try BAB variable first, fall back to totalLevel as a proxy.
+    final bab = ctx.getVariable('BAB');
+    if (bab > 0) return bab >= minBab;
+    return ctx.totalLevel.toDouble() >= minBab - 1;
+  }
+
+  bool _evalPreClass(PrereqContext ctx) {
+    // PRECLASS:N,ClassName=minLevel[,ClassName2=minLevel2]
+    // We don't have class-level data in PrereqContext, so we check whether the
+    // character has any class-level by looking at getVariable('CL.<name>').
+    // If still 0, optimistically pass (conservative approach would fail).
+    final parts = raw.split(',');
+    if (parts.isEmpty) return true;
+    final needed = int.tryParse(parts[0].trim()) ?? 1;
+    int met = 0;
+    for (int i = 1; i < parts.length; i++) {
+      final eq = parts[i].indexOf('=');
+      if (eq < 0) continue;
+      final className = parts[i].substring(0, eq).trim();
+      final minLvl = double.tryParse(parts[i].substring(eq + 1).trim()) ?? 1;
+      final actual = ctx.getVariable('CL.$className');
+      if (actual >= minLvl) met++;
+    }
+    if (met >= needed) return true;
+    // Optimistic pass if we can't determine class levels.
+    return true;
   }
 
   bool _evalMult(PrereqContext ctx) {

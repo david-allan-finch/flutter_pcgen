@@ -24,8 +24,8 @@ import 'package:flutter_pcgen/src/core/pc_class.dart';
 import 'package:flutter_pcgen/src/core/sub_class.dart';
 import 'package:flutter_pcgen/src/core/substitution_class.dart';
 import 'package:flutter_pcgen/src/persistence/lst/lst_utils.dart';
+import 'package:flutter_pcgen/src/persistence/lst/generic_loader.dart';
 import 'package:flutter_pcgen/src/rules/context/load_context.dart';
-import 'package:flutter_pcgen/src/persistence/lst/lst_object_file_loader.dart';
 import 'package:flutter_pcgen/src/persistence/lst/source_entry.dart';
 import 'package:flutter_pcgen/src/rules/parsed_bonus.dart';
 
@@ -36,7 +36,8 @@ import 'package:flutter_pcgen/src/rules/parsed_bonus.dart';
 /// for a sub-class header, "ClassName  <level>" for a class level definition,
 /// etc. This Dart version provides the outer parse loop and dispatches to
 /// helpers for the complex class-level logic.
-class PCClassLoader extends LstObjectFileLoader<PCClass> {
+class PCClassLoader extends GenericLoader<PCClass> {
+  PCClassLoader() : super(() => PCClass());
   @override
   PCClass? parseLine(
       LoadContext context, PCClass? target, String lstLine, SourceEntry source) {
@@ -133,12 +134,17 @@ class PCClassLoader extends LstObjectFileLoader<PCClass> {
           }
           break;
         case 'BONUS':
-          // Per-level bonus (e.g. sneak attack at certain rogue levels)
           final parsed = ParsedBonus.parse(value);
           if (parsed != null) {
+            try { pcClass.addToListFor(ListKey.getConstant<ParsedBonus>('PARSED_BONUS'), parsed); } catch (_) {}
+          }
+          break;
+        case 'DEFINE':
+          final pipeIdx = value.indexOf('|');
+          if (pipeIdx > 0) {
             try {
-              pcClass.addToListFor(
-                ListKey.getConstant<ParsedBonus>('PARSED_BONUS'), parsed);
+              pcClass.addToListFor(ListKey.getConstant<String>('VAR_DEFINES'),
+                  '${value.substring(0, pipeIdx)}=${value.substring(pipeIdx + 1)}');
             } catch (_) {}
           }
           break;
@@ -155,64 +161,66 @@ class PCClassLoader extends LstObjectFileLoader<PCClass> {
     for (final token in tokens) {
       final tok = token.trim();
       if (tok.isEmpty) continue;
-      _parseToken(pcClass, tok);
+      if (!_parseToken(context, pcClass, source, tok)) {
+        // Delegate unhandled tokens to GenericLoader (BONUS, PRE, CHOOSE, AUTO, etc.)
+        processToken(context, pcClass, source, tok);
+      }
     }
   }
 
-  void _parseToken(PCClass pcClass, String token) {
+  /// Returns true if the token was handled by PCClassLoader, false to
+  /// delegate to GenericLoader.processToken (PRE, CHOOSE, AUTO, etc.).
+  bool _parseToken(LoadContext context, PCClass pcClass, SourceEntry source, String token) {
     final (tag, value) = LstUtils.splitToken(token);
-    if (value.isEmpty) return;
+    if (value.isEmpty) return true; // empty value — consume silently
     switch (tag.toUpperCase()) {
       case 'HD':
-        // HD:10 — hit die size (d10 for Fighter, d4 for Wizard, etc.)
         pcClass.putString(StringKey.hdFormula, value);
-        break;
+        return true;
       case 'TYPE':
         for (final t in value.split('.')) {
           if (t.isNotEmpty) {
             try { pcClass.addToListFor(ListKey.getConstant<String>('TYPE'), t); } catch (_) {}
           }
         }
-        break;
+        return true;
       case 'DESC':
         pcClass.putString(StringKey.description, value);
-        break;
+        return true;
       case 'SOURCELONG':
         pcClass.putString(StringKey.sourceLong, value);
-        break;
+        return true;
       case 'SOURCESHORT':
         pcClass.putString(StringKey.sourceShort, value);
-        break;
+        return true;
       case 'SOURCEWEB':
         pcClass.putString(StringKey.sourceWeb, value);
-        break;
+        return true;
+      case 'SOURCEPAGE':
+        try { pcClass.putString(StringKey.sourcePage, value); } catch (_) {}
+        return true;
       case 'STARTSKILLPTS':
         try { pcClass.putObject(ObjectKey.getConstant<int>('START_SKILL_PTS'), int.tryParse(value) ?? 2); } catch (_) {}
-        break;
+        return true;
       case 'CSKILL':
-        // Class skills: CSKILL:Acrobatics|Climb|TYPE=Knowledge|...
-        // Store each skill name individually; TYPE=xxx entries are kept raw
-        // for later matching by skill type.
         for (final s in value.split('|')) {
           final skill = s.trim();
           if (skill.isNotEmpty) {
-            try {
-              pcClass.addToListFor(
-                ListKey.getConstant<String>('CLASS_SKILLS'), skill);
-            } catch (_) {}
+            try { pcClass.addToListFor(ListKey.getConstant<String>('CLASS_SKILLS'), skill); } catch (_) {}
           }
         }
-        // Also store raw for backward compat
         try { pcClass.putString(StringKey.listtype, value); } catch (_) {}
-        break;
+        return true;
       case 'OUTPUTNAME':
         pcClass.putString(StringKey.outputName, value);
-        break;
+        return true;
       case 'SORTKEY':
         pcClass.putString(StringKey.sortKey, value);
-        break;
+        return true;
+      case 'KEY':
+        try { pcClass.setKeyName(value); } catch (_) {}
+        return true;
       case 'FACT':
-        // FACT:FieldName|Value — e.g. FACT:ClassType|PC, FACT:Abb|Ftr
         final pipeIdx = value.indexOf('|');
         if (pipeIdx > 0) {
           final factName = value.substring(0, pipeIdx);
@@ -220,31 +228,24 @@ class PCClassLoader extends LstObjectFileLoader<PCClass> {
           switch (factName.toUpperCase()) {
             case 'CLASSTYPE':
               pcClass.putString(StringKey.classType, factVal);
-              break;
             case 'ABB':
               pcClass.putString(StringKey.abbKr, factVal);
-              break;
             default:
               break;
           }
         }
-        break;
+        return true;
       case 'ROLE':
-        // ROLE:Combat|Divine etc — store as description if not set
         if (pcClass.getString(StringKey.description) == null) {
           pcClass.putString(StringKey.description, 'Role: $value');
         }
-        break;
+        return true;
       case 'BONUS':
-        // Store as ParsedBonus for the rules engine.
         final parsed = ParsedBonus.parse(value);
         if (parsed != null) {
-          try {
-            pcClass.addToListFor(
-              ListKey.getConstant<ParsedBonus>('PARSED_BONUS'), parsed);
-          } catch (_) {}
+          try { pcClass.addToListFor(ListKey.getConstant<ParsedBonus>('PARSED_BONUS'), parsed); } catch (_) {}
         }
-        // Legacy BAB / save detection for backward compatibility.
+        // Legacy BAB / save type detection.
         final parts = value.split('|');
         if (parts.length >= 3) {
           final bonusType = parts[0].toUpperCase();
@@ -283,77 +284,69 @@ class PCClassLoader extends LstObjectFileLoader<PCClass> {
             }
           }
         }
-        break;
+        return true;
       case 'SPELLSTAT':
-        // SPELLSTAT:WIS — spellcasting ability for this class
         try { pcClass.putString(StringKey.spellStat, value); } catch (_) {}
-        break;
+        return true;
       case 'MEMORIZE':
-        // MEMORIZE:YES/NO — prepared vs spontaneous caster
-        try {
-          pcClass.putObject(ObjectKey.getConstant<bool>('MEMORIZE'),
-              value.toUpperCase() == 'YES');
-        } catch (_) {}
-        break;
+        try { pcClass.putObject(ObjectKey.getConstant<bool>('MEMORIZE'), value.toUpperCase() == 'YES'); } catch (_) {}
+        return true;
       case 'SPELLBOOK':
-        try {
-          pcClass.putObject(ObjectKey.getConstant<bool>('SPELLBOOK'),
-              value.toUpperCase() == 'YES');
-        } catch (_) {}
-        break;
+        try { pcClass.putObject(ObjectKey.getConstant<bool>('SPELLBOOK'), value.toUpperCase() == 'YES'); } catch (_) {}
+        return true;
       case 'LANGBONUS':
-        // LANGBONUS:Abyssal,Celestial,Infernal — bonus language choices
         for (final lang in value.split(',')) {
           final l = lang.trim();
           if (l.isNotEmpty) {
-            try {
-              pcClass.addToListFor(
-                ListKey.getConstant<String>('LANG_BONUS'), l);
-            } catch (_) {}
+            try { pcClass.addToListFor(ListKey.getConstant<String>('LANG_BONUS'), l); } catch (_) {}
           }
         }
-        break;
+        return true;
       case 'CAST':
-        // Per-level spell slots: stored on CLASSABILITIESLEVEL objects
-        // At this point we're processing a level line, handled by parseLine
-        break;
       case 'KNOWN':
-        break;
+        return true; // level-line tokens; handled by _parseLevelLine
       case 'KNOWNSPELLS':
-        // KNOWNSPELLS:LEVEL=0|LEVEL=1|... — all spells of these levels are known
         try { pcClass.putString(StringKey.knownSpellFormula, value); } catch (_) {}
-        break;
+        return true;
+      case 'KNOWNSPELLSFROMSPECIALTY':
+        return true; // wizard specialty — ignore
       case 'VISIBLE':
-        break;
       case 'MAXLEVEL':
-        try {
-          pcClass.putObject(ObjectKey.getConstant<int>('MAX_LEVEL'),
-              int.tryParse(value) ?? 20);
-        } catch (_) {}
-        break;
+        try { pcClass.putObject(ObjectKey.getConstant<int>('MAX_LEVEL'), int.tryParse(value) ?? 20); } catch (_) {}
+        return true;
       case 'EXCLASS':
-        // Ex-class name — ignore for now
-        break;
       case 'CASTERLEVEL':
-      case 'BONUS:CASTERLEVEL':
-        break;
       case 'INTMOD':
-        break;
+      case 'ATTACKCYCLE':
+      case 'SUBCLASS':
+      case 'SUBCLASSLEVEL':
+      case 'SUBSTITUTIONLEVEL':
+      case 'CHOICE':
+      case 'ITEMCREATE':
+      case 'UMULT':
+      case 'UDAM':
+      case 'PREALIGN': // handled via isPrereqToken but class-specific; fall to generic
+        return false; // let GenericLoader handle PRE tokens including PREALIGN
       case 'DEFINE':
-        // DEFINE:VarName|initialValue — initialise a variable
-        // Store for later use in formula evaluation
-        final pipeIdx = value.indexOf('|');
-        if (pipeIdx > 0) {
-          // Store defined variables as VAR_DEFINES list entries
+        final pipeIdx2 = value.indexOf('|');
+        if (pipeIdx2 > 0) {
           try {
             pcClass.addToListFor(
               ListKey.getConstant<String>('VAR_DEFINES'),
-              '${value.substring(0, pipeIdx)}=${value.substring(pipeIdx + 1)}');
+              '${value.substring(0, pipeIdx2)}=${value.substring(pipeIdx2 + 1)}');
           } catch (_) {}
         }
-        break;
+        return true;
+      case 'PROHIBITSPELL':
+      case 'SPELLTYPE':
+      case 'DR':
+      case 'SR':
+      case 'TEMPLATE':
+      case 'WEAPONBONUS':
+      case 'XTRASKILLPTSPERLVL':
+        return false; // let GenericLoader handle these
       default:
-        break;
+        return false; // delegate to GenericLoader
     }
   }
 

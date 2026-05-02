@@ -449,6 +449,116 @@ class GenericLoader<T extends CDOMObject> extends LstObjectFileLoader<T> {
             }
           }
           return;
+
+        // ---- Race / creature tokens ----------------------------------------
+        case 'MOVE':
+          // MOVE:Walk,30  or  MOVE:Walk,30,Swim,20
+          try {
+            final parts = value.split(',');
+            for (int i = 0; i + 1 < parts.length; i += 2) {
+              final type = parts[i].trim();
+              final speed = int.tryParse(parts[i + 1].trim()) ?? 0;
+              if (type.isNotEmpty) {
+                obj.addToListFor(
+                  ListKey.getConstant<String>('MOVE_SPEEDS'), '$type:$speed');
+              }
+            }
+          } catch (_) {}
+          return;
+        case 'SIZE':
+          try { obj.putObject(ObjectKey.getConstant<String>('RACE_SIZE'), value.trim()); } catch (_) {}
+          return;
+        case 'FAVCLASS':
+          try { obj.putString(StringKey.abbreviation, value); } catch (_) {}
+          return;
+        case 'FACE':
+        case 'LEGS':
+        case 'HANDS':
+        case 'ARMS':
+        case 'TAIL':
+          return; // cosmetic — ignore
+        case 'REACH':
+          try { obj.putObject(ObjectKey.getConstant<int>('REACH'), int.tryParse(value.trim()) ?? 5); } catch (_) {}
+          return;
+        case 'SR':
+          try { obj.putObject(ObjectKey.getConstant<String>('SR_FORMULA'), value.trim()); } catch (_) {}
+          return;
+        case 'DR':
+          try { obj.addToListFor(ListKey.getConstant<String>('DR_LIST'), value.trim()); } catch (_) {}
+          return;
+        case 'TEMPLATE':
+          // TEMPLATE:TemplateName|TemplateName2
+          for (final t in value.split('|')) {
+            final name = t.trim();
+            if (name.isNotEmpty && !name.toUpperCase().startsWith('CHOOSE')) {
+              try { obj.addToListFor(ListKey.getConstant<String>('AUTO_TEMPLATES'), name); } catch (_) {}
+            }
+          }
+          return;
+        case 'SPELLS':
+          // SPELLS:Innate|TIMES=1|SpellName,DC — store raw for innate spell use
+          try { obj.addToListFor(ListKey.getConstant<String>('INNATE_SPELLS'), value); } catch (_) {}
+          return;
+        case 'UDAM':
+          // UDAM:1d3 — unarmed damage (store in damage field if not already set)
+          try { obj.putString(StringKey.damage, value); } catch (_) {}
+          return;
+
+        // ---- Equipment tokens -----------------------------------------------
+        case 'VISIBLE':
+          try {
+            obj.putObject(ObjectKey.getConstant<bool>('VISIBLE'),
+                value.trim().toUpperCase() == 'YES');
+          } catch (_) {}
+          return;
+        case 'BASEITEM':
+          try { obj.putString(StringKey.altName, value.trim()); } catch (_) {}
+          return;
+        case 'SLOTS':
+          try { obj.putObject(ObjectKey.getConstant<int>('EQUIP_SLOTS'), int.tryParse(value.trim()) ?? 1); } catch (_) {}
+          return;
+        case 'CONTAINS':
+        case 'ALTERNATECOST':
+        case 'MODS':
+        case 'QUALITY':
+        case 'NUMPAGES':
+        case 'PAGEUSAGE':
+        case 'SPELLTYPE':
+        case 'CLASSTYPE':
+        case 'PROHIBITSPELL':
+        case 'COMPANIONLIST':
+        case 'USEMEASURE':
+        case 'WEAPONBONUS':
+        case 'ATTACKCYCLE':
+        case 'ITEM':
+        case 'ITEMTYPE':
+        case 'DESCISIP':
+        case 'SOURCEPAGE':
+        case 'SOURCEWEB2':
+        case 'SUBSCHOOL2':
+        case 'SPELL':
+        case 'SPELLLEVEL2':
+        case 'ADDDOMAINS':
+        case 'DEITYWEAP':
+        case 'DOMAINS':
+        case 'PANTHEON':
+        case 'WORSHIPPERS':
+        case 'SYMBOL':
+        case 'TITLE':
+        case 'APPEARANCE':
+        case 'ALTCRITMULT':
+        case 'ALTCRITRANGE':
+        case 'ALTDAMAGE':
+        case 'ALTEQMOD':
+        case 'ALTTYPE':
+        case 'FUMBLERANGE':
+        case 'MAXDEX2':
+        case 'WT2':
+        case 'COST2':
+        case 'NUMPAGES2':
+        case 'PAGEUSAGE2':
+          return; // recognised but not needed for character building
+
         default:
           break; // fall through to registered handlers
       }
