@@ -100,12 +100,12 @@ class TrackingObjectCommitStrategy implements ObjectCommitStrategy {
   }
 
   @override
-  void putObject<T>(CDOMObject cdo, ObjectKey<T> sk, T s) {
+  void putObject<T>(CDOMObject cdo, CDOMObjectKey<T> sk, T s) {
     _getPositive(_sourceURI, cdo).putObject(sk, s);
   }
 
   @override
-  void removeObject(CDOMObject cdo, ObjectKey<dynamic> sk) {
+  void removeObject(CDOMObject cdo, CDOMObjectKey<dynamic> sk) {
     _getNegative(_sourceURI, cdo)
         .addToListFor(ListKey.removedObjectKey, sk);
   }
@@ -231,7 +231,7 @@ class TrackingObjectCommitStrategy implements ObjectCommitStrategy {
   }
 
   @override
-  T? getObject<T>(CDOMObject cdo, ObjectKey<T> ik) {
+  T? getObject<T>(CDOMObject cdo, CDOMObjectKey<T> ik) {
     return _getPositive(_extractURI, cdo).getObject(ik);
   }
 
@@ -293,7 +293,7 @@ class TrackingObjectCommitStrategy implements ObjectCommitStrategy {
   }
 
   @override
-  bool wasRemovedObject(CDOMObject cdo, ObjectKey<dynamic> ok) {
+  bool wasRemovedObject(CDOMObject cdo, CDOMObjectKey<dynamic> ok) {
     return _getNegative(_extractURI, cdo)
         .containsInList(ListKey.removedObjectKey, ok);
   }
@@ -399,11 +399,11 @@ abstract class AbstractObjectContext implements ObjectCommitStrategy {
       _edits.removeInteger(cdo, ik);
 
   @override
-  void putObject<T>(CDOMObject cdo, ObjectKey<T> sk, T s) =>
+  void putObject<T>(CDOMObject cdo, CDOMObjectKey<T> sk, T s) =>
       _edits.putObject(cdo, sk, s);
 
   @override
-  void removeObject(CDOMObject cdo, ObjectKey<dynamic> sk) =>
+  void removeObject(CDOMObject cdo, CDOMObjectKey<dynamic> sk) =>
       _edits.removeObject(cdo, sk);
 
   @override
@@ -584,7 +584,7 @@ abstract class AbstractObjectContext implements ObjectCommitStrategy {
     }
   }
 
-  void _putObjectKey<T>(CDOMObject cdo, ObjectKey<T> key, CDOMObject pos) {
+  void _putObjectKey<T>(CDOMObject cdo, CDOMObjectKey<T> key, CDOMObject pos) {
     getCommitStrategy().putObject(cdo, key, pos.getObject(key) as T);
   }
 
@@ -631,7 +631,7 @@ abstract class AbstractObjectContext implements ObjectCommitStrategy {
       getCommitStrategy().getMapChanges(cdo, mk);
 
   @override
-  T? getObject<T>(CDOMObject cdo, ObjectKey<T> ik) =>
+  T? getObject<T>(CDOMObject cdo, CDOMObjectKey<T> ik) =>
       getCommitStrategy().getObject(cdo, ik);
 
   @override
@@ -675,7 +675,7 @@ abstract class AbstractObjectContext implements ObjectCommitStrategy {
       getCommitStrategy().getListPatternChanges(cdo, lk);
 
   @override
-  bool wasRemovedObject(CDOMObject cdo, ObjectKey<dynamic> ok) =>
+  bool wasRemovedObject(CDOMObject cdo, CDOMObjectKey<dynamic> ok) =>
       getCommitStrategy().wasRemovedObject(cdo, ok);
 
   @override

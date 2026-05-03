@@ -27,7 +27,7 @@ import 'package:flutter_pcgen/src/rules/persistence/token/parse_result.dart';
 ///   - ReferenceManufacturer<T>
 ///   - PrimitiveCollection<T>, PrimitiveChoiceSet<T>, CollectionToChoiceSet
 ///   - BasicChooseInformation<T>, ChooseInformation<T>
-///   - ObjectKey.CHOOSE_INFO, AssociationListKey<T>
+///   - CDOMObjectKey.CHOOSE_INFO, AssociationListKey<T>
 ///   - GroupingState
 ///   - PlayerCharacter, ChooseDriver, ChooseSelectionActor
 ///   - context.getChoiceSet / context.getObjectContext
@@ -77,7 +77,7 @@ abstract class AbstractQualifiedChooseToken<T>
     //   2. context.getChoiceSet(rm, activeValue) → PrimitiveCollection<T>
     //   3. Validate groupingState.isValid()
     //   4. Build CollectionToChoiceSet, BasicChooseInformation, store via
-    //      context.getObjectContext().put(obj, ObjectKey.CHOOSE_INFO, tc)
+    //      context.getObjectContext().put(obj, CDOMObjectKey.CHOOSE_INFO, tc)
     throw UnimplementedError(
         'AbstractQualifiedChooseToken.parseTokenWithSeparatorAndManufacturer: '
         'requires PrimitiveCollection + ChooseInformation infrastructure');
@@ -99,14 +99,14 @@ abstract class AbstractQualifiedChooseToken<T>
 
   @override
   List<String>? unparse(LoadContext context, dynamic cdo) {
-    // TODO: implement once ObjectKey.CHOOSE_INFO + ChooseInformation are ported.
+    // TODO: implement once CDOMObjectKey.CHOOSE_INFO + ChooseInformation are ported.
     // Java logic:
-    //   ChooseInformation<?> tc = context.getObjectContext().getObject(cdo, ObjectKey.CHOOSE_INFO);
+    //   ChooseInformation<?> tc = context.getObjectContext().getObject(cdo, CDOMObjectKey.CHOOSE_INFO);
     //   if (tc == null || !tc.getName().equals(getTokenName())) return null;
     //   Validate groupingState; build LST format; append TITLE= if non-default.
     throw UnimplementedError(
         'AbstractQualifiedChooseToken.unparse: '
-        'requires ObjectKey.CHOOSE_INFO + ChooseInformation infrastructure');
+        'requires CDOMObjectKey.CHOOSE_INFO + ChooseInformation infrastructure');
   }
 
   // ---------------------------------------------------------------------------

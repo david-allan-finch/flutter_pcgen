@@ -24,7 +24,7 @@ class TemplateFeatFacet
     final id = dfce.getCharID();
     final source = dfce.getCDOMObject();
     if (!containsFrom(id, source)) {
-      final choice = source.getObject(ObjectKey.getConstant('TEMPLATE_FEAT'));
+      final choice = source.getObject(CDOMObjectKey.getConstant('TEMPLATE_FEAT'));
       if (choice != null) {
         final pc = trackingFacet.getPC(id);
         final result = choice.driveChoice(pc);
@@ -40,7 +40,7 @@ class TemplateFeatFacet
   void dataRemoved(DataFacetChangeEvent<CharID, PCTemplate> dfce) {
     final id = dfce.getCharID();
     final source = dfce.getCDOMObject();
-    final choice = source.getObject(ObjectKey.getConstant('TEMPLATE_FEAT'));
+    final choice = source.getObject(CDOMObjectKey.getConstant('TEMPLATE_FEAT'));
     if (choice != null) {
       final pc = trackingFacet.getPC(id);
       choice.remove(source, pc);

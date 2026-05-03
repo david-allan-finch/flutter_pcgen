@@ -15,7 +15,7 @@ class ClassSpellListFacet {
 
   /// Processes [pcc] and adds appropriate SpellList(s) to the PC.
   void process(CharID id, PCClass pcc) {
-    final csc = pcc.getObject(ObjectKey.getConstant('SPELLLIST_CHOICE'));
+    final csc = pcc.getObject(CDOMObjectKey.getConstant('SPELLLIST_CHOICE'));
     if (csc == null) {
       addDefaultSpellList(id, pcc);
     } else {
@@ -29,6 +29,6 @@ class ClassSpellListFacet {
   /// Adds the default SpellList for [pcc] to the Player Character.
   void addDefaultSpellList(CharID id, PCClass pcc) {
     spellListFacet.add(
-        id, pcc.getObject(ObjectKey.getConstant('CLASS_SPELLLIST')), pcc);
+        id, pcc.getObject(CDOMObjectKey.getConstant('CLASS_SPELLLIST')), pcc);
   }
 }

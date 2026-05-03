@@ -67,7 +67,7 @@ final class KitAbilities extends BaseKit {
           continue;
         }
         if (a.getCost() < minCost) minCost = a.getCost();
-        if (choice == null && a.getSafeObject(ObjectKey.getConstant('MULT')) == true) {
+        if (choice == null && a.getSafeObject(CDOMObjectKey.getConstant('MULT')) == true) {
           available.add(_AbilitySelection(a, ''));
         } else {
           available.add(_AbilitySelection(a, choice));

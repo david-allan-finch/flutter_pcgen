@@ -48,7 +48,7 @@ class MonsterClassFacet implements DataFacetChangeListener<CharID, CDOMObject> {
 
     // Add monster class levels first (before existing levels)
     if (!pc.isImporting()) {
-      final lcf = cdo.getObject(ObjectKey.getConstant('MONSTER_CLASS'));
+      final lcf = cdo.getObject(CDOMObjectKey.getConstant('MONSTER_CLASS'));
       if (lcf != null) {
         final levelCount =
             formulaResolvingFacet.resolve(id, lcf.getLevelCount(), '').toInt();
@@ -79,7 +79,7 @@ class MonsterClassFacet implements DataFacetChangeListener<CharID, CDOMObject> {
   @override
   void dataRemoved(DataFacetChangeEvent<CharID, CDOMObject> dfce) {
     final cdo = dfce.getCDOMObject();
-    final lcf = cdo.getObject(ObjectKey.getConstant('MONSTER_CLASS'));
+    final lcf = cdo.getObject(CDOMObjectKey.getConstant('MONSTER_CLASS'));
     if (lcf != null) {
       final id = dfce.getCharID();
       final levelCount =

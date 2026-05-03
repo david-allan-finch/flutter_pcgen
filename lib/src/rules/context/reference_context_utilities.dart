@@ -40,7 +40,7 @@ class ReferenceContextUtilities {
         final choice = (singleRef as dynamic).getChoice() as String?; // stub
         if (choice != null) {
           final cdo = singleRef.get() as CDOMObject;
-          // stub: ObjectKey.CHOOSE_INFO lookup requires ObjectKey support
+          // stub: CDOMObjectKey.CHOOSE_INFO lookup requires CDOMObjectKey support
           final ci = cdo.get(null) as dynamic; // stub
           if (ci == null) {
             // stub: Logging.errorPrint equivalent

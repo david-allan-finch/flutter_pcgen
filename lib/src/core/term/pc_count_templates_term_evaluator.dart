@@ -14,7 +14,7 @@ class PCCountTemplatesTermEvaluator extends BasePCDTermEvaluator implements Term
   double? resolveDisplay(dynamic display) {
     double count = 0.0;
     for (final template in display.getTemplateSet()) {
-      // TODO: Requires ObjectKey.VISIBILITY and View.VISIBLE_EXPORT check.
+      // TODO: Requires CDOMObjectKey.VISIBILITY and View.VISIBLE_EXPORT check.
       // Stub: counts all templates (same as Java when all are export-visible).
       if (template.isVisibleToExport() != false) {
         count++;

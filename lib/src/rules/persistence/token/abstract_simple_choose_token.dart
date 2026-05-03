@@ -28,7 +28,7 @@ import 'package:flutter_pcgen/src/rules/persistence/token/parse_result.dart';
 ///   - PrimitiveCollection<T>, CompoundOrPrimitive<T>
 ///   - PrimitiveChoiceSet<T>, CollectionToChoiceSet
 ///   - BasicChooseInformation<T>, ChooseInformation<T>
-///   - ObjectKey.CHOOSE_INFO, AssociationListKey<T>
+///   - CDOMObjectKey.CHOOSE_INFO, AssociationListKey<T>
 ///   - GroupingState, Constants.LST_ALL
 ///   - PlayerCharacter, ChooseDriver, ChooseSelectionActor
 ///   - context.getReferenceContext().getCDOMAllReference / getManufacturer
@@ -66,7 +66,7 @@ abstract class AbstractSimpleChooseToken<T>
     //      CompoundOrPrimitive.
     //   4. Validate groupingState.isValid().
     //   5. Build CollectionToChoiceSet, BasicChooseInformation, store via
-    //      context.getObjectContext().put(obj, ObjectKey.CHOOSE_INFO, tc).
+    //      context.getObjectContext().put(obj, CDOMObjectKey.CHOOSE_INFO, tc).
     throw UnimplementedError(
         'AbstractSimpleChooseToken.parseTokenWithSeparator: '
         'requires CDOMGroupRef + ChooseInformation infrastructure');
@@ -88,14 +88,14 @@ abstract class AbstractSimpleChooseToken<T>
 
   @override
   List<String>? unparse(LoadContext context, dynamic cdo) {
-    // TODO: implement once ObjectKey.CHOOSE_INFO + ChooseInformation are ported.
+    // TODO: implement once CDOMObjectKey.CHOOSE_INFO + ChooseInformation are ported.
     // Java logic:
-    //   ChooseInformation<?> tc = context.getObjectContext().getObject(cdo, ObjectKey.CHOOSE_INFO);
+    //   ChooseInformation<?> tc = context.getObjectContext().getObject(cdo, CDOMObjectKey.CHOOSE_INFO);
     //   if (tc == null || !tc.getName().equals(getTokenName())) return null;
     //   Validate groupingState; build LST; append TITLE= if non-default.
     throw UnimplementedError(
         'AbstractSimpleChooseToken.unparse: '
-        'requires ObjectKey.CHOOSE_INFO + ChooseInformation infrastructure');
+        'requires CDOMObjectKey.CHOOSE_INFO + ChooseInformation infrastructure');
   }
 
   // ---------------------------------------------------------------------------

@@ -11,7 +11,7 @@ class DescriptionFormatting {
   /// and [desc] is non-empty. Adds `<html>…</html>` wrapper when [useHeader]
   /// is true.
   static String piWrapDesc(dynamic cdo, String desc, bool useHeader) {
-    final descPi = cdo.getSafeObject(ObjectKey.getConstant('DESC_PI')) as bool? ?? false;
+    final descPi = cdo.getSafeObject(CDOMObjectKey.getConstant('DESC_PI')) as bool? ?? false;
     if (descPi && desc.isNotEmpty) {
       final buf = StringBuffer();
       if (useHeader) buf.write('<html>');

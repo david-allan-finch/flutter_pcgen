@@ -34,8 +34,8 @@ final class CNAbilitySelectionUtilities {
     }
     if (ocna.getAbility() != a) return true;
 
-    if (!a.getSafeObject(ObjectKey.multipleAllowed)) return false;
-    if (a.getSafeObject(ObjectKey.stacks)) return true;
+    if (!a.getSafeObject(CDOMObjectKey.multipleAllowed)) return false;
+    if (a.getSafeObject(CDOMObjectKey.stacks)) return true;
 
     return cnas1.getSelection() != cnas2.getSelection();
   }

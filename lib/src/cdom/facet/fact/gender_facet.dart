@@ -47,7 +47,7 @@ class GenderFacet extends AbstractItemFacet<CharID, dynamic> {
     dynamic g;
     if (templateFacet == null) return null;
     for (dynamic template in templateFacet.getSet(id)) {
-      dynamic lock = template.get('GENDER_LOCK'); // ObjectKey.GENDER_LOCK
+      dynamic lock = template.get('GENDER_LOCK'); // CDOMObjectKey.GENDER_LOCK
       if (lock != null) {
         g = lock;
       }

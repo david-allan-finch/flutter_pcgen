@@ -27,11 +27,11 @@ import 'package:flutter_pcgen/src/rules/persistence/token/parse_result.dart';
 /// Abstract base for tokens that store a YES/NO boolean value on a CDOMObject.
 ///
 /// Subclasses implement [getTokenName] and [objectKey] to indicate which
-/// ObjectKey<bool> holds the value.
+/// CDOMObjectKey<bool> holds the value.
 abstract class AbstractYesNoToken<T extends CDOMObject>
     extends AbstractNonEmptyToken<T> implements CDOMWriteToken<T> {
-  /// The ObjectKey<bool> used to store the parsed value.
-  ObjectKey get objectKey;
+  /// The CDOMObjectKey<bool> used to store the parsed value.
+  CDOMObjectKey get objectKey;
 
   @override
   ParseResult parseNonEmptyToken(LoadContext context, T obj, String value) {
@@ -41,7 +41,7 @@ abstract class AbstractYesNoToken<T extends CDOMObject>
   /// Parses a YES/NO token and stores the result in [objectKey] on [obj].
   static ParseResult parseYesNoToObjectKey(
       LoadContext context, CDOMObject obj, String value,
-      String tokenName, ObjectKey key) {
+      String tokenName, CDOMObjectKey key) {
     if (value.equalsIgnoreCase('YES') || value == 'Y' || value == '1') {
       obj.put(key, true);
     } else if (value.equalsIgnoreCase('NO') || value == 'N' || value == '0') {

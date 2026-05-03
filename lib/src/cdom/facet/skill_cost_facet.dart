@@ -20,7 +20,7 @@ class SkillCostFacet extends AbstractSubScopeFacet<Skill, SkillCost, PCClass>
   /// Returns the [SkillCost] for [sk] in [aClass] for the PC.
   SkillCost skillCostForPCClass(CharID id, Skill sk, PCClass aClass) {
     if (isClassSkill(id, aClass, sk)) return SkillCost.classSkill;
-    if ((sk.getSafeObject(ObjectKey.getConstant('EXCLUSIVE')) as bool? ?? false) &&
+    if ((sk.getSafeObject(CDOMObjectKey.getConstant('EXCLUSIVE')) as bool? ?? false) &&
         !isCrossClassSkill(id, aClass, sk)) {
       return SkillCost.exclusive;
     }

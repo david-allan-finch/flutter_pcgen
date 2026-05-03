@@ -20,7 +20,7 @@ class HasAnyFavoredClassFacet extends AbstractSourcedListFacet<CharID, bool>
   @override
   void dataAdded(DataFacetChangeEvent<CharID, CDOMObject> dfce) {
     final cdo = dfce.getCDOMObject();
-    final hdw = cdo.getObject(ObjectKey.getConstant<bool>('ANY_FAVORED_CLASS'));
+    final hdw = cdo.getObject(CDOMObjectKey.getConstant<bool>('ANY_FAVORED_CLASS'));
     if (hdw != null) {
       add(dfce.getCharID(), hdw, cdo);
     }

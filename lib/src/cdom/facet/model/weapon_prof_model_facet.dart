@@ -40,7 +40,7 @@ class WeaponProfModelFacet {
   /// Returns true if the Player Character is proficient with the given weapon.
   bool isProficientWithWeapon(CharID id, dynamic eq) {
     // stub: if (eq.isNatural()) return true;
-    // stub: CDOMSingleRef<WeaponProf> ref = eq.getObject(ObjectKey.WEAPON_PROF); if (ref == null) return false;
+    // stub: CDOMSingleRef<WeaponProf> ref = eq.getObject(CDOMObjectKey.WEAPON_PROF); if (ref == null) return false;
     // stub: return containsProf(id, ref.get());
     return false;
   }

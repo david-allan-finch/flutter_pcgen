@@ -18,7 +18,7 @@ class HasDeityWeaponProfFacet
   @override
   void dataAdded(DataFacetChangeEvent<CharID, CDOMObject> dfce) {
     final cdo = dfce.getCDOMObject();
-    final hdw = cdo.getObject(ObjectKey.getConstant<QualifiedObject<bool>>(
+    final hdw = cdo.getObject(CDOMObjectKey.getConstant<QualifiedObject<bool>>(
         'HAS_DEITY_WEAPONPROF'));
     if (hdw != null) {
       add(dfce.getCharID(), hdw, cdo);

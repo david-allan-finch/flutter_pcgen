@@ -22,16 +22,16 @@ import 'package:flutter_pcgen/src/cdom/enumeration/grouping_state.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/object_key.dart';
 import 'package:flutter_pcgen/src/cdom/reference/cdom_group_ref.dart';
 
-// A CDOMReference that contains objects whose ObjectKey matches an expected value.
+// A CDOMReference that contains objects whose CDOMObjectKey matches an expected value.
 class ObjectMatchingReference<T extends CDOMObject, V>
     extends CDOMReference<T> {
   final CDOMGroupRef<T> _all;
-  final ObjectKey<V> _key;
+  final CDOMObjectKey<V> _key;
   final V? _value;
   bool _allowNull = false;
 
   ObjectMatchingReference(
-      String unparse, CDOMGroupRef<T> startingGroup, ObjectKey<V> targetKey,
+      String unparse, CDOMGroupRef<T> startingGroup, CDOMObjectKey<V> targetKey,
       [V? expectedValue])
       : _all = startingGroup,
         _key = targetKey,

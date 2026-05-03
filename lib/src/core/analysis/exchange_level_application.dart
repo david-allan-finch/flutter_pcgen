@@ -27,7 +27,7 @@ final class ExchangeLevelApplication {
   ExchangeLevelApplication._();
 
   static void exchangeLevels(PlayerCharacter aPC, PCClass newcl) {
-    final le = newcl.getObject(ObjectKey.exchangeLevel);
+    final le = newcl.getObject(CDOMObjectKey.exchangeLevel);
     if (le == null) return;
 
     try {

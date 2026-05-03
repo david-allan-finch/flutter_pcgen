@@ -19,7 +19,7 @@ import 'package:flutter_pcgen/src/rules/persistence/token/parse_result.dart';
 /// so the loader can order competing wrappers deterministically.
 ///
 /// TODO: The [parseToken] body references PCClassLevel, PCClass, SubClass, and
-/// SubstitutionClass (and their IntegerKey / ObjectKey lookups) which have not
+/// SubstitutionClass (and their IntegerKey / CDOMObjectKey lookups) which have not
 /// yet been ported to Dart.  Replace the [UnimplementedError] stubs once those
 /// classes are available.
 ///
@@ -50,11 +50,11 @@ class ClassWrappedToken implements CDOMCompatibilityToken<dynamic> {
   @override
   ParseResult parseToken(LoadContext context, dynamic obj, String value) {
     // TODO: implement using PCClassLevel.getInt(IntegerKey.LEVEL),
-    // ObjectKey.TOKEN_PARENT, SubClass, SubstitutionClass once ported.
+    // CDOMObjectKey.TOKEN_PARENT, SubClass, SubstitutionClass once ported.
     //
     // Java logic:
     //   if (ONE.equals(obj.getInt(IntegerKey.LEVEL))) {
-    //     PCClass parent = (PCClass) obj.getObject(ObjectKey.TOKEN_PARENT);
+    //     PCClass parent = (PCClass) obj.getObject(CDOMObjectKey.TOKEN_PARENT);
     //     if (parent instanceof SubClass || parent instanceof SubstitutionClass)
     //       return ParseResult.Fail("Data used token: " + value + " …");
     //     return wrappedToken.parseToken(context, parent, value);

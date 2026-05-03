@@ -19,7 +19,7 @@
 
 import 'package:flutter_pcgen/src/output/base/output_actor.dart';
 
-/// OutputActor that reads an ObjectKey value from an object.
+/// OutputActor that reads an CDOMObjectKey value from an object.
 class ObjectKeyActor<T> implements OutputActor<dynamic> {
   final dynamic _objectKey;
 

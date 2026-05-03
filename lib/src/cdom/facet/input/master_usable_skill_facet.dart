@@ -32,8 +32,8 @@ class MasterUsableSkillFacet extends AbstractSourcedListFacet<dynamic, dynamic> 
     dynamic id = context.getDataSetID();
     if (getCache(id) == null) {
       for (dynamic sk in context.getReferenceContext().getConstructedCDOMObjects(dynamic)) {
-        bool exclusive = sk.getSafeObject(ObjectKey.getConstant('EXCLUSIVE')) ?? false; // ObjectKey.EXCLUSIVE
-        bool useUntrained = sk.getSafeObject(ObjectKey.getConstant('USE_UNTRAINED')) ?? false; // ObjectKey.USE_UNTRAINED
+        bool exclusive = sk.getSafeObject(CDOMObjectKey.getConstant('EXCLUSIVE')) ?? false; // CDOMObjectKey.EXCLUSIVE
+        bool useUntrained = sk.getSafeObject(CDOMObjectKey.getConstant('USE_UNTRAINED')) ?? false; // CDOMObjectKey.USE_UNTRAINED
         if (!exclusive && useUntrained) {
           add(id, sk, sk);
         }

@@ -25,7 +25,7 @@ class AbilitySelectionApplication
     final selection = cnas.getSelection();
     if (selection != null) {
       final chooseInfo =
-          ability.getObject(ObjectKey.getConstant<dynamic>('CHOOSE_INFO'));
+          ability.getObject(CDOMObjectKey.getConstant<dynamic>('CHOOSE_INFO'));
       if (chooseInfo != null) {
         _applySelection(pc, chooseInfo, cna, selection);
       }
@@ -52,7 +52,7 @@ class AbilitySelectionApplication
     final selection = cnas.getSelection();
     if (selection != null) {
       final chooseInfo =
-          ability.getObject(ObjectKey.getConstant<dynamic>('CHOOSE_INFO'));
+          ability.getObject(CDOMObjectKey.getConstant<dynamic>('CHOOSE_INFO'));
       if (chooseInfo != null) {
         _removeSelection(pc, chooseInfo, cna, selection);
       }

@@ -17,7 +17,7 @@ class PCSkillTypeTermEvaluator extends BasePCTermEvaluator implements TermEvalua
     int count = 0;
     final skills = pc.getDisplay().getSkillSet();
     for (final sk in skills) {
-      // TODO: Requires ObjectKey.VISIBILITY and View.HIDDEN_EXPORT check.
+      // TODO: Requires CDOMObjectKey.VISIBILITY and View.HIDDEN_EXPORT check.
       // Stub: checks isType and qualifies without visibility filter.
       if (sk.isType(type) == true && sk.qualifies(pc, null) == true) {
         count++;

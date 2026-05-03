@@ -114,7 +114,7 @@ class RegionFacet implements DataFacetChangeListener<CharID, dynamic> {
     if (templateFacet == null) return null;
     dynamic result;
     for (dynamic template in templateFacet.getSet(id)) {
-      dynamic r = template.get('REGION'); // ObjectKey.REGION
+      dynamic r = template.get('REGION'); // CDOMObjectKey.REGION
       if (r != null) {
         result = r;
       }

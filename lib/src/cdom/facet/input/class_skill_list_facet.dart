@@ -38,9 +38,9 @@ class ClassSkillListFacet extends AbstractScopeFacet<CharID, dynamic, dynamic> {
     if (oldLevel == 0 && newLevel > 0) {
       dynamic cl = lce.getPCClass();
       CharID id = lce.getCharID();
-      dynamic csc = cl.get('SKILLLIST_CHOICE'); // ObjectKey.SKILLLIST_CHOICE
+      dynamic csc = cl.get('SKILLLIST_CHOICE'); // CDOMObjectKey.SKILLLIST_CHOICE
       if (csc == null) {
-        dynamic l = cl.get('CLASS_SKILLLIST'); // ObjectKey.CLASS_SKILLLIST
+        dynamic l = cl.get('CLASS_SKILLLIST'); // CDOMObjectKey.CLASS_SKILLLIST
         if (l != null) {
           defaultClassSkillListFacet?.add(id, cl, l, cl);
         }
@@ -66,7 +66,7 @@ class ClassSkillListFacet extends AbstractScopeFacet<CharID, dynamic, dynamic> {
     String subClassKey = dfce.getCDOMObject();
     dynamic subclass = cl.getSubClassKeyed(subClassKey);
     if (subclass != null) {
-      dynamic scl = subclass.get('CLASS_SKILLLIST'); // ObjectKey.CLASS_SKILLLIST
+      dynamic scl = subclass.get('CLASS_SKILLLIST'); // CDOMObjectKey.CLASS_SKILLLIST
       defaultClassSkillListFacet?.add(dfce.getCharID(), cl, scl, subclass);
     }
   }
@@ -77,7 +77,7 @@ class ClassSkillListFacet extends AbstractScopeFacet<CharID, dynamic, dynamic> {
     String subClassKey = dfce.getCDOMObject();
     dynamic subclass = cl.getSubClassKeyed(subClassKey);
     if (subclass != null) {
-      dynamic scl = subclass.get('CLASS_SKILLLIST'); // ObjectKey.CLASS_SKILLLIST
+      dynamic scl = subclass.get('CLASS_SKILLLIST'); // CDOMObjectKey.CLASS_SKILLLIST
       defaultClassSkillListFacet?.add(dfce.getCharID(), cl, scl, subclass);
     }
   }

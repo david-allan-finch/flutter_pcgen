@@ -19,7 +19,7 @@ class UnencumberedLoadFacet extends AbstractSourcedListFacet<CharID, Load>
   @override
   void dataAdded(DataFacetChangeEvent<CharID, CDOMObject> dfce) {
     final cdo = dfce.getCDOMObject();
-    final load = cdo.getObject(ObjectKey.getConstant<Load>('UNENCUMBERED_LOAD'));
+    final load = cdo.getObject(CDOMObjectKey.getConstant<Load>('UNENCUMBERED_LOAD'));
     if (load != null) {
       add(dfce.getCharID(), load, cdo);
     }

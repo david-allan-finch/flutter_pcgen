@@ -60,7 +60,7 @@ class ConsolidatedObjectCommitStrategy implements ObjectCommitStrategy {
   Set<VariableKey> getVariableKeys(CDOMObject obj) => obj.getVariableKeys();
 
   @override
-  dynamic getObject(CDOMObject cdo, ObjectKey<dynamic> ik) => cdo.get(ik);
+  dynamic getObject(CDOMObject cdo, CDOMObjectKey<dynamic> ik) => cdo.get(ik);
 
   @override
   dynamic getFact(CDOMObject cdo, FactKey<dynamic> ik) => cdo.get(ik);
@@ -77,10 +77,10 @@ class ConsolidatedObjectCommitStrategy implements ObjectCommitStrategy {
   void putString(CDOMObject cdo, StringKey sk, String s) => cdo.put(sk, s);
 
   @override
-  void putObject<T>(CDOMObject cdo, ObjectKey<T> sk, T s) => cdo.put(sk, s);
+  void putObject<T>(CDOMObject cdo, CDOMObjectKey<T> sk, T s) => cdo.put(sk, s);
 
   @override
-  void removeObject(CDOMObject cdo, ObjectKey<dynamic> sk) => cdo.remove(sk);
+  void removeObject(CDOMObject cdo, CDOMObjectKey<dynamic> sk) => cdo.remove(sk);
 
   @override
   void putFact<T>(CDOMObject cdo, FactKey<T> sk, dynamic s) =>
@@ -173,7 +173,7 @@ class ConsolidatedObjectCommitStrategy implements ObjectCommitStrategy {
 
   // wasRemoved always returns false for consolidated (non-tracking) strategy
   @override
-  bool wasRemovedObject(CDOMObject cdo, ObjectKey<dynamic> ok) => false;
+  bool wasRemovedObject(CDOMObject cdo, CDOMObjectKey<dynamic> ok) => false;
 
   @override
   bool wasRemovedFact(CDOMObject cdo, FactKey<dynamic> ok) => false;

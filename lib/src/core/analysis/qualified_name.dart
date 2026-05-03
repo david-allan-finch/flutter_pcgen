@@ -36,7 +36,7 @@ final class QualifiedName {
       return a.getDisplayName();
     }
     final buf = StringBuffer(outputName);
-    final chooseInfo = a.getObject(ObjectKey.chooseInfo) as ChooseInformation?;
+    final chooseInfo = a.getObject(CDOMObjectKey.chooseInfo) as ChooseInformation?;
     if (chooseInfo != null) {
       _processChooseInfo(buf, pc, chooseInfo, list);
     }

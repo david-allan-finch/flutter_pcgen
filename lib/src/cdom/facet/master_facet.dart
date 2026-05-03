@@ -56,7 +56,7 @@ class MasterFacet extends AbstractItemFacet<CharID, Follower> {
     for (final cMod in companionModFacet.getSet(id)) {
       if (cMod.getType().toLowerCase() ==
           get(id)?.getType().getKeyName().toLowerCase()) {
-        if (cMod.getSafeObject(ObjectKey.getConstant<bool>('USE_MASTER_SKILL')) ==
+        if (cMod.getSafeObject(CDOMObjectKey.getConstant<bool>('USE_MASTER_SKILL')) ==
             true) {
           return true;
         }

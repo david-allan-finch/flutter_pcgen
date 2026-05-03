@@ -76,8 +76,8 @@ class AbilityRefChoiceSet {
     final Set<CnAbilitySelection> returnSet = {};
     for (final CDOMReference<dynamic> ref in _abilityRefSet) {
       for (final dynamic a in ref.getContainedObjects()) {
-        // stub: a.getSafeObject(ObjectKey.MULTIPLE_ALLOWED)
-        final bool multAllowed = a.getSafeObject(ObjectKey.getConstant('MULT')) as bool; // stub
+        // stub: a.getSafeObject(CDOMObjectKey.MULTIPLE_ALLOWED)
+        final bool multAllowed = a.getSafeObject(CDOMObjectKey.getConstant('MULT')) as bool; // stub
         if (multAllowed) {
           returnSet.addAll(
             _addMultiplySelectableAbility(pc, a, ref.getChoice()),
@@ -111,7 +111,7 @@ class AbilityRefChoiceSet {
       }
     }
 
-    // stub: ability.getObject(ObjectKey.CHOOSE_INFO)
+    // stub: ability.getObject(CDOMObjectKey.CHOOSE_INFO)
     final dynamic chooseInfo = ability.get(null); // stub
     final List<String> availableList = _getAvailableList(aPC, chooseInfo);
 

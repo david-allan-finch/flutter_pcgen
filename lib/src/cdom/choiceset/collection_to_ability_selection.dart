@@ -71,8 +71,8 @@ class CollectionToAbilitySelection {
     }
     _infiniteLoopDetectionStack.add(a);
     try {
-      // stub: a.getSafeObject(ObjectKey.MULTIPLE_ALLOWED)
-      final bool multAllowed = a.getSafeObject(ObjectKey.getConstant('MULT')) as bool; // stub
+      // stub: a.getSafeObject(CDOMObjectKey.MULTIPLE_ALLOWED)
+      final bool multAllowed = a.getSafeObject(CDOMObjectKey.getConstant('MULT')) as bool; // stub
       if (multAllowed) {
         returnSet.addAll(
           _addMultiplySelectableAbility(character, a, awc.getChoice() as String?),
@@ -102,7 +102,7 @@ class CollectionToAbilitySelection {
       }
     }
 
-    // stub: ability.getObject(ObjectKey.CHOOSE_INFO)
+    // stub: ability.getObject(CDOMObjectKey.CHOOSE_INFO)
     final dynamic chooseInfo = ability.get(null); // stub
     final List<String> availableList = _getAvailableList(aPC, chooseInfo);
 

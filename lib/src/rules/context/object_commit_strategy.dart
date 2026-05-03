@@ -37,9 +37,9 @@ abstract interface class ObjectCommitStrategy {
 
   void removeString(CDOMObject cdo, StringKey sk);
 
-  void putObject<T>(CDOMObject cdo, ObjectKey<T> sk, T s);
+  void putObject<T>(CDOMObject cdo, CDOMObjectKey<T> sk, T s);
 
-  void removeObject(CDOMObject cdo, ObjectKey<dynamic> sk);
+  void removeObject(CDOMObject cdo, CDOMObjectKey<dynamic> sk);
 
   void putFact<T>(CDOMObject cdo, FactKey<T> sk, Indirect<T> s);
 
@@ -74,7 +74,7 @@ abstract interface class ObjectCommitStrategy {
 
   Set<VariableKey> getVariableKeys(CDOMObject obj);
 
-  T? getObject<T>(CDOMObject cdo, ObjectKey<T> ik);
+  T? getObject<T>(CDOMObject cdo, CDOMObjectKey<T> ik);
 
   Indirect<T>? getFact<T>(CDOMObject cdo, FactKey<T> ik);
 
@@ -108,7 +108,7 @@ abstract interface class ObjectCommitStrategy {
 
   PatternChanges<T> getListPatternChanges<T>(CDOMObject cdo, ListKey<T> lk);
 
-  bool wasRemovedObject(CDOMObject cdo, ObjectKey<dynamic> ok);
+  bool wasRemovedObject(CDOMObject cdo, CDOMObjectKey<dynamic> ok);
 
   bool wasRemovedFact(CDOMObject cdo, FactKey<dynamic> ok);
 

@@ -29,7 +29,7 @@ abstract class BasePCCountAbilitiesTermEvaluator extends BasePCTermEvaluator {
   /// [onceOnly] — if true, counts at most 1 even if taken multiple times.
   double countVisibleAbility(dynamic pc, dynamic cna, bool visible, bool hidden,
       bool onceOnly) {
-    // TODO: Requires ObjectKey.VISIBILITY and View.HIDDEN_EXPORT check.
+    // TODO: Requires CDOMObjectKey.VISIBILITY and View.HIDDEN_EXPORT check.
     // Stub: uses isHiddenFromExport() if available, otherwise treats as visible.
     bool abilityInvisible = false;
     try {

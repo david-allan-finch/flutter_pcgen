@@ -24,5 +24,5 @@ final class ChooseActivation {
   ChooseActivation._();
 
   static bool hasNewChooseToken(CDOMObject po) =>
-      po.getObject(ObjectKey.chooseInfo) != null;
+      po.getObject(CDOMObjectKey.chooseInfo) != null;
 }

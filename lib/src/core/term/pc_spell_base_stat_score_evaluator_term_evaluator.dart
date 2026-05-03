@@ -16,7 +16,7 @@ class PCSPellBaseStatScoreEvaluatorTermEvaluator extends BasePCTermEvaluator imp
   double? resolve(dynamic pc) {
     final aClass = pc.getClassKeyed(classKey);
     if (aClass == null) return 0.0;
-    // TODO: Requires ObjectKey.SPELL_STAT and CDOMSingleRef for PCStat lookup.
+    // TODO: Requires CDOMObjectKey.SPELL_STAT and CDOMSingleRef for PCStat lookup.
     // Stub: attempts to get stat mod directly from display.
     final ss = aClass.getSpellStat();
     if (ss == null) return 10.0;
