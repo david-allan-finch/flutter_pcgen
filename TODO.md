@@ -18,7 +18,7 @@
 
 ### Data Loading
 - [ ] LoadContext not reset when switching campaigns of same game mode mid-session
-- [ ] PRECLASS prereq evaluation (class levels not yet in PrereqContext)
+- [x] PRECLASS prereq evaluation (class levels exposed as CL.<key> variables)
 - [ ] `BONUS:SKILL|LIST|2` — LIST resolution uses `abilityChoices` map for chosen skill (Skill Focus bonus)
 - [ ] `BONUS:CASTERLEVEL` handling
 - [ ] `TEMPBONUS` token on abilities (temporary bonus application)
@@ -28,7 +28,7 @@
 - [ ] `SERVESAS:RACE|Human|Orc` token (PF2e race alternates)
 
 ### Rules Engine
-- [ ] PRECLASS prereq — needs class level data in PrereqContext
+- [x] PRECLASS prereq — class levels now in PrereqContext via CL.<key> variables
 - [ ] Per-level class abilities (ABILITY: at level lines) applied when levelling up
 - [ ] Unarmed damage from UDAM token fed into character sheet
 - [ ] Spell resistance (SR token) displayed and factored in
@@ -46,8 +46,8 @@
 - [ ] Equipment MAXDEX cap applied to DEX-based AC
 - [ ] Armor/shield AC bonus shown on sheet
 - [ ] Natural attacks from race shown in weapons section
-- [ ] Movement speed from race shown on sheet
-- [ ] Languages tab wired to auto-granted and bonus language choices
+- [x] Movement speed from race shown on sheet
+- [x] Languages tab wired — setRace now walks full ability chain for AUTO_LANG/LANG_BONUS
 - [ ] Deity weapon proficiency auto-grant
 - [ ] Non-proficient weapon penalty (−4 to attack)
 

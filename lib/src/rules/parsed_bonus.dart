@@ -250,12 +250,13 @@ class ParsedPrereq {
 
   bool _evalPreClass(PrereqContext ctx) {
     // PRECLASS:N,ClassName=minLevel[,ClassName2=minLevel2]
-    // We don't have class-level data in PrereqContext, so we check whether the
-    // character has any class-level by looking at getVariable('CL.<name>').
-    // If still 0, optimistically pass (conservative approach would fail).
+    // Class levels are exposed as CL.<classKey> and CL.<displayName> variables.
     final parts = raw.split(',');
     if (parts.isEmpty) return true;
     final needed = int.tryParse(parts[0].trim()) ?? 1;
+    // If no class levels at all recorded yet, optimistically pass
+    // (character creation before any class is chosen).
+    if (ctx.totalLevel == 0) return true;
     int met = 0;
     for (int i = 1; i < parts.length; i++) {
       final eq = parts[i].indexOf('=');
@@ -265,9 +266,7 @@ class ParsedPrereq {
       final actual = ctx.getVariable('CL.$className');
       if (actual >= minLvl) met++;
     }
-    if (met >= needed) return true;
-    // Optimistic pass if we can't determine class levels.
-    return true;
+    return met >= needed;
   }
 
   bool _evalMult(PrereqContext ctx) {

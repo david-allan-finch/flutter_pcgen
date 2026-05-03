@@ -188,19 +188,17 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
       final speeds = (race as dynamic).getMoveSpeeds() as Map<String, int>?;
       if (speeds != null && speeds.isNotEmpty) _data['raceSpeeds'] = speeds;
 
-      // Auto languages — add to character's language keys (no duplicates)
-      final autoLangs = (race as dynamic).getAutoLanguages() as List<String>? ?? [];
+      // Auto languages + bonus languages — walk full ability chain
+      final autoLangs = <String>{};
+      final bonusLangs = <String>{};
+      _collectChainLanguages(race, _dataset, autoLangs, bonusLangs, {});
       if (autoLangs.isNotEmpty) {
         final langKeys = (_data['languageKeys'] ??= <String>[]) as List;
         for (final lang in autoLangs) {
           if (!langKeys.contains(lang)) langKeys.add(lang);
         }
       }
-
-      // Bonus language choices — store for UI to offer
-      final bonusLangs =
-          (race as dynamic).getBonusLanguageChoices() as List<String>? ?? [];
-      _data['raceBonusLanguages'] = bonusLangs;
+      _data['raceBonusLanguages'] = bonusLangs.toList();
     } catch (_) {}
   }
 
@@ -994,6 +992,30 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
     if (list is List && list.remove(key)) { _rebuild(); notifyListeners(); }
   }
 
+  // ---- DR / SR ------------------------------------------------------------
+
+  List<String> getDRList() {
+    try {
+      final raceObj = _raceRef.get();
+      if (raceObj == null) return const [];
+      final list = (raceObj as dynamic)
+          .getSafeListFor(ListKey.getConstant<String>('DR_LIST')) as List?;
+      return list?.cast<String>() ?? const [];
+    } catch (_) { return const []; }
+  }
+
+  int getSR() {
+    final fromAcc = _bonusAcc.totalInt('SAVE', 'SR');
+    if (fromAcc > 0) return fromAcc;
+    try {
+      final raceObj = _raceRef.get();
+      if (raceObj == null) return 0;
+      final srStr = (raceObj as dynamic)
+          .getSafeObject(CDOMObjectKey.getConstant<String>('SR_FORMULA')) as String?;
+      return int.tryParse(srStr ?? '') ?? 0;
+    } catch (_) { return 0; }
+  }
+
   // ---- Race traits --------------------------------------------------------
 
   String getRaceSize() => _data['raceSize'] as String? ?? 'M';
@@ -1422,6 +1444,23 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
       }
     } catch (_) {}
 
+    // Expose class levels as CL.<ClassName> variables for PRECLASS evaluation
+    for (final entry in counts.entries) {
+      charVars['CL.${entry.key}'] = entry.value.toDouble();
+    }
+    // Also expose by display name for convenience
+    try {
+      final classes = (dataset as dynamic).classes as List? ?? [];
+      for (final cls in classes) {
+        final key = (cls as dynamic).getKeyName() as String? ?? '';
+        final name = (cls as dynamic).getDisplayName() as String? ?? '';
+        final lvl = counts[key] ?? 0;
+        if (lvl > 0 && name.isNotEmpty && name != key) {
+          charVars['CL.$name'] = lvl.toDouble();
+        }
+      }
+    } catch (_) {}
+
     // Store resolved variables for getVariable() access
     _data['charVariables'] = Map<String, double>.from(charVars);
 
@@ -1545,6 +1584,30 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
               } catch (_) {}
               _collectAbilityChainBonuses(ability, dataset, out, seen);
             }
+          }
+        }
+      }
+    } catch (_) {}
+  }
+
+  void _collectChainLanguages(
+    dynamic obj, dynamic dataset,
+    Set<String> autoOut, Set<String> bonusOut, Set<String> seen,
+  ) {
+    if (obj == null) return;
+    try {
+      final auto = (obj as dynamic).getSafeListFor(ListKey.getConstant<String>('AUTO_LANG')) as List?;
+      if (auto != null) for (final l in auto) { if (l is String && l.isNotEmpty && !l.startsWith('%')) autoOut.add(l); }
+      final bonus = (obj as dynamic).getSafeListFor(ListKey.getConstant<String>('LANG_BONUS')) as List?;
+      if (bonus != null) for (final l in bonus) { if (l is String && l.isNotEmpty) bonusOut.add(l); }
+    } catch (_) {}
+    try {
+      final abilities = (obj as dynamic).getSafeListFor(ListKey.getConstant<String>('AUTO_ABILITIES')) as List?;
+      if (abilities != null) {
+        for (final name in abilities) {
+          if (name is String && seen.add(name) && dataset != null) {
+            final ability = (dataset as dynamic).findAbilityByName(name);
+            if (ability != null) _collectChainLanguages(ability, dataset, autoOut, bonusOut, seen);
           }
         }
       }

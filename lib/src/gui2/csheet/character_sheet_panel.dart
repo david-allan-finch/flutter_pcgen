@@ -261,34 +261,26 @@ class _CharacterSheetView extends StatelessWidget {
   );
 
   Widget _combatCard(BuildContext context, ThemeData theme, Map data) {
-    final scores = data['statScores'] as Map? ?? {};
-    final dexScore = (scores['DEX'] as num?)?.toInt() ?? 10;
-    final dexMod = ((dexScore - 10) / 2).floor();
-
-    // Compute BAB using class progressions from dataset.
-    final dataset = loadedDataSet.value;
-    final classLevels = data['classLevels'] as List? ?? [];
-    final counts = <String, int>{};
-    for (final l in classLevels) {
-      if (l is Map) {
-        final k = l['classKey'] as String? ?? '';
-        counts[k] = (counts[k] ?? 0) + 1;
-      }
-    }
-    double babDouble = 0;
-    for (final entry in counts.entries) {
-      final cls = dataset?.classes
-          .where((c) => c.getKeyName() == entry.key)
-          .firstOrNull;
-      final prog = cls?.getBabProgression() ?? '';
-      final rate = prog == 'Full' ? 1.0 : prog == 'Half' ? 0.5 : 0.75;
-      babDouble += entry.value * rate;
-    }
-    final bab = babDouble.floor();
+    // Read from the facade (accumulator-backed) where possible
+    final babRaw = _tryGet(() => (character as dynamic).getBAB());
+    final bab    = babRaw is int ? babRaw : int.tryParse(babRaw?.toString().split('/').first ?? '0') ?? 0;
     final babStr = _babSequence(bab);
+    final ac     = _tryGet(() => (character as dynamic).getAC())          as int? ?? 10;
+    final init   = _tryGet(() => (character as dynamic).getInitiative())  as int? ?? 0;
+    final hp     = _tryGet(() => (character as dynamic).getHP())          as int? ?? 0;
+    final fort   = _tryGet(() => (character as dynamic).getFortSave())    as int? ?? 0;
+    final ref    = _tryGet(() => (character as dynamic).getRefSave())     as int? ?? 0;
+    final will   = _tryGet(() => (character as dynamic).getWillSave())    as int? ?? 0;
 
-    final ac = 10 + dexMod;
-    final init = dexMod;
+    // Movement speeds from race
+    final raceSpeeds = data['raceSpeeds'] as Map? ?? {};
+    final speedStr = raceSpeeds.isEmpty ? '' : raceSpeeds.entries
+        .map((e) => '${e.key} ${e.value} ft.')
+        .join(', ');
+
+    // DR / SR from accumulator
+    final drList = _tryGet(() => (character as dynamic).getDRList()) as List<String>? ?? const [];
+    final srVal  = _tryGet(() => (character as dynamic).getSR())     as int? ?? 0;
 
     return Card(
       child: Padding(
@@ -298,10 +290,15 @@ class _CharacterSheetView extends StatelessWidget {
           children: [
             Text('COMBAT', style: theme.textTheme.titleSmall),
             const SizedBox(height: 8),
-            _combatRow('AC', '$ac'),
-            _combatRow('BAB', babStr),
+            _combatRow('AC',         '$ac'),
+            _combatRow('BAB',        babStr),
             _combatRow('Initiative', init >= 0 ? '+$init' : '$init'),
-            _combatRow('HP', '${_tryGet(() => (character as dynamic).getHP()) ?? 0}'),
+            _combatRow('HP',         '$hp'),
+            _combatRow('Fort / Ref / Will',
+                '${fort >= 0 ? '+' : ''}$fort  /  ${ref >= 0 ? '+' : ''}$ref  /  ${will >= 0 ? '+' : ''}$will'),
+            if (speedStr.isNotEmpty) _combatRow('Speed', speedStr),
+            if (drList.isNotEmpty)   _combatRow('DR', drList.join(', ')),
+            if (srVal > 0)           _combatRow('SR', '$srVal'),
             const Divider(),
             Text('GEAR', style: theme.textTheme.titleSmall),
             const SizedBox(height: 4),
