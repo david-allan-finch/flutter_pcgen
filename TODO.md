@@ -10,7 +10,7 @@
 - [x] c) Craft / Knowledge / Perform skills: collapsible tree (grouped by Base (Subtype))
 
 ### Pending
-*(add new items here)*
+- [ ] d) Download a game mode (system + data LST files as a zip) and import it into the app
 
 ---
 
