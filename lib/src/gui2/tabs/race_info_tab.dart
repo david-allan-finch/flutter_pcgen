@@ -172,32 +172,67 @@ class RaceInfoTabState extends State<RaceInfoTab> {
     );
   }
 
-  /// Collect BONUS:STAT from an object and recursively from its AUTO_ABILITIES.
-  void _collectStatMods(dynamic obj, DataSet? dataset, Map<String, int> out, Set<String> seen) {
+  /// Walk obj + its full AUTO_ABILITIES chain, collecting all race info fields.
+  void _collectRaceInfo(_RaceInfo info, dynamic obj, DataSet? dataset, Set<String> seen) {
     if (obj == null) return;
     try {
+      // BONUS:STAT
       final bonuses = (obj as dynamic).getSafeListFor(ListKey.getConstant<ParsedBonus>('PARSED_BONUS')) as List;
       for (final b in bonuses) {
-        if (b is ParsedBonus && b.category == 'STAT') {
-          final intVal = int.tryParse(b.formula);
-          if (intVal != null) {
-            for (final tgt in b.targets) {
-              final k = tgt.toUpperCase();
-              out[k] = (out[k] ?? 0) + intVal;
+        if (b is! ParsedBonus) continue;
+        if (b.category == 'STAT') {
+          final v = int.tryParse(b.formula);
+          if (v != null) {
+            for (final t in b.targets) {
+              final k = t.toUpperCase();
+              info.statMods[k] = (info.statMods[k] ?? 0) + v;
+            }
+          }
+        } else if (b.category == 'SKILL') {
+          final v = int.tryParse(b.formula);
+          if (v != null && v != 0) {
+            for (final t in b.targets) {
+              final sign = v > 0 ? '+' : '';
+              info.skillBonuses.add('$t $sign$v');
             }
           }
         }
       }
+      // SAB (special ability text)
+      final sabs = (obj as dynamic).getSafeListFor(ListKey.getConstant<String>('SAB_LIST')) as List;
+      for (final s in sabs) { if (s is String && s.isNotEmpty) info.specialAbilities.add(s); }
+      // Vision
+      final vis = (obj as dynamic).getSafeListFor(ListKey.getConstant<String>('VISION_TYPES')) as List;
+      for (final v in vis) { if (v is String && v.isNotEmpty) info.vision.add(v); }
+      // Languages
+      final langs = (obj as dynamic).getSafeListFor(ListKey.getConstant<String>('AUTO_LANG')) as List;
+      for (final l in langs) { if (l is String && l.isNotEmpty) info.autoLang.add(l); }
+      final bonus = (obj as dynamic).getSafeListFor(ListKey.getConstant<String>('LANG_BONUS')) as List;
+      for (final l in bonus) { if (l is String && l.isNotEmpty) info.bonusLang.add(l); }
+      // Natural attacks
+      final nat = (obj as dynamic).getSafeListFor(ListKey.getConstant<String>('NATURAL_ATTACKS')) as List;
+      for (final a in nat) { if (a is String && a.isNotEmpty) info.naturalAttacks.add(a); }
+      // Weapon profs
+      final wp = (obj as dynamic).getSafeListFor(ListKey.getConstant<String>('AUTO_WEAPONPROF')) as List;
+      for (final p in wp) { if (p is String && p.isNotEmpty) info.weaponProfs.add(p); }
     } catch (_) {}
+    // Recurse into AUTO_ABILITIES
     try {
       final auto = (obj as dynamic).getSafeListFor(ListKey.getConstant<String>('AUTO_ABILITIES')) as List;
       for (final name in auto) {
         if (name is String && seen.add(name) && dataset != null) {
           final ability = dataset.findAbilityByName(name);
-          if (ability != null) _collectStatMods(ability, dataset, out, seen);
+          if (ability != null) _collectRaceInfo(info, ability, dataset, seen);
         }
       }
     } catch (_) {}
+  }
+
+  // Keep for backward compat with _collectStatMods call sites
+  void _collectStatMods(dynamic obj, DataSet? dataset, Map<String, int> out, Set<String> seen) {
+    final info = _RaceInfo();
+    _collectRaceInfo(info, obj, dataset, seen);
+    out.addAll(info.statMods);
   }
 
   Widget _buildDetail(dynamic character, DataSet? dataset) {
@@ -227,29 +262,31 @@ class RaceInfoTabState extends State<RaceInfoTab> {
     String sourceShort = '';
     String size = '';
     String cr = '';
+    String favoredClass = '';
+    int levelAdj = 0;
+    int reach = 5;
     List<String> types = [];
     List<String> moveSpeeds = [];
-    final statMods = <String, int>{}; // e.g. {'STR': 2, 'INT': -2}
+    final info = _RaceInfo();
 
     try {
       desc = race.getString(StringKey.description) ?? '';
       sourceShort = race.getString(StringKey.sourceShort) ??
                     race.getString(StringKey.sourceLong) ?? '';
-      // SIZE stored as CDOMObjectKey 'RACE_SIZE'
       size = race.getSafeObject(CDOMObjectKey.getConstant<String>('RACE_SIZE')) ?? '';
-      // Fallback: legacy sizeformula key
       if (size.isEmpty) size = race.getString(StringKey.sizeformula) ?? '';
-      cr = race.getString(StringKey.subregion) ?? '';
+      cr   = race.getString(StringKey.subregion) ?? '';
+      favoredClass = race.getString(StringKey.abbreviation) ?? '';
+      levelAdj = (race.getSafeObject(CDOMObjectKey.getConstant<int>('LEVEL_ADJUSTMENT')) as int?) ?? 0;
+      reach    = (race.getSafeObject(CDOMObjectKey.getConstant<int>('REACH')) as int?) ?? 5;
 
       final typeList = race.getSafeListFor(ListKey.getConstant<String>('TYPE'));
       types = typeList.cast<String>()
           .where((t) => !t.startsWith('RACETYPE:') && !t.startsWith('RACESUBTYPE:'))
           .toList();
 
-      // MOVE stored as ListKey 'MOVE_SPEEDS' entries 'Type:speed'
       final speeds = race.getSafeListFor(ListKey.getConstant<String>('MOVE_SPEEDS'));
       moveSpeeds = speeds.cast<String>();
-      // Fallback: legacy tempvalue
       if (moveSpeeds.isEmpty) {
         final raw = race.getString(StringKey.tempvalue) ?? '';
         if (raw.isNotEmpty) {
@@ -260,8 +297,16 @@ class RaceInfoTabState extends State<RaceInfoTab> {
         }
       }
 
-      // Collect BONUS:STAT from race and its full AUTO_ABILITIES chain
-      _collectStatMods(race, dataset, statMods, {});
+      // Vision on race object itself
+      final vis = race.getSafeListFor(ListKey.getConstant<String>('VISION_TYPES'));
+      for (final v in vis) { if (v is String) info.vision.add(v); }
+
+      // Natural attacks on race object
+      final nat = race.getSafeListFor(ListKey.getConstant<String>('NATURAL_ATTACKS'));
+      for (final a in nat) { if (a is String) info.naturalAttacks.add(a); }
+
+      // Walk full AUTO_ABILITIES chain for everything else
+      _collectRaceInfo(info, race, dataset, {});
     } catch (_) {}
 
     return SingleChildScrollView(
@@ -282,23 +327,22 @@ class RaceInfoTabState extends State<RaceInfoTab> {
           ]),
           const SizedBox(height: 8),
 
-          // Ability score mods — most important info shown first
-          if (statMods.isNotEmpty) ...[
+          // Ability score mods
+          if (info.statMods.isNotEmpty) ...[
             Text('Ability Score Modifiers',
                 style: Theme.of(context).textTheme.labelMedium),
             const SizedBox(height: 4),
             Wrap(
-              spacing: 8,
-              runSpacing: 4,
-              children: statMods.entries.map((e) {
+              spacing: 8, runSpacing: 4,
+              children: info.statMods.entries.map((e) {
                 final sign = e.value >= 0 ? '+' : '';
-                final color = e.value > 0 ? Colors.blue.shade700 : Colors.red.shade700;
+                final pos  = e.value > 0;
                 return Chip(
                   label: Text('${e.key} $sign${e.value}',
-                      style: TextStyle(fontSize: 12, color: color,
+                      style: TextStyle(fontSize: 12,
+                          color: pos ? Colors.blue.shade700 : Colors.red.shade700,
                           fontWeight: FontWeight.bold)),
-                  backgroundColor: e.value > 0
-                      ? Colors.blue.shade50 : Colors.red.shade50,
+                  backgroundColor: pos ? Colors.blue.shade50 : Colors.red.shade50,
                   padding: EdgeInsets.zero,
                 );
               }).toList(),
@@ -311,16 +355,72 @@ class RaceInfoTabState extends State<RaceInfoTab> {
             const SizedBox(height: 8),
           ],
 
+          // Core stats
           if (size.isNotEmpty) _row('Size', size),
           if (moveSpeeds.isNotEmpty)
             _row('Speed', moveSpeeds.map((s) {
-              final colon = s.indexOf(':');
-              if (colon > 0) return '${s.substring(0, colon)} ${s.substring(colon+1)} ft.';
-              return s;
+              final c = s.indexOf(':');
+              return c > 0 ? '${s.substring(0, c)} ${s.substring(c+1)} ft.' : s;
             }).join(', ')),
-          if (cr.isNotEmpty) _row('CR', cr),
-          if (sourceShort.isNotEmpty) _row('Source', sourceShort),
-          if (types.isNotEmpty) _row('Types', types.join(', ')),
+          if (reach != 5) _row('Reach', '$reach ft.'),
+          if (cr.isNotEmpty)      _row('CR', cr),
+          if (levelAdj != 0)      _row('LA', '+$levelAdj'),
+          if (favoredClass.isNotEmpty) _row('Favored Class', favoredClass),
+          if (sourceShort.isNotEmpty)  _row('Source', sourceShort),
+          if (types.isNotEmpty)        _row('Types', types.join(', ')),
+
+          // Vision
+          if (info.vision.isNotEmpty) ...[
+            const SizedBox(height: 6),
+            _sectionLabel(context, 'Senses'),
+            _bullet(info.vision.toSet().join(', ')),
+          ],
+
+          // Natural attacks
+          if (info.naturalAttacks.isNotEmpty) ...[
+            const SizedBox(height: 6),
+            _sectionLabel(context, 'Natural Attacks'),
+            ...info.naturalAttacks.toSet().map((a) {
+              final parts = a.split(':');
+              if (parts.length >= 3) {
+                return _bullet('${parts[0]} ×${parts[1]} (${parts[2]})');
+              }
+              return _bullet(a);
+            }),
+          ],
+
+          // Languages
+          if (info.autoLang.isNotEmpty || info.bonusLang.isNotEmpty) ...[
+            const SizedBox(height: 6),
+            _sectionLabel(context, 'Languages'),
+            if (info.autoLang.isNotEmpty)
+              _bullet('Automatic: ${info.autoLang.toSet().join(', ')}'),
+            if (info.bonusLang.isNotEmpty)
+              _bullet('Bonus: ${info.bonusLang.toSet().join(', ')}'),
+          ],
+
+          // Weapon proficiencies
+          if (info.weaponProfs.isNotEmpty) ...[
+            const SizedBox(height: 6),
+            _sectionLabel(context, 'Weapon Proficiencies'),
+            _bullet(info.weaponProfs.toSet().join(', ')),
+          ],
+
+          // Skill bonuses
+          if (info.skillBonuses.isNotEmpty) ...[
+            const SizedBox(height: 6),
+            _sectionLabel(context, 'Racial Skill Bonuses'),
+            ...info.skillBonuses.toSet().map(_bullet),
+          ],
+
+          // Special abilities
+          if (info.specialAbilities.isNotEmpty) ...[
+            const SizedBox(height: 6),
+            _sectionLabel(context, 'Special Qualities'),
+            ...info.specialAbilities.toSet().map((s) => _bullet(s)),
+          ],
+
+          // Description
           if (desc.isNotEmpty) ...[
             const SizedBox(height: 8),
             Text(desc, style: Theme.of(context).textTheme.bodySmall),
@@ -355,13 +455,38 @@ class RaceInfoTabState extends State<RaceInfoTab> {
   }
 
   Widget _row(String label, String value) => Padding(
-        padding: const EdgeInsets.symmetric(vertical: 3),
-        child: Row(children: [
+        padding: const EdgeInsets.symmetric(vertical: 2),
+        child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
           SizedBox(
-              width: 80,
+              width: 110,
               child: Text('$label:',
-                  style: const TextStyle(fontWeight: FontWeight.bold))),
-          Expanded(child: Text(value)),
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12))),
+          Expanded(child: Text(value, style: const TextStyle(fontSize: 12))),
         ]),
       );
+
+  Widget _sectionLabel(BuildContext context, String label) => Padding(
+        padding: const EdgeInsets.only(bottom: 2),
+        child: Text(label, style: Theme.of(context).textTheme.labelMedium),
+      );
+
+  Widget _bullet(String text) => Padding(
+        padding: const EdgeInsets.only(left: 8, bottom: 2),
+        child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          const Text('• ', style: TextStyle(fontSize: 12)),
+          Expanded(child: Text(text, style: const TextStyle(fontSize: 12))),
+        ]),
+      );
+}
+
+/// Accumulated race information collected from the race + its ability chain.
+class _RaceInfo {
+  final statMods      = <String, int>{};
+  final vision        = <String>[];
+  final autoLang      = <String>[];
+  final bonusLang     = <String>[];
+  final naturalAttacks = <String>[];
+  final weaponProfs   = <String>[];
+  final skillBonuses  = <String>[];
+  final specialAbilities = <String>[];
 }
