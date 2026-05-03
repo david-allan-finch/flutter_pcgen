@@ -31,11 +31,11 @@ final class Domain extends PObject {
 
   /// Returns the CHOOSE formula, if any (for domain-granted choices).
   dynamic getChooseInfo() =>
-      getSafeObject(ObjectKey.getConstant<dynamic>('CHOOSE_INFO'));
+      getSafeObject(CDOMObjectKey.getConstant<dynamic>('CHOOSE_INFO'));
 
   /// Returns the SELECT formula used by CHOOSE processing.
   dynamic getSelectFormula() =>
-      getSafeObject(ObjectKey.getConstant<dynamic>('SELECT'));
+      getSafeObject(CDOMObjectKey.getConstant<dynamic>('SELECT'));
 
   /// Returns the CHOOSE actors list.
   List<dynamic> getActors() =>
@@ -46,7 +46,7 @@ final class Domain extends PObject {
 
   /// Returns the NUM_CHOICES formula.
   dynamic getNumChoices() =>
-      getSafeObject(ObjectKey.getConstant<dynamic>('NUM_CHOICES'));
+      getSafeObject(CDOMObjectKey.getConstant<dynamic>('NUM_CHOICES'));
 
   // ---- Domain spells & abilities -------------------------------------------
 

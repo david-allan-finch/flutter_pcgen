@@ -150,7 +150,7 @@ final class EquipmentModifier extends PObject
 
   /// Get the spell resistance value for this modifier.
   int getSR(dynamic parent, dynamic aPC) {
-    // Simplified - ObjectKey.SR lookup deferred
+    // Simplified - CDOMObjectKey.SR lookup deferred
     return 0;
   }
 

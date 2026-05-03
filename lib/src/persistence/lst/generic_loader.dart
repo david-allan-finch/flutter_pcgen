@@ -50,7 +50,7 @@ class GenericLoader<T extends CDOMObject> extends LstObjectFileLoader<T> {
     if (fields.isEmpty) return null;
 
     po.setName(fields[0]);
-    po.putObject(ObjectKey.sourceCampaign, source.getCampaign());
+    po.putObject(CDOMObjectKey.sourceCampaign, source.getCampaign());
     po.setSourceURI(source.getURI());
 
     if (isNew) {
@@ -132,7 +132,7 @@ class GenericLoader<T extends CDOMObject> extends LstObjectFileLoader<T> {
         case 'WT':
           try {
             obj.putObject(
-              ObjectKey.getConstant<double>('WEIGHT'),
+              CDOMObjectKey.getConstant<double>('WEIGHT'),
               double.tryParse(value) ?? 0.0,
             );
           } catch (_) {}
@@ -141,7 +141,7 @@ class GenericLoader<T extends CDOMObject> extends LstObjectFileLoader<T> {
           // ACCHECK:-5 — armor check penalty (negative = penalty)
           try {
             obj.putObject(
-              ObjectKey.getConstant<int>('ACCHECK'),
+              CDOMObjectKey.getConstant<int>('ACCHECK'),
               int.tryParse(value.trim()) ?? 0,
             );
           } catch (_) {}
@@ -151,7 +151,7 @@ class GenericLoader<T extends CDOMObject> extends LstObjectFileLoader<T> {
           try {
             final v = int.tryParse(value.trim());
             if (v != null) {
-              obj.putObject(ObjectKey.getConstant<int>('MAXDEX'), v);
+              obj.putObject(CDOMObjectKey.getConstant<int>('MAXDEX'), v);
             }
           } catch (_) {}
           return;
@@ -159,7 +159,7 @@ class GenericLoader<T extends CDOMObject> extends LstObjectFileLoader<T> {
           // SPELLFAILURE:30 — arcane spell failure chance in percent
           try {
             obj.putObject(
-              ObjectKey.getConstant<int>('SPELLFAILURE'),
+              CDOMObjectKey.getConstant<int>('SPELLFAILURE'),
               int.tryParse(value.trim()) ?? 0,
             );
           } catch (_) {}
@@ -235,14 +235,14 @@ class GenericLoader<T extends CDOMObject> extends LstObjectFileLoader<T> {
         case 'MULT':
           // MULT:YES — feat/ability can be taken multiple times (once per CHOOSE selection)
           try {
-            obj.putObject(ObjectKey.getConstant<bool>('MULT_OK'),
+            obj.putObject(CDOMObjectKey.getConstant<bool>('MULT_OK'),
                 value.toUpperCase() == 'YES');
           } catch (_) {}
           return;
         case 'STACK':
           // STACK:YES/NO — whether multiple instances of the same bonus stack
           try {
-            obj.putObject(ObjectKey.getConstant<bool>('STACK_OK'),
+            obj.putObject(CDOMObjectKey.getConstant<bool>('STACK_OK'),
                 value.toUpperCase() == 'YES');
           } catch (_) {}
           return;
@@ -261,7 +261,7 @@ class GenericLoader<T extends CDOMObject> extends LstObjectFileLoader<T> {
         case 'CRITRANGE':
           // CRITRANGE:1 means 20 (1 die face), 3 means 18-20
           try {
-            obj.putObject(ObjectKey.getConstant<int>('CRITRANGE'),
+            obj.putObject(CDOMObjectKey.getConstant<int>('CRITRANGE'),
                 int.tryParse(value.trim()) ?? 1);
           } catch (_) {}
           return;
@@ -276,7 +276,7 @@ class GenericLoader<T extends CDOMObject> extends LstObjectFileLoader<T> {
           // Skill key ability stat abbreviation (e.g. KEY_STAT:STR).
           try {
             obj.putObject(
-              ObjectKey.getConstant<dynamic>('KEY_STAT'),
+              CDOMObjectKey.getConstant<dynamic>('KEY_STAT'),
               KeyStatRef(value),
             );
           } catch (_) {}
@@ -311,7 +311,7 @@ class GenericLoader<T extends CDOMObject> extends LstObjectFileLoader<T> {
           // ACHECK:YES/NO/WEIGHT — does armor check penalty apply to this skill?
           try {
             obj.putObject(
-              ObjectKey.getConstant<bool>('ACHECK'),
+              CDOMObjectKey.getConstant<bool>('ACHECK'),
               value.toUpperCase() == 'YES' || value.toUpperCase() == 'WEIGHT',
             );
           } catch (_) {}
@@ -319,7 +319,7 @@ class GenericLoader<T extends CDOMObject> extends LstObjectFileLoader<T> {
         case 'USE_UNTRAINED':
           try {
             obj.putObject(
-              ObjectKey.getConstant<bool>('USE_UNTRAINED', defaultValue: true),
+              CDOMObjectKey.getConstant<bool>('USE_UNTRAINED', defaultValue: true),
               value.toUpperCase() != 'NO',
             );
           } catch (_) {}
@@ -327,7 +327,7 @@ class GenericLoader<T extends CDOMObject> extends LstObjectFileLoader<T> {
         case 'EXCLUSIVE':
           try {
             obj.putObject(
-              ObjectKey.getConstant<bool>('EXCLUSIVE', defaultValue: false),
+              CDOMObjectKey.getConstant<bool>('EXCLUSIVE', defaultValue: false),
               value.toUpperCase() == 'YES',
             );
           } catch (_) {}
@@ -345,7 +345,7 @@ class GenericLoader<T extends CDOMObject> extends LstObjectFileLoader<T> {
           return;
         case 'STARTFEATS':
           try {
-            obj.putObject(ObjectKey.getConstant<int>('START_FEATS'),
+            obj.putObject(CDOMObjectKey.getConstant<int>('START_FEATS'),
                 int.tryParse(value) ?? 0);
           } catch (_) {}
           return;
@@ -383,7 +383,7 @@ class GenericLoader<T extends CDOMObject> extends LstObjectFileLoader<T> {
         case 'XTRASKILLPTSPERLVL':
           // Extra skill points per level (bonus, e.g. Human gets +1)
           try {
-            obj.putObject(ObjectKey.getConstant<int>('XTRA_SKILL_PTS'), int.tryParse(value) ?? 0);
+            obj.putObject(CDOMObjectKey.getConstant<int>('XTRA_SKILL_PTS'), int.tryParse(value) ?? 0);
           } catch (_) {}
           return;
         case 'CR':
@@ -429,7 +429,7 @@ class GenericLoader<T extends CDOMObject> extends LstObjectFileLoader<T> {
           } catch (_) {}
           return;
         case 'SIZE':
-          try { obj.putObject(ObjectKey.getConstant<String>('RACE_SIZE'), value.trim()); } catch (_) {}
+          try { obj.putObject(CDOMObjectKey.getConstant<String>('RACE_SIZE'), value.trim()); } catch (_) {}
           return;
         case 'FAVCLASS':
           try { obj.putString(StringKey.abbreviation, value); } catch (_) {}
@@ -441,10 +441,10 @@ class GenericLoader<T extends CDOMObject> extends LstObjectFileLoader<T> {
         case 'TAIL':
           return; // cosmetic — ignore
         case 'REACH':
-          try { obj.putObject(ObjectKey.getConstant<int>('REACH'), int.tryParse(value.trim()) ?? 5); } catch (_) {}
+          try { obj.putObject(CDOMObjectKey.getConstant<int>('REACH'), int.tryParse(value.trim()) ?? 5); } catch (_) {}
           return;
         case 'SR':
-          try { obj.putObject(ObjectKey.getConstant<String>('SR_FORMULA'), value.trim()); } catch (_) {}
+          try { obj.putObject(CDOMObjectKey.getConstant<String>('SR_FORMULA'), value.trim()); } catch (_) {}
           return;
         case 'DR':
           try { obj.addToListFor(ListKey.getConstant<String>('DR_LIST'), value.trim()); } catch (_) {}
@@ -470,7 +470,7 @@ class GenericLoader<T extends CDOMObject> extends LstObjectFileLoader<T> {
         // ---- Equipment tokens -----------------------------------------------
         case 'VISIBLE':
           try {
-            obj.putObject(ObjectKey.getConstant<bool>('VISIBLE'),
+            obj.putObject(CDOMObjectKey.getConstant<bool>('VISIBLE'),
                 value.trim().toUpperCase() == 'YES');
           } catch (_) {}
           return;
@@ -478,7 +478,7 @@ class GenericLoader<T extends CDOMObject> extends LstObjectFileLoader<T> {
           try { obj.putString(StringKey.altName, value.trim()); } catch (_) {}
           return;
         case 'SLOTS':
-          try { obj.putObject(ObjectKey.getConstant<int>('EQUIP_SLOTS'), int.tryParse(value.trim()) ?? 1); } catch (_) {}
+          try { obj.putObject(CDOMObjectKey.getConstant<int>('EQUIP_SLOTS'), int.tryParse(value.trim()) ?? 1); } catch (_) {}
           return;
         // ---- Special ability text ----
         case 'SAB':
@@ -531,16 +531,16 @@ class GenericLoader<T extends CDOMObject> extends LstObjectFileLoader<T> {
           try { obj.putString(StringKey.hdFormula, value.trim()); } catch (_) {}
           return;
         case 'STARTSKILLPTS':
-          try { obj.putObject(ObjectKey.getConstant<int>('START_SKILL_PTS'), int.tryParse(value.trim()) ?? 2); } catch (_) {}
+          try { obj.putObject(CDOMObjectKey.getConstant<int>('START_SKILL_PTS'), int.tryParse(value.trim()) ?? 2); } catch (_) {}
           return;
         case 'LEVELSPERFEAT':
-          try { obj.putObject(ObjectKey.getConstant<int>('LEVELS_PER_FEAT'), int.tryParse(value.trim()) ?? 3); } catch (_) {}
+          try { obj.putObject(CDOMObjectKey.getConstant<int>('LEVELS_PER_FEAT'), int.tryParse(value.trim()) ?? 3); } catch (_) {}
           return;
         case 'LEVELADJUSTMENT':
-          try { obj.putObject(ObjectKey.getConstant<int>('LEVEL_ADJUSTMENT'), int.tryParse(value.trim()) ?? 0); } catch (_) {}
+          try { obj.putObject(CDOMObjectKey.getConstant<int>('LEVEL_ADJUSTMENT'), int.tryParse(value.trim()) ?? 0); } catch (_) {}
           return;
         case 'SKILLMULT':
-          try { obj.putObject(ObjectKey.getConstant<int>('SKILL_MULT'), int.tryParse(value.trim()) ?? 1); } catch (_) {}
+          try { obj.putObject(CDOMObjectKey.getConstant<int>('SKILL_MULT'), int.tryParse(value.trim()) ?? 1); } catch (_) {}
           return;
         case 'KEYSTAT':
           try { obj.putString(StringKey.keystatFormula, value.trim()); } catch (_) {}
@@ -598,10 +598,10 @@ class GenericLoader<T extends CDOMObject> extends LstObjectFileLoader<T> {
 
         // ---- Spell detail tokens ----
         case 'SPELLRES':
-          try { obj.putObject(ObjectKey.getConstant<bool>('SPELL_RES'), value.trim().toUpperCase() == 'YES'); } catch (_) {}
+          try { obj.putObject(CDOMObjectKey.getConstant<bool>('SPELL_RES'), value.trim().toUpperCase() == 'YES'); } catch (_) {}
           return;
         case 'XPCOST':
-          try { obj.putObject(ObjectKey.getConstant<int>('XP_COST'), int.tryParse(value.trim()) ?? 0); } catch (_) {}
+          try { obj.putObject(CDOMObjectKey.getConstant<int>('XP_COST'), int.tryParse(value.trim()) ?? 0); } catch (_) {}
           return;
 
         // ---- Acknowledged / no-op tokens ----
@@ -757,7 +757,7 @@ class GenericLoader<T extends CDOMObject> extends LstObjectFileLoader<T> {
     if (tag.toUpperCase() == 'CHOOSE') {
       final choose = ParsedChoose.parse(value);
       try {
-        obj.putObject(ObjectKey.getConstant<ParsedChoose>('PARSED_CHOOSE'), choose);
+        obj.putObject(CDOMObjectKey.getConstant<ParsedChoose>('PARSED_CHOOSE'), choose);
       } catch (_) {}
       return;
     }

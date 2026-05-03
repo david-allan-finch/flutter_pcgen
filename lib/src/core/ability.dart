@@ -40,15 +40,15 @@ final class Ability extends PObject implements Categorized<Ability> {
 
   /// Returns true if this ability can be taken multiple times.
   bool isMult() =>
-      getSafeObject(ObjectKey.getConstant<bool>('MULT', defaultValue: false)) as bool? ?? false;
+      getSafeObject(CDOMObjectKey.getConstant<bool>('MULT', defaultValue: false)) as bool? ?? false;
 
   /// Returns true if multiple copies of this ability stack.
   bool isStackable() =>
-      getSafeObject(ObjectKey.getConstant<bool>('STACK', defaultValue: false)) as bool? ?? false;
+      getSafeObject(CDOMObjectKey.getConstant<bool>('STACK', defaultValue: false)) as bool? ?? false;
 
   /// Returns the cost of this ability in pool points.
   double getCost() =>
-      (getSafeObject(ObjectKey.getConstant<dynamic>('COST')) as num?)?.toDouble() ?? 1.0;
+      (getSafeObject(CDOMObjectKey.getConstant<dynamic>('COST')) as num?)?.toDouble() ?? 1.0;
 
   /// Returns all description keys used by this ability.
   List<dynamic> getDescriptionKey() =>

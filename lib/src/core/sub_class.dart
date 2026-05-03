@@ -26,7 +26,7 @@ import 'package:flutter_pcgen/src/core/pc_class.dart';
 // A specialized variant of a PCClass with modified spell prohibition and cost.
 final class SubClass extends PCClass implements Categorized<SubClass> {
   String getChoice() {
-    final sp = getObject(ObjectKey.choice);
+    final sp = getObject(CDOMObjectKey.choice);
     if (sp == null) return '';
     // SpellProhibitor value list — simplified
     return sp.toString();
@@ -40,12 +40,12 @@ final class SubClass extends PCClass implements Categorized<SubClass> {
 
   @override
   Category<SubClass> getCDOMCategory() {
-    return getObject(ObjectKey.subclassCategory) as Category<SubClass>;
+    return getObject(CDOMObjectKey.subclassCategory) as Category<SubClass>;
   }
 
   @override
   void setCDOMCategory(Category<SubClass> cat) {
-    putObject(ObjectKey.subclassCategory, cat);
+    putObject(CDOMObjectKey.subclassCategory, cat);
   }
 
   @override

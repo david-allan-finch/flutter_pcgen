@@ -41,11 +41,11 @@ final class Race extends PObject {
 
   /// Returns the CHOOSE info for this race (used by CHOOSE: processing).
   dynamic getChooseInfo() =>
-      getSafeObject(ObjectKey.getConstant<dynamic>('CHOOSE_INFO'));
+      getSafeObject(CDOMObjectKey.getConstant<dynamic>('CHOOSE_INFO'));
 
   /// Returns the SELECT formula used by CHOOSE processing.
   dynamic getSelectFormula() =>
-      getSafeObject(ObjectKey.getConstant<dynamic>('SELECT'));
+      getSafeObject(CDOMObjectKey.getConstant<dynamic>('SELECT'));
 
   /// Returns the CHOOSE actors list.
   List<dynamic> getActors() =>
@@ -56,7 +56,7 @@ final class Race extends PObject {
 
   /// Returns the NUM_CHOICES formula.
   dynamic getNumChoices() =>
-      getSafeObject(ObjectKey.getConstant<dynamic>('NUM_CHOICES'));
+      getSafeObject(CDOMObjectKey.getConstant<dynamic>('NUM_CHOICES'));
 
   /// Returns the number of monster class levels (MONCLASSLEVELS).
   int getMonsterClassLevels() =>
@@ -64,7 +64,7 @@ final class Race extends PObject {
 
   /// Returns the monster class for this race (MONCLASS token).
   dynamic getMonsterClass() =>
-      getSafeObject(ObjectKey.getConstant<dynamic>('MONSTER_CLASS'));
+      getSafeObject(CDOMObjectKey.getConstant<dynamic>('MONSTER_CLASS'));
 
   // ---- Race traits exposed to character facade ----------------------------
 
@@ -74,7 +74,7 @@ final class Race extends PObject {
   /// Movement speeds as {type: feet} map, e.g. {'Walk': 30, 'Swim': 20}.
   Map<String, int> getMoveSpeeds() {
     try {
-      final obj = getSafeObject(ObjectKey.getConstant<Map>('MOVE_SPEEDS'));
+      final obj = getSafeObject(CDOMObjectKey.getConstant<Map>('MOVE_SPEEDS'));
       if (obj is Map) return Map<String, int>.from(obj);
     } catch (_) {}
     // Fall back to parsing the raw MOVE string
@@ -128,7 +128,7 @@ final class Race extends PObject {
 
   /// Starting feats granted by the race (STARTFEATS token).
   int getStartFeats() =>
-      getSafeObject(ObjectKey.getConstant<int>('START_FEATS')) as int? ?? 0;
+      getSafeObject(CDOMObjectKey.getConstant<int>('START_FEATS')) as int? ?? 0;
 
   @override
   int get hashCode => getKeyName().hashCode;

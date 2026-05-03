@@ -37,7 +37,7 @@ final class Deity extends PObject {
 
   /// Returns the deity's favoured weapon key, if set.
   String? getFavWeaponKeyName() {
-    final ref = getSafeObject(ObjectKey.getConstant<dynamic>('FAVORED_WEAPON'));
+    final ref = getSafeObject(CDOMObjectKey.getConstant<dynamic>('FAVORED_WEAPON'));
     return (ref as dynamic)?.get()?.getKeyName();
   }
 

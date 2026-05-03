@@ -210,25 +210,25 @@ class CampaignLoader {
         campaign.putString(StringKey.sourcePage, value);
 
       case 'SOURCEDATE':
-        campaign.putObject(ObjectKey.getConstant<String>('SOURCE_DATE'), value);
+        campaign.putObject(CDOMObjectKey.getConstant<String>('SOURCE_DATE'), value);
 
       case 'SOURCELINK':
         campaign.putString(StringKey.sourceLink, value);
 
       case 'STATUS':
-        campaign.putObject(ObjectKey.getConstant<String>('STATUS'), value);
+        campaign.putObject(CDOMObjectKey.getConstant<String>('STATUS'), value);
 
       case 'ISLICENSED':
         campaign.putObject(
-            ObjectKey.getConstant<bool>('IS_LICENSED'), _parseBool(value));
+            CDOMObjectKey.getConstant<bool>('IS_LICENSED'), _parseBool(value));
 
       case 'ISOGL':
         campaign.putObject(
-            ObjectKey.getConstant<bool>('IS_OGL'), _parseBool(value));
+            CDOMObjectKey.getConstant<bool>('IS_OGL'), _parseBool(value));
 
       case 'ISMATURE':
         campaign.putObject(
-            ObjectKey.getConstant<bool>('IS_MATURE'), _parseBool(value));
+            CDOMObjectKey.getConstant<bool>('IS_MATURE'), _parseBool(value));
 
       case 'COPYRIGHT':
         campaign.addToListFor(
@@ -248,7 +248,7 @@ class CampaignLoader {
             ListKey.getConstant<String>('CAMPAIGN_INFO'), value);
 
       case 'LOGO':
-        campaign.putObject(ObjectKey.getConstant<String>('LOGO'), value);
+        campaign.putObject(CDOMObjectKey.getConstant<String>('LOGO'), value);
 
       case 'MINVER':
         campaign.putString(StringKey.minver, value);

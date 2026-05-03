@@ -15,66 +15,66 @@
 // License along with this library; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
-// Translation of pcgen.cdom.enumeration.ObjectKey
+// Translation of pcgen.cdom.enumeration.CDOMObjectKey
 import 'package:flutter_pcgen/src/base/util/case_insensitive_map.dart';
 
 // Typesafe key for typed Object storage in CDOMObject.
-class ObjectKey<T> {
-  static final CaseInsensitiveMap<ObjectKey<dynamic>> _typeMap = CaseInsensitiveMap();
+class CDOMObjectKey<T> {
+  static final CaseInsensitiveMap<CDOMObjectKey<dynamic>> _typeMap = CaseInsensitiveMap();
   static int _ordinalCount = 0;
 
   // Commonly used named constants (mirrors Java's static final fields).
-  static final ObjectKey<bool> useSpellSpellStat =
+  static final CDOMObjectKey<bool> useSpellSpellStat =
       getConstant<bool>('USE_SPELL_SPELL_STAT', defaultValue: false);
-  static final ObjectKey<bool> casterWithoutSpellStat =
+  static final CDOMObjectKey<bool> casterWithoutSpellStat =
       getConstant<bool>('CASTER_WITHOUT_SPELL_STAT', defaultValue: false);
-  static final ObjectKey<dynamic> spellStat =
+  static final CDOMObjectKey<dynamic> spellStat =
       getConstant<dynamic>('SPELL_STAT');
-  static final ObjectKey<bool> hasBonusSpellStat =
+  static final CDOMObjectKey<bool> hasBonusSpellStat =
       getConstant<bool>('HAS_BONUS_SPELL_STAT');
-  static final ObjectKey<dynamic> bonusSpellStat =
+  static final CDOMObjectKey<dynamic> bonusSpellStat =
       getConstant<dynamic>('BONUS_SPELL_STAT');
-  static final ObjectKey<dynamic> classSpelllist =
+  static final CDOMObjectKey<dynamic> classSpelllist =
       getConstant<dynamic>('CLASS_SPELLLIST');
-  static final ObjectKey<dynamic> domainSpelllist =
+  static final CDOMObjectKey<dynamic> domainSpelllist =
       getConstant<dynamic>('DOMAIN_SPELLLIST');
-  static final ObjectKey<dynamic> visibility =
+  static final CDOMObjectKey<dynamic> visibility =
       getConstant<dynamic>('VISIBILITY');
-  static final ObjectKey<bool> removable =
+  static final CDOMObjectKey<bool> removable =
       getConstant<bool>('REMOVABLE');
-  static final ObjectKey<dynamic> sourceCampaign =
+  static final CDOMObjectKey<dynamic> sourceCampaign =
       getConstant<dynamic>('SOURCE_CAMPAIGN');
-  static final ObjectKey<dynamic> sourceDate =
+  static final CDOMObjectKey<dynamic> sourceDate =
       getConstant<dynamic>('SOURCE_DATE');
-  static final ObjectKey<dynamic> tokenParent =
+  static final CDOMObjectKey<dynamic> tokenParent =
       getConstant<dynamic>('TOKEN_PARENT');
-  static final ObjectKey<dynamic> baseItem =
+  static final CDOMObjectKey<dynamic> baseItem =
       getConstant<dynamic>('BASE_ITEM');
-  static final ObjectKey<dynamic> choice =
+  static final CDOMObjectKey<dynamic> choice =
       getConstant<dynamic>('CHOICE');
-  static final ObjectKey<dynamic> chooseInfo =
+  static final CDOMObjectKey<dynamic> chooseInfo =
       getConstant<dynamic>('CHOOSE_INFO');
-  static final ObjectKey<bool> multipleAllowed =
+  static final CDOMObjectKey<bool> multipleAllowed =
       getConstant<bool>('MULTIPLE_ALLOWED', defaultValue: false);
-  static final ObjectKey<bool> stacks =
+  static final CDOMObjectKey<bool> stacks =
       getConstant<bool>('STACKS', defaultValue: false);
-  static final ObjectKey<dynamic> assignToAll =
+  static final CDOMObjectKey<dynamic> assignToAll =
       getConstant<dynamic>('ASSIGN_TO_ALL');
-  static final ObjectKey<bool> namePI =
+  static final CDOMObjectKey<bool> namePI =
       getConstant<bool>('NAME_PI', defaultValue: false);
-  static final ObjectKey<dynamic> parent =
+  static final CDOMObjectKey<dynamic> parent =
       getConstant<dynamic>('PARENT');
-  static final ObjectKey<dynamic> exchangeLevel =
+  static final CDOMObjectKey<dynamic> exchangeLevel =
       getConstant<dynamic>('EXCHANGE_LEVEL');
-  static final ObjectKey<dynamic> modControl =
+  static final CDOMObjectKey<dynamic> modControl =
       getConstant<dynamic>('MOD_CONTROL');
-  static final ObjectKey<dynamic> modifyChoice =
+  static final CDOMObjectKey<dynamic> modifyChoice =
       getConstant<dynamic>('MODIFY_CHOICE');
-  static final ObjectKey<bool> isDefaultSize =
+  static final CDOMObjectKey<bool> isDefaultSize =
       getConstant<bool>('IS_DEFAULT_SIZE', defaultValue: false);
-  static final ObjectKey<dynamic> subclassCategory =
+  static final CDOMObjectKey<dynamic> subclassCategory =
       getConstant<dynamic>('SUBCLASS_CATEGORY');
-  static final ObjectKey<dynamic> domainSpellList =
+  static final CDOMObjectKey<dynamic> domainSpellList =
       getConstant<dynamic>('DOMAIN_SPELLLIST');
 
   final String _fieldName;
@@ -82,7 +82,7 @@ class ObjectKey<T> {
   final int ordinal;
   final T Function(dynamic)? _caster;
 
-  ObjectKey._(this._fieldName, this._defaultValue, this._caster)
+  CDOMObjectKey._(this._fieldName, this._defaultValue, this._caster)
       : ordinal = _ordinalCount++;
 
   T? getDefault() => _defaultValue;
@@ -96,22 +96,22 @@ class ObjectKey<T> {
   @override
   String toString() => _fieldName;
 
-  static ObjectKey<T> getConstant<T>(String name,
+  static CDOMObjectKey<T> getConstant<T>(String name,
       {T? defaultValue, T Function(dynamic)? caster}) {
     final existing = _typeMap[name];
-    if (existing != null) return existing as ObjectKey<T>;
-    final key = ObjectKey<T>._(name, defaultValue, caster);
+    if (existing != null) return existing as CDOMObjectKey<T>;
+    final key = CDOMObjectKey<T>._(name, defaultValue, caster);
     _typeMap[name] = key;
     return key;
   }
 
-  static ObjectKey<T> valueOf<T>(String name) {
+  static CDOMObjectKey<T> valueOf<T>(String name) {
     final key = _typeMap[name];
-    if (key == null) throw ArgumentError('$name is not a previously defined ObjectKey');
-    return key as ObjectKey<T>;
+    if (key == null) throw ArgumentError('$name is not a previously defined CDOMObjectKey');
+    return key as CDOMObjectKey<T>;
   }
 
-  static Iterable<ObjectKey<dynamic>> getAllConstants() =>
+  static Iterable<CDOMObjectKey<dynamic>> getAllConstants() =>
       List.unmodifiable(_typeMap.values);
 
   static void clearConstants() => _typeMap.clear();

@@ -77,7 +77,7 @@ class PObject extends CDOMObject implements Comparable<Object> {
   String toString() => getDisplayName();
 
   bool isNamePI() {
-    return getSafeObject<bool>(ObjectKey.getConstant<bool>('NAME_PI')) ?? false;
+    return getSafeObject<bool>(CDOMObjectKey.getConstant<bool>('NAME_PI')) ?? false;
   }
 
   /// Returns the raw bonus list for this object. [pc] may be null.

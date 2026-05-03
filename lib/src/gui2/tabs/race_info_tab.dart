@@ -1,6 +1,6 @@
 // Translation of pcgen.gui2.tabs.RaceInfoTab
 
-import 'package:flutter/material.dart' hide ObjectKey;
+import 'package:flutter/material.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/list_key.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/object_key.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/string_key.dart';
@@ -176,8 +176,8 @@ class RaceInfoTabState extends State<RaceInfoTab> {
       desc = race.getString(StringKey.description) ?? '';
       sourceShort = race.getString(StringKey.sourceShort) ??
                     race.getString(StringKey.sourceLong) ?? '';
-      // SIZE stored as ObjectKey 'RACE_SIZE'
-      size = race.getSafeObject(ObjectKey.getConstant<String>('RACE_SIZE')) ?? '';
+      // SIZE stored as CDOMObjectKey 'RACE_SIZE'
+      size = race.getSafeObject(CDOMObjectKey.getConstant<String>('RACE_SIZE')) ?? '';
       // Fallback: legacy sizeformula key
       if (size.isEmpty) size = race.getString(StringKey.sizeformula) ?? '';
       cr = race.getString(StringKey.subregion) ?? '';

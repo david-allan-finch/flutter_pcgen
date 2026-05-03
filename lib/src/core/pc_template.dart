@@ -17,11 +17,11 @@ final class PCTemplate extends PObject {
 
   /// Returns total CR adjustment at a given level and HD.
   int getCR(int level, int hitdice) {
-    final crMod = getObject(ObjectKey.getConstant<dynamic>('CR_MODIFIER'));
+    final crMod = getObject(CDOMObjectKey.getConstant<dynamic>('CR_MODIFIER'));
     final base = (crMod as num?)?.toInt() ?? 0;
     final conditional = getConditionalTemplates(level, hitdice)
         .map((t) {
-          final m = t.getObject(ObjectKey.getConstant<dynamic>('CR_MODIFIER'));
+          final m = t.getObject(CDOMObjectKey.getConstant<dynamic>('CR_MODIFIER'));
           return (m as num?)?.toInt() ?? 0;
         })
         .fold<int>(0, (sum, v) => sum + v);
@@ -34,9 +34,9 @@ final class PCTemplate extends PObject {
 
   bool isRemovable() {
     final visibility =
-        getSafeObject(ObjectKey.visibility) as Visibility?;
+        getSafeObject(CDOMObjectKey.visibility) as Visibility?;
     if (visibility != null && visibility.isVisibleTo(View.visibleDisplay)) {
-      return getSafeObject(ObjectKey.removable) as bool? ?? false;
+      return getSafeObject(CDOMObjectKey.removable) as bool? ?? false;
     }
     return false;
   }

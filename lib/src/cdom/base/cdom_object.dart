@@ -63,7 +63,7 @@ abstract class CDOMObject extends ConcretePrereqObject
   Map<StringKey, String>? _stringChar;
   Map<FormulaKey, String>? _formulaChar;  // Formula stored as String expression
   Map<VariableKey, String>? _variableChar;
-  Map<ObjectKey<dynamic>, dynamic>? _objectChar;
+  Map<CDOMObjectKey<dynamic>, dynamic>? _objectChar;
   Map<FactKey<dynamic>, dynamic>? _factChar;
   FactSetKeyMapToList? _factSetChar;
   ListKeyMapToList? _listChar;
@@ -165,32 +165,32 @@ abstract class CDOMObject extends ConcretePrereqObject
     _variableChar = null;
   }
 
-  // --- ObjectKey methods ---
+  // --- CDOMObjectKey methods ---
 
-  bool containsObjectKey(ObjectKey<dynamic> key) =>
+  bool containsObjectKey(CDOMObjectKey<dynamic> key) =>
       _objectChar != null && _objectChar!.containsKey(key);
 
-  OT? getObject<OT>(ObjectKey<OT> key) {
+  OT? getObject<OT>(CDOMObjectKey<OT> key) {
     return _objectChar == null ? null : key.cast(_objectChar![key]);
   }
 
-  OT? getSafeObject<OT>(ObjectKey<OT> key) {
+  OT? getSafeObject<OT>(CDOMObjectKey<OT> key) {
     final obj = getObject(key);
     return obj ?? key.getDefault();
   }
 
-  OT? putObject<OT>(ObjectKey<OT> key, OT value) {
+  OT? putObject<OT>(CDOMObjectKey<OT> key, OT value) {
     _objectChar ??= {};
     return key.cast(_objectChar![key] = value);
   }
 
-  OT? removeObject<OT>(ObjectKey<OT> key) {
+  OT? removeObject<OT>(CDOMObjectKey<OT> key) {
     final out = _objectChar == null ? null : key.cast(_objectChar!.remove(key));
     if (out != null && _objectChar!.isEmpty) _objectChar = null;
     return out;
   }
 
-  Set<ObjectKey<dynamic>> getObjectKeys() =>
+  Set<CDOMObjectKey<dynamic>> getObjectKeys() =>
       _objectChar == null ? {} : Set.of(_objectChar!.keys);
 
   // --- FactKey methods ---

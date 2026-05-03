@@ -156,7 +156,7 @@ class EquipmentList {
         final EquipmentModifier? eqMod = _getQualifiedModifierNamed(namePart, eq!);
         if (eqMod != null) {
           eq.addEqModifier(eqMod, true, aPC);
-          if ((eqMod.getSafeObject(ObjectKey.assignToAll) as bool? ?? false) && eq.isDouble()) {
+          if ((eqMod.getSafeObject(CDOMObjectKey.assignToAll) as bool? ?? false) && eq.isDouble()) {
             eq.addEqModifier(eqMod, false, aPC);
             bModified = true;
           }
@@ -274,7 +274,7 @@ class EquipmentList {
     if (eq == null) return;
 
     try {
-      if (!(eq.getSafeObject(ObjectKey.modControl) as dynamic)?.getModifiersAllowed() == true ||
+      if (!(eq.getSafeObject(CDOMObjectKey.modControl) as dynamic)?.getModifiersAllowed() == true ||
           (eq.isArmor() &&
               (eq.getACMod(aPC) == 0) &&
               (eqMod != null &&

@@ -238,25 +238,25 @@ class Equipment extends PObject {
   int getNumAttacks()   => 1;
 
   String getWieldName() {
-    final wield = getSafeObject(ObjectKey.getConstant<dynamic>('WIELD'));
+    final wield = getSafeObject(CDOMObjectKey.getConstant<dynamic>('WIELD'));
     return wield?.toString() ?? '';
   }
 
   /// Armor check penalty (0 or negative). E.g. Chainmail → -5.
   int getAcCheck() =>
-      getSafeObject(ObjectKey.getConstant<int>('ACCHECK')) as int? ?? 0;
+      getSafeObject(CDOMObjectKey.getConstant<int>('ACCHECK')) as int? ?? 0;
 
   /// Maximum DEX bonus to AC while wearing this armor (null = no cap).
   int? getMaxDex() =>
-      getSafeObject(ObjectKey.getConstant<int>('MAXDEX')) as int?;
+      getSafeObject(CDOMObjectKey.getConstant<int>('MAXDEX')) as int?;
 
   /// Arcane spell failure chance in percent.
   int getSpellFailure() =>
-      getSafeObject(ObjectKey.getConstant<int>('SPELLFAILURE')) as int? ?? 0;
+      getSafeObject(CDOMObjectKey.getConstant<int>('SPELLFAILURE')) as int? ?? 0;
 
   /// Critical threat range (1 = 20 only, 3 = 18-20).
   int getCritRange() =>
-      getSafeObject(ObjectKey.getConstant<int>('CRITRANGE')) as int? ?? 1;
+      getSafeObject(CDOMObjectKey.getConstant<int>('CRITRANGE')) as int? ?? 1;
 
   /// Critical multiplier string (e.g. "x2", "x3").
   String getCritMult() => getSafeString(StringKey.critMult);
@@ -265,7 +265,7 @@ class Equipment extends PObject {
   String getDamageString() => getSafeString(StringKey.damage);
 
   String getArmorType() {
-    final at = getSafeObject(ObjectKey.getConstant<dynamic>('ARMOR_TYPE'));
+    final at = getSafeObject(CDOMObjectKey.getConstant<dynamic>('ARMOR_TYPE'));
     return at?.toString() ?? '';
   }
 

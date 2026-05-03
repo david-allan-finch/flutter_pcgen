@@ -26,10 +26,10 @@ final class Skill extends PObject {
   String getLocalScopeName() => 'PC.SKILL';
 
   /// Returns the abbreviation of the key ability stat for this skill.
-  /// Stored during LST loading as a KeyStatRef via ObjectKey('KEY_STAT').
+  /// Stored during LST loading as a KeyStatRef via CDOMObjectKey('KEY_STAT').
   String getKeyStatAbb() {
     try {
-      final keyStat = getSafeObject(ObjectKey.getConstant<dynamic>('KEY_STAT'));
+      final keyStat = getSafeObject(CDOMObjectKey.getConstant<dynamic>('KEY_STAT'));
       if (keyStat is KeyStatRef) return keyStat.abbrev;
       return (keyStat as dynamic)?.get()?.getKeyName() ?? '';
     } catch (_) {
@@ -39,19 +39,19 @@ final class Skill extends PObject {
 
   /// Returns true if this skill can be used untrained.
   bool isUntrained() =>
-      getSafeObject(ObjectKey.getConstant<bool>('USE_UNTRAINED', defaultValue: true))
+      getSafeObject(CDOMObjectKey.getConstant<bool>('USE_UNTRAINED', defaultValue: true))
           as bool? ??
       true;
 
   /// Returns true if this skill is exclusive to certain classes.
   bool isExclusive() =>
-      getSafeObject(ObjectKey.getConstant<bool>('EXCLUSIVE', defaultValue: false))
+      getSafeObject(CDOMObjectKey.getConstant<bool>('EXCLUSIVE', defaultValue: false))
           as bool? ??
       false;
 
   /// Returns true if armor check penalty applies to this skill (ACHECK:YES).
   bool hasArmorCheckPenalty() =>
-      getSafeObject(ObjectKey.getConstant<bool>('ACHECK')) as bool? ?? false;
+      getSafeObject(CDOMObjectKey.getConstant<bool>('ACHECK')) as bool? ?? false;
 
   /// Returns raw bonus objects for this skill for the given character.
   List<dynamic> getRawBonusList(dynamic pc) =>

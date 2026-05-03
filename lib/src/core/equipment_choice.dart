@@ -166,7 +166,7 @@ class EquipmentChoice {
     for (final Ability anAbility in ref.getManufacturerId(cat).getAllObjects() as Iterable<Ability>) {
       final bool matchesType =
           typeString.toLowerCase() == 'all' || anAbility.isType(typeString);
-      if ((anAbility.getSafeObject(ObjectKey.visibility) as dynamic)?.toString() == 'DEFAULT' &&
+      if ((anAbility.getSafeObject(CDOMObjectKey.visibility) as dynamic)?.toString() == 'DEFAULT' &&
           !availableList.contains(anAbility.getKeyName())) {
         if (matchesType && !ChooseActivation.hasNewChooseToken(anAbility)) {
           availableList.add(anAbility.getKeyName());

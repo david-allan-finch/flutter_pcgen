@@ -200,7 +200,7 @@ class PCClassLoader extends GenericLoader<PCClass> {
         try { pcClass.putString(StringKey.sourcePage, value); } catch (_) {}
         return true;
       case 'STARTSKILLPTS':
-        try { pcClass.putObject(ObjectKey.getConstant<int>('START_SKILL_PTS'), int.tryParse(value) ?? 2); } catch (_) {}
+        try { pcClass.putObject(CDOMObjectKey.getConstant<int>('START_SKILL_PTS'), int.tryParse(value) ?? 2); } catch (_) {}
         return true;
       case 'CSKILL':
         for (final s in value.split('|')) {
@@ -289,10 +289,10 @@ class PCClassLoader extends GenericLoader<PCClass> {
         try { pcClass.putString(StringKey.spellStat, value); } catch (_) {}
         return true;
       case 'MEMORIZE':
-        try { pcClass.putObject(ObjectKey.getConstant<bool>('MEMORIZE'), value.toUpperCase() == 'YES'); } catch (_) {}
+        try { pcClass.putObject(CDOMObjectKey.getConstant<bool>('MEMORIZE'), value.toUpperCase() == 'YES'); } catch (_) {}
         return true;
       case 'SPELLBOOK':
-        try { pcClass.putObject(ObjectKey.getConstant<bool>('SPELLBOOK'), value.toUpperCase() == 'YES'); } catch (_) {}
+        try { pcClass.putObject(CDOMObjectKey.getConstant<bool>('SPELLBOOK'), value.toUpperCase() == 'YES'); } catch (_) {}
         return true;
       case 'LANGBONUS':
         for (final lang in value.split(',')) {
@@ -312,7 +312,7 @@ class PCClassLoader extends GenericLoader<PCClass> {
         return true; // wizard specialty — ignore
       case 'VISIBLE':
       case 'MAXLEVEL':
-        try { pcClass.putObject(ObjectKey.getConstant<int>('MAX_LEVEL'), int.tryParse(value) ?? 20); } catch (_) {}
+        try { pcClass.putObject(CDOMObjectKey.getConstant<int>('MAX_LEVEL'), int.tryParse(value) ?? 20); } catch (_) {}
         return true;
       case 'EXCLASS':
       case 'CASTERLEVEL':

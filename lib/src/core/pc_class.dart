@@ -46,7 +46,7 @@ class PCClass extends PObject {
       classLevel.putInt(IntegerKey.level, lvl);
       classLevel.setName('${getDisplayName()}($lvl)');
       classLevel.putString(StringKey.qualifiedKey, getKeyName());
-      classLevel.putObject(ObjectKey.tokenParent, this);
+      classLevel.putObject(CDOMObjectKey.tokenParent, this);
       _levelMap[lvl] = classLevel;
     }
     return _levelMap[lvl]!;
@@ -165,7 +165,7 @@ class PCClass extends PObject {
   /// Returns skill points per level parsed from STARTSKILLPTS token.
   int getSkillPtsPerLevel() {
     try {
-      final v = getSafeObject(ObjectKey.getConstant<int>('START_SKILL_PTS'));
+      final v = getSafeObject(CDOMObjectKey.getConstant<int>('START_SKILL_PTS'));
       return v as int? ?? 2;
     } catch (_) { return 2; }
   }
@@ -217,19 +217,19 @@ class PCClass extends PObject {
 
   /// Returns the stat used for learning/casting spells, or null if none.
   PCStat? baseSpellStat() {
-    if (getSafeObject(ObjectKey.useSpellSpellStat) as bool? ?? false) return null;
-    if (getSafeObject(ObjectKey.casterWithoutSpellStat) as bool? ?? false) return null;
-    final ss = getObject(ObjectKey.spellStat);
+    if (getSafeObject(CDOMObjectKey.useSpellSpellStat) as bool? ?? false) return null;
+    if (getSafeObject(CDOMObjectKey.casterWithoutSpellStat) as bool? ?? false) return null;
+    final ss = getObject(CDOMObjectKey.spellStat);
     if (ss != null) return (ss as dynamic).get() as PCStat?;
     return null;
   }
 
   /// Returns the stat used for bonus spells.
   PCStat? bonusSpellStat() {
-    final hbss = getObject(ObjectKey.hasBonusSpellStat) as bool?;
+    final hbss = getObject(CDOMObjectKey.hasBonusSpellStat) as bool?;
     if (hbss == null) return baseSpellStat();
     if (hbss) {
-      final bssref = getObject(ObjectKey.bonusSpellStat);
+      final bssref = getObject(CDOMObjectKey.bonusSpellStat);
       if (bssref != null) return (bssref as dynamic).get() as PCStat?;
     }
     return null;

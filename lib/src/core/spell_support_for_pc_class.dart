@@ -147,8 +147,8 @@ class SpellSupportForPCClass {
         aPC.getTotalBonusTo('STAT', 'BASESPELLKNOWNSTAT').toInt() +
         aPC.getTotalBonusTo('STAT', 'BASESPELLKNOWNSTAT;CLASS=${source.getKeyName()}').toInt();
 
-    if (!(source.getSafeObject(ObjectKey.useSpellSpellStat) as bool? ?? false) &&
-        !(source.getSafeObject(ObjectKey.casterWithoutSpellStat) as bool? ?? false)) {
+    if (!(source.getSafeObject(CDOMObjectKey.useSpellSpellStat) as bool? ?? false) &&
+        !(source.getSafeObject(CDOMObjectKey.casterWithoutSpellStat) as bool? ?? false)) {
       final int maxSpellLevel =
           aPC.getVariableValue('MAXLEVELSTAT=$statString', '').toInt();
       if ((maxSpellLevel + bonusStat) < spellLevel) {
@@ -190,7 +190,7 @@ class SpellSupportForPCClass {
     }
 
     total += aPC.getKnownSpellCountForLevel(
-        source.getObject(ObjectKey.classSpelllist), spellLevel);
+        source.getObject(CDOMObjectKey.classSpelllist), spellLevel);
 
     return total;
   }
@@ -398,7 +398,7 @@ class SpellSupportForPCClass {
               if (source.getKeyName() ==
                   aPC.getDomainSource(d).getPcclass().getKeyName()) {
                 bList = aPC.getSpellsIn(
-                    d.getObject(ObjectKey.domainSpelllist) as dynamic, ix);
+                    d.getObject(CDOMObjectKey.domainSpelllist) as dynamic, ix);
               }
             }
           }

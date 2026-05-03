@@ -64,7 +64,7 @@ final class EquipmentUtilities {
         if (target.getKeyName().toLowerCase() == baseKey.toLowerCase()) {
           return equipment;
         }
-        final baseRef = target.getObject(ObjectKey.baseItem);
+        final baseRef = target.getObject(CDOMObjectKey.baseItem);
         target = baseRef == null ? null : (baseRef as dynamic)?.get();
       }
     }

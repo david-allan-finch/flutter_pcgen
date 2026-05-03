@@ -237,7 +237,7 @@ class InventoryInfoTabState extends State<InventoryInfoTab>
     List<String> types = [];
     try { cost = item.getString(StringKey.cost) ?? ''; } catch (_) {}
     try {
-      final w = item.getSafeObject(cdom.ObjectKey.getConstant<double>('WEIGHT'));
+      final w = item.getSafeObject(cdom.CDOMObjectKey.getConstant<double>('WEIGHT'));
       if (w != null) wt = '${w} lb';
     } catch (_) {}
     try { damage = item.getString(StringKey.damage) ?? ''; } catch (_) {}
