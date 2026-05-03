@@ -1539,10 +1539,12 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
         for (final name in autoAbilities) {
           if (name is String && seen.add(name)) {
             final ability = (dataset as dynamic).findAbilityByName(name);
+            debugPrint('[chain] looking for "$name" → ${ability != null ? "found" : "NULL"}');
             if (ability != null) {
               try {
                 final list = (ability as dynamic)
                     .getSafeListFor(ListKey.getConstant<ParsedBonus>('PARSED_BONUS')) as List?;
+                debugPrint('[chain]   PARSED_BONUS count=${list?.length ?? 0}');
                 if (list != null) {
                   for (final b in list) { if (b is ParsedBonus) out.add(b); }
                 }
