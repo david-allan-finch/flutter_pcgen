@@ -48,7 +48,7 @@ class RaceInfoTabState extends State<RaceInfoTab> {
               children: [
                 Expanded(child: _buildList(races)),
                 const VerticalDivider(width: 1),
-                Expanded(child: _buildDetail(character)),
+                Expanded(child: _buildDetail(character, dataset)),
               ],
             );
           },
@@ -172,7 +172,35 @@ class RaceInfoTabState extends State<RaceInfoTab> {
     );
   }
 
-  Widget _buildDetail(dynamic character) {
+  /// Collect BONUS:STAT from an object and recursively from its AUTO_ABILITIES.
+  void _collectStatMods(dynamic obj, DataSet? dataset, Map<String, int> out, Set<String> seen) {
+    if (obj == null) return;
+    try {
+      final bonuses = (obj as dynamic).getSafeListFor(ListKey.getConstant<ParsedBonus>('PARSED_BONUS')) as List;
+      for (final b in bonuses) {
+        if (b is ParsedBonus && b.category == 'STAT') {
+          final intVal = int.tryParse(b.formula);
+          if (intVal != null) {
+            for (final tgt in b.targets) {
+              final k = tgt.toUpperCase();
+              out[k] = (out[k] ?? 0) + intVal;
+            }
+          }
+        }
+      }
+    } catch (_) {}
+    try {
+      final auto = (obj as dynamic).getSafeListFor(ListKey.getConstant<String>('AUTO_ABILITIES')) as List;
+      for (final name in auto) {
+        if (name is String && seen.add(name) && dataset != null) {
+          final ability = dataset.findAbilityByName(name);
+          if (ability != null) _collectStatMods(ability, dataset, out, seen);
+        }
+      }
+    } catch (_) {}
+  }
+
+  Widget _buildDetail(dynamic character, DataSet? dataset) {
     // Default to the character's current race if nothing is explicitly selected.
     Race? race = _selected;
     if (race == null && character != null) {
@@ -232,18 +260,8 @@ class RaceInfoTabState extends State<RaceInfoTab> {
         }
       }
 
-      // Ability mods from BONUS:STAT entries in PARSED_BONUS
-      final bonuses = race.getSafeListFor(ListKey.getConstant<ParsedBonus>('PARSED_BONUS'));
-      for (final b in bonuses) {
-        if (b is ParsedBonus && b.category == 'STAT') {
-          final intVal = int.tryParse(b.formula);
-          if (intVal != null) {
-            for (final tgt in b.targets) {
-              statMods[tgt.toUpperCase()] = (statMods[tgt.toUpperCase()] ?? 0) + intVal;
-            }
-          }
-        }
-      }
+      // Collect BONUS:STAT from race and its full AUTO_ABILITIES chain
+      _collectStatMods(race, dataset, statMods, {});
     } catch (_) {}
 
     return SingleChildScrollView(

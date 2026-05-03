@@ -32,17 +32,33 @@ class AbilityLoader extends GenericLoader<Ability> {
 
   @override
   Ability? parseLine(LoadContext context, Ability? ability, String lstLine, SourceEntry source) {
-    final bool isNew = ability == null;
-    final Ability anAbility = ability ?? Ability();
-
     final fields = lstLine.split('\t');
     if (fields.isEmpty) return null;
 
-    anAbility.setName(fields[0]);
+    final name = fields[0];
+
+    // LST files often define the same ability across multiple lines (additive
+    // tokens). Look up any already-registered ability with this name so that
+    // the second line merges into the first rather than overwriting it.
+    Ability anAbility;
+    bool isNew = false;
+    if (ability != null) {
+      anAbility = ability;
+    } else {
+      final existing = context.getReferenceContext()
+          .getConstructed<Ability>(Ability, name);
+      if (existing != null) {
+        anAbility = existing;
+      } else {
+        anAbility = Ability();
+        isNew = true;
+      }
+    }
+
+    anAbility.setName(name);
     anAbility.setSourceURI(source.getURI());
 
-    // Extract CATEGORY: first — it determines which registry bucket to use
-    // and must be applied before registration.
+    // Extract CATEGORY: first — it determines which registry bucket to use.
     String? categoryToken;
     final remaining = <String>[];
     for (int i = 1; i < fields.length; i++) {
@@ -56,8 +72,6 @@ class AbilityLoader extends GenericLoader<Ability> {
 
     if (isNew) {
       if (categoryToken != null) {
-        // Use get-or-create so abilities with categories not yet registered
-        // (e.g. from campaign files loaded in a different order) still load.
         final cat = AbilityCategory.getCategory(categoryToken)
             ?? AbilityCategory(categoryToken);
         anAbility.setCDOMCategory(cat);
@@ -65,8 +79,6 @@ class AbilityLoader extends GenericLoader<Ability> {
       context.getReferenceContext().register(anAbility);
     }
 
-    // Delegate all remaining tokens to GenericLoader's shared processor
-    // (BONUS, PRExxx, CHOOSE, AUTO, TYPE, DESC, MULT, STACK, DEFINE, …)
     for (final token in remaining) {
       processToken(context, anAbility, source, token);
     }

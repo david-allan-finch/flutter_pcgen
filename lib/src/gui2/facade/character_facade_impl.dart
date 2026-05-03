@@ -1241,8 +1241,6 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
     final raceObj = _raceRef.get();
     if (raceObj != null) {
       collect(raceObj);
-      debugPrint('[rebuild] race=${(raceObj as dynamic).getKeyName()} '
-          'PARSED_BONUS count=${allBonuses.length}');
     }
 
     // Also walk AUTO_ABILITIES chain for race (racial abilities with bonuses)
@@ -1450,8 +1448,6 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
     );
 
     _bonusAcc = CharacterBonusEngine.compute(state, allBonuses);
-    debugPrint('[rebuild] acc STAT/STR=${_bonusAcc.totalInt("STAT","STR")} '
-        'INT=${_bonusAcc.totalInt("STAT","INT")} CHA=${_bonusAcc.totalInt("STAT","CHA")}');
 
     // Evaluate class-specific bonuses with per-class level context.
     // This ensures classlevel("APPLIEDAS=NONEPIC") returns the correct
@@ -1539,12 +1535,10 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
         for (final name in autoAbilities) {
           if (name is String && seen.add(name)) {
             final ability = (dataset as dynamic).findAbilityByName(name);
-            debugPrint('[chain] looking for "$name" → ${ability != null ? "found" : "NULL"}');
             if (ability != null) {
               try {
                 final list = (ability as dynamic)
                     .getSafeListFor(ListKey.getConstant<ParsedBonus>('PARSED_BONUS')) as List?;
-                debugPrint('[chain]   PARSED_BONUS count=${list?.length ?? 0}');
                 if (list != null) {
                   for (final b in list) { if (b is ParsedBonus) out.add(b); }
                 }
