@@ -470,8 +470,8 @@ class GenericLoader<T extends CDOMObject> extends LstObjectFileLoader<T> {
         // ---- Equipment tokens -----------------------------------------------
         case 'VISIBLE':
           try {
-            obj.putObject(CDOMObjectKey.getConstant<bool>('VISIBLE'),
-                value.trim().toUpperCase() == 'YES');
+            obj.putObject(CDOMObjectKey.getConstant<String>('VISIBLE'),
+                value.trim().toUpperCase());
           } catch (_) {}
           return;
         case 'BASEITEM':

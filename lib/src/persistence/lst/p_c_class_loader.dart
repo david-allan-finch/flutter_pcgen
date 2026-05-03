@@ -311,6 +311,8 @@ class PCClassLoader extends GenericLoader<PCClass> {
       case 'KNOWNSPELLSFROMSPECIALTY':
         return true; // wizard specialty — ignore
       case 'VISIBLE':
+        try { pcClass.putObject(CDOMObjectKey.getConstant<String>('VISIBLE'), value.trim().toUpperCase()); } catch (_) {}
+        return true;
       case 'MAXLEVEL':
         try { pcClass.putObject(CDOMObjectKey.getConstant<int>('MAX_LEVEL'), int.tryParse(value) ?? 20); } catch (_) {}
         return true;

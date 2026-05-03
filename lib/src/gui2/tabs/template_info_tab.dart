@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/list_key.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/object_key.dart';
 import 'package:flutter_pcgen/src/core/data_set.dart';
 import 'package:flutter_pcgen/src/core/pc_template.dart';
 import 'package:flutter_pcgen/src/gui2/app_state.dart';
@@ -15,6 +16,7 @@ class TemplateInfoTab extends StatefulWidget {
 
 class TemplateInfoTabState extends State<TemplateInfoTab> {
   PCTemplate? _selected;
+  bool _playerOnly = true;
   final TextEditingController _search = TextEditingController();
 
   @override
@@ -26,13 +28,22 @@ class TemplateInfoTabState extends State<TemplateInfoTab> {
   String _templateType(PCTemplate tpl) {
     try {
       final tl = tpl.getSafeListFor(ListKey.getConstant<String>('TYPE'));
-      if (tl.isNotEmpty) {
-        final first = tl.cast<String>().first;
-        final dot = first.indexOf('.');
-        return dot > 0 ? first.substring(0, dot) : first;
+      for (final entry in tl.cast<String>()) {
+        if (entry.contains(':')) continue;
+        final dot = entry.indexOf('.');
+        final part = dot > 0 ? entry.substring(0, dot) : entry;
+        if (part.isNotEmpty) return part;
       }
     } catch (_) {}
     return 'Other';
+  }
+
+  bool _isHidden(PCTemplate tpl) {
+    try {
+      final v = tpl.getSafeObject(CDOMObjectKey.getConstant<String>('VISIBLE')) as String?;
+      return v == 'NO';
+    } catch (_) {}
+    return false;
   }
 
   @override
@@ -62,11 +73,10 @@ class TemplateInfoTabState extends State<TemplateInfoTab> {
 
   Widget _buildTree(List<PCTemplate> templates, List<String> appliedKeys) {
     final query = _search.text.trim().toLowerCase();
-    final filtered = query.isEmpty
-        ? templates
-        : templates
-            .where((t) => t.getDisplayName().toLowerCase().contains(query))
-            .toList();
+    var filtered = _playerOnly ? templates.where((t) => !_isHidden(t)).toList() : templates;
+    if (query.isNotEmpty) {
+      filtered = filtered.where((t) => t.getDisplayName().toLowerCase().contains(query)).toList();
+    }
 
     final grouped = <String, List<PCTemplate>>{};
     for (final tpl in filtered) {
@@ -82,16 +92,28 @@ class TemplateInfoTabState extends State<TemplateInfoTab> {
       children: [
         Padding(
           padding: const EdgeInsets.all(8),
-          child: TextField(
-            controller: _search,
-            decoration: const InputDecoration(
-              prefixIcon: Icon(Icons.search),
-              hintText: 'Filter templates…',
-              border: OutlineInputBorder(),
-              isDense: true,
+          child: Row(children: [
+            Expanded(
+              child: TextField(
+                controller: _search,
+                decoration: const InputDecoration(
+                  prefixIcon: Icon(Icons.search),
+                  hintText: 'Filter templates…',
+                  border: OutlineInputBorder(),
+                  isDense: true,
+                ),
+                onChanged: (_) => setState(() {}),
+              ),
             ),
-            onChanged: (_) => setState(() {}),
-          ),
+            const SizedBox(width: 6),
+            FilterChip(
+              label: const Text('Visible', style: TextStyle(fontSize: 11)),
+              selected: _playerOnly,
+              onSelected: (v) => setState(() => _playerOnly = v),
+              visualDensity: VisualDensity.compact,
+              tooltip: 'Hide VISIBLE:NO templates',
+            ),
+          ]),
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),

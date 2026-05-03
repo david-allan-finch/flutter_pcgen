@@ -20,7 +20,12 @@ class RaceInfoTab extends StatefulWidget {
 class RaceInfoTabState extends State<RaceInfoTab> {
   dynamic _character;
   Race? _selected;
+  bool _playerOnly = true;
   final TextEditingController _search = TextEditingController();
+
+  static const _pcRaceTypes = {
+    'Humanoid', 'Fey', 'Monstrous Humanoid', 'Giant',
+  };
 
   void setCharacter(dynamic character) => setState(() => _character = character);
 
@@ -66,11 +71,25 @@ class RaceInfoTabState extends State<RaceInfoTab> {
     return 'Other';
   }
 
+  bool _isPlayerRace(Race race) {
+    try {
+      final tl = race.getSafeListFor(ListKey.getConstant<String>('TYPE'));
+      final raceType = tl.cast<String>()
+          .firstWhere((t) => t.startsWith('RACETYPE:'), orElse: () => '');
+      if (raceType.isNotEmpty) {
+        final typeName = raceType.substring(9);
+        return _pcRaceTypes.contains(typeName);
+      }
+    } catch (_) {}
+    return false;
+  }
+
   Widget _buildList(List<Race> races) {
     final query = _search.text.trim().toLowerCase();
-    final filtered = query.isEmpty
-        ? races
-        : races.where((r) => r.getDisplayName().toLowerCase().contains(query)).toList();
+    var filtered = _playerOnly ? races.where(_isPlayerRace).toList() : races;
+    if (query.isNotEmpty) {
+      filtered = filtered.where((r) => r.getDisplayName().toLowerCase().contains(query)).toList();
+    }
 
     // Group by RACETYPE
     final grouped = <String, List<Race>>{};
@@ -87,16 +106,28 @@ class RaceInfoTabState extends State<RaceInfoTab> {
       children: [
         Padding(
           padding: const EdgeInsets.all(8),
-          child: TextField(
-            controller: _search,
-            decoration: const InputDecoration(
-              prefixIcon: Icon(Icons.search),
-              hintText: 'Filter races…',
-              border: OutlineInputBorder(),
-              isDense: true,
+          child: Row(children: [
+            Expanded(
+              child: TextField(
+                controller: _search,
+                decoration: const InputDecoration(
+                  prefixIcon: Icon(Icons.search),
+                  hintText: 'Filter races…',
+                  border: OutlineInputBorder(),
+                  isDense: true,
+                ),
+                onChanged: (_) => setState(() {}),
+              ),
             ),
-            onChanged: (_) => setState(() {}),
-          ),
+            const SizedBox(width: 6),
+            FilterChip(
+              label: const Text('PC Races', style: TextStyle(fontSize: 11)),
+              selected: _playerOnly,
+              onSelected: (v) => setState(() => _playerOnly = v),
+              visualDensity: VisualDensity.compact,
+              tooltip: 'Show only player-character races',
+            ),
+          ]),
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),

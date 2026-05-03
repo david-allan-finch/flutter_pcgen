@@ -17,6 +17,7 @@ class ClassInfoTab extends StatefulWidget {
 
 class ClassInfoTabState extends State<ClassInfoTab> {
   PCClass? _selected;
+  bool _playerOnly = true;
   final TextEditingController _search = TextEditingController();
 
   @override
@@ -57,23 +58,31 @@ class ClassInfoTabState extends State<ClassInfoTab> {
   String _classCategory(PCClass cls) {
     try {
       final tl = cls.getSafeListFor(ListKey.getConstant<String>('TYPE'));
-      if (tl.isNotEmpty) {
-        // First TYPE component, before any '.'
-        final first = tl.cast<String>().first;
-        final dot = first.indexOf('.');
-        return dot > 0 ? first.substring(0, dot) : first;
+      // Skip meta entries (RACETYPE:, RACESUBTYPE:, etc.) and split dot-separated types
+      for (final entry in tl.cast<String>()) {
+        if (entry.contains(':')) continue;
+        final dot = entry.indexOf('.');
+        final part = dot > 0 ? entry.substring(0, dot) : entry;
+        if (part.isNotEmpty) return part;
       }
     } catch (_) {}
     return 'Other';
   }
 
+  bool _isMonsterClass(PCClass cls) {
+    try {
+      final tl = cls.getSafeListFor(ListKey.getConstant<String>('TYPE'));
+      return tl.cast<String>().any((t) => t == 'Monster' || t.startsWith('Monster.'));
+    } catch (_) {}
+    return false;
+  }
+
   Widget _buildList(List<PCClass> classes) {
     final query = _search.text.trim().toLowerCase();
-    final filtered = query.isEmpty
-        ? classes
-        : classes
-            .where((c) => c.getDisplayName().toLowerCase().contains(query))
-            .toList();
+    var filtered = _playerOnly ? classes.where((c) => !_isMonsterClass(c)).toList() : classes;
+    if (query.isNotEmpty) {
+      filtered = filtered.where((c) => c.getDisplayName().toLowerCase().contains(query)).toList();
+    }
 
     // Group by TYPE category
     final grouped = <String, List<PCClass>>{};
@@ -90,16 +99,28 @@ class ClassInfoTabState extends State<ClassInfoTab> {
       children: [
         Padding(
           padding: const EdgeInsets.all(8),
-          child: TextField(
-            controller: _search,
-            decoration: const InputDecoration(
-              prefixIcon: Icon(Icons.search),
-              hintText: 'Filter classes…',
-              border: OutlineInputBorder(),
-              isDense: true,
+          child: Row(children: [
+            Expanded(
+              child: TextField(
+                controller: _search,
+                decoration: const InputDecoration(
+                  prefixIcon: Icon(Icons.search),
+                  hintText: 'Filter classes…',
+                  border: OutlineInputBorder(),
+                  isDense: true,
+                ),
+                onChanged: (_) => setState(() {}),
+              ),
             ),
-            onChanged: (_) => setState(() {}),
-          ),
+            const SizedBox(width: 6),
+            FilterChip(
+              label: const Text('PC Classes', style: TextStyle(fontSize: 11)),
+              selected: _playerOnly,
+              onSelected: (v) => setState(() => _playerOnly = v),
+              visualDensity: VisualDensity.compact,
+              tooltip: 'Hide monster classes',
+            ),
+          ]),
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
