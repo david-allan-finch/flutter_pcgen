@@ -433,13 +433,15 @@ class _CharacterSheetView extends StatelessWidget {
       final wield   = item.getWieldName();
       final thrRange = critR == 1 ? '20' : '${21 - critR}–20';
 
-      // Compute attack bonus: BAB + STR or DEX
+      // Attack bonus: BAB + STR + any BONUS:COMBAT|TOHIT from accumulator
       int bab = 0;
       int strMod = 0;
-      try { bab    = (character as dynamic).getBABAsInt()    as int? ?? 0; } catch (_) {}
-      try { strMod = _tryGet(() => (character as dynamic).getStatModByAbb('STR')) as int? ?? 0; } catch (_) {}
+      int tohitBonus = 0;
+      try { bab        = (character as dynamic).getBABAsInt()         as int? ?? 0; } catch (_) {}
+      try { strMod     = _tryGet(() => (character as dynamic).getStatModByAbb('STR')) as int? ?? 0; } catch (_) {}
+      try { tohitBonus = _tryGet(() => (character as dynamic).getTohitBonus())        as int? ?? 0; } catch (_) {}
 
-      final atkBonus = bab + strMod;
+      final atkBonus = bab + strMod + tohitBonus;
       final atkStr   = atkBonus >= 0 ? '+$atkBonus' : '$atkBonus';
 
       weapons.add(_WeaponEntry(
@@ -461,12 +463,14 @@ class _CharacterSheetView extends StatelessWidget {
           final name = parts[0];
           final count = parts[1];
           final dmg = parts[2];
-          int bab = 0;
-          try { bab = (character as dynamic).getBABAsInt() as int? ?? 0; } catch (_) {}
+          int bab = 0, strMod2 = 0;
+          try { bab     = (character as dynamic).getBABAsInt()                          as int? ?? 0; } catch (_) {}
+          try { strMod2 = _tryGet(() => (character as dynamic).getStatModByAbb('STR'))  as int? ?? 0; } catch (_) {}
+          final natAtk = bab + strMod2;
           weapons.add(_WeaponEntry(
             slot: 'Natural',
             name: '$name (×$count)',
-            attack: bab >= 0 ? '+$bab' : '$bab',
+            attack: natAtk >= 0 ? '+$natAtk' : '$natAtk',
             damage: dmg,
             crit: '20 / x2',
             wield: 'Natural',

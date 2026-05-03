@@ -470,12 +470,10 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
 
   @override
   int getAC() {
-    final acc = _bonusAcc;
-    final fromBonuses = acc.totalInt('COMBAT', 'AC');
-    if (fromBonuses == 0) {
-      return 10 + _effectiveDexForAC();
-    }
-    return fromBonuses;
+    // 10 base + DEX modifier (capped by armor MAXDEX) + all typed/untyped AC bonuses
+    // from the accumulator (armor, shield, natural armor, dodge, deflection, etc.)
+    return 10 + _effectiveDexForAC() +
+        _bonusAcc.totalIntWithAll('COMBAT', 'AC');
   }
 
   @override
@@ -526,6 +524,11 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
     while (cur > 0) { attacks.add('+$cur'); cur -= 5; }
     return attacks.join('/');
   }
+
+  /// Miscellaneous to-hit bonus from BONUS:COMBAT|TOHIT (feats, items, etc.)
+  int getTohitBonus() =>
+      _bonusAcc.totalInt('COMBAT', 'TOHIT') +
+      _bonusAcc.totalInt('COMBAT', 'TOHIT.MELEE');
 
   // ---- Skills -------------------------------------------------------------
 
@@ -1210,13 +1213,41 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
 
   /// Natural attacks from race (name:count:damage strings).
   List<String> getNaturalAttacks() {
+    final attacks = <String>{};
     try {
       final race = _raceRef.get();
       if (race != null) {
-        return (race as dynamic).getNaturalAttacks() as List<String>? ?? [];
+        // Direct race NATURAL_ATTACKS
+        final direct = (race as dynamic).getSafeListFor(
+            ListKey.getConstant<String>('NATURAL_ATTACKS')) as List?;
+        if (direct != null) for (final a in direct) { if (a is String) attacks.add(a); }
+        // Also walk the ability chain for granted natural attacks
+        _collectChainNaturalAttacks(race, _dataset, attacks, {});
       }
     } catch (_) {}
-    return [];
+    return attacks.toList();
+  }
+
+  void _collectChainNaturalAttacks(
+      dynamic obj, dynamic dataset, Set<String> out, Set<String> seen) {
+    if (obj == null) return;
+    try {
+      final list = (obj as dynamic).getSafeListFor(
+          ListKey.getConstant<String>('NATURAL_ATTACKS')) as List?;
+      if (list != null) for (final a in list) { if (a is String) out.add(a); }
+    } catch (_) {}
+    try {
+      final auto = (obj as dynamic).getSafeListFor(
+          ListKey.getConstant<String>('AUTO_ABILITIES')) as List?;
+      if (auto != null) {
+        for (final name in auto) {
+          if (name is String && seen.add(name) && dataset != null) {
+            final ability = (dataset as dynamic).findAbilityByName(name);
+            if (ability != null) _collectChainNaturalAttacks(ability, dataset, out, seen);
+          }
+        }
+      }
+    } catch (_) {}
   }
 
   /// Vision types from race (and eventually templates).
