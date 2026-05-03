@@ -1,6 +1,6 @@
 // Translation of pcgen.gui2.tabs.RaceInfoTab
 
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide ObjectKey;
 import 'package:flutter_pcgen/src/cdom/enumeration/list_key.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/object_key.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/string_key.dart';
