@@ -1239,7 +1239,11 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
 
     // Race
     final raceObj = _raceRef.get();
-    if (raceObj != null) collect(raceObj);
+    if (raceObj != null) {
+      collect(raceObj);
+      debugPrint('[rebuild] race=${(raceObj as dynamic).getKeyName()} '
+          'PARSED_BONUS count=${allBonuses.length}');
+    }
 
     // Also walk AUTO_ABILITIES chain for race (racial abilities with bonuses)
     _collectAbilityChainBonuses(raceObj, dataset, allBonuses, {});
@@ -1446,6 +1450,8 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
     );
 
     _bonusAcc = CharacterBonusEngine.compute(state, allBonuses);
+    debugPrint('[rebuild] acc STAT/STR=${_bonusAcc.totalInt("STAT","STR")} '
+        'INT=${_bonusAcc.totalInt("STAT","INT")} CHA=${_bonusAcc.totalInt("STAT","CHA")}');
 
     // Evaluate class-specific bonuses with per-class level context.
     // This ensures classlevel("APPLIEDAS=NONEPIC") returns the correct

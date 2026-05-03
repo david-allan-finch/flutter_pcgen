@@ -2,10 +2,12 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/list_key.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/object_key.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/string_key.dart';
 import 'package:flutter_pcgen/src/core/data_set.dart';
 import 'package:flutter_pcgen/src/core/race.dart';
 import 'package:flutter_pcgen/src/gui2/app_state.dart';
+import 'package:flutter_pcgen/src/rules/parsed_bonus.dart';
 
 /// Tab for browsing and selecting a character's race.
 class RaceInfoTab extends StatefulWidget {
@@ -140,38 +142,77 @@ class RaceInfoTabState extends State<RaceInfoTab> {
   }
 
   Widget _buildDetail(dynamic character) {
-    final race = _selected;
+    // Default to the character's current race if nothing is explicitly selected.
+    Race? race = _selected;
+    if (race == null && character != null) {
+      try {
+        final obj = (character as dynamic).getRaceRef()?.get();
+        if (obj is Race) race = obj;
+      } catch (_) {}
+    }
+
     if (race == null) {
-      return const Center(child: Text('Select a race to see details.'));
+      return const Center(child: Text('Select a race from the list to see details.'));
     }
 
     bool isCurrentRace = false;
     if (character != null) {
       try {
-        final raceRef = (character as dynamic).getRaceRef();
-        final currentRace = raceRef?.get();
+        final currentRace = (character as dynamic).getRaceRef()?.get();
         isCurrentRace = currentRace != null && currentRace == race;
       } catch (_) {}
     }
 
-    // Pull extra fields stored during token parsing.
+    // ---- Read LST fields ----
     String desc = '';
     String sourceShort = '';
     String size = '';
-    String move = '';
     String cr = '';
     List<String> types = [];
+    List<String> moveSpeeds = [];
+    final statMods = <String, int>{}; // e.g. {'STR': 2, 'INT': -2}
+
     try {
       desc = race.getString(StringKey.description) ?? '';
       sourceShort = race.getString(StringKey.sourceShort) ??
                     race.getString(StringKey.sourceLong) ?? '';
-      size = race.getString(StringKey.sizeformula) ?? '';
-      move = race.getString(StringKey.tempvalue) ?? '';
-      cr   = race.getString(StringKey.subregion) ?? '';
+      // SIZE stored as ObjectKey 'RACE_SIZE'
+      size = race.getSafeObject(ObjectKey.getConstant<String>('RACE_SIZE')) ?? '';
+      // Fallback: legacy sizeformula key
+      if (size.isEmpty) size = race.getString(StringKey.sizeformula) ?? '';
+      cr = race.getString(StringKey.subregion) ?? '';
+
       final typeList = race.getSafeListFor(ListKey.getConstant<String>('TYPE'));
       types = typeList.cast<String>()
           .where((t) => !t.startsWith('RACETYPE:') && !t.startsWith('RACESUBTYPE:'))
           .toList();
+
+      // MOVE stored as ListKey 'MOVE_SPEEDS' entries 'Type:speed'
+      final speeds = race.getSafeListFor(ListKey.getConstant<String>('MOVE_SPEEDS'));
+      moveSpeeds = speeds.cast<String>();
+      // Fallback: legacy tempvalue
+      if (moveSpeeds.isEmpty) {
+        final raw = race.getString(StringKey.tempvalue) ?? '';
+        if (raw.isNotEmpty) {
+          final parts = raw.split(',');
+          for (int i = 0; i + 1 < parts.length; i += 2) {
+            moveSpeeds.add('${parts[i].trim()}:${parts[i+1].trim()}');
+          }
+        }
+      }
+
+      // Ability mods from BONUS:STAT entries in PARSED_BONUS
+      final bonuses = race.getSafeListFor(ListKey.getConstant<ParsedBonus>('PARSED_BONUS'));
+      for (final b in bonuses) {
+        if (b is ParsedBonus && b.category == 'STAT') {
+          final intVal = int.tryParse(b.formula);
+          if (intVal != null) {
+            for (final tgt in b.targets) {
+              statMods[tgt.toUpperCase()] = (statMods[tgt.toUpperCase()] ?? 0) + intVal;
+            }
+          }
+        }
+      }
     } catch (_) {}
 
     return SingleChildScrollView(
@@ -179,20 +220,55 @@ class RaceInfoTabState extends State<RaceInfoTab> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(race.getDisplayName(),
-                    style: Theme.of(context).textTheme.titleMedium),
+          // Title + current-race badge
+          Row(children: [
+            Expanded(child: Text(race.getDisplayName(),
+                style: Theme.of(context).textTheme.titleMedium)),
+            if (isCurrentRace)
+              Chip(
+                label: const Text('Current Race', style: TextStyle(fontSize: 11)),
+                backgroundColor: Colors.green.shade100,
+                padding: EdgeInsets.zero,
               ),
-              if (isCurrentRace)
-                const Icon(Icons.check_circle, color: Colors.green, size: 20),
-            ],
-          ),
+          ]),
           const SizedBox(height: 8),
-          _row('Key', race.getKeyName()),
+
+          // Ability score mods — most important info shown first
+          if (statMods.isNotEmpty) ...[
+            Text('Ability Score Modifiers',
+                style: Theme.of(context).textTheme.labelMedium),
+            const SizedBox(height: 4),
+            Wrap(
+              spacing: 8,
+              runSpacing: 4,
+              children: statMods.entries.map((e) {
+                final sign = e.value >= 0 ? '+' : '';
+                final color = e.value > 0 ? Colors.blue.shade700 : Colors.red.shade700;
+                return Chip(
+                  label: Text('${e.key} $sign${e.value}',
+                      style: TextStyle(fontSize: 12, color: color,
+                          fontWeight: FontWeight.bold)),
+                  backgroundColor: e.value > 0
+                      ? Colors.blue.shade50 : Colors.red.shade50,
+                  padding: EdgeInsets.zero,
+                );
+              }).toList(),
+            ),
+            const SizedBox(height: 8),
+          ] else ...[
+            Text('No ability score modifiers.',
+                style: TextStyle(fontSize: 12, color: Colors.grey.shade500,
+                    fontStyle: FontStyle.italic)),
+            const SizedBox(height: 8),
+          ],
+
           if (size.isNotEmpty) _row('Size', size),
-          if (move.isNotEmpty) _row('Speed', _formatMove(move)),
+          if (moveSpeeds.isNotEmpty)
+            _row('Speed', moveSpeeds.map((s) {
+              final colon = s.indexOf(':');
+              if (colon > 0) return '${s.substring(0, colon)} ${s.substring(colon+1)} ft.';
+              return s;
+            }).join(', ')),
           if (cr.isNotEmpty) _row('CR', cr),
           if (sourceShort.isNotEmpty) _row('Source', sourceShort),
           if (types.isNotEmpty) _row('Types', types.join(', ')),
@@ -201,46 +277,32 @@ class RaceInfoTabState extends State<RaceInfoTab> {
             Text(desc, style: Theme.of(context).textTheme.bodySmall),
           ],
           const SizedBox(height: 16),
+
+          // Select / already-selected button
           if (character != null)
             ElevatedButton.icon(
-              icon: isCurrentRace
-                  ? const Icon(Icons.check)
-                  : const Icon(Icons.person),
-              label: Text(isCurrentRace ? 'Selected Race' : 'Select for Character'),
+              icon: isCurrentRace ? const Icon(Icons.check) : const Icon(Icons.person),
+              label: Text(isCurrentRace ? 'Current Race' : 'Select for Character'),
               style: isCurrentRace
-                  ? ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green.shade100,
-                    )
+                  ? ElevatedButton.styleFrom(backgroundColor: Colors.green.shade100)
                   : null,
-              onPressed: isCurrentRace
-                  ? null
-                  : () {
-                      try {
-                        (character as dynamic).setRace(race);
-                        currentCharacter.notifyListeners();
-                        setState(() {});
-                      } catch (e) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Error setting race: $e')),
-                        );
-                      }
-                    },
+              onPressed: isCurrentRace ? null : () {
+                try {
+                  (character as dynamic).setRace(race!);
+                  currentCharacter.notifyListeners();
+                  setState(() {});
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Error setting race: $e')));
+                }
+              },
             )
           else
-            const Text(
-              'Create a character to assign a race.',
-              style: TextStyle(fontStyle: FontStyle.italic, color: Colors.grey),
-            ),
+            const Text('Create a character to assign a race.',
+                style: TextStyle(fontStyle: FontStyle.italic, color: Colors.grey)),
         ],
       ),
     );
-  }
-
-  String _formatMove(String raw) {
-    // MOVE:Walk,30 → "Walk 30 ft."
-    final parts = raw.split(',');
-    if (parts.length == 2) return '${parts[0]} ${parts[1]} ft.';
-    return raw;
   }
 
   Widget _row(String label, String value) => Padding(
