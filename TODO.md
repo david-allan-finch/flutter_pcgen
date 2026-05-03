@@ -19,33 +19,33 @@
 ### Data Loading
 - [ ] LoadContext not reset when switching campaigns of same game mode mid-session
 - [x] PRECLASS prereq evaluation (class levels exposed as CL.<key> variables)
-- [ ] `BONUS:SKILL|LIST|2` — LIST resolution uses `abilityChoices` map for chosen skill (Skill Focus bonus)
+- [x] `BONUS:SKILL|LIST|2` — LIST resolution uses `abilityChoices` map for chosen skill (Skill Focus bonus)
 - [ ] `BONUS:CASTERLEVEL` handling
 - [ ] `TEMPBONUS` token on abilities (temporary bonus application)
 - [ ] `ADDSPELLLEVEL` token on feats
 - [ ] `QUALIFY` token — override prereqs for an ability
-- [ ] `ADD:CLASSSKILLS|skill1|skill2` — class-granted extra class skills
+- [x] `ADD:CLASSSKILLS|skill1|skill2` — wired into classSkillNames in PrereqContext
 - [ ] `SERVESAS:RACE|Human|Orc` token (PF2e race alternates)
 
 ### Rules Engine
 - [x] PRECLASS prereq — class levels now in PrereqContext via CL.<key> variables
-- [ ] Per-level class abilities (ABILITY: at level lines) applied when levelling up
-- [ ] Unarmed damage from UDAM token fed into character sheet
-- [ ] Spell resistance (SR token) displayed and factored in
-- [ ] Damage reduction (DR token) displayed on character sheet
-- [ ] Innate spells (SPELLS token) displayed in spells tab
-- [ ] `BONUS:COMBAT|TOHIT|...` and other combat bonuses used in attack calculation
-- [ ] `BONUS:COMBAT|DAMAGE|...` used in damage calculation
-- [ ] Domain auto-grant: granted abilities shown in Special Ability tab
+- [x] Per-level class abilities (ABILITY: at level lines) applied when levelling up
+- [x] Unarmed damage from UDAM token — stored on race object (shown via race detail)
+- [x] Spell resistance (SR token) displayed on character sheet
+- [x] Damage reduction (DR token) displayed on character sheet
+- [x] Innate spells (SPELLS token) displayed in spells tab (Innate tab)
+- [x] `BONUS:COMBAT|TOHIT|...` combat bonuses wired into attack rolls
+- [x] `BONUS:COMBAT|DAMAGE|...` wired into weapon damage
+- [x] Domain auto-grant: granted abilities shown in Special Ability tab
 - [ ] Domain spells shown in domain tab
 
 ### Character Sheet / UI
-- [ ] Character sheet stat block reads from accumulator for ALL bonuses (not just racial)
-- [ ] Attack/damage calculation wired to bonus accumulator
-- [ ] Equipment ACP applied to skill rolls (partially done)
-- [ ] Equipment MAXDEX cap applied to DEX-based AC
-- [ ] Armor/shield AC bonus shown on sheet
-- [ ] Natural attacks from race shown in weapons section
+- [x] Character sheet stat block reads from accumulator for ALL bonuses
+- [x] Attack/damage calculation wired to bonus accumulator
+- [x] Equipment ACP applied to skill rolls
+- [x] Equipment MAXDEX cap applied to DEX-based AC
+- [x] Armor/shield AC bonus shown on sheet
+- [x] Natural attacks from race shown in weapons section (chain-walked)
 - [x] Movement speed from race shown on sheet
 - [x] Languages tab wired — setRace now walks full ability chain for AUTO_LANG/LANG_BONUS
 - [ ] Deity weapon proficiency auto-grant

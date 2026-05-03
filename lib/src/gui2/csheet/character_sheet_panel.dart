@@ -433,22 +433,25 @@ class _CharacterSheetView extends StatelessWidget {
       final wield   = item.getWieldName();
       final thrRange = critR == 1 ? '20' : '${21 - critR}–20';
 
-      // Attack bonus: BAB + STR + any BONUS:COMBAT|TOHIT from accumulator
-      int bab = 0;
-      int strMod = 0;
-      int tohitBonus = 0;
-      try { bab        = (character as dynamic).getBABAsInt()         as int? ?? 0; } catch (_) {}
-      try { strMod     = _tryGet(() => (character as dynamic).getStatModByAbb('STR')) as int? ?? 0; } catch (_) {}
-      try { tohitBonus = _tryGet(() => (character as dynamic).getTohitBonus())        as int? ?? 0; } catch (_) {}
+      // Attack: BAB + STR + BONUS:COMBAT|TOHIT
+      // Damage: base dice + STR + BONUS:COMBAT|DAMAGE
+      int bab = 0, strMod = 0, tohitBonus = 0, damageBonus = 0;
+      try { bab         = (character as dynamic).getBABAsInt()         as int? ?? 0; } catch (_) {}
+      try { strMod      = _tryGet(() => (character as dynamic).getStatModByAbb('STR')) as int? ?? 0; } catch (_) {}
+      try { tohitBonus  = _tryGet(() => (character as dynamic).getTohitBonus())        as int? ?? 0; } catch (_) {}
+      try { damageBonus = _tryGet(() => (character as dynamic).getDamageBonus())       as int? ?? 0; } catch (_) {}
 
-      final atkBonus = bab + strMod + tohitBonus;
-      final atkStr   = atkBonus >= 0 ? '+$atkBonus' : '$atkBonus';
+      final atkBonus  = bab + strMod + tohitBonus;
+      final atkStr    = atkBonus >= 0 ? '+$atkBonus' : '$atkBonus';
+      final totalDmg  = strMod + damageBonus;
+      final dmgSuffix = totalDmg > 0 ? '+$totalDmg' : (totalDmg < 0 ? '$totalDmg' : '');
+      final dmgStr    = dmg.isNotEmpty ? '$dmg$dmgSuffix' : '—';
 
       weapons.add(_WeaponEntry(
         slot: slot,
         name: item.getDisplayName(),
         attack: atkStr,
-        damage: dmg.isNotEmpty ? dmg : '—',
+        damage: dmgStr,
         crit: critM.isNotEmpty ? '$thrRange / $critM' : thrRange,
         wield: wield,
       ));

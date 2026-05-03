@@ -25,7 +25,7 @@ class SpellsInfoTabState extends State<SpellsInfoTab>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 4, vsync: this);
   }
 
   @override
@@ -51,6 +51,7 @@ class SpellsInfoTabState extends State<SpellsInfoTab>
                     Tab(text: 'Known'),
                     Tab(text: 'Prepared'),
                     Tab(text: 'All Spells'),
+                    Tab(text: 'Innate'),
                   ],
                 ),
                 Expanded(
@@ -60,6 +61,7 @@ class SpellsInfoTabState extends State<SpellsInfoTab>
                       _buildKnownTab(character, dataset),
                       _buildPreparedTab(character),
                       _buildAllSpellsTab(character, dataset),
+                      _buildInnateTab(character),
                     ],
                   ),
                 ),
@@ -593,6 +595,66 @@ class SpellsInfoTabState extends State<SpellsInfoTab>
       ),
     );
   }
+
+  // ---- Innate spells tab ---------------------------------------------------
+
+  Widget _buildInnateTab(dynamic character) {
+    final entries = <_InnateEntry>[];
+    try {
+      final raw = (character as dynamic).getInnateSpells() as List<String>? ?? [];
+      for (final line in raw) {
+        final parts = line.split('|');
+        if (parts.isEmpty) continue;
+        // parts[0] = list name (e.g. "Innate")
+        // remaining: TIMES=N, CASTERLEVEL=N, SpellName,DC, ...
+        String times = '—';
+        String cl = '—';
+        final spells = <String>[];
+        for (int i = 1; i < parts.length; i++) {
+          final p = parts[i].trim();
+          if (p.startsWith('TIMES=')) {
+            times = p.substring(6);
+          } else if (p.startsWith('CASTERLEVEL=')) {
+            cl = p.substring(12);
+          } else if (p.isNotEmpty) {
+            // SpellName,DC  — strip DC
+            final spellName = p.split(',').first.trim();
+            if (spellName.isNotEmpty) spells.add(spellName);
+          }
+        }
+        for (final spell in spells) {
+          entries.add(_InnateEntry(spell: spell, timesPerDay: times, cl: cl));
+        }
+      }
+    } catch (_) {}
+
+    if (character == null) {
+      return const Center(child: Text('No character selected.'));
+    }
+    if (entries.isEmpty) {
+      return const Center(child: Text('No innate spells.'));
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.all(8),
+      itemCount: entries.length,
+      itemBuilder: (context, i) {
+        final e = entries[i];
+        return ListTile(
+          dense: true,
+          title: Text(e.spell, style: const TextStyle(fontSize: 13)),
+          subtitle: Text('${e.timesPerDay}/day   CL ${e.cl}',
+              style: const TextStyle(fontSize: 11)),
+          leading: const Icon(Icons.auto_fix_high, size: 16),
+        );
+      },
+    );
+  }
+}
+
+class _InnateEntry {
+  final String spell, timesPerDay, cl;
+  const _InnateEntry({required this.spell, required this.timesPerDay, required this.cl});
 }
 
 // ---------------------------------------------------------------------------

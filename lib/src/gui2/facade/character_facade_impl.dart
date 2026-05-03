@@ -530,6 +530,11 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
       _bonusAcc.totalInt('COMBAT', 'TOHIT') +
       _bonusAcc.totalInt('COMBAT', 'TOHIT.MELEE');
 
+  /// Miscellaneous damage bonus from BONUS:COMBAT|DAMAGE (feats, items, etc.)
+  int getDamageBonus() =>
+      _bonusAcc.totalInt('COMBAT', 'DAMAGE') +
+      _bonusAcc.totalInt('COMBAT', 'DAMAGE.MELEE');
+
   // ---- Skills -------------------------------------------------------------
 
   @override
@@ -1212,6 +1217,35 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
   }
 
   /// Natural attacks from race (name:count:damage strings).
+  /// Innate spells collected from race and its AUTO_ABILITIES chain.
+  List<String> getInnateSpells() {
+    final result = <String>[];
+    _collectChainInnateSpells(_raceRef.get(), _dataset, result, {});
+    return result;
+  }
+
+  void _collectChainInnateSpells(
+      dynamic obj, dynamic dataset, List<String> out, Set<String> seen) {
+    if (obj == null) return;
+    try {
+      final list = (obj as dynamic)
+          .getSafeListFor(ListKey.getConstant<String>('INNATE_SPELLS')) as List?;
+      if (list != null) for (final s in list) { if (s is String) out.add(s); }
+    } catch (_) {}
+    try {
+      final auto = (obj as dynamic)
+          .getSafeListFor(ListKey.getConstant<String>('AUTO_ABILITIES')) as List?;
+      if (auto != null) {
+        for (final name in auto) {
+          if (name is String && seen.add(name) && dataset != null) {
+            final ability = (dataset as dynamic).findAbilityByName(name);
+            if (ability != null) _collectChainInnateSpells(ability, dataset, out, seen);
+          }
+        }
+      }
+    } catch (_) {}
+  }
+
   List<String> getNaturalAttacks() {
     final attacks = <String>{};
     try {
@@ -1497,6 +1531,43 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
 
     final classLevelCounts = counts.map((k, v) => MapEntry(k, v));
 
+    // Collect class skill names for PrereqContext (PRECSKILL evaluation)
+    final classSkillSet = <String>{};
+    try {
+      final classes = (dataset as dynamic).classes as List? ?? [];
+      for (final cls in classes) {
+        final key = (cls as dynamic).getKeyName() as String? ?? '';
+        if ((counts[key] ?? 0) == 0) continue;
+        // From CSKILL token → CLASS_SKILLS list
+        final skillList = (cls as dynamic)
+            .getSafeListFor(ListKey.getConstant<String>('CLASS_SKILLS')) as List?;
+        if (skillList != null) {
+          for (final s in skillList) { if (s is String) classSkillSet.add(s.toLowerCase()); }
+        }
+      }
+    } catch (_) {}
+    // Also add ADD:CLASSSKILLS from selected abilities
+    try {
+      final allAbilities = (dataset as dynamic).getAllAbilities() as List? ?? [];
+      final selectedAbilityKeys = <String>{};
+      for (final cat in selectedAbilities.values) {
+        if (cat is List) {
+          for (final k in cat) {
+            final base = k.toString().contains('|') ? k.toString().split('|').first : k.toString();
+            selectedAbilityKeys.add(base);
+          }
+        }
+      }
+      for (final ab in allAbilities) {
+        if (!selectedAbilityKeys.contains((ab as dynamic).getKeyName())) continue;
+        final addSkills = (ab as dynamic)
+            .getSafeListFor(ListKey.getConstant<String>('ADD_CLASS_SKILLS')) as List?;
+        if (addSkills != null) {
+          for (final s in addSkills) { if (s is String) classSkillSet.add(s.toLowerCase()); }
+        }
+      }
+    } catch (_) {}
+
     final state = CharacterBonusState(
       statMods: statMods,
       statScores: statScores,
@@ -1506,7 +1577,7 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
       alignmentKey: _str('alignmentKey'),
       raceKey: _str('raceKey'),
       objectTypes: const [],
-      classSkillNames: const [],
+      classSkillNames: classSkillSet.toList(),
       selectedAbilityKeys: {
         for (final e in selectedAbilities.entries)
           e.key.toString(): (e.value as List?)?.cast<String>() ?? []
