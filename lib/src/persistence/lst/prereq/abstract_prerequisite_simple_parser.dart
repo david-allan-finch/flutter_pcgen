@@ -17,7 +17,7 @@ abstract class AbstractPrerequisiteSimpleParser
     prereq.key = formula;
     prereq.operator = PrerequisiteOperator.eq;
     if (invertResult) {
-      prereq.operator = prereq.operator?.invert();
+      prereq.operator = prereq.operator?.invert() ?? prereq.operator!;
     }
     return prereq;
   }

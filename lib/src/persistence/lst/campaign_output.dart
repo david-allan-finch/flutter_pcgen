@@ -19,7 +19,7 @@
 
 import 'dart:io';
 import 'package:flutter_pcgen/src/core/campaign.dart';
-import 'package:flutter_pcgen/src/rules/context/load_context.dart';
+import 'package:flutter_pcgen/src/rules/context/load_context.dart' hide Campaign;
 
 /// Utility class (no instances) that writes a Campaign back out to a .pcc file.
 ///

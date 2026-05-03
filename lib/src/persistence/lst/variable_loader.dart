@@ -20,7 +20,7 @@
 //
 // Translation of pcgen.persistence.lst.VariableLoader
 
-import 'package:flutter_pcgen/src/rules/context/load_context.dart';
+import 'package:flutter_pcgen/src/rules/context/load_context.dart' hide CampaignSourceEntry;
 import 'package:flutter_pcgen/src/persistence/lst/campaign_source_entry.dart';
 import 'package:flutter_pcgen/src/persistence/lst/lst_file_loader.dart';
 import 'package:flutter_pcgen/src/persistence/lst/lst_utils.dart';

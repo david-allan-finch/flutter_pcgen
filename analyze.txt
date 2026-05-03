@@ -44,9 +44,6 @@ warning - The value of the field '_rootMap' isn't used - lib\src\cdom\meta\core_
    info - The parameter name 'obj' doesn't match the name 'other' in the overridden method - lib\src\cdom\primitive\compound_or_primitive.dart:64:27 - avoid_renaming_method_parameters
    info - The parameter name 'obj' doesn't match the name 'other' in the overridden method - lib\src\cdom\primitive\negating_primitive.dart:49:27 - avoid_renaming_method_parameters
    info - The parameter name 'obj' doesn't match the name 'other' in the overridden method - lib\src\cdom\primitive\object_container_primitive.dart:41:27 - avoid_renaming_method_parameters
-  error - Undefined name 'ObjectKey' - lib\src\cdom\util\control_utilities.dart:19:11 - undefined_identifier
-  error - Undefined name 'ObjectKey' - lib\src\cdom\util\control_utilities.dart:30:40 - undefined_identifier
-  error - Undefined name 'ObjectKey' - lib\src\cdom\util\control_utilities.dart:43:35 - undefined_identifier
 warning - Unused import: 'package:flutter_pcgen/src/cdom/enumeration/integer_key.dart' - lib\src\core\ability.dart:20:8 - unused_import
 warning - Unused import: 'package:flutter_pcgen/src/core/ability_category.dart' - lib\src\core\ability.dart:23:8 - unused_import
 warning - Unnecessary cast - lib\src\core\ability.dart:43:7 - unnecessary_cast
@@ -532,16 +529,8 @@ warning - Unnecessary cast - lib\src\rules\context\abstract_list_context.dart:56
 warning - Unnecessary cast - lib\src\rules\context\abstract_list_context.dart:567:13 - unnecessary_cast
 warning - Unnecessary cast - lib\src\rules\context\abstract_list_context.dart:585:11 - unnecessary_cast
 warning - Unnecessary cast - lib\src\rules\context\abstract_list_context.dart:588:13 - unnecessary_cast
+warning - Unused import: 'package:flutter_pcgen/src/rules/context/list_changes.dart' - lib\src\rules\context\abstract_object_context.dart:18:8 - unused_import
    info - The parameter name 'str' doesn't match the name 'type' in the overridden method - lib\src\rules\context\abstract_object_context.dart:29:22 - avoid_renaming_method_parameters
-  error - Undefined class 'ObjectKey' - lib\src\rules\context\abstract_object_context.dart:103:37 - undefined_class
-  error - Undefined class 'ObjectKey' - lib\src\rules\context\abstract_object_context.dart:108:37 - undefined_class
-  error - Undefined class 'ObjectKey' - lib\src\rules\context\abstract_object_context.dart:234:35 - undefined_class
-  error - Undefined class 'ObjectKey' - lib\src\rules\context\abstract_object_context.dart:296:41 - undefined_class
-  error - Undefined class 'ObjectKey' - lib\src\rules\context\abstract_object_context.dart:402:37 - undefined_class
-  error - Undefined class 'ObjectKey' - lib\src\rules\context\abstract_object_context.dart:406:37 - undefined_class
-  error - Undefined class 'ObjectKey' - lib\src\rules\context\abstract_object_context.dart:587:41 - undefined_class
-  error - Undefined class 'ObjectKey' - lib\src\rules\context\abstract_object_context.dart:634:35 - undefined_class
-  error - Undefined class 'ObjectKey' - lib\src\rules\context\abstract_object_context.dart:678:41 - undefined_class
    info - The parameter name 'object' doesn't match the name 'obj' in the overridden method - lib\src\rules\context\editor_reference_context.dart:52:40 - avoid_renaming_method_parameters
 warning - This cast always throws an exception because the expression always evaluates to 'null' - lib\src\rules\context\editor_reference_context.dart:62:12 - cast_from_null_always_fails
 warning - Unused import: 'package:flutter_pcgen/src/cdom/enumeration/association_key.dart' - lib\src\rules\context\list_changes.dart:25:8 - unused_import
@@ -549,10 +538,6 @@ warning - The value of the field '_tokenName' isn't used - lib\src\rules\context
 warning - The value of the field '_list' isn't used - lib\src\rules\context\list_changes.dart:37:36 - unused_field
 warning - Unused import: 'package:flutter_pcgen/src/cdom/reference/qualifier.dart' - lib\src\rules\context\load_validator.dart:21:8 - unused_import
 warning - Unused import: 'package:flutter_pcgen/src/core/campaign.dart' - lib\src\rules\context\load_validator.dart:23:8 - unused_import
-  error - Undefined class 'ObjectKey' - lib\src\rules\context\object_commit_strategy.dart:40:37 - undefined_class
-  error - Undefined class 'ObjectKey' - lib\src\rules\context\object_commit_strategy.dart:42:37 - undefined_class
-  error - Undefined class 'ObjectKey' - lib\src\rules\context\object_commit_strategy.dart:77:35 - undefined_class
-  error - Undefined class 'ObjectKey' - lib\src\rules\context\object_commit_strategy.dart:111:41 - undefined_class
 warning - The value of the field '_context' isn't used - lib\src\rules\context\pcgen_manager_factory.dart:31:21 - unused_field
    info - Don't invoke 'print' in production code - lib\src\rules\context\runtime_load_context.dart:166:42 - avoid_print
 warning - The value of the field '_factory' isn't used - lib\src\rules\context\runtime_reference_context.dart:38:17 - unused_field
@@ -569,4 +554,4 @@ warning - Unused import: 'package:flutter_pcgen/src/system/progress_container.da
 warning - The value of the local variable 'type' isn't used - lib\src\system\plugin_class_loader.dart:49:16 - unused_local_variable
    info - Don't invoke 'print' in production code - lib\src\system\plugin_class_loader.dart:89:11 - avoid_print
 
-568 issues found. (ran in 34.8s)
+553 issues found. (ran in 5.7s)

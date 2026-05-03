@@ -30,12 +30,12 @@ final class PersistenceManager {
   SystemLoader? _loader; // set externally
 
   void setChosenCampaignSourcefiles(List<String> l, [GameMode? game]) {
-    final g = game ?? SettingsHandler.getGame();
+    final g = game ?? SettingsHandler.getGameAsProperty();
     _loader?.setChosenCampaignSourcefiles(l, g);
   }
 
   List<String> getChosenCampaignSourcefiles([GameMode? game]) {
-    final g = game ?? SettingsHandler.getGame();
+    final g = game ?? SettingsHandler.getGameAsProperty();
     return _loader?.getChosenCampaignSourcefiles(g) ?? [];
   }
 }

@@ -28,10 +28,7 @@ class EquipmentTreeTableModel extends AbstractTreeTableModel with ChangeNotifier
     'Name', 'Type', 'Location', 'Qty', 'Weight', 'Cost',
   ];
 
-  final DefaultSortableTreeTableNode _root;
-
-  EquipmentTreeTableModel()
-      : _root = DefaultSortableTreeTableNode('root', []);
+  DefaultSortableTreeTableNode _root = DefaultSortableTreeTableNode([]);
 
   @override
   SortableTreeTableNode get root => _root;
@@ -46,29 +43,27 @@ class EquipmentTreeTableModel extends AbstractTreeTableModel with ChangeNotifier
   @override
   dynamic getValueAt(dynamic node, int column) {
     if (node is DefaultSortableTreeTableNode) {
-      final data = node.data;
-      if (data is List && column < data.length) return data[column];
+      return node.getValueAt(column);
     }
     return null;
   }
 
   @override
   bool isLeaf(dynamic node) {
-    if (node is DefaultSortableTreeTableNode) return node.childCount == 0;
+    if (node is DefaultSortableTreeTableNode) return node.getChildCount() == 0;
     return true;
   }
 
   /// Rebuild tree from a map of location → list of item rows.
   void setEquipment(Map<String, List<List<dynamic>>> byLocation) {
-    _root.removeAllChildren();
+    _root = DefaultSortableTreeTableNode([]);
     for (final entry in byLocation.entries) {
       final locNode = DefaultSortableTreeTableNode(
-          entry.key, [entry.key, '', '', '', '', '']);
+          [entry.key, '', '', '', '', '']);
       for (final row in entry.value) {
-        locNode.addChild(
-            DefaultSortableTreeTableNode(row[0] as String? ?? '', row));
+        locNode.add(DefaultSortableTreeTableNode(List<dynamic>.from(row)));
       }
-      _root.addChild(locNode);
+      _root.add(locNode);
     }
     notifyListeners();
   }

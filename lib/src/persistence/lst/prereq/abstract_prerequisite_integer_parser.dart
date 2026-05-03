@@ -18,7 +18,7 @@ abstract class AbstractPrerequisiteIntegerParser
     }
     prereq.operand = n.toString();
     if (invertResult) {
-      prereq.operator = prereq.operator?.invert();
+      prereq.operator = prereq.operator?.invert() ?? prereq.operator!;
     }
     return prereq;
   }

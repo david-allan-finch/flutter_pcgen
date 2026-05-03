@@ -17,7 +17,7 @@ abstract class AbstractPrerequisiteListParser extends AbstractPrerequisiteParser
     final prereq = super.parse(kind, formula, invertResult, overrideQualify);
     _parsePrereqListType(prereq, kind, formula);
     if (invertResult) {
-      prereq.operator = prereq.operator?.invert();
+      prereq.operator = prereq.operator?.invert() ?? prereq.operator!;
     }
     return prereq;
   }
