@@ -172,6 +172,18 @@ class _PrereqCtx implements PrereqContext {
   @override
   double getSkillRanks(String skillName) =>
       _state.skillRanks[skillName.toLowerCase()] ?? 0.0;
+
+  @override
+  int getStatScore(String statAbb) =>
+      _state.statScores[statAbb.toUpperCase()] ?? 10;
+
+  @override String get deityKey => '';
+  @override List<String> get domainKeys => const [];
+  @override List<String> get languageNames => const [];
+  @override List<String> get visionTypes => const [];
+  @override List<String> get templateKeys => const [];
+  @override List<String> get weaponProficiencies => const [];
+  @override String get sizeKey => 'M';
 }
 
 class CharacterBonusEngine {

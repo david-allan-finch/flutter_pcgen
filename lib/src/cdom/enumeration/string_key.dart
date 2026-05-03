@@ -77,4 +77,7 @@ enum StringKey {
   altName,       // base item name for EQMODs
   abbreviation,  // favored class for races
   altText,       // miscellaneous alternate text field
+  benefit,       // feat/ability benefit text
+  monsterClass,  // monster class type e.g. "Undead:8"
+  keystatFormula, // key stat abbreviation for class skill points
 }

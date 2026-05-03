@@ -54,71 +54,44 @@ class ParsedPrereq {
   bool evaluate(PrereqContext ctx) {
     bool result;
     switch (type) {
-      case 'PREVAREQ':
-        result = _evalVarOp(ctx, (a, b) => a == b);
-        break;
-      case 'PREVARNE':
-        result = _evalVarOp(ctx, (a, b) => a != b);
-        break;
-      case 'PREVARGTEQ':
-        result = _evalVarOp(ctx, (a, b) => a >= b);
-        break;
-      case 'PREVARGT':
-        result = _evalVarOp(ctx, (a, b) => a > b);
-        break;
-      case 'PREVARLTEQ':
-        result = _evalVarOp(ctx, (a, b) => a <= b);
-        break;
-      case 'PREVARLT':
-        result = _evalVarOp(ctx, (a, b) => a < b);
-        break;
-      case 'PREALIGN':
-        result = _evalAlign(ctx);
-        break;
-      case 'PRERACE':
-        result = _evalRace(ctx);
-        break;
-      case 'PRETYPE':
-        result = _evalType(ctx);
-        break;
+      case 'PREVAREQ':        result = _evalVarOp(ctx, (a, b) => a == b); break;
+      case 'PREVARNE':        result = _evalVarOp(ctx, (a, b) => a != b); break;
+      case 'PREVARGTEQ':      result = _evalVarOp(ctx, (a, b) => a >= b); break;
+      case 'PREVARGT':        result = _evalVarOp(ctx, (a, b) => a > b);  break;
+      case 'PREVARLTEQ':      result = _evalVarOp(ctx, (a, b) => a <= b); break;
+      case 'PREVARLT':        result = _evalVarOp(ctx, (a, b) => a < b);  break;
+      case 'PREALIGN':        result = _evalAlign(ctx);    break;
+      case 'PRERACE':         result = _evalRace(ctx);     break;
+      case 'PRETYPE':         result = _evalType(ctx);     break;
       case 'PREABILITY':
-        result = _evalAbility(ctx);
-        break;
-      case 'PRECSKILL':
-        result = _evalCSkill(ctx);
-        break;
-      case 'PRESKILL':
-        result = _evalSkill(ctx);
-        break;
-      case 'PREPCLEVEL':
-        result = _evalPcLevel(ctx);
-        break;
+      case 'PREFEAT':         result = _evalAbility(ctx);  break;
+      case 'PRECSKILL':       result = _evalCSkill(ctx);   break;
+      case 'PRESKILL':        result = _evalSkill(ctx);    break;
+      case 'PREPCLEVEL':      result = _evalPcLevel(ctx);  break;
+      case 'PREMULT':         result = _evalMult(ctx);     break;
+      case 'PRETOTALAB':      result = _evalTotalAb(ctx);  break;
+      case 'PRECLASS':        result = _evalPreClass(ctx); break;
+      case 'PRESTAT':         result = _evalPreStat(ctx);  break;
+      case 'PREDEITY':        result = _evalPreDeity(ctx); break;
+      case 'PREDOMAIN':       result = _evalPreDomain(ctx); break;
+      case 'PRELANG':         result = _evalPreLang(ctx);  break;
+      case 'PREVISION':       result = _evalPreVision(ctx); break;
+      case 'PRETEMPLATE':     result = _evalPreTemplate(ctx); break;
+      case 'PREWEAPONPROF':   result = _evalPreWeaponProf(ctx); break;
+      case 'PRESIZEEQ':       result = _evalPreSize(ctx, (a, b) => a == b); break;
+      case 'PRESIZEGTEQ':     result = _evalPreSize(ctx, (a, b) => _sizeOrdinal(a) >= _sizeOrdinal(b)); break;
+      case 'PRESIZELT':       result = _evalPreSize(ctx, (a, b) => _sizeOrdinal(a) <  _sizeOrdinal(b)); break;
+      case 'PRESIZELTEQ':     result = _evalPreSize(ctx, (a, b) => _sizeOrdinal(a) <= _sizeOrdinal(b)); break;
+      case 'PRESIZENEQ':      result = _evalPreSize(ctx, (a, b) => a != b); break;
+      case 'PRERACETYPE':     result = _evalPreRaceType(ctx); break;
+      case 'PRECHECK':
+      case 'PRECHECKBASE':    result = _evalPreCheck(ctx); break;
       case 'PREBASESIZEEQ':
       case 'PREBASESIZELT':
       case 'PREBASESIZELTEQ':
       case 'PREBASESIZEGT':
-      case 'PREBASESIZEGTEQ':
-        // Size prerequisites — optimistically pass until size tracking is implemented
-        result = true;
-        break;
-      case 'PRERULE':
-        result = true; // game rule toggles — optimistically pass
-        break;
-      case 'PREMULT':
-        result = _evalMult(ctx);
-        break;
-      case 'PRETOTALAB':
-        // PRETOTALAB:N,minBAB — character BAB must be ≥ minBAB
-        result = _evalTotalAb(ctx);
-        break;
-      case 'PRECLASS':
-        // PRECLASS:N,ClassName=minLevel
-        result = _evalPreClass(ctx);
-        break;
-      case 'PREFEAT':
-        // PREFEAT:N,FeatName — reuse PREABILITY logic
-        result = _evalAbility(ctx);
-        break;
+      case 'PREBASESIZEGTEQ': result = true; break;
+      case 'PRERULE':         result = true; break;
       case 'PREHANDSEQ':
       case 'PREHANDSGTEQ':
       case 'PREHANDSLT':
@@ -126,24 +99,34 @@ class ParsedPrereq {
       case 'PRESPELLSCHOOL':
       case 'PRESPELLSCHOOLSUB':
       case 'PRESPELLCAST':
+      case 'PRESPELL':
+      case 'PRESPELLBOOK':
+      case 'PRESPELLDESCRIPTOR':
       case 'PRECAMPAIGN':
       case 'PREAGEGTEQ':
       case 'PREAGERANGE':
       case 'PREGENDER':
-      case 'PREDEITY':
       case 'PREDEITYALIGN':
-      case 'PREDOMAIN':
       case 'PREITEM':
       case 'PREARMORTYPE':
-      case 'PREWEAPONPROF':
+      case 'PREPROFWITHARMOR':
+      case 'PREPROFWITHSHIELD':
       case 'PREWIELD':
       case 'PRELEVEL':
       case 'PRELEVELMAX':
       case 'PRESREQ':
-        result = true; // optimistic pass for unimplemented prereqs
-        break;
-      default:
-        result = true; // unknown prereq: optimistically pass
+      case 'PREEQUIP':
+      case 'PREMOVE':
+      case 'PREREGION':
+      case 'PREDR':
+      case 'PRESUBCLASS':
+      case 'PREAGESET':
+      case 'PREHD':
+      case 'PREHP':
+      case 'PRESRGTEQ':
+      case 'PRESRLT':
+      case 'PRETEXT':         result = true; break;
+      default:                result = true; break;
     }
     return negated ? !result : result;
   }
@@ -299,6 +282,125 @@ class ParsedPrereq {
     }
     return passed >= needed;
   }
+
+  bool _evalPreStat(PrereqContext ctx) {
+    // PRESTAT:N,STR=13,DEX=15 — N stats must meet their minimums
+    final parts = raw.split(',');
+    if (parts.isEmpty) return true;
+    final needed = int.tryParse(parts[0].trim()) ?? 1;
+    int met = 0;
+    for (int i = 1; i < parts.length; i++) {
+      final eq = parts[i].indexOf('=');
+      if (eq < 0) continue;
+      final statAbb = parts[i].substring(0, eq).trim().toUpperCase();
+      final minVal  = int.tryParse(parts[i].substring(eq + 1).trim()) ?? 0;
+      if (ctx.getStatScore(statAbb) >= minVal) met++;
+    }
+    return met >= needed;
+  }
+
+  bool _evalPreDeity(PrereqContext ctx) {
+    final parts = raw.split(',');
+    if (parts.length < 2) return true;
+    final needed = int.tryParse(parts[0].trim()) ?? 1;
+    int met = 0;
+    for (int i = 1; i < parts.length; i++) {
+      if (ctx.deityKey.toLowerCase() == parts[i].trim().toLowerCase()) met++;
+    }
+    return met >= needed;
+  }
+
+  bool _evalPreDomain(PrereqContext ctx) {
+    final parts = raw.split(',');
+    if (parts.length < 2) return true;
+    final needed = int.tryParse(parts[0].trim()) ?? 1;
+    int met = 0;
+    final domains = ctx.domainKeys.map((d) => d.toLowerCase()).toList();
+    for (int i = 1; i < parts.length; i++) {
+      if (domains.contains(parts[i].trim().toLowerCase())) met++;
+    }
+    return met >= needed;
+  }
+
+  bool _evalPreLang(PrereqContext ctx) {
+    final parts = raw.split(',');
+    if (parts.length < 2) return true;
+    final needed = int.tryParse(parts[0].trim()) ?? 1;
+    int met = 0;
+    final langs = ctx.languageNames.map((l) => l.toLowerCase()).toList();
+    for (int i = 1; i < parts.length; i++) {
+      if (langs.contains(parts[i].trim().toLowerCase())) met++;
+    }
+    return met >= needed;
+  }
+
+  bool _evalPreVision(PrereqContext ctx) {
+    final parts = raw.split(',');
+    if (parts.length < 2) return true;
+    final needed = int.tryParse(parts[0].trim()) ?? 1;
+    int met = 0;
+    final visions = ctx.visionTypes.map((v) => v.toLowerCase()).toList();
+    for (int i = 1; i < parts.length; i++) {
+      final vt = parts[i].trim().toLowerCase().replaceAll(RegExp(r'\s*\(.*\)'), '');
+      if (visions.any((v) => v.startsWith(vt))) met++;
+    }
+    return met >= needed;
+  }
+
+  bool _evalPreTemplate(PrereqContext ctx) {
+    final parts = raw.split(',');
+    if (parts.length < 2) return true;
+    final needed = int.tryParse(parts[0].trim()) ?? 1;
+    int met = 0;
+    final tpls = ctx.templateKeys.map((t) => t.toLowerCase()).toList();
+    for (int i = 1; i < parts.length; i++) {
+      if (tpls.contains(parts[i].trim().toLowerCase())) met++;
+    }
+    return met >= needed;
+  }
+
+  bool _evalPreWeaponProf(PrereqContext ctx) {
+    final parts = raw.split(',');
+    if (parts.length < 2) return true;
+    final needed = int.tryParse(parts[0].trim()) ?? 1;
+    int met = 0;
+    final profs = ctx.weaponProficiencies.map((p) => p.toLowerCase()).toList();
+    for (int i = 1; i < parts.length; i++) {
+      final wp = parts[i].trim().toLowerCase();
+      if (wp.startsWith('type.')) {
+        met++; // TYPE.Simple etc — optimistic
+      } else if (profs.contains(wp)) {
+        met++;
+      }
+    }
+    return met >= needed;
+  }
+
+  static const _sizeOrder = ['F', 'D', 'T', 'S', 'M', 'L', 'H', 'G', 'C'];
+  static int _sizeOrdinal(String s) {
+    final idx = _sizeOrder.indexOf(s.trim().toUpperCase());
+    return idx < 0 ? 4 : idx; // default to M=4
+  }
+
+  bool _evalPreSize(PrereqContext ctx, bool Function(String, String) op) =>
+      op(ctx.sizeKey, raw.trim());
+
+  bool _evalPreRaceType(PrereqContext ctx) {
+    final parts = raw.split(',');
+    if (parts.length < 2) return true;
+    final needed = int.tryParse(parts[0].trim()) ?? 1;
+    final raceTypes = ctx.objectTypes
+        .where((t) => t.startsWith('RACETYPE:'))
+        .map((t) => t.substring(9).toLowerCase())
+        .toList();
+    int met = 0;
+    for (int i = 1; i < parts.length; i++) {
+      if (raceTypes.contains(parts[i].trim().toLowerCase())) met++;
+    }
+    return met >= needed;
+  }
+
+  bool _evalPreCheck(PrereqContext ctx) => true; // optimistic
 }
 
 extension on String {
@@ -318,6 +420,14 @@ abstract class PrereqContext {
   List<String> selectedAbilityKeys([String? category]);
   double getVariable(String name);
   double getSkillRanks(String skillName);
+  int getStatScore(String statAbb);
+  String get deityKey;
+  List<String> get domainKeys;
+  List<String> get languageNames;
+  List<String> get visionTypes;
+  List<String> get templateKeys;
+  List<String> get weaponProficiencies;
+  String get sizeKey; // e.g. 'M', 'S', 'L'
 }
 
 // ---------------------------------------------------------------------------

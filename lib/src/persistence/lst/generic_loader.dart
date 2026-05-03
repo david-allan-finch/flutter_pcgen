@@ -249,9 +249,6 @@ class GenericLoader<T extends CDOMObject> extends LstObjectFileLoader<T> {
         case 'SELECT':
           // SELECT:N — number of choices to make (default 1)
           return;
-        case 'COST':
-          // COST:N — point cost (e.g. for ability pools)
-          return;
         case 'SPELLLEVEL':
           // SPELLLEVEL:DOMAIN|Fire=1|Burning Hands|Fire=2|Produce Flame|...
           // SPELLLEVEL:Wizard=3|Sorcerer=3 (on spell objects — stored differently)
@@ -389,11 +386,6 @@ class GenericLoader<T extends CDOMObject> extends LstObjectFileLoader<T> {
             obj.putObject(ObjectKey.getConstant<int>('XTRA_SKILL_PTS'), int.tryParse(value) ?? 0);
           } catch (_) {}
           return;
-        case 'STARTFEATS':
-          try {
-            obj.putObject(ObjectKey.getConstant<int>('START_FEATS'), int.tryParse(value) ?? 0);
-          } catch (_) {}
-          return;
         case 'CR':
           try { obj.putString(StringKey.subregion, value); } catch (_) {}
           return;
@@ -488,6 +480,131 @@ class GenericLoader<T extends CDOMObject> extends LstObjectFileLoader<T> {
         case 'SLOTS':
           try { obj.putObject(ObjectKey.getConstant<int>('EQUIP_SLOTS'), int.tryParse(value.trim()) ?? 1); } catch (_) {}
           return;
+        // ---- Special ability text ----
+        case 'SAB':
+          for (final s in value.split('|')) {
+            final t = s.trim();
+            if (t.isNotEmpty) {
+              try { obj.addToListFor(ListKey.getConstant<String>('SAB_LIST'), t); } catch (_) {}
+            }
+          }
+          return;
+
+        // ---- Class skill lists ----
+        case 'CSKILL':
+          for (final s in value.split('|')) {
+            final skill = s.trim();
+            if (skill.isNotEmpty) {
+              try { obj.addToListFor(ListKey.getConstant<String>('CLASS_SKILLS'), skill); } catch (_) {}
+            }
+          }
+          return;
+        case 'CCSKILL':
+          for (final s in value.split('|')) {
+            final skill = s.trim();
+            if (skill.isNotEmpty) {
+              try { obj.addToListFor(ListKey.getConstant<String>('CROSS_CLASS_SKILLS'), skill); } catch (_) {}
+            }
+          }
+          return;
+        case 'MONCSKILL':
+          for (final s in value.split('|')) {
+            final skill = s.trim();
+            if (skill.isNotEmpty) {
+              try { obj.addToListFor(ListKey.getConstant<String>('MON_CLASS_SKILLS'), skill); } catch (_) {}
+            }
+          }
+          return;
+
+        // ---- Auto-granted languages ----
+        case 'LANGAUTO':
+          for (final lang in value.split(',')) {
+            final l = lang.trim();
+            if (l.isNotEmpty && !l.startsWith('%')) {
+              try { obj.addToListFor(ListKey.getConstant<String>('AUTO_LANG'), l); } catch (_) {}
+            }
+          }
+          return;
+
+        // ---- Class / creature stats ----
+        case 'HITDIE':
+          try { obj.putString(StringKey.hdFormula, value.trim()); } catch (_) {}
+          return;
+        case 'STARTSKILLPTS':
+          try { obj.putObject(ObjectKey.getConstant<int>('START_SKILL_PTS'), int.tryParse(value.trim()) ?? 2); } catch (_) {}
+          return;
+        case 'LEVELSPERFEAT':
+          try { obj.putObject(ObjectKey.getConstant<int>('LEVELS_PER_FEAT'), int.tryParse(value.trim()) ?? 3); } catch (_) {}
+          return;
+        case 'LEVELADJUSTMENT':
+          try { obj.putObject(ObjectKey.getConstant<int>('LEVEL_ADJUSTMENT'), int.tryParse(value.trim()) ?? 0); } catch (_) {}
+          return;
+        case 'SKILLMULT':
+          try { obj.putObject(ObjectKey.getConstant<int>('SKILL_MULT'), int.tryParse(value.trim()) ?? 1); } catch (_) {}
+          return;
+        case 'KEYSTAT':
+          try { obj.putString(StringKey.keystatFormula, value.trim()); } catch (_) {}
+          return;
+
+        // ---- ADD token ----
+        case 'ADD':
+          _parseAddToken(obj, value);
+          return;
+
+        // ---- Temporary bonuses ----
+        case 'TEMPBONUS':
+          try { obj.addToListFor(ListKey.getConstant<String>('TEMP_BONUS'), value); } catch (_) {}
+          return;
+
+        // ---- Feat/ability detail text ----
+        case 'BENEFIT':
+          try { obj.putString(StringKey.benefit, value); } catch (_) {}
+          return;
+        case 'ASPECT':
+          try { obj.addToListFor(ListKey.getConstant<String>('ASPECT_LIST'), value); } catch (_) {}
+          return;
+
+        // ---- Monster info ----
+        case 'MONSTERCLASS':
+          try { obj.putString(StringKey.monsterClass, value); } catch (_) {}
+          return;
+        case 'HITDICEADVANCEMENT':
+          try { obj.putString(StringKey.tempvalue, value); } catch (_) {}
+          return;
+
+        // ---- Starting kits ----
+        case 'KIT':
+          try { obj.addToListFor(ListKey.getConstant<String>('KIT_LIST'), value); } catch (_) {}
+          return;
+
+        // ---- Replacement and removal ----
+        case 'REPLACES':
+          for (final r in value.split('|')) {
+            final t = r.trim();
+            if (t.isNotEmpty) {
+              try { obj.addToListFor(ListKey.getConstant<String>('REPLACES_LIST'), t); } catch (_) {}
+            }
+          }
+          return;
+        case 'REMOVE':
+          try { obj.addToListFor(ListKey.getConstant<String>('REMOVE_LIST'), value); } catch (_) {}
+          return;
+        case 'QUALIFY':
+          try { obj.addToListFor(ListKey.getConstant<String>('QUALIFY_LIST'), value); } catch (_) {}
+          return;
+        case 'SERVESAS':
+          try { obj.addToListFor(ListKey.getConstant<String>('SERVES_AS'), value); } catch (_) {}
+          return;
+
+        // ---- Spell detail tokens ----
+        case 'SPELLRES':
+          try { obj.putObject(ObjectKey.getConstant<bool>('SPELL_RES'), value.trim().toUpperCase() == 'YES'); } catch (_) {}
+          return;
+        case 'XPCOST':
+          try { obj.putObject(ObjectKey.getConstant<int>('XP_COST'), int.tryParse(value.trim()) ?? 0); } catch (_) {}
+          return;
+
+        // ---- Acknowledged / no-op tokens ----
         case 'CONTAINS':
         case 'ALTERNATECOST':
         case 'MODS':
@@ -528,6 +645,96 @@ class GenericLoader<T extends CDOMObject> extends LstObjectFileLoader<T> {
         case 'COST2':
         case 'NUMPAGES2':
         case 'PAGEUSAGE2':
+        case 'REGION':
+        case 'SUBREGION':
+        case 'RACENAME':
+        case 'ALIGN':
+        case 'SUBRACE':
+        case 'EYES':
+        case 'HAIR':
+        case 'SKINTONE':
+        case 'GENDERLOCK':
+        case 'SEX':
+        case 'AGEDIEROLL':
+        case 'AGESET':
+        case 'BASEAGE':
+        case 'MAXAGE':
+        case 'NAMEISPI':
+        case 'NAMEOPT':
+        case 'PLURAL':
+        case 'APPLY':
+        case 'ARMORTYPE':
+        case 'ISDEFAULTSIZE':
+        case 'CHARGES':
+        case 'BASEQTY':
+        case 'MAXCOST':
+        case 'USEMASTERSKILL':
+        case 'COPYMASTERBAB':
+        case 'COPYMASTERCHECK':
+        case 'COPYMASTERHP':
+        case 'MASTERBONUSRACE':
+        case 'COUNT':
+        case 'TOTAL':
+        case 'VALUES':
+        case 'SELECTION':
+        case 'SELECTABLE':
+        case 'REQUIRED':
+        case 'VALIDFORDEITY':
+        case 'VALIDFORFOLLOWER':
+        case 'LOOKUP':
+        case 'OPTION':
+        case 'SITUATION':
+        case 'RANK':
+        case 'EQUIPBUY':
+        case 'STARTPACK':
+        case 'FUNDS':
+        case 'REMOVABLE':
+        case 'LOCATION':
+        case 'ITYPE':
+        case 'SIZENUM':
+        case 'CHANGEPROF':
+        case 'DONOTADD':
+        case 'DISPLAYLOCATION':
+        case 'ASSIGNTOALL':
+        case 'POOL':
+        case 'EDITPOOL':
+        case 'EDITABLE':
+        case 'FRACTIONALPOOL':
+        case 'BONUSSPELLSTAT':
+        case 'EXCHANGELEVEL':
+        case 'ADDLEVEL':
+        case 'ADDSPELLLEVEL':
+        case 'ADDSPELLPOINTS':
+        case 'MOVECLONE':
+        case 'MODTOSKILLS':
+        case 'FOLLOWERS':
+        case 'FOLLOWER':
+        case 'ALLOWBASECLASS':
+        case 'LEVEL':
+        case 'ABILITYCATEGORY':
+        case 'ABILITYLIST':
+        case 'SPELLKNOWN':
+        case 'SPELLLIST':
+        case 'SUBCLASS':
+        case 'SUBCLASSLEVEL':
+        case 'SUBSTITUTIONCLASS':
+        case 'SUBSTITUTIONLEVEL':
+        case 'VARIANTS':
+        case 'GEAR':
+        case 'TABLE':
+        case 'CLASS':
+        case 'DOMAIN':
+        case 'DEITY':
+        case 'COMMENT':
+        case 'FREE':
+        case 'CHOICE':
+        case 'PLUS':
+        case 'FORMATCAT':
+        case 'MONNONSKILLHD':
+        case 'REACHMULT':
+        case 'DECRIPTOR':
+        case 'MONSKILL':
+        case 'SPELLSTAT':
           return; // recognised but not needed for character building
 
         default:
@@ -631,7 +838,6 @@ class GenericLoader<T extends CDOMObject> extends LstObjectFileLoader<T> {
     }
   }
 
-  /// Parse AUTO: tokens. Currently handles AUTO:LANG and AUTO:WEAPONPROF.
   void _parseAutoToken(T obj, String value) {
     final pipeIdx = value.indexOf('|');
     final autoType = pipeIdx > 0
@@ -639,25 +845,88 @@ class GenericLoader<T extends CDOMObject> extends LstObjectFileLoader<T> {
         : value.toUpperCase();
     final autoValue = pipeIdx > 0 ? value.substring(pipeIdx + 1) : '';
 
-    if (autoType == 'LANG') {
-      // AUTO:LANG|Common|Elvish|%LIST
-      for (final lang in autoValue.split('|')) {
-        final l = lang.trim();
-        if (l.isNotEmpty && !l.startsWith('%')) {
-          try {
-            obj.addToListFor(ListKey.getConstant<String>('AUTO_LANG'), l);
-          } catch (_) {}
+    switch (autoType) {
+      case 'LANG':
+        for (final lang in autoValue.split('|')) {
+          final l = lang.trim();
+          if (l.isNotEmpty && !l.startsWith('%')) {
+            try { obj.addToListFor(ListKey.getConstant<String>('AUTO_LANG'), l); } catch (_) {}
+          }
         }
-      }
-    } else if (autoType == 'WEAPONPROF') {
-      for (final prof in autoValue.split('|')) {
-        final p = prof.trim();
-        if (p.isNotEmpty && !p.startsWith('%') && !p.startsWith('TYPE=')) {
-          try {
-            obj.addToListFor(ListKey.getConstant<String>('AUTO_WEAPONPROF'), p);
-          } catch (_) {}
+        break;
+      case 'WEAPONPROF':
+        for (final prof in autoValue.split('|')) {
+          final p = prof.trim();
+          if (p.isNotEmpty && !p.startsWith('%') && !p.startsWith('TYPE=')) {
+            try { obj.addToListFor(ListKey.getConstant<String>('AUTO_WEAPONPROF'), p); } catch (_) {}
+          }
         }
-      }
+        break;
+      case 'FEAT':
+        for (final feat in autoValue.split('|')) {
+          final f = feat.trim();
+          if (f.isNotEmpty && !f.startsWith('%') && !f.startsWith('PRE')) {
+            try { obj.addToListFor(ListKey.getConstant<String>('AUTO_FEATS'), f); } catch (_) {}
+          }
+        }
+        break;
+      case 'ARMORPROF':
+        for (final prof in autoValue.split('|')) {
+          final p = prof.trim();
+          if (p.isNotEmpty && !p.startsWith('%')) {
+            try { obj.addToListFor(ListKey.getConstant<String>('AUTO_ARMORPROF'), p); } catch (_) {}
+          }
+        }
+        break;
+      case 'SHIELDPROF':
+        for (final prof in autoValue.split('|')) {
+          final p = prof.trim();
+          if (p.isNotEmpty && !p.startsWith('%')) {
+            try { obj.addToListFor(ListKey.getConstant<String>('AUTO_SHIELDPROF'), p); } catch (_) {}
+          }
+        }
+        break;
+      default:
+        break;
+    }
+  }
+
+  void _parseAddToken(T obj, String value) {
+    final pipeIdx = value.indexOf('|');
+    final addType = pipeIdx > 0
+        ? value.substring(0, pipeIdx).toUpperCase()
+        : value.toUpperCase();
+    final addValue = pipeIdx > 0 ? value.substring(pipeIdx + 1) : '';
+
+    switch (addType) {
+      case 'CLASSSKILLS':
+        for (final s in addValue.split('|')) {
+          final skill = s.trim();
+          if (skill.isNotEmpty) {
+            try { obj.addToListFor(ListKey.getConstant<String>('ADD_CLASS_SKILLS'), skill); } catch (_) {}
+          }
+        }
+        break;
+      case 'FEAT':
+        if (addValue.isNotEmpty) {
+          try { obj.addToListFor(ListKey.getConstant<String>('ADD_FEATS'), addValue); } catch (_) {}
+        }
+        break;
+      case 'ABILITY':
+        if (addValue.isNotEmpty) {
+          try { obj.addToListFor(ListKey.getConstant<String>('ADD_ABILITIES'), addValue); } catch (_) {}
+        }
+        break;
+      case 'LANGUAGE':
+        for (final lang in addValue.split('|')) {
+          final l = lang.trim();
+          if (l.isNotEmpty) {
+            try { obj.addToListFor(ListKey.getConstant<String>('LANG_BONUS'), l); } catch (_) {}
+          }
+        }
+        break;
+      default:
+        break;
     }
   }
 
