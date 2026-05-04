@@ -428,6 +428,11 @@ class AbilitiesInfoTabState extends State<AbilitiesInfoTab>
           .getSafeListFor(ListKey.getConstant<ParsedPrereq>('PARSED_PREREQ')) as List?;
       if (prereqList == null || prereqList.isEmpty) return (true, '');
 
+      // QUALIFY: check if any selected ability grants bypass for this ability
+      final abilityName = ability.getDisplayName().toLowerCase();
+      final abilityKey  = ability.getKeyName().toLowerCase();
+      if (_characterQualifies(character, abilityName, abilityKey)) return (true, '');
+
       final ctx = _buildPrereqContext(character);
       final failures = <String>[];
       for (final p in prereqList) {
@@ -442,6 +447,36 @@ class AbilitiesInfoTabState extends State<AbilitiesInfoTab>
     }
   }
 
+  /// Returns true if any selected ability has a QUALIFY entry matching this ability.
+  bool _characterQualifies(dynamic character, String name, String key) {
+    try {
+      final dataset = loadedDataSet.value;
+      if (dataset == null) return false;
+      final data = (character as dynamic).toJson() as Map;
+      final selectedAbilities = data['selectedAbilities'] as Map? ?? {};
+      final allSelected = <String>[];
+      for (final cat in selectedAbilities.values) {
+        if (cat is List) allSelected.addAll(cat.cast<String>());
+      }
+      final allAbilities = dataset.getAllAbilities();
+      for (final storedKey in allSelected) {
+        final baseKey = storedKey.contains('|') ? storedKey.split('|').first : storedKey;
+        final ab = allAbilities.where((a) => a.getKeyName() == baseKey).firstOrNull;
+        if (ab == null) continue;
+        final qualifies = ab.getSafeListFor(ListKey.getConstant<String>('QUALIFY_LIST')) as List?;
+        if (qualifies == null) continue;
+        for (final q in qualifies) {
+          if (q is! String) continue;
+          // QUALIFY:FEAT|FeatName or QUALIFY:ABILITY|Cat|Name
+          final parts = q.split('|');
+          final qName = parts.last.toLowerCase();
+          if (qName == name || qName == key) return true;
+        }
+      }
+    } catch (_) {}
+    return false;
+  }
+
   _SimplePrereqCtx _buildPrereqContext(dynamic character) {
     Map<String, dynamic> data = {};
     try { data = (character as dynamic).toJson() as Map<String, dynamic>; } catch (_) {}
@@ -454,6 +489,22 @@ class AbilitiesInfoTabState extends State<AbilitiesInfoTab>
 
     final classLevels = data['classLevels'] as List? ?? [];
     final totalLevel = classLevels.length;
+    // Build class level counts for PRECLASS evaluation
+    final counts = <String, int>{};
+    for (final l in classLevels) {
+      if (l is Map) {
+        final k = l['classKey'] as String? ?? '';
+        counts[k] = (counts[k] ?? 0) + 1;
+      }
+    }
+    // Also expose as CL.<key> in char variables
+    final charVars = Map<String, double>.from(
+        (data['charVariables'] as Map? ?? {}).map((k, v) =>
+            MapEntry(k.toString(), (v as num?)?.toDouble() ?? 0.0)));
+    for (final e in counts.entries) {
+      charVars['CL.${e.key}'] = e.value.toDouble();
+    }
+
     final selectedAbilities = data['selectedAbilities'] as Map? ?? {};
     final skillRanks = <String, double>{};
     (data['skillRanks'] as Map? ?? {}).forEach((k, v) {
@@ -466,6 +517,7 @@ class AbilitiesInfoTabState extends State<AbilitiesInfoTab>
       totalLevel: totalLevel,
       statMods: statMods,
       statScores: statScores,
+      charVars: charVars,
       selectedAbilities: {
         for (final e in selectedAbilities.entries)
           e.key.toString(): (e.value as List?)?.cast<String>() ?? []
@@ -676,6 +728,7 @@ class _SimplePrereqCtx implements PrereqContext {
   final Map<String, int> statScores;
   final Map<String, List<String>> _selectedAbilities;
   final Map<String, double> skillRanks;
+  final Map<String, double> _charVars;
 
   _SimplePrereqCtx({
     required this.alignmentKey,
@@ -685,7 +738,9 @@ class _SimplePrereqCtx implements PrereqContext {
     required this.statScores,
     required Map<String, List<String>> selectedAbilities,
     required this.skillRanks,
-  }) : _selectedAbilities = selectedAbilities;
+    Map<String, double> charVars = const {},
+  }) : _selectedAbilities = selectedAbilities,
+       _charVars = charVars;
 
   @override
   List<String> selectedAbilityKeys([String? category]) {
@@ -702,7 +757,7 @@ class _SimplePrereqCtx implements PrereqContext {
       if (statScores.containsKey(abb)) return statScores[abb]!.toDouble();
     }
     if (upper == 'TL' || upper == 'CL') return totalLevel.toDouble();
-    return 0.0;
+    return _charVars[name] ?? _charVars[upper] ?? 0.0;
   }
 
   @override

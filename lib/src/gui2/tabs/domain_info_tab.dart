@@ -177,17 +177,51 @@ class DomainInfoTabState extends State<DomainInfoTab> {
                                 final domain = domains
                                     .where((d) => d.getKeyName() == key)
                                     .firstOrNull;
-                                return ListTile(
-                                  dense: true,
+                                // Domain spells from character data
+                                Map<String, String> spellMap = {};
+                                try {
+                                  final data = (character as dynamic).toJson() as Map;
+                                  final ds = (data['domainSpells'] as Map?)?[key];
+                                  if (ds is Map) {
+                                    spellMap = ds.map((k, v) => MapEntry(k.toString(), v.toString()));
+                                  }
+                                } catch (_) {}
+                                return ExpansionTile(
+                                  tilePadding: const EdgeInsets.symmetric(horizontal: 8),
                                   title: Text(domain?.getDisplayName() ?? key,
-                                      style: const TextStyle(fontSize: 12)),
-                                  trailing: IconButton(
-                                    icon: const Icon(Icons.remove_circle_outline,
-                                        size: 16, color: Colors.red),
-                                    onPressed: character == null
-                                        ? null
-                                        : () => _removeDomain(character, key),
-                                  ),
+                                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                                  trailing: Row(mainAxisSize: MainAxisSize.min, children: [
+                                    if (character != null)
+                                      IconButton(
+                                        icon: const Icon(Icons.remove_circle_outline,
+                                            size: 16, color: Colors.red),
+                                        onPressed: () => _removeDomain(character, key),
+                                        padding: EdgeInsets.zero,
+                                        constraints: const BoxConstraints(),
+                                      ),
+                                    const Icon(Icons.expand_more, size: 16),
+                                  ]),
+                                  children: [
+                                    if (domain?.getDescription()?.isNotEmpty == true)
+                                      Padding(
+                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                                        child: Text(domain!.getDescription()!,
+                                            style: const TextStyle(fontSize: 11, fontStyle: FontStyle.italic)),
+                                      ),
+                                    if (spellMap.isNotEmpty) ...[
+                                      const Padding(
+                                        padding: EdgeInsets.only(left: 12, top: 4),
+                                        child: Text('Domain Spells:', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                                      ),
+                                      ...spellMap.entries.toList()
+                                        ..sort((a, b) => int.tryParse(a.key) ?? 0 .compareTo(int.tryParse(b.key) ?? 0))
+                                        ..map((e) => Padding(
+                                          padding: const EdgeInsets.only(left: 16, bottom: 2),
+                                          child: Text('${e.key}: ${e.value}',
+                                              style: const TextStyle(fontSize: 11)),
+                                        )).toList(),
+                                    ],
+                                  ],
                                 );
                               },
                             ),

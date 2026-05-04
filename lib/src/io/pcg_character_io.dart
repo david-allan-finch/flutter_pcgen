@@ -765,7 +765,9 @@ class PCGCharacterIO {
         location = p.substring(9).trim();
       }
     }
-    final key = itemName.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '_');
+    // Use the item name as a temporary key; restoreFromDataset() will replace
+    // this with the proper dataset key (getKeyName()) by matching on name.
+    final key = itemName;
     (data['gear'] as List).add({
       'name':   itemName,
       'key':    key,

@@ -1113,6 +1113,43 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
     // Cache dataset and rebuild the bonus accumulator with all loaded data.
     _dataset = dataset;
 
+    // Resolve equipment names → proper dataset keys so the sheet can look
+    // them up by getKeyName(). The PCG loader stores a name-derived key; we
+    // replace it with the actual LST key here.
+    try {
+      final allEquip = (dataset as dynamic).equipment as List? ?? [];
+      final nameToKey = <String, String>{};
+      for (final e in allEquip) {
+        final n = (e as dynamic).getDisplayName() as String? ?? '';
+        final k = (e as dynamic).getKeyName()     as String? ?? '';
+        if (n.isNotEmpty && k.isNotEmpty) nameToKey[n.toLowerCase()] = k;
+      }
+      final gear = _data['gear'] as List? ?? [];
+      for (final item in gear) {
+        if (item is! Map) continue;
+        final name = (item['name'] as String? ?? '').toLowerCase();
+        final dsKey = nameToKey[name];
+        if (dsKey != null && dsKey != item['key']) {
+          final oldKey = item['key'] as String? ?? '';
+          item['key'] = dsKey;
+          // Fix up equippedSlots references to old derived key
+          final slots = _data['equippedSlots'] as Map? ?? {};
+          for (final entry in slots.entries.toList()) {
+            if (entry.value == oldKey) slots[entry.key] = dsKey;
+          }
+        }
+      }
+    } catch (_) {}
+
+    // Re-grant domain benefits (abilities + spell lists) that were persisted.
+    // _grantDomainBenefits is idempotent for already-stored ability keys.
+    try {
+      final savedDomains = _data['selectedDomains'] as List? ?? [];
+      for (final d in savedDomains) {
+        if (d is String && d.isNotEmpty) _grantDomainBenefits(d);
+      }
+    } catch (_) {}
+
     // Rebuild abilityChoices from stored "Key|Choice" entries so LIST bonuses
     // resolve correctly after loading a saved character.
     _rebuildChoicesMap();
