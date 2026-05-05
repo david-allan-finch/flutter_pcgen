@@ -428,8 +428,14 @@ class PCGenFrameState extends State<PCGenFrame> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('PCGen — Character Generator',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            Row(
+              children: [
+                Image.asset('assets/images/pcgen_logo.png', height: 64, width: 64),
+                const SizedBox(width: 12),
+                const Text('PCGen — Character Generator',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              ],
+            ),
             const SizedBox(height: 4),
             Row(children: [
               Container(
@@ -514,7 +520,13 @@ class PCGenFrameState extends State<PCGenFrame> {
           autofocus: true,
           child: Scaffold(
             appBar: AppBar(
-              title: Text(_title ?? 'PCGen 7 α'),
+              title: Row(
+                children: [
+                  Image.asset('assets/images/pcgen_logo.png', height: 28, width: 28),
+                  const SizedBox(width: 8),
+                  Text(_title ?? 'PCGen 7 α'),
+                ],
+              ),
               actions: [
                 PCGenMenuBar(frame: this, uiContext: widget.uiContext),
               ],
