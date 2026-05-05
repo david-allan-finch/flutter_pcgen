@@ -28,6 +28,8 @@ class EquipmentTreeTableModel extends AbstractTreeTableModel with ChangeNotifier
     'Name', 'Type', 'Location', 'Qty', 'Weight', 'Cost',
   ];
 
+  EquipmentTreeTableModel() : super(DefaultSortableTreeTableNode([]));
+
   DefaultSortableTreeTableNode _root = DefaultSortableTreeTableNode([]);
 
   @override
