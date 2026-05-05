@@ -202,20 +202,24 @@ class DomainInfoTabState extends State<DomainInfoTab> {
                                     const Icon(Icons.expand_more, size: 16),
                                   ]),
                                   children: [
-                                    if (domain?.getDescription()?.isNotEmpty == true)
-                                      Padding(
+                                    Builder(builder: (_) {
+                                      String? desc;
+                                      try { desc = (domain as dynamic).getDescription() as String?; } catch (_) {}
+                                      if (desc == null || desc.isEmpty) return const SizedBox.shrink();
+                                      return Padding(
                                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                                        child: Text(domain!.getDescription()!,
+                                        child: Text(desc,
                                             style: const TextStyle(fontSize: 11, fontStyle: FontStyle.italic)),
-                                      ),
+                                      );
+                                    }),
                                     if (spellMap.isNotEmpty) ...[
                                       const Padding(
                                         padding: EdgeInsets.only(left: 12, top: 4),
                                         child: Text('Domain Spells:', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
                                       ),
-                                      ...spellMap.entries.toList()
-                                        ..sort((a, b) => int.tryParse(a.key) ?? 0 .compareTo(int.tryParse(b.key) ?? 0))
-                                        ..map((e) => Padding(
+                                      ...(spellMap.entries.toList()
+                                        ..sort((a, b) => (int.tryParse(a.key) ?? 0).compareTo(int.tryParse(b.key) ?? 0)))
+                                        .map((e) => Padding(
                                           padding: const EdgeInsets.only(left: 16, bottom: 2),
                                           child: Text('${e.key}: ${e.value}',
                                               style: const TextStyle(fontSize: 11)),
