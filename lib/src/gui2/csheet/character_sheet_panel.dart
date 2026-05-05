@@ -757,8 +757,8 @@ class _CharacterSheetView extends StatelessWidget {
       if (dataset == null) return null;
       final base = storedKey.contains('|') ? storedKey.split('|').first : storedKey;
       try {
-        return dataset.getAllAbilities().firstWhere(
-            (a) => a.getKeyName() == base, orElse: () => null);
+        return dataset.getAllAbilities().cast<dynamic>().firstWhere(
+            (a) => (a as dynamic).getKeyName() == base, orElse: () => null);
       } catch (_) { return null; }
     }
 
