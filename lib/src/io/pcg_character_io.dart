@@ -34,18 +34,17 @@ class PCGCharacterIO {
     final buf = StringBuffer();
     final data = character.toJson();
 
-    buf.writeln('PCGVERSION:$_pcgVersion');
-    buf.writeln();
-
-    // System info
     buf.writeln('# System Information');
+    final campaignName = data['campaignName'] as String? ?? '';
+    if (campaignName.isNotEmpty) buf.writeln('CAMPAIGN:$campaignName');
     buf.writeln('VERSION:$_appVersion');
-    buf.writeln('ROLLMETHOD:1|EXPRESSION:10');
+    buf.writeln('ROLLMETHOD:3|EXPRESSION:roll(4,6,top(3))');
     buf.writeln('PURCHASEPOINTS:N');
     buf.writeln('CHARACTERTYPE:PC');
+    buf.writeln('PREVIEWSHEET:Standard.htm.ftl');
     buf.writeln('POOLPOINTS:0');
-    buf.writeln('POOLPOINTSAVAIL:0');
-    buf.writeln('GAMEMODE:35e');
+    buf.writeln('POOLPOINTSAVAIL:-1');
+    buf.writeln('GAMEMODE:${data['gameMode'] ?? '35e'}');
     buf.writeln('TABLABEL:0');
     buf.writeln('AUTOSPELLS:Y');
     buf.writeln('USEHIGHERKNOWN:N');
@@ -54,9 +53,10 @@ class PCGCharacterIO {
     buf.writeln('USETEMPMODS:Y');
     buf.writeln('AUTOSORTGEAR:Y');
     buf.writeln('SKILLSOUTPUTORDER:0');
+    buf.writeln('SKILLFILTER:2');
     buf.writeln('IGNORECOST:N');
     buf.writeln('ALLOWDEBT:N');
-    buf.writeln('AUTORESIZEGEAR:N');
+    buf.writeln('AUTORESIZEGEAR:Y');
     buf.writeln();
 
     // Character bio
@@ -79,6 +79,10 @@ class PCGCharacterIO {
     buf.writeln('BIRTHPLACE:');
     buf.writeln('PERSONALITYTRAIT1:');
     buf.writeln('PERSONALITYTRAIT2:');
+    buf.writeln('SPEECHPATTERN:');
+    buf.writeln('PHOBIAS:');
+    buf.writeln('INTERESTS:');
+    buf.writeln('CATCHPHRASE:');
     buf.writeln('PORTRAIT:');
     buf.writeln();
 
@@ -96,24 +100,21 @@ class PCGCharacterIO {
 
     // Classes
     final classLevels = data['classLevels'] as List? ?? [];
+    buf.writeln('# Character Class(es)');
     if (classLevels.isNotEmpty) {
-      buf.writeln('# Character Class(es)');
       final counts = <String, int>{};
-      final classNames = <String, String>{};
       for (final l in classLevels) {
         if (l is Map) {
           final k = l['classKey'] as String? ?? '';
-          classNames[k] = l['className'] as String? ?? k;
           counts[k] = (counts[k] ?? 0) + 1;
         }
       }
       final classSpellBase = data['classSpellBase'] as Map? ?? {};
       for (final entry in counts.entries) {
-        final spellBase = classSpellBase[entry.key] as String? ?? 'WIS';
-        buf.writeln('CLASS:${entry.key}|SUBCLASS:None|LEVEL:${entry.value}'
+        final spellBase = classSpellBase[entry.key] as String? ?? 'None';
+        buf.writeln('CLASS:${entry.key}|LEVEL:${entry.value}'
             '|SKILLPOOL:0|SPELLBASE:$spellBase|CANCASTPERDAY:');
       }
-      // Per-level lines
       final levelNums = <String, int>{};
       for (final l in classLevels) {
         if (l is Map) {
@@ -123,104 +124,132 @@ class PCGCharacterIO {
           final hp = (l['hp'] as num?)?.toInt() ?? 0;
           final skillsGained = (l['skillsGained'] as num?)?.toInt() ?? 0;
           final statGains = l['statGains'] as Map? ?? {};
-          final buf2 = StringBuffer(
-              'CLASSABILITIESLEVEL:$k=$n|HITPOINTS:$hp');
-          for (final sg in statGains.entries) {
-            buf2.write('|PRESTAT:${sg.key}=${sg.value}');
-          }
-          buf2.write('|SKILLSGAINED:$skillsGained');
-          buf.writeln(buf2);
+          final b2 = StringBuffer('CLASSABILITIESLEVEL:$k=$n|HITPOINTS:$hp');
+          for (final sg in statGains.entries) b2.write('|PRESTAT:${sg.key}=${sg.value}');
+          b2.write('|SKILLSGAINED:$skillsGained|SKILLSREMAINING:0');
+          buf.writeln(b2);
         }
       }
-      buf.writeln();
     }
+    buf.writeln();
 
     // Experience
-    final xp = data['xp'] as int? ?? 0;
     buf.writeln('# Character Experience');
-    buf.writeln('EXPERIENCE:$xp');
-    final xpTableName = data['xpTableName'] as String? ?? '';
-    if (xpTableName.isNotEmpty) buf.writeln('EXPERIENCETABLE:$xpTableName');
+    buf.writeln('EXPERIENCE:${data['xp'] ?? 0}');
+    buf.writeln('EXPERIENCETABLE:${data['xpTableName'] ?? 'Default'}');
     buf.writeln();
 
-    // Templates
+    // Templates — one TEMPLATESAPPLIED line per template (Java PCGen format)
     final templates = data['appliedTemplates'] as List? ?? [];
     buf.writeln('# Character Templates');
-    if (templates.isNotEmpty) {
-      buf.writeln('TEMPLATESAPPLIED:${templates.map((t) => '[NAME:$t]').join('')}');
-    }
+    for (final t in templates) buf.writeln('TEMPLATESAPPLIED:[NAME:$t]');
     buf.writeln();
 
-    // Skills
+    // Region
+    buf.writeln('# Character Region');
+    buf.writeln('REGION:None');
+    buf.writeln();
+
+    // Skills — write all skills in saved order; zero-rank ones get trailing |
     final skillRanks = data['skillRanks'] as Map? ?? {};
-    if (skillRanks.isNotEmpty) {
-      buf.writeln('# Character Skills');
-      int order = 1;
-      for (final entry in skillRanks.entries) {
-        final rank = (entry.value as num?)?.toDouble() ?? 0.0;
-        if (rank > 0) {
-          // Determine which class this skill belongs to (first class by default)
-          final firstClass = classLevels.isNotEmpty && classLevels[0] is Map
-              ? classLevels[0]['classKey'] as String? ?? ''
-              : '';
-          final classBought = firstClass.isNotEmpty
-              ? '|CLASSBOUGHT:[CLASS:$firstClass|RANKS:$rank|COST:1|CLASSSKILL:Y]'
-              : '';
-          buf.writeln(
-              'SKILL:${entry.key}|OUTPUTORDER:${order++}$classBought');
-        } else {
-          buf.writeln('SKILL:${entry.key}|OUTPUTORDER:${order++}|');
-        }
+    final skillList = data['skillList'] as List? ?? [];
+    final skillClassBought = data['skillClassBought'] as Map? ?? {};
+    // Primary class for skills with no class info
+    final primaryClass = classLevels.isNotEmpty && classLevels[0] is Map
+        ? classLevels[0]['classKey'] as String? ?? '' : '';
+    buf.writeln('# Character Skills');
+    final writtenSkills = <String>{};
+    int skillOrder = 1;
+    for (final sn in skillList) {
+      final skillName = sn.toString();
+      writtenSkills.add(skillName);
+      final rank = (skillRanks[skillName] as num?)?.toDouble() ?? 0.0;
+      if (rank > 0) {
+        final cls = skillClassBought[skillName] as String?
+            ?? (primaryClass.isNotEmpty ? primaryClass : '');
+        final cb = cls.isNotEmpty
+            ? '|CLASSBOUGHT:[CLASS:$cls|RANKS:${rank.toStringAsFixed(1)}'
+              '|COST:1|CLASSSKILL:Y]'
+            : '';
+        buf.writeln('SKILL:$skillName|OUTPUTORDER:${skillOrder++}$cb');
+      } else {
+        buf.writeln('SKILL:$skillName|OUTPUTORDER:${skillOrder++}|');
       }
-      buf.writeln();
     }
+    // Any skills with ranks not in the skill list (e.g. added after load)
+    for (final entry in skillRanks.entries) {
+      final skillName = entry.key.toString();
+      if (writtenSkills.contains(skillName)) continue;
+      final rank = (entry.value as num?)?.toDouble() ?? 0.0;
+      if (rank > 0) {
+        final cls = skillClassBought[skillName] as String?
+            ?? (primaryClass.isNotEmpty ? primaryClass : '');
+        final cb = cls.isNotEmpty
+            ? '|CLASSBOUGHT:[CLASS:$cls|RANKS:${rank.toStringAsFixed(1)}'
+              '|COST:1|CLASSSKILL:Y]'
+            : '';
+        buf.writeln('SKILL:$skillName|OUTPUTORDER:${skillOrder++}$cb');
+      }
+    }
+    buf.writeln();
 
     // Languages
     final languages = data['languageKeys'] as List? ?? [];
-    if (languages.isNotEmpty) {
-      buf.writeln('# Character Languages');
-      buf.writeln('LANGUAGE:${languages.join('|LANGUAGE:')}');
-      buf.writeln();
-    }
+    buf.writeln('# Character Languages');
+    if (languages.isNotEmpty) buf.writeln('LANGUAGE:${languages.join('|LANGUAGE:')}');
+    buf.writeln();
 
-    // Abilities (feats + special abilities)
+    // Feats / Abilities
     final selectedAbilities = data['selectedAbilities'] as Map? ?? {};
-    if (selectedAbilities.isNotEmpty) {
-      buf.writeln('# Character Abilities');
-      for (final catEntry in selectedAbilities.entries) {
-        final category = catEntry.key as String;
-        final keys = catEntry.value;
-        if (keys is List) {
-          for (final stored in keys) {
-            final s = stored.toString();
-            final sep = s.indexOf('|');
-            final abilKey  = sep > 0 ? s.substring(0, sep) : s;
-            final appliedTo = sep > 0 ? s.substring(sep + 1) : '';
-            final appliedToPart = appliedTo.isNotEmpty ? '|APPLIEDTO:$appliedTo' : '';
-            buf.writeln(
-                'ABILITY:$category|TYPE:NORMAL|CATEGORY:$category|KEY:$abilKey'
-                '$appliedToPart|TYPE:|DESC:');
-          }
-        }
+    final abilityTypes = data['abilityTypes'] as Map? ?? {};
+    final abilityDescs = data['abilityDescs'] as Map? ?? {};
+    buf.writeln('# Character Feats');
+    buf.writeln('FEATPOOL:0.0');
+    buf.writeln();
+    buf.writeln('# Character Abilities');
+    for (final catEntry in selectedAbilities.entries) {
+      final category = catEntry.key as String;
+      final keys = catEntry.value;
+      if (keys is! List) continue;
+      for (final stored in keys) {
+        final s = stored.toString();
+        final sep = s.indexOf('|');
+        final abilKey   = sep > 0 ? s.substring(0, sep) : s;
+        final appliedTo = sep > 0 ? s.substring(sep + 1) : '';
+        final appliedToPart = appliedTo.isNotEmpty ? '|APPLIEDTO:$appliedTo' : '';
+        final abilType = abilityTypes[abilKey] as String? ?? '';
+        final abilDesc = abilityDescs[abilKey] as String? ?? '';
+        final typePart = abilType.isNotEmpty ? '|TYPE:$abilType' : '|TYPE:';
+        buf.writeln('ABILITY:$category|TYPE:NORMAL|CATEGORY:$category'
+            '|KEY:$abilKey$appliedToPart$typePart|DESC:$abilDesc');
       }
-      buf.writeln();
+      buf.writeln('USERPOOL:$category|POOLPOINTS:0.0');
     }
+    buf.writeln();
 
-    // Equipment — written in Java PCGen format so files round-trip correctly.
-    // EQUIPNAME: defines every owned item (no LOCATION field).
-    // EQUIPSET: tree then says where each item is worn/carried.
+    // Weapon proficiencies
+    final weaponProfs = data['weaponProfs'] as List? ?? [];
+    buf.writeln('# Character Weapon proficiencies');
+    if (weaponProfs.isNotEmpty) {
+      // Write in chunks of 10 (matching Java PCGen style)
+      for (int i = 0; i < weaponProfs.length; i += 10) {
+        final chunk = weaponProfs.skip(i).take(10);
+        buf.writeln('WEAPONPROF:[${chunk.map((w) => 'WEAPON:$w').join('|')}]');
+      }
+    }
+    buf.writeln();
+
+    // Equipment
     final gear = data['gear'] as List? ?? [];
     final funds = (data['funds'] as num?)?.toDouble() ?? 0.0;
     buf.writeln('# Character Equipment');
-    buf.writeln('MONEY:${funds.toStringAsFixed(0)}');
+    buf.writeln('MONEY:${funds.toStringAsFixed(2)}');
     final equippedSlots = data['equippedSlots'] as Map? ?? {};
-    // Build reverse map: itemKey → our slot name
     final keyToSlot = <String, String>{};
     equippedSlots.forEach((slot, key) {
       if (key is String && key.isNotEmpty) keyToSlot[key] = slot as String;
     });
-
-    // 1. EQUIPNAME lines — inventory definition, no slot info
+    // EQUIPNAME — inventory definition
     if (gear.isNotEmpty) {
       int eqOrder = 1;
       for (final item in gear) {
@@ -229,107 +258,67 @@ class PCGCharacterIO {
         final qty  = (item['qty']    as num?)?.toInt()    ?? 1;
         final cost = (item['cost']   as num?)?.toDouble() ?? 0.0;
         final wt   = (item['weight'] as num?)?.toDouble() ?? 0.0;
-        buf.writeln(
-            'EQUIPNAME:$name|OUTPUTORDER:${eqOrder++}'
+        buf.writeln('EQUIPNAME:$name|OUTPUTORDER:${eqOrder++}'
             '|COST:$cost|WT:$wt|QUANTITY:$qty.0|NOTE:');
       }
     }
-
-    // 2. EQUIPSET tree — one root + one child per item
+    // EQUIPSET tree
     buf.writeln('EQUIPSET:Default Set|ID:0.1|USETEMPMODS:Y');
     int esIdx = 1;
-    // Equipped items first, then carried
     for (final item in gear) {
       if (item is! Map) continue;
-      final name = item['name'] as String? ?? '';
-      final key  = item['key']  as String? ?? '';
-      final qty  = (item['qty'] as num?)?.toInt() ?? 1;
+      final name    = item['name'] as String? ?? '';
+      final key     = item['key']  as String? ?? '';
+      final qty     = (item['qty'] as num?)?.toInt() ?? 1;
       final ourSlot = keyToSlot[key];
-      final esSlot  = ourSlot != null && ourSlot != 'Carried'
-          ? _slotToEquipsetName(ourSlot)
-          : 'Carried';
+      final esSlot  = (ourSlot != null && ourSlot != 'Carried')
+          ? _slotToEquipsetName(ourSlot) : 'Carried';
       final id = '0.1.${esIdx.toString().padLeft(2, '0')}';
-      buf.writeln(
-          'EQUIPSET:$esSlot|ID:$id|VALUE:$name|QUANTITY:$qty.0|USETEMPMODS:Y');
+      buf.writeln('EQUIPSET:$esSlot|ID:$id|VALUE:$name|QUANTITY:$qty.0|USETEMPMODS:Y');
       esIdx++;
     }
     buf.writeln('CALCEQUIPSET:0.1');
     buf.writeln();
 
-    // Temporary bonuses
-    final tempBonuses = data['tempBonuses'] as List? ?? [];
-    if (tempBonuses.isNotEmpty) {
-      buf.writeln('# Temporary Bonuses');
-      for (final tb in tempBonuses) {
-        if (tb is Map) {
-          final name     = tb['name']      as String? ?? '';
-          final category = tb['category']  as String? ?? 'COMBAT';
-          final target   = tb['target']    as String? ?? 'AC';
-          final value    = tb['value']     as String? ?? '0';
-          final bonusType= tb['bonusType'] as String? ?? '';
-          final active   = tb['active']    as bool?   ?? true;
-          if (name.isNotEmpty) {
-            buf.writeln('TEMPBONUS:PC|$category|$target|$value'
-                '${bonusType.isNotEmpty ? "|TYPE=$bonusType" : ""}'
-                '|TEMPBONUSTARGET:PC|SOURCE:$name'
-                '${active ? "" : "|INACTIVE"}');
-          }
-        }
-      }
-      buf.writeln();
-    }
+    // Temporary Bonuses (section header only — our manual bonuses don't map to PCGen format)
+    buf.writeln('# Temporary Bonuses');
+    buf.writeln();
+    buf.writeln('# EquipSet Temp Bonuses');
+    buf.writeln();
 
     // Deity & Domains
     final deityKey = data['deityKey'] as String? ?? '';
     buf.writeln('# Character Deity/Domain');
     if (deityKey.isNotEmpty) buf.writeln('DEITY:$deityKey');
     final selectedDomains = data['selectedDomains'] as List? ?? [];
-    for (final d in selectedDomains) {
-      buf.writeln('DOMAIN:$d');
-    }
+    for (final d in selectedDomains) buf.writeln('DOMAIN:$d');
     buf.writeln();
-
-    // Companions
-    final companions = data['companions'] as List? ?? [];
-    if (companions.isNotEmpty) {
-      buf.writeln('# Character Master/Follower');
-      for (final c in companions) {
-        if (c is Map) {
-          final cName = c['name'] as String? ?? '';
-          final cType = c['type'] as String? ?? 'Familiar';
-          final cRace = c['race'] as String? ?? '';
-          final cFile = c['file'] as String? ?? '';
-          buf.write('FOLLOWER:$cName|TYPE:$cType');
-          if (cRace.isNotEmpty) buf.write('|RACE:$cRace');
-          buf.write('|HITDICE:0');
-          if (cFile.isNotEmpty) buf.write('|FILE:$cFile');
-          buf.writeln();
-        }
-      }
-      buf.writeln();
-    }
 
     // Spells
     final knownSpells = data['knownSpells'] as List? ?? [];
+    buf.writeln('# Character Spells Information');
     if (knownSpells.isNotEmpty) {
-      buf.writeln('# Character Spells Information');
-      // Determine spellcasting class
-      final spellClass = classLevels.isNotEmpty && classLevels[0] is Map
-          ? classLevels[0]['classKey'] as String? ?? 'Unknown'
-          : 'Unknown';
-      buf.writeln('SPELLBOOK:Class|TYPE:4');
+      // Group by class
+      final byClass = <String, List<Map>>{};
       for (final spell in knownSpells) {
-        if (spell is Map) {
+        if (spell is! Map) continue;
+        final cls = spell['class'] as String? ?? primaryClass;
+        (byClass[cls] ??= []).add(spell);
+      }
+      for (final entry in byClass.entries) {
+        final cls = entry.key;
+        buf.writeln('SPELLBOOK:Known Spells|TYPE:0');
+        for (final spell in entry.value) {
           final sName  = spell['name']  as String? ?? '';
           final sLevel = spell['level'] as int?    ?? 0;
-          buf.writeln('SPELLNAME:$sName|TIMES:1|CLASS:$spellClass|BOOK:Class'
-              '|SPELLLEVEL:$sLevel|SOURCE:[TYPE:CLASS|NAME:$spellClass]');
+          buf.writeln('SPELLNAME:$sName|TIMES:1|CLASS:$cls|BOOK:Known Spells'
+              '|SPELLLEVEL:$sLevel|SOURCE:[TYPE:CLASS|NAME:$cls]');
         }
       }
-      buf.writeln();
     }
+    buf.writeln();
 
-    // Character descriptions
+    // Bio / Description
     buf.writeln('# Character Description/Bio/History');
     buf.writeln('CHARACTERBIO:${_esc(data['biography'] as String? ?? '')}');
     buf.writeln('CHARACTERDESC:${_esc(data['appearance'] as String? ?? '')}');
@@ -339,11 +328,47 @@ class PCGCharacterIO {
     buf.writeln('CHARACTERDMNOTES:');
     buf.writeln();
 
+    // Kits
+    buf.writeln('# Kits');
+    buf.writeln();
+
+    // Companions
+    final companions = data['companions'] as List? ?? [];
+    buf.writeln('# Character Master/Follower');
+    for (final c in companions) {
+      if (c is! Map) continue;
+      final cName = c['name'] as String? ?? '';
+      final cType = c['type'] as String? ?? 'Familiar';
+      final cRace = c['race'] as String? ?? '';
+      final cFile = c['file'] as String? ?? '';
+      final b2 = StringBuffer('FOLLOWER:$cName|TYPE:$cType');
+      if (cRace.isNotEmpty) b2.write('|RACE:$cRace');
+      b2.write('|HITDICE:0');
+      if (cFile.isNotEmpty) b2.write('|FILE:$cFile');
+      buf.writeln(b2);
+    }
+    buf.writeln();
+
     // Notes
     final notes = data['notes'] as String? ?? '';
     buf.writeln('# Character Notes Tab');
-    buf.writeln('NOTE:Character Sheet Notes|ID:1|PARENTID:-1'
-        '|VALUE:${_esc(notes)}');
+    if (notes.isNotEmpty) {
+      buf.writeln('NOTE:Character Sheet Notes|ID:1|PARENTID:-1|VALUE:${_esc(notes)}');
+    }
+    buf.writeln();
+
+    // Age Set
+    buf.writeln('# Age Set Selections');
+    buf.writeln('AGESET:1:0:0:0:0:0:0:0:0:0');
+    buf.writeln();
+
+    // Campaign History
+    buf.writeln('# Campaign History');
+    buf.writeln();
+
+    // Suppressed Biography Fields
+    buf.writeln('# Suppressed Biography Fields');
+    buf.writeln('SUPPRESSBIOFIELDS:');
     buf.writeln();
 
     return buf.toString();
@@ -361,12 +386,18 @@ class PCGCharacterIO {
       'xp': 0, 'hp': 0, 'funds': 0.0,
       'biography': '', 'appearance': '', 'notes': '',
       'raceKey': '', 'alignmentKey': '', 'deityKey': '',
+      'gameMode': '35e', 'campaignName': '',
       'statScores': <String, dynamic>{},
       'classLevels': <dynamic>[],
       'classSpellBase': <String, String>{},
       'classSpellSlots': <String, List<int>>{},
       'skillRanks': <String, dynamic>{},
+      'skillList': <String>[],           // all skill names in file order
+      'skillClassBought': <String, String>{}, // skill → class that bought ranks
+      'weaponProfs': <String>[],         // raw WEAPONPROF weapon names
       'selectedAbilities': <String, dynamic>{},
+      'abilityDescs': <String, String>{}, // key → DESC text from ABILITY: lines
+      'abilityTypes': <String, String>{}, // key → TYPE from ABILITY: lines
       'selectedDomains': <String>[],
       'appliedTemplates': <String>[],
       'languageKeys': <String>[],
@@ -443,6 +474,13 @@ class PCGCharacterIO {
           }
           break;
         case 'WEAPONPROF':
+          // WEAPONPROF:[WEAPON:Longsword|WEAPON:Dagger|...]
+          {
+            final profs = data['weaponProfs'] as List;
+            final matches = RegExp(r'WEAPON:([^|\]]+)').allMatches(value);
+            for (final m in matches) { profs.add(m.group(1)!.trim()); }
+          }
+          break;
         case 'USERPOOL':
         case 'FEATPOOL':
         case 'AGESET':
@@ -525,7 +563,8 @@ class PCGCharacterIO {
           _readSkill(data, value);
           break;
         case 'CAMPAIGN':
-          break; // skip campaign lines
+          if ((data['campaignName'] as String).isEmpty) data['campaignName'] = value.trim();
+          break;
         case 'EXPERIENCETABLE':
           final et = value.trim();
           if (et.isNotEmpty) data['xpTableName'] = et;
@@ -715,29 +754,36 @@ class PCGCharacterIO {
   }
 
   static void _readSkill(Map<String, dynamic> data, String value) {
-    // SKILL:Diplomacy|OUTPUTORDER:6|CLASSBOUGHT:[CLASS:Paladin|RANKS:5.0|...]
-    // Skills with no CLASSBOUGHT have 0 ranks.
+    // SKILL:Diplomacy|OUTPUTORDER:6|CLASSBOUGHT:[CLASS:Paladin|RANKS:5.0|COST:1|CLASSSKILL:Y]
     final nameEnd = value.indexOf('|');
     final skillName = nameEnd > 0 ? value.substring(0, nameEnd).trim() : value.trim();
+    if (skillName.isEmpty) return;
 
-    // Extract RANKS from CLASSBOUGHT block
+    // Track all skill names in file order for round-trip
+    final skillList = data['skillList'] as List;
+    if (!skillList.contains(skillName)) skillList.add(skillName);
+
+    // Extract RANKS and CLASS from CLASSBOUGHT block
     double rank = 0;
+    String boughtClass = '';
     final cbMatch = RegExp(r'CLASSBOUGHT:\[([^\]]+)\]').firstMatch(value);
     if (cbMatch != null) {
       for (final part in cbMatch.group(1)!.split('|')) {
-        if (part.toUpperCase().startsWith('RANKS:')) {
-          rank = double.tryParse(part.substring(6).trim()) ?? 0;
-          break;
-        }
+        final up = part.toUpperCase();
+        if (up.startsWith('RANKS:')) rank = double.tryParse(part.substring(6).trim()) ?? 0;
+        if (up.startsWith('CLASS:')) boughtClass = part.substring(6).trim();
       }
     }
-    // Also handle simple RANK: outside CLASSBOUGHT
+    // Fallback: simple RANK: token
     if (rank == 0) {
       final rankMatch = RegExp(r'RANK:([0-9.]+)').firstMatch(value);
       if (rankMatch != null) rank = double.tryParse(rankMatch.group(1)!) ?? 0;
     }
 
-    if (rank > 0) (data['skillRanks'] as Map)[skillName] = rank;
+    if (rank > 0) {
+      (data['skillRanks'] as Map)[skillName] = rank;
+      if (boughtClass.isNotEmpty) (data['skillClassBought'] as Map)[skillName] = boughtClass;
+    }
   }
 
   static void _readLanguages(Map<String, dynamic> data, String value) {
@@ -761,21 +807,32 @@ class PCGCharacterIO {
     String category   = parts[0].trim();
     String abilityKey = '';
     String appliedTo  = '';
+    String abilType   = '';
+    String abilDesc   = '';
+    bool typeFound = false;
     for (final p in parts.skip(1)) {
       final up = p.toUpperCase();
       if (up.startsWith('CATEGORY:'))  category   = p.substring(9).trim();
       if (up.startsWith('KEY:'))       abilityKey = p.substring(4).trim();
       if (up.startsWith('APPLIEDTO:')) appliedTo  = p.substring(10).trim();
+      if (up.startsWith('DESC:'))      abilDesc   = p.substring(5);
+      // The first TYPE: after CATEGORY is the ability type (General, Fighter, etc.)
+      // TYPE:NORMAL is the selection type, not the ability category type — skip it.
+      if (up.startsWith('TYPE:') && !typeFound && p.substring(5).trim() != 'NORMAL') {
+        abilType = p.substring(5).trim();
+        typeFound = true;
+      }
     }
     if (abilityKey.isEmpty) return;
 
-    // Store as "Key|AppliedTo" internally; split on '|' for display & write.
-    // Simple keys have no '|', so this is safe.
     final storeKey = appliedTo.isNotEmpty ? '$abilityKey|$appliedTo' : abilityKey;
-
     final abilities = data['selectedAbilities'] as Map;
     final list = (abilities[category] ??= <String>[]) as List;
     if (!list.contains(storeKey)) list.add(storeKey);
+
+    // Preserve TYPE and DESC for round-trip
+    if (abilType.isNotEmpty) (data['abilityTypes'] as Map)[abilityKey] = abilType;
+    if (abilDesc.isNotEmpty) (data['abilityDescs'] as Map)[abilityKey] = abilDesc;
   }
 
   static void _readFeat(Map<String, dynamic> data, String value) {
