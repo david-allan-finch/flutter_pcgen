@@ -133,8 +133,16 @@ class SpellsInfoTabState extends State<SpellsInfoTab>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('${entry.className} (${entry.spellStat})',
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+          Row(children: [
+            Text('${entry.className} (${entry.spellStat})',
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+            const SizedBox(width: 12),
+            Text('CL ${entry.casterLevel}',
+                style: TextStyle(fontSize: 11, color: Colors.blue.shade700)),
+            const SizedBox(width: 8),
+            Text('DC ${entry.baseDc}+SL',
+                style: TextStyle(fontSize: 11, color: Colors.purple.shade700)),
+          ]),
           const SizedBox(height: 2),
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
@@ -219,10 +227,22 @@ class SpellsInfoTabState extends State<SpellsInfoTab>
         if (totalSlots[sl] > 0) totalSlots[sl]++;
       }
 
+      // Effective caster level (class level + any BONUS:CASTERLEVEL bonuses)
+      int cl = lvl;
+      try {
+        final bonusCl = (character as dynamic).getCasterLevel(cls.getDisplayName()) as int?;
+        if (bonusCl != null && bonusCl > 0) cl = bonusCl;
+      } catch (_) {}
+
+      // Base spell save DC = 10 + spellStat mod (spell level added at display time)
+      final baseDc = 10 + statMod;
+
       result.add(_ClassSlotEntry(
         className: cls.getDisplayName(),
         spellStat: spellStat.isEmpty ? 'None' : spellStat,
         slots: totalSlots,
+        casterLevel: cl,
+        baseDc: baseDc,
       ));
     }
     return result;
@@ -663,6 +683,13 @@ class _ClassSlotEntry {
   final String className;
   final String spellStat;
   final List<int> slots;
-  const _ClassSlotEntry(
-      {required this.className, required this.spellStat, required this.slots});
+  final int casterLevel;
+  final int baseDc;
+  const _ClassSlotEntry({
+    required this.className,
+    required this.spellStat,
+    required this.slots,
+    this.casterLevel = 0,
+    this.baseDc = 10,
+  });
 }
