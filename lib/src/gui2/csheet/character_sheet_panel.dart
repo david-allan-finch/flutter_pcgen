@@ -433,7 +433,18 @@ class _CharacterSheetView extends StatelessWidget {
       final wield   = item.getWieldName();
       final thrRange = critR == 1 ? '20' : '${21 - critR}–20';
 
-      // Attack: BAB + STR + BONUS:COMBAT|TOHIT
+      // Proficiency check — −4 penalty if not proficient
+      final weaponTypes = <String>[];
+      try {
+        final tl = item.getSafeListFor(ListKey.getConstant<String>('TYPE')) as List?;
+        if (tl != null) for (final t in tl) { if (t is String) weaponTypes.add(t); }
+      } catch (_) {}
+      bool proficient = true;
+      try {
+        proficient = (character as dynamic).isWeaponProficient(weaponTypes) as bool? ?? true;
+      } catch (_) {}
+
+      // Attack: BAB + STR + BONUS:COMBAT|TOHIT − 4 if non-proficient
       // Damage: base dice + STR + BONUS:COMBAT|DAMAGE
       int bab = 0, strMod = 0, tohitBonus = 0, damageBonus = 0;
       try { bab         = (character as dynamic).getBABAsInt()         as int? ?? 0; } catch (_) {}
@@ -441,8 +452,9 @@ class _CharacterSheetView extends StatelessWidget {
       try { tohitBonus  = _tryGet(() => (character as dynamic).getTohitBonus())        as int? ?? 0; } catch (_) {}
       try { damageBonus = _tryGet(() => (character as dynamic).getDamageBonus())       as int? ?? 0; } catch (_) {}
 
-      final atkBonus  = bab + strMod + tohitBonus;
-      final atkStr    = atkBonus >= 0 ? '+$atkBonus' : '$atkBonus';
+      final nonprofPenalty = proficient ? 0 : -4;
+      final atkBonus  = bab + strMod + tohitBonus + nonprofPenalty;
+      final atkStr    = '${atkBonus >= 0 ? '+' : ''}$atkBonus${proficient ? '' : '*'}';
       final totalDmg  = strMod + damageBonus;
       final dmgSuffix = totalDmg > 0 ? '+$totalDmg' : (totalDmg < 0 ? '$totalDmg' : '');
       final dmgStr    = dmg.isNotEmpty ? '$dmg$dmgSuffix' : '—';

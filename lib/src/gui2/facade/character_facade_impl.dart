@@ -229,6 +229,14 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
   void setDeity(Object? deity) {
     if (deity != null) {
       _data['deityKey'] = (deity as dynamic).getKeyName() as String? ?? '';
+      // Auto-grant proficiency with the deity's favoured weapon (DEITYWEAP token)
+      try {
+        final weap = (deity as dynamic).getString(StringKey.nameText) as String?;
+        if (weap != null && weap.isNotEmpty && weap.toUpperCase() != 'ANY') {
+          final profs = (_data['deityWeaponProfs'] ??= <String>[]) as List;
+          if (!profs.contains(weap)) profs.add(weap);
+        }
+      } catch (_) {}
     }
     _deityRef.set(deity);
     notifyListeners();
@@ -1255,6 +1263,96 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
   }
 
   /// Natural attacks from race (name:count:damage strings).
+  /// All weapon proficiencies the character has from all sources.
+  Set<String> getWeaponProficiencies() {
+    final profs = <String>{};
+    try {
+      // Race AUTO_WEAPONPROF
+      final race = _raceRef.get();
+      if (race != null) {
+        _collectChainWeaponProfs(race, _dataset, profs, {});
+      }
+      // Classes AUTO_WEAPONPROF via PROFICIENCY token
+      final dataset = _dataset;
+      if (dataset != null) {
+        final classLevels = _data['classLevels'] as List? ?? [];
+        final usedKeys = <String>{};
+        for (final l in classLevels) {
+          if (l is! Map) continue;
+          final key = l['classKey'] as String? ?? '';
+          if (!usedKeys.add(key)) continue;
+          final classes = (dataset as dynamic).classes as List? ?? [];
+          for (final cls in classes) {
+            if ((cls as dynamic).getKeyName() != key) continue;
+            _collectChainWeaponProfs(cls, dataset, profs, {});
+            // PROFICIENCY:WEAPON|Simple etc stored in targetArea
+            try {
+              final p = (cls as dynamic).getString(StringKey.targetArea) as String?;
+              if (p != null && p.isNotEmpty) profs.add(p);
+            } catch (_) {}
+          }
+        }
+        // Selected abilities (Weapon Proficiency feats)
+        final selectedAbilities = _data['selectedAbilities'] as Map? ?? {};
+        final allAbilities = (dataset as dynamic).getAllAbilities() as List? ?? [];
+        for (final cat in selectedAbilities.values) {
+          if (cat is! List) continue;
+          for (final stored in cat) {
+            final baseKey = stored.toString().split('|').first;
+            for (final ab in allAbilities) {
+              if ((ab as dynamic).getKeyName() != baseKey) continue;
+              _collectChainWeaponProfs(ab, dataset, profs, {});
+              break;
+            }
+          }
+        }
+      }
+      // Deity weapon
+      final deityProfs = _data['deityWeaponProfs'] as List? ?? [];
+      profs.addAll(deityProfs.cast<String>());
+    } catch (_) {}
+    return profs;
+  }
+
+  void _collectChainWeaponProfs(
+      dynamic obj, dynamic dataset, Set<String> out, Set<String> seen) {
+    if (obj == null) return;
+    try {
+      final wp = (obj as dynamic)
+          .getSafeListFor(ListKey.getConstant<String>('AUTO_WEAPONPROF')) as List?;
+      if (wp != null) for (final p in wp) { if (p is String) out.add(p); }
+    } catch (_) {}
+    try {
+      final auto = (obj as dynamic)
+          .getSafeListFor(ListKey.getConstant<String>('AUTO_ABILITIES')) as List?;
+      if (auto != null && dataset != null) {
+        for (final name in auto) {
+          if (name is String && seen.add(name)) {
+            final ability = (dataset as dynamic).findAbilityByName(name);
+            if (ability != null) _collectChainWeaponProfs(ability, dataset, out, seen);
+          }
+        }
+      }
+    } catch (_) {}
+  }
+
+  /// Whether the character is proficient with [weaponTypes] (TYPE list from the item).
+  bool isWeaponProficient(List<String> weaponTypes) {
+    final profs = getWeaponProficiencies();
+    for (final t in weaponTypes) {
+      if (profs.contains(t)) return true;
+      if (profs.any((p) => p.toLowerCase() == t.toLowerCase())) return true;
+    }
+    return false;
+  }
+
+  /// Caster level for a given spell class or school.
+  int getCasterLevel(String classOrSchool) {
+    final key = classOrSchool.toUpperCase();
+    return _bonusAcc.totalInt('CASTERLEVEL', key) +
+           _bonusAcc.totalIntWithAll('CASTERLEVEL', key);
+  }
+
   /// Innate spells collected from race and its AUTO_ABILITIES chain.
   List<String> getInnateSpells() {
     final result = <String>[];
@@ -1456,6 +1554,25 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
             }
           }
         } catch (_) {}
+      }
+    } catch (_) {}
+
+    // Active temporary bonuses (manually added or from abilities)
+    try {
+      final tempBonusList = _data['tempBonuses'] as List? ?? [];
+      for (final tb in tempBonusList) {
+        if (tb is! Map) continue;
+        if (!(tb['active'] as bool? ?? true)) continue;
+        final category  = tb['category']  as String? ?? '';
+        final target    = tb['target']    as String? ?? '';
+        final valueStr  = tb['value']     as String? ?? '0';
+        final bonusType = tb['bonusType'] as String? ?? '';
+        if (category.isEmpty || target.isEmpty) continue;
+        final bonusStr = bonusType.isNotEmpty
+            ? '$category|$target|$valueStr|TYPE=$bonusType'
+            : '$category|$target|$valueStr';
+        final bonus = ParsedBonus.parse(bonusStr);
+        if (bonus != null) allBonuses.add(bonus);
       }
     } catch (_) {}
 

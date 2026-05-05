@@ -1,6 +1,8 @@
 // Translation of pcgen.gui2.tabs.TempBonusInfoTab
 
 import 'package:flutter/material.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/list_key.dart';
+import 'package:flutter_pcgen/src/core/data_set.dart';
 import 'package:flutter_pcgen/src/gui2/app_state.dart';
 
 /// Tab for applying temporary bonuses (spells, conditions, etc.).
@@ -41,13 +43,37 @@ class TempBonusInfoTabState extends State<TempBonusInfoTab> {
               ),
             ),
             const Divider(height: 1),
-            Padding(
-              padding: const EdgeInsets.all(8),
-              child: Text(
-                'Temporary bonuses track spell effects, conditions, and other '
-                'situational modifiers. They are not yet factored into combat stats.',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey),
-              ),
+            // Ability-sourced temp bonuses
+            ValueListenableBuilder<DataSet?>(
+              valueListenable: loadedDataSet,
+              builder: (ctx, dataset, _) {
+                final availableTb = _getAbilityTempBonuses(character, dataset);
+                if (availableTb.isEmpty) return const SizedBox.shrink();
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Padding(
+                      padding: EdgeInsets.fromLTRB(8, 6, 8, 2),
+                      child: Text('From Abilities:', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                    ),
+                    ...availableTb.map((tb) {
+                      final name = tb['name'] as String;
+                      final desc = tb['desc'] as String? ?? '';
+                      final isActive = _isTempBonusActive(character, name);
+                      return CheckboxListTile(
+                        dense: true,
+                        title: Text(name, style: const TextStyle(fontSize: 12)),
+                        subtitle: desc.isNotEmpty ? Text(desc, style: const TextStyle(fontSize: 10)) : null,
+                        value: isActive,
+                        onChanged: character == null ? null : (v) => _toggleAbilityTempBonus(character, tb, v ?? false),
+                        controlAffinity: ListTileControlAffinity.leading,
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 8),
+                      );
+                    }),
+                    const Divider(height: 1),
+                  ],
+                );
+              },
             ),
             Expanded(
               child: bonuses.isEmpty
@@ -244,11 +270,84 @@ class TempBonusInfoTabState extends State<TempBonusInfoTab> {
         'name': name,
         'category': category,
         'target': target,
-        'stat': '$category|$target', // backward compat display
+        'stat': '$category|$target',
         'value': value,
         'bonusType': bonusType,
         'active': true,
       });
+      currentCharacter.notifyListeners();
+      setState(() {});
+    } catch (_) {}
+  }
+
+  /// Collect TEMPBONUS entries from selected abilities.
+  List<Map<String, dynamic>> _getAbilityTempBonuses(dynamic character, DataSet? dataset) {
+    final result = <Map<String, dynamic>>[];
+    if (character == null || dataset == null) return result;
+    try {
+      final data = (character as dynamic).toJson() as Map;
+      final selected = data['selectedAbilities'] as Map? ?? {};
+      final allKeys = <String>[];
+      for (final cat in selected.values) {
+        if (cat is List) allKeys.addAll(cat.map((e) => e.toString().split('|').first));
+      }
+      final allAbilities = dataset.getAllAbilities();
+      for (final ab in allAbilities) {
+        if (!allKeys.contains((ab as dynamic).getKeyName())) continue;
+        final tbList = (ab as dynamic)
+            .getSafeListFor(ListKey.getConstant<String>('TEMP_BONUS')) as List?;
+        if (tbList == null || tbList.isEmpty) continue;
+        final name = (ab as dynamic).getDisplayName() as String? ?? '';
+        String desc = '';
+        try { desc = (ab as dynamic).getString(StringKey.tempDescription) as String? ?? ''; } catch (_) {}
+        result.add({'name': name, 'desc': desc, 'bonuses': tbList});
+      }
+    } catch (_) {}
+    return result;
+  }
+
+  bool _isTempBonusActive(dynamic character, String name) {
+    try {
+      final data = (character as dynamic).toJson() as Map;
+      final list = data['tempBonuses'] as List? ?? [];
+      return list.any((b) => b is Map && b['name'] == name && (b['active'] as bool? ?? true));
+    } catch (_) { return false; }
+  }
+
+  void _toggleAbilityTempBonus(dynamic character, Map<String, dynamic> tb, bool active) {
+    try {
+      final name = tb['name'] as String;
+      final data = (character as dynamic).toJson() as Map<String, dynamic>;
+      final list = (data['tempBonuses'] ??= <Map<String, dynamic>>[]) as List;
+      // Remove existing entry with this name
+      list.removeWhere((b) => b is Map && b['name'] == name);
+      if (active) {
+        // Parse each TEMPBONUS entry and add to list
+        final bonuses = tb['bonuses'] as List? ?? [];
+        for (final raw in bonuses) {
+          if (raw is! String) continue;
+          // Format: ANYPC|CATEGORY|TARGET|VALUE[|TYPE=...]
+          final parts = raw.split('|');
+          if (parts.length < 4) continue;
+          final category  = parts[1];
+          final target    = parts[2];
+          final value     = parts[3];
+          String bonusType = '';
+          for (final p in parts.skip(4)) {
+            if (p.toUpperCase().startsWith('TYPE=')) bonusType = p.substring(5);
+          }
+          list.add({
+            'name': name,
+            'category': category,
+            'target': target,
+            'stat': '$category|$target',
+            'value': value,
+            'bonusType': bonusType,
+            'active': true,
+            'fromAbility': true,
+          });
+        }
+      }
       currentCharacter.notifyListeners();
       setState(() {});
     } catch (_) {}

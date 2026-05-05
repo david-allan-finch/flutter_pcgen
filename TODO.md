@@ -23,7 +23,7 @@
 - [ ] `BONUS:CASTERLEVEL` handling
 - [ ] `TEMPBONUS` token on abilities (temporary bonus application)
 - [ ] `ADDSPELLLEVEL` token on feats
-- [ ] `QUALIFY` token — override prereqs for an ability
+- [x] `QUALIFY` token — override prereqs for an ability
 - [x] `ADD:CLASSSKILLS|skill1|skill2` — wired into classSkillNames in PrereqContext
 - [ ] `SERVESAS:RACE|Human|Orc` token (PF2e race alternates)
 
@@ -37,7 +37,7 @@
 - [x] `BONUS:COMBAT|TOHIT|...` combat bonuses wired into attack rolls
 - [x] `BONUS:COMBAT|DAMAGE|...` wired into weapon damage
 - [x] Domain auto-grant: granted abilities shown in Special Ability tab
-- [ ] Domain spells shown in domain tab
+- [x] Domain spells shown in domain tab
 
 ### Character Sheet / UI
 - [x] Character sheet stat block reads from accumulator for ALL bonuses
@@ -52,9 +52,9 @@
 - [ ] Non-proficient weapon penalty (−4 to attack)
 
 ### Save / Load
-- [ ] Domain selections persisted in PCG save file
-- [ ] Ability choices (Skill Focus → Perception) persisted correctly
-- [ ] Equipment location (equipped slot) persisted in PCG save file
+- [x] Domain selections persisted in PCG save file
+- [x] Ability choices (Skill Focus → Perception) persisted correctly
+- [x] Equipment location (equipped slot) persisted in PCG save file
 
 ### Export
 - [ ] HTML character sheet export

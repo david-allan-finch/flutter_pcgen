@@ -604,6 +604,11 @@ class GenericLoader<T extends CDOMObject> extends LstObjectFileLoader<T> {
           try { obj.putObject(CDOMObjectKey.getConstant<int>('XP_COST'), int.tryParse(value.trim()) ?? 0); } catch (_) {}
           return;
 
+        case 'DEITYWEAP':
+          // Deity's favoured weapon — store for auto-proficiency grant.
+          try { obj.putString(StringKey.nameText, value.trim()); } catch (_) {}
+          return;
+
         // ---- Acknowledged / no-op tokens ----
         case 'CONTAINS':
         case 'ALTERNATECOST':
@@ -627,7 +632,6 @@ class GenericLoader<T extends CDOMObject> extends LstObjectFileLoader<T> {
         case 'SPELL':
         case 'SPELLLEVEL2':
         case 'ADDDOMAINS':
-        case 'DEITYWEAP':
         case 'DOMAINS':
         case 'PANTHEON':
         case 'WORSHIPPERS':
