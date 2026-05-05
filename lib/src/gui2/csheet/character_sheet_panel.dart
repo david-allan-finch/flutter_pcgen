@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/list_key.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/string_key.dart';
 import 'package:flutter_pcgen/src/core/pc_class.dart';
 import 'package:flutter_pcgen/src/gui2/app_state.dart';
 import 'package:flutter_pcgen/src/gui2/facade/character_facade_impl.dart';
@@ -381,13 +382,66 @@ class _CharacterSheetView extends StatelessWidget {
     );
   }
 
+  /// Compute class skill names from class levels + dataset.
+  Set<String> _classSkillNames(Map data, dynamic dataset) {
+    final names = <String>{};
+    if (dataset == null) return names;
+    final classLevels = data['classLevels'] as List? ?? [];
+    final counts = <String>{};
+    for (final l in classLevels) {
+      if (l is Map) { final k = l['classKey'] as String?; if (k != null) counts.add(k); }
+    }
+    try {
+      for (final cls in (dataset as dynamic).classes as List) {
+        if (!counts.contains((cls as dynamic).getKeyName())) continue;
+        final cskills = (cls as dynamic)
+            .getSafeListFor(ListKey.getConstant<String>('CLASS_SKILLS')) as List?;
+        if (cskills != null) {
+          for (final s in cskills) { if (s is String) names.add(s.toLowerCase()); }
+        }
+      }
+    } catch (_) {}
+    return names;
+  }
+
   Widget _skillsCard(BuildContext context, ThemeData theme, Map data) {
+    final dataset = loadedDataSet.value;
+    final skills = (dataset?.skills ?? []);
+    if (skills.isEmpty) return const SizedBox.shrink();
+
     final ranks = data['skillRanks'] as Map? ?? {};
-    final withRanks = ranks.entries
-        .where((e) => (e.value as num? ?? 0) > 0)
-        .toList()
-      ..sort((a, b) => (b.value as num).compareTo(a.value as num));
-    if (withRanks.isEmpty) return const SizedBox.shrink();
+    final statScores = data['statScores'] as Map? ?? {};
+    final classSkills = _classSkillNames(data, dataset);
+
+    final rows = <_SkillRow>[];
+    for (final skill in skills) {
+      final name  = skill.getDisplayName() as String;
+      final key   = name.toLowerCase();
+      final rank  = ((ranks[name] ?? ranks[key]) as num?)?.toInt() ?? 0;
+
+      String statAbb = 'INT';
+      try {
+        final ks = (skill as dynamic).getString(StringKey.keystatFormula) as String?;
+        if (ks != null && ks.length >= 3) statAbb = ks.substring(0, 3).toUpperCase();
+      } catch (_) {}
+
+      final statTotal  = (statScores[statAbb] as num?)?.toInt() ?? 10;
+      final statMod    = ((statTotal - 10) / 2).floor();
+      final isClass    = classSkills.contains(key) || classSkills.contains(name);
+      final csBonus    = (isClass && rank > 0) ? 3 : 0;
+      int miscBonus    = 0;
+      try { miscBonus  = _tryGet(() => (character as dynamic).getSkillMiscBonus(name)) as int? ?? 0; } catch (_) {}
+      final total      = rank + statMod + csBonus + miscBonus;
+
+      rows.add(_SkillRow(name: name, total: total, stat: statAbb,
+          statMod: statMod, ranks: rank, isClass: isClass));
+    }
+
+    rows.sort((a, b) {
+      if (a.ranks > 0 && b.ranks == 0) return -1;
+      if (a.ranks == 0 && b.ranks > 0) return 1;
+      return a.name.compareTo(b.name);
+    });
 
     return Card(
       child: Padding(
@@ -395,14 +449,46 @@ class _CharacterSheetView extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('SKILLS (with ranks)', style: theme.textTheme.titleSmall),
+            Text('SKILLS', style: theme.textTheme.titleSmall),
             const SizedBox(height: 8),
-            Wrap(
-              spacing: 16,
-              runSpacing: 4,
-              children: withRanks.take(20).map((e) =>
-                  Text('${e.key} ${e.value}',
-                      style: const TextStyle(fontSize: 11))).toList(),
+            Table(
+              columnWidths: const {
+                0: FlexColumnWidth(3),
+                1: FixedColumnWidth(20),
+                2: FixedColumnWidth(42),
+                3: FixedColumnWidth(40),
+                4: FixedColumnWidth(30),
+                5: FixedColumnWidth(36),
+              },
+              defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+              children: [
+                TableRow(
+                  decoration: BoxDecoration(color: theme.highlightColor),
+                  children: [
+                    _th('Skill'), _th('CS'), _th('Total'), _th('Ranks'),
+                    _th('Stat'), _th('Mod'),
+                  ],
+                ),
+                for (final r in rows)
+                  TableRow(
+                    decoration: r.ranks > 0
+                        ? BoxDecoration(
+                            color: Theme.of(context)
+                                .colorScheme.primary
+                                .withValues(alpha: 0.04))
+                        : null,
+                    children: [
+                      _td(r.name),
+                      _tdC(r.isClass ? '✓' : '', color: Colors.green.shade700),
+                      _tdC(r.total >= 0 ? '+${r.total}' : '${r.total}',
+                          bold: r.ranks > 0),
+                      _tdC('${r.ranks}',
+                          color: r.ranks > 0 ? Colors.blue.shade700 : Colors.grey),
+                      _td(r.stat),
+                      _td(r.statMod >= 0 ? '+${r.statMod}' : '${r.statMod}'),
+                    ],
+                  ),
+              ],
             ),
           ],
         ),
@@ -415,49 +501,63 @@ class _CharacterSheetView extends StatelessWidget {
     if (dataset == null) return const SizedBox.shrink();
 
     final equippedSlots = data['equippedSlots'] as Map? ?? {};
-    // Weapon slots
-    const weaponSlots = ['Primary Hand', 'Off Hand'];
     final weapons = <_WeaponEntry>[];
 
-    for (final slot in weaponSlots) {
-      final key = equippedSlots[slot] as String?;
+    int bab = 0, strMod = 0, dexMod = 0, tohitBonus = 0, damageBonus = 0;
+    try { bab         = (character as dynamic).getBABAsInt()                         as int? ?? 0; } catch (_) {}
+    try { strMod      = _tryGet(() => (character as dynamic).getStatModByAbb('STR')) as int? ?? 0; } catch (_) {}
+    try { dexMod      = _tryGet(() => (character as dynamic).getStatModByAbb('DEX')) as int? ?? 0; } catch (_) {}
+    try { tohitBonus  = _tryGet(() => (character as dynamic).getTohitBonus())        as int? ?? 0; } catch (_) {}
+    try { damageBonus = _tryGet(() => (character as dynamic).getDamageBonus())       as int? ?? 0; } catch (_) {}
+
+    // Check every equipped slot for weapons
+    for (final entry in equippedSlots.entries) {
+      final slot = entry.key as String;
+      final key  = entry.value as String?;
       if (key == null) continue;
-      final item = dataset.equipment
-          .where((e) => e.getKeyName() == key)
-          .firstOrNull;
+      final item = dataset.equipment.where((e) => e.getKeyName() == key).firstOrNull;
       if (item == null) continue;
 
-      final dmg     = item.getDamageString();
-      final critR   = item.getCritRange();
-      final critM   = item.getCritMult();
-      final wield   = item.getWieldName();
-      final thrRange = critR == 1 ? '20' : '${21 - critR}–20';
-
-      // Proficiency check — −4 penalty if not proficient
-      final weaponTypes = <String>[];
+      // Skip non-weapons (armor, shields, etc.)
+      final typeList = <String>[];
       try {
         final tl = item.getSafeListFor(ListKey.getConstant<String>('TYPE')) as List?;
-        if (tl != null) for (final t in tl) { if (t is String) weaponTypes.add(t); }
+        if (tl != null) for (final t in tl) { if (t is String) typeList.add(t.toUpperCase()); }
       } catch (_) {}
+      final isWeapon = typeList.any((t) => t == 'WEAPON' || t.endsWith('WEAPON'));
+      if (!isWeapon) continue;
+
+      final dmg    = item.getDamageString();
+      final critR  = item.getCritRange();
+      final critM  = item.getCritMult();
+      final thrRange = critR <= 1 ? '20' : '${21 - critR}–20';
+      final isRanged = typeList.any((t) => t == 'RANGED');
+
       bool proficient = true;
-      try {
-        proficient = (character as dynamic).isWeaponProficient(weaponTypes) as bool? ?? true;
-      } catch (_) {}
+      try { proficient = (character as dynamic).isWeaponProficient(typeList) as bool? ?? true; } catch (_) {}
 
-      // Attack: BAB + STR + BONUS:COMBAT|TOHIT − 4 if non-proficient
-      // Damage: base dice + STR + BONUS:COMBAT|DAMAGE
-      int bab = 0, strMod = 0, tohitBonus = 0, damageBonus = 0;
-      try { bab         = (character as dynamic).getBABAsInt()         as int? ?? 0; } catch (_) {}
-      try { strMod      = _tryGet(() => (character as dynamic).getStatModByAbb('STR')) as int? ?? 0; } catch (_) {}
-      try { tohitBonus  = _tryGet(() => (character as dynamic).getTohitBonus())        as int? ?? 0; } catch (_) {}
-      try { damageBonus = _tryGet(() => (character as dynamic).getDamageBonus())       as int? ?? 0; } catch (_) {}
-
-      final nonprofPenalty = proficient ? 0 : -4;
-      final atkBonus  = bab + strMod + tohitBonus + nonprofPenalty;
-      final atkStr    = '${atkBonus >= 0 ? '+' : ''}$atkBonus${proficient ? '' : '*'}';
-      final totalDmg  = strMod + damageBonus;
+      final atkMod   = isRanged ? dexMod : strMod;
+      final nonprof  = proficient ? 0 : -4;
+      final atkBonus = bab + atkMod + tohitBonus + nonprof;
+      // Build iterative attack string for high BAB (e.g. +8/+3)
+      final atkParts = <String>[];
+      int cur = atkBonus;
+      final baseIter = bab;
+      if (baseIter >= 6) {
+        int b = bab;
+        while (b > (bab - atkBonus) - 5) {
+          final a = b + (atkBonus - bab);
+          atkParts.add('${a >= 0 ? '+' : ''}$a');
+          b -= 5;
+          if (b <= 0) break;
+        }
+      } else {
+        atkParts.add('${atkBonus >= 0 ? '+' : ''}$atkBonus');
+      }
+      final atkStr   = '${atkParts.join('/')}${proficient ? '' : '*'}';
+      final totalDmg = isRanged ? 0 : strMod + damageBonus;
       final dmgSuffix = totalDmg > 0 ? '+$totalDmg' : (totalDmg < 0 ? '$totalDmg' : '');
-      final dmgStr    = dmg.isNotEmpty ? '$dmg$dmgSuffix' : '—';
+      final dmgStr   = dmg.isNotEmpty ? '$dmg$dmgSuffix' : '—';
 
       weapons.add(_WeaponEntry(
         slot: slot,
@@ -465,29 +565,23 @@ class _CharacterSheetView extends StatelessWidget {
         attack: atkStr,
         damage: dmgStr,
         crit: critM.isNotEmpty ? '$thrRange / $critM' : thrRange,
-        wield: wield,
+        wield: isRanged ? 'Ranged' : 'Melee',
       ));
     }
 
-    // Add natural attacks from race
+    // Natural attacks from race chain
     try {
       final natAttacks = (character as dynamic).getNaturalAttacks() as List<String>? ?? [];
       for (final entry in natAttacks) {
         final parts = entry.split(':');
         if (parts.length >= 3) {
-          final name = parts[0];
-          final count = parts[1];
-          final dmg = parts[2];
-          int bab = 0, strMod2 = 0;
-          try { bab     = (character as dynamic).getBABAsInt()                          as int? ?? 0; } catch (_) {}
-          try { strMod2 = _tryGet(() => (character as dynamic).getStatModByAbb('STR'))  as int? ?? 0; } catch (_) {}
-          final natAtk = bab + strMod2;
+          final natAtk = bab + strMod;
           weapons.add(_WeaponEntry(
             slot: 'Natural',
-            name: '$name (×$count)',
-            attack: natAtk >= 0 ? '+$natAtk' : '$natAtk',
-            damage: dmg,
-            crit: '20 / x2',
+            name: '${parts[0]} (×${parts[1]})',
+            attack: '${natAtk >= 0 ? '+' : ''}$natAtk',
+            damage: parts[2],
+            crit: '20 / ×2',
             wield: 'Natural',
           ));
         }
@@ -503,14 +597,17 @@ class _CharacterSheetView extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('WEAPONS', style: theme.textTheme.titleSmall),
+            if (!weapons.every((w) => w.slot == 'Natural'))
+              const Text('* non-proficient (−4 penalty)',
+                  style: TextStyle(fontSize: 10, color: Colors.grey)),
             const SizedBox(height: 6),
             Table(
               columnWidths: const {
-                0: FlexColumnWidth(2),
-                1: FixedColumnWidth(55),
-                2: FixedColumnWidth(55),
+                0: FlexColumnWidth(2.5),
+                1: FlexColumnWidth(1.8),
+                2: FlexColumnWidth(1.8),
                 3: FlexColumnWidth(1.5),
-                4: FlexColumnWidth(1),
+                4: FlexColumnWidth(1.2),
               },
               defaultVerticalAlignment: TableCellVerticalAlignment.middle,
               children: [
@@ -518,16 +615,16 @@ class _CharacterSheetView extends StatelessWidget {
                   decoration: BoxDecoration(color: theme.highlightColor),
                   children: [
                     _th('Name'), _th('Attack'), _th('Damage'),
-                    _th('Crit'), _th('Slot'),
+                    _th('Crit'), _th('Type'),
                   ],
                 ),
                 for (final w in weapons)
                   TableRow(children: [
                     _td(w.name),
-                    _td(w.attack),
+                    _tdC(w.attack, bold: true),
                     _td(w.damage),
                     _td(w.crit),
-                    _td(w.slot),
+                    _td(w.wield),
                   ]),
               ],
             ),
@@ -633,10 +730,19 @@ class _CharacterSheetView extends StatelessWidget {
         child: Text(text, style: const TextStyle(fontSize: 11)),
       );
 
+  static Widget _tdC(String text, {Color? color, bool bold = false}) => Padding(
+        padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 4),
+        child: Text(text,
+            style: TextStyle(
+                fontSize: 11,
+                color: color,
+                fontWeight: bold ? FontWeight.bold : FontWeight.normal)),
+      );
+
   Widget _featsCard(BuildContext context, ThemeData theme, Map data) {
+    final dataset = loadedDataSet.value;
     final selected = data['selectedAbilities'] as Map? ?? {};
-    final feats = (selected['FEAT'] as List?)?.cast<String>() ?? [];
-    // Collect other ability categories too
+    final featKeys = (selected['FEAT'] as List?)?.cast<String>() ?? [];
     final others = <String, List<String>>{};
     for (final entry in selected.entries) {
       if (entry.key != 'FEAT' && entry.value is List) {
@@ -644,7 +750,53 @@ class _CharacterSheetView extends StatelessWidget {
         if (list.isNotEmpty) others[entry.key as String] = list;
       }
     }
-    if (feats.isEmpty && others.isEmpty) return const SizedBox.shrink();
+    if (featKeys.isEmpty && others.isEmpty) return const SizedBox.shrink();
+
+    // Look up ability object by key for description/benefit
+    dynamic lookupAbility(String storedKey) {
+      if (dataset == null) return null;
+      final base = storedKey.contains('|') ? storedKey.split('|').first : storedKey;
+      try {
+        return dataset.getAllAbilities().firstWhere(
+            (a) => a.getKeyName() == base, orElse: () => null);
+      } catch (_) { return null; }
+    }
+
+    Widget featRow(String storedKey) {
+      final pipe = storedKey.indexOf('|');
+      final base = pipe > 0 ? storedKey.substring(0, pipe) : storedKey;
+      final choice = pipe > 0 ? storedKey.substring(pipe + 1) : '';
+      final ab = lookupAbility(base);
+      String displayName = base;
+      String? desc, benefit;
+      try {
+        displayName = (ab as dynamic).getDisplayName() as String? ?? base;
+        desc    = (ab as dynamic).getString(StringKey.description) as String?;
+        benefit = (ab as dynamic).getString(StringKey.benefit) as String?;
+      } catch (_) {}
+      final title = choice.isNotEmpty ? '$displayName ($choice)' : displayName;
+
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 8),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(title,
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+            if (benefit != null && benefit.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 2, left: 8),
+                child: Text(benefit, style: const TextStyle(fontSize: 11)),
+              )
+            else if (desc != null && desc.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 2, left: 8),
+                child: Text(desc, style: const TextStyle(fontSize: 11)),
+              ),
+          ],
+        ),
+      );
+    }
 
     return Card(
       child: Padding(
@@ -652,26 +804,18 @@ class _CharacterSheetView extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (feats.isNotEmpty) ...[
-              Text('FEATS (${feats.length})', style: theme.textTheme.titleSmall),
-              const SizedBox(height: 6),
-              Wrap(
-                spacing: 6,
-                runSpacing: 2,
-                children: feats.map((f) => Chip(
-                  label: Text(_displayAbility(f), style: const TextStyle(fontSize: 11)),
-                  padding: EdgeInsets.zero,
-                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                )).toList(),
-              ),
+            if (featKeys.isNotEmpty) ...[
+              Text('FEATS (${featKeys.length})', style: theme.textTheme.titleSmall),
+              const SizedBox(height: 8),
+              ...featKeys.map(featRow),
             ],
             for (final entry in others.entries) ...[
-              const SizedBox(height: 8),
+              if (featKeys.isNotEmpty || entry.key != others.keys.first)
+                const Divider(),
               Text('${entry.key.toUpperCase()} (${entry.value.length})',
                   style: theme.textTheme.titleSmall),
-              const SizedBox(height: 4),
-              Text((entry.value as List).map((s) => _displayAbility(s.toString())).join(', '),
-                  style: const TextStyle(fontSize: 11)),
+              const SizedBox(height: 6),
+              ...entry.value.map(featRow),
             ],
           ],
         ),
@@ -724,6 +868,16 @@ class _CharacterSheetView extends StatelessWidget {
 // ---------------------------------------------------------------------------
 // Simple data classes for weapon/armor rows
 // ---------------------------------------------------------------------------
+
+class _SkillRow {
+  final String name, stat;
+  final int total, statMod, ranks;
+  final bool isClass;
+  const _SkillRow({
+    required this.name, required this.total, required this.stat,
+    required this.statMod, required this.ranks, required this.isClass,
+  });
+}
 
 class _WeaponEntry {
   final String slot, name, attack, damage, crit, wield;
