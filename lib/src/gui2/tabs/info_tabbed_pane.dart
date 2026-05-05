@@ -49,8 +49,9 @@ class InfoTabbedPaneIndex {
   static const int domain = 6;
   static const int spells = 7;
   static const int inventory = 8;
-  static const int description = 9;
-  static const int characterSheet = 10;
+  static const int equip = 9;
+  static const int description = 10;
+  static const int characterSheet = 11;
 }
 
 /// Holds the per-character state for the tabbed pane: which models have been
@@ -101,6 +102,7 @@ class InfoTabbedPaneState extends State<InfoTabbedPane>
       _TabEntry(label: 'Domains',     type: DomainInfoTab,        builder: () => const DomainInfoTab()),
       _TabEntry(label: 'Spells',      type: SpellsInfoTab,        builder: () => const SpellsInfoTab()),
       _TabEntry(label: 'Inventory',   type: InventoryInfoTab,     builder: () => const InventoryInfoTab()),
+      _TabEntry(label: 'Equip',       type: EquipInfoTab,         builder: () => const EquipInfoTab()),
       _TabEntry(label: 'Description', type: DescriptionInfoTab,   builder: () => const DescriptionInfoTab()),
       _TabEntry(label: 'Temp Bonus',  type: TempBonusInfoTab,     builder: () => const TempBonusInfoTab()),
       _TabEntry(label: 'Companions',  type: CompanionInfoTab,     builder: () => const CompanionInfoTab()),

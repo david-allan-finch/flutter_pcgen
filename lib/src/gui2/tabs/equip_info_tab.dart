@@ -136,10 +136,23 @@ class EquipInfoTabState extends State<EquipInfoTab> {
                 final qty = item['qty'] as int? ?? 1;
                 final key = item['key'] as String? ?? '';
                 final isEquipped = usedKeys.contains(key);
+                // Find which slot(s) this item occupies
+                final equippedSlots = equipped.entries
+                    .where((e) => e.value == key)
+                    .map((e) => e.key)
+                    .toList();
                 return ListTile(
                   dense: true,
-                  tileColor: isEquipped ? Colors.green.withOpacity(0.05) : null,
+                  tileColor: isEquipped
+                      ? Colors.green.withValues(alpha: 0.05)
+                      : null,
                   title: Text(name, style: const TextStyle(fontSize: 12)),
+                  subtitle: isEquipped
+                      ? Text('Equipped: ${equippedSlots.join(', ')}',
+                          style: const TextStyle(fontSize: 10, color: Colors.green))
+                      : const Text('Tap to equip →',
+                          style: TextStyle(fontSize: 10, color: Colors.grey,
+                              fontStyle: FontStyle.italic)),
                   trailing: Row(mainAxisSize: MainAxisSize.min, children: [
                     if (isEquipped)
                       const Padding(
@@ -148,6 +161,7 @@ class EquipInfoTabState extends State<EquipInfoTab> {
                       ),
                     Text('×$qty', style: const TextStyle(fontSize: 11, color: Colors.grey)),
                   ]),
+                  onTap: () => _pickSlotForItem(character, item, equipped),
                 );
               },
             ),
@@ -246,6 +260,62 @@ class EquipInfoTabState extends State<EquipInfoTab> {
         ],
       ),
     );
+  }
+
+  /// Tap an item → pick which slot to equip it to.
+  Future<void> _pickSlotForItem(dynamic character, Map<String, dynamic> item,
+      Map<String, String> equipped) async {
+    final name = item['name'] as String? ?? 'Unknown';
+    final key  = item['key']  as String? ?? '';
+    // Offer all slots; mark occupied ones
+    final picked = await showDialog<String>(
+      context: context,
+      builder: (_) => SimpleDialog(
+        title: Text('Equip "$name" to…', style: const TextStyle(fontSize: 15)),
+        children: [
+          ..._kSlots.where((s) => s != 'Carried').map((slot) {
+            final occupant = equipped[slot];
+            final isSelf = occupant == key;
+            final isFull = occupant != null && !isSelf;
+            return SimpleDialogOption(
+              onPressed: isFull ? null : () => Navigator.pop(context, slot),
+              child: Row(children: [
+                Expanded(child: Text(slot,
+                    style: TextStyle(fontSize: 13,
+                        color: isFull ? Colors.grey : null))),
+                if (isSelf)
+                  const Text('(equipped)',
+                      style: TextStyle(fontSize: 11, color: Colors.green)),
+                if (isFull && !isSelf)
+                  Text('(${occupant})',
+                      style: const TextStyle(fontSize: 11, color: Colors.grey)),
+              ]),
+            );
+          }),
+          if (equipped.values.contains(key))
+            SimpleDialogOption(
+              onPressed: () => Navigator.pop(context, '__unequip__'),
+              child: const Text('Unequip',
+                  style: TextStyle(fontSize: 13, color: Colors.red)),
+            ),
+        ],
+      ),
+    );
+    if (picked == null) return;
+    if (picked == '__unequip__') {
+      // Remove from all slots
+      try {
+        final data = (character as dynamic).toJson() as Map<String, dynamic>;
+        final eq = data['equippedSlots'] as Map?;
+        if (eq != null) {
+          eq.removeWhere((_, v) => v == key);
+          currentCharacter.notifyListeners();
+          setState(() {});
+        }
+      } catch (_) {}
+    } else {
+      _equipToSlot(character, picked, item);
+    }
   }
 
   Future<void> _pickItemForSlot(dynamic character, String slot,
