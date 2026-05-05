@@ -206,37 +206,54 @@ class PCGCharacterIO {
       buf.writeln();
     }
 
-    // Equipment
+    // Equipment — written in Java PCGen format so files round-trip correctly.
+    // EQUIPNAME: defines every owned item (no LOCATION field).
+    // EQUIPSET: tree then says where each item is worn/carried.
     final gear = data['gear'] as List? ?? [];
     final funds = (data['funds'] as num?)?.toDouble() ?? 0.0;
     buf.writeln('# Character Equipment');
     buf.writeln('MONEY:${funds.toStringAsFixed(0)}');
     final equippedSlots = data['equippedSlots'] as Map? ?? {};
-    // Build reverse map: itemKey → slot name
+    // Build reverse map: itemKey → our slot name
     final keyToSlot = <String, String>{};
     equippedSlots.forEach((slot, key) {
       if (key is String && key.isNotEmpty) keyToSlot[key] = slot as String;
     });
 
+    // 1. EQUIPNAME lines — inventory definition, no slot info
     if (gear.isNotEmpty) {
       int eqOrder = 1;
       for (final item in gear) {
-        if (item is Map) {
-          final name = item['name'] as String? ?? '';
-          final key  = item['key']  as String? ?? '';
-          final qty  = (item['qty']  as num?)?.toInt() ?? 1;
-          final cost = (item['cost'] as num?)?.toDouble() ?? 0.0;
-          final wt   = (item['weight'] as num?)?.toDouble() ?? 0.0;
-          final slot = keyToSlot[key];
-          final locationPart = slot != null
-              ? '|LOCATION:${_slotToPcgenLocation(slot)}'
-              : '';
-          buf.writeln(
-              'EQUIPNAME:$name|OUTPUTORDER:${eqOrder++}|COST:$cost|WT:$wt'
-              '|QUANTITY:$qty.0$locationPart');
-        }
+        if (item is! Map) continue;
+        final name = item['name'] as String? ?? '';
+        final qty  = (item['qty']    as num?)?.toInt()    ?? 1;
+        final cost = (item['cost']   as num?)?.toDouble() ?? 0.0;
+        final wt   = (item['weight'] as num?)?.toDouble() ?? 0.0;
+        buf.writeln(
+            'EQUIPNAME:$name|OUTPUTORDER:${eqOrder++}'
+            '|COST:$cost|WT:$wt|QUANTITY:$qty.0|NOTE:');
       }
     }
+
+    // 2. EQUIPSET tree — one root + one child per item
+    buf.writeln('EQUIPSET:Default Set|ID:0.1|USETEMPMODS:Y');
+    int esIdx = 1;
+    // Equipped items first, then carried
+    for (final item in gear) {
+      if (item is! Map) continue;
+      final name = item['name'] as String? ?? '';
+      final key  = item['key']  as String? ?? '';
+      final qty  = (item['qty'] as num?)?.toInt() ?? 1;
+      final ourSlot = keyToSlot[key];
+      final esSlot  = ourSlot != null && ourSlot != 'Carried'
+          ? _slotToEquipsetName(ourSlot)
+          : 'Carried';
+      final id = '0.1.${esIdx.toString().padLeft(2, '0')}';
+      buf.writeln(
+          'EQUIPSET:$esSlot|ID:$id|VALUE:$name|QUANTITY:$qty.0|USETEMPMODS:Y');
+      esIdx++;
+    }
+    buf.writeln('CALCEQUIPSET:0.1');
     buf.writeln();
 
     // Temporary bonuses
@@ -876,6 +893,29 @@ class PCGCharacterIO {
       case 'ammunition':     return 'Ammunition';
       case 'carried':        return 'Carried';
       default:               return null;  // natural attacks, equipped, etc.
+    }
+  }
+
+  /// Convert our slot name to the Java PCGen EQUIPSET slot name.
+  static String _slotToEquipsetName(String slot) {
+    switch (slot) {
+      case 'Primary Hand':  return 'Primary Hand';
+      case 'Off Hand':      return 'Secondary Hand';
+      case 'Head':          return 'Head';
+      case 'Eyes':          return 'Eyes';
+      case 'Neck':          return 'Neck';
+      case 'Shoulders':     return 'Shoulders';
+      case 'Back':          return 'Back';
+      case 'Armor':         return 'Body';
+      case 'Torso':         return 'Clothing';
+      case 'Arms':          return 'Arms';
+      case 'Hands':         return 'Hands';
+      case 'Ring (Left)':   return 'Fingers';
+      case 'Ring (Right)':  return 'Fingers';
+      case 'Belt':          return 'Waist';
+      case 'Feet':          return 'Feet';
+      case 'Ammunition':    return 'Ammunition';
+      default:              return 'Carried';
     }
   }
 
