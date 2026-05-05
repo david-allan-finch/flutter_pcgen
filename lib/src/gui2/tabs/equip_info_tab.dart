@@ -3,8 +3,8 @@
 //
 // Shows carried gear and allows assigning items to body slots.
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/list_key.dart';
 import 'package:flutter_pcgen/src/gui2/app_state.dart';
 
 // Standard 3.5e / Pathfinder body slots in display order.
@@ -267,13 +267,48 @@ class EquipInfoTabState extends State<EquipInfoTab> {
       Map<String, String> equipped) async {
     final name = item['name'] as String? ?? 'Unknown';
     final key  = item['key']  as String? ?? '';
-    // Offer all slots; mark occupied ones
+
+    // Look up item TYPE list from dataset to filter compatible slots
+    final dataset = loadedDataSet.value;
+    final itemTypes = <String>[];
+    if (dataset != null) {
+      try {
+        final dsItem = dataset.equipment
+            .where((e) => e.getKeyName() == key)
+            .firstOrNull;
+        if (dsItem != null) {
+          final tl = dsItem.getSafeListFor(
+              ListKey.getConstant<String>('TYPE')) as List?;
+          if (tl != null) {
+            for (final t in tl) { if (t is String) itemTypes.add(t.toLowerCase()); }
+          }
+        }
+      } catch (_) {}
+    }
+
+    // Determine which slots are compatible based on _kSlotTypes
+    bool slotCompatible(String slot) {
+      if (itemTypes.isEmpty) return true; // unknown type — show all
+      final allowed = _kSlotTypes[slot];
+      if (allowed == null) return false;
+      return allowed.any((t) => itemTypes.contains(t.toLowerCase()));
+    }
+
+    final compatibleSlots = _kSlots
+        .where((s) => s != 'Carried' && slotCompatible(s))
+        .toList();
+    // If no compatible slots found, fall back to all slots
+    final offerSlots = compatibleSlots.isEmpty
+        ? _kSlots.where((s) => s != 'Carried').toList()
+        : compatibleSlots;
+
+    // Offer compatible slots; mark occupied ones
     final picked = await showDialog<String>(
       context: context,
       builder: (_) => SimpleDialog(
         title: Text('Equip "$name" to…', style: const TextStyle(fontSize: 15)),
         children: [
-          ..._kSlots.where((s) => s != 'Carried').map((slot) {
+          ...offerSlots.map((slot) {
             final occupant = equipped[slot];
             final isSelf = occupant == key;
             final isFull = occupant != null && !isSelf;
@@ -287,7 +322,7 @@ class EquipInfoTabState extends State<EquipInfoTab> {
                   const Text('(equipped)',
                       style: TextStyle(fontSize: 11, color: Colors.green)),
                 if (isFull && !isSelf)
-                  Text('(${occupant})',
+                  Text('($occupant)',
                       style: const TextStyle(fontSize: 11, color: Colors.grey)),
               ]),
             );

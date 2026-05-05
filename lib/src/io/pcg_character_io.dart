@@ -366,6 +366,10 @@ class PCGCharacterIO {
     final classSummary = <String, int>{};
     bool hasClassAbilityLines = false;
 
+    // Equipment set tracking — resolved after full parse
+    final rawEquipSets = <Map<String, String>>[];  // {slot, id, value, qty}
+    String calcEquipSet = '0.1';
+
     for (final rawLine in content.split('\n')) {
       final line = rawLine.trimRight();
       if (line.isEmpty || line.startsWith('#')) continue;
@@ -401,7 +405,26 @@ class PCGCharacterIO {
         case 'PREVIEWSHEET':
         case 'SKILLFILTER':
         case 'CALCEQUIPSET':
+          calcEquipSet = value.trim();
+          break;
         case 'EQUIPSET':
+          // Format: SlotName|ID:x.y.z|VALUE:ItemName|QUANTITY:n.0|...
+          {
+            final esParts = value.split('|');
+            if (esParts.isNotEmpty) {
+              final esSlot = esParts[0].trim();
+              String esId = '', esValue = '';
+              for (final ep in esParts.skip(1)) {
+                final up = ep.toUpperCase();
+                if (up.startsWith('ID:'))    esId    = ep.substring(3).trim();
+                if (up.startsWith('VALUE:')) esValue = ep.substring(6).trim();
+              }
+              if (esValue.isNotEmpty) {
+                rawEquipSets.add({'slot': esSlot, 'id': esId, 'value': esValue});
+              }
+            }
+          }
+          break;
         case 'WEAPONPROF':
         case 'USERPOOL':
         case 'FEATPOOL':
@@ -561,6 +584,10 @@ class PCGCharacterIO {
     if ((data['tabName'] as String).isEmpty) {
       data['tabName'] = data['name'];
     }
+
+    // Build equippedSlots from EQUIPSET lines (Java PCGen stores slots this way).
+    // Only process entries whose ID is a direct child of the active CALCEQUIPSET.
+    _resolveEquipSets(data, rawEquipSets, calcEquipSet);
 
     final character = CharacterFacadeImpl(data);
     if (dataset != null) character.restoreFromDataset(dataset);
@@ -782,6 +809,73 @@ class PCGCharacterIO {
         final eq = (data['equippedSlots'] ??= <String, String>{}) as Map;
         eq[slot] = key;
       }
+    }
+  }
+
+  /// Convert collected EQUIPSET entries into equippedSlots after the full parse.
+  /// EQUIPSET:Body|ID:0.1.04|VALUE:Full Plate +5|... → equippedSlots['Armor'] = gearKey
+  static void _resolveEquipSets(Map<String, dynamic> data,
+      List<Map<String, String>> sets, String activeId) {
+    if (sets.isEmpty) return;
+    final gear = data['gear'] as List? ?? [];
+    // Build name→key map for gear items
+    final nameToGearKey = <String, String>{};
+    for (final item in gear) {
+      if (item is Map) {
+        final n = (item['name'] as String? ?? '').toLowerCase();
+        final k = item['key'] as String? ?? '';
+        if (n.isNotEmpty && k.isNotEmpty) nameToGearKey[n] = k;
+      }
+    }
+
+    final eq = (data['equippedSlots'] ??= <String, String>{}) as Map;
+    bool rightRingUsed = false;
+
+    for (final entry in sets) {
+      final esId   = entry['id']    ?? '';
+      final esSlot = entry['slot']  ?? '';
+      final value  = entry['value'] ?? '';
+      if (value.isEmpty) continue;
+
+      // Only process direct children of the active set (ID starts with activeId + '.')
+      if (!esId.startsWith('$activeId.')) continue;
+
+      final slot = _equipsetSlotToSlot(esSlot, rightRingUsed);
+      if (slot == null) continue;
+      if (slot == 'Ring (Right)') rightRingUsed = true;
+
+      // Find the matching gear key
+      final gearKey = nameToGearKey[value.toLowerCase()] ?? value;
+      eq[slot] = gearKey;
+    }
+  }
+
+  static String? _equipsetSlotToSlot(String slot, bool rightRingUsed) {
+    switch (slot.toLowerCase()) {
+      case 'primary hand':   return 'Primary Hand';
+      case 'both hands':     return 'Primary Hand';
+      case 'secondary hand':
+      case 'off hand':       return 'Off Hand';
+      case 'head':           return 'Head';
+      case 'eyes':           return 'Eyes';
+      case 'neck':           return 'Neck';
+      case 'shoulders':      return 'Shoulders';
+      case 'back':           return 'Back';
+      case 'body':
+      case 'armor':          return 'Armor';
+      case 'torso':
+      case 'clothing':       return 'Torso';
+      case 'arms':           return 'Arms';
+      case 'hands':          return 'Hands';
+      case 'fingers':        return rightRingUsed ? 'Ring (Right)' : 'Ring (Left)';
+      case 'ring (left)':    return 'Ring (Left)';
+      case 'ring (right)':   return 'Ring (Right)';
+      case 'waist':
+      case 'belt':           return 'Belt';
+      case 'feet':           return 'Feet';
+      case 'ammunition':     return 'Ammunition';
+      case 'carried':        return 'Carried';
+      default:               return null;  // natural attacks, equipped, etc.
     }
   }
 
