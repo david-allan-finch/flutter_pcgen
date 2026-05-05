@@ -25,6 +25,7 @@ class AbilitiesInfoTabState extends State<AbilitiesInfoTab>
   late final TabController _catTabController;
   final TextEditingController _search = TextEditingController();
   bool _qualifiesOnly = false;
+  Ability? _focusedAbility;
 
   static const _kCategories = ['FEAT', 'Special Ability', 'Class Ability'];
 
@@ -199,27 +200,24 @@ class AbilitiesInfoTabState extends State<AbilitiesInfoTab>
 
     return Row(
       children: [
-        // Available panel
+        // ── Available panel ───────────────────────────────────────────────
         Expanded(
+          flex: 5,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 child: Text('Available (${filtered.length})',
-                    style: const TextStyle(
-                        fontWeight: FontWeight.bold, fontSize: 12)),
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
               ),
               Expanded(
                 child: ListView.builder(
                   itemCount: filtered.length,
                   itemBuilder: (context, i) {
                     final ability = filtered[i];
-                    final isSelected =
-                        selectedKeys.contains(ability.getKeyName());
-                    String? desc;
-                    try { desc = ability.getString(StringKey.description); } catch (_) {}
-
+                    final isSelected = selectedKeys.contains(ability.getKeyName());
+                    final isFocused = _focusedAbility?.getKeyName() == ability.getKeyName();
                     final prereqResult = character != null
                         ? _checkPrereqs(character, ability)
                         : (true, '');
@@ -228,44 +226,47 @@ class AbilitiesInfoTabState extends State<AbilitiesInfoTab>
 
                     return ListTile(
                       dense: true,
+                      selected: isFocused,
+                      selectedTileColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.08),
                       title: Text(ability.getDisplayName(),
                           style: TextStyle(
                               fontSize: 12,
-                              color: (!qualifies && !isSelected)
-                                  ? Colors.grey.shade500
-                                  : null)),
-                      subtitle: desc != null && desc.isNotEmpty
-                          ? Text(desc,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(fontSize: 10, color: Colors.grey))
-                          : null,
+                              fontWeight: isFocused ? FontWeight.bold : FontWeight.normal,
+                              color: (!qualifies && !isSelected) ? Colors.grey.shade500 : null)),
                       tileColor: isSelected
-                          ? Colors.green.withOpacity(0.07)
+                          ? Colors.green.withValues(alpha: 0.07)
                           : (!qualifies && !isSelected)
-                              ? Colors.grey.withOpacity(0.04)
+                              ? Colors.grey.withValues(alpha: 0.04)
                               : null,
-                      trailing: isSelected
-                          ? const Icon(Icons.check_circle,
-                              color: Colors.green, size: 16)
-                          : (!qualifies && prereqMsg.isNotEmpty)
-                              ? Tooltip(
-                                  message: prereqMsg,
-                                  child: const Icon(Icons.lock_outline,
-                                      size: 14, color: Colors.grey),
-                                )
-                              : null,
-                      onTap: character == null
-                          ? null
-                          : () {
-                              if (isSelected) {
-                                _removeAbility(
-                                    character, category, ability.getKeyName());
-                              } else {
-                                _addAbility(
-                                    character, category, ability.getKeyName());
-                              }
-                            },
+                      trailing: Row(mainAxisSize: MainAxisSize.min, children: [
+                        if (isSelected)
+                          const Icon(Icons.check_circle, color: Colors.green, size: 16)
+                        else if (!qualifies && prereqMsg.isNotEmpty)
+                          Tooltip(
+                            message: prereqMsg,
+                            child: const Icon(Icons.lock_outline, size: 14, color: Colors.grey),
+                          ),
+                        if (character != null)
+                          SizedBox(
+                            width: 28,
+                            height: 28,
+                            child: isSelected
+                                ? IconButton(
+                                    padding: EdgeInsets.zero,
+                                    icon: const Icon(Icons.remove, size: 14, color: Colors.red),
+                                    onPressed: () => _removeAbility(character, category, ability.getKeyName()),
+                                  )
+                                : IconButton(
+                                    padding: EdgeInsets.zero,
+                                    icon: const Icon(Icons.add, size: 14),
+                                    onPressed: qualifies
+                                        ? () => _addAbility(character, category, ability.getKeyName())
+                                        : null,
+                                    tooltip: qualifies ? 'Add' : prereqMsg,
+                                  ),
+                          ),
+                      ]),
+                      onTap: () => setState(() => _focusedAbility = ability),
                     );
                   },
                 ),
@@ -274,56 +275,54 @@ class AbilitiesInfoTabState extends State<AbilitiesInfoTab>
           ),
         ),
         const VerticalDivider(width: 1),
-        // Selected panel
+        // ── Detail panel ──────────────────────────────────────────────────
         Expanded(
+          flex: 6,
+          child: _buildDetailPanel(_focusedAbility, character, category, selectedKeys),
+        ),
+        const VerticalDivider(width: 1),
+        // ── Selected panel ────────────────────────────────────────────────
+        Expanded(
+          flex: 4,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 child: Text('Selected (${selectedKeys.length})',
-                    style: const TextStyle(
-                        fontWeight: FontWeight.bold, fontSize: 12)),
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
               ),
               Expanded(
                 child: selectedKeys.isEmpty
                     ? const Center(
-                        child: Text(
-                            'Tap an entry on the left to select it.',
-                            style: TextStyle(
-                                color: Colors.grey,
-                                fontStyle: FontStyle.italic)),
+                        child: Text('None selected.',
+                            style: TextStyle(color: Colors.grey, fontStyle: FontStyle.italic)),
                       )
                     : ListView.builder(
                         itemCount: selectedKeys.length,
                         itemBuilder: (context, i) {
                           final key = selectedKeys[i];
-                          // key may be "AbilityName|Choice" for MULT:YES abilities
                           final pipeIdx = key.indexOf('|');
-                          final baseKey = pipeIdx > 0
-                              ? key.substring(0, pipeIdx)
-                              : key;
-                          final choice = pipeIdx > 0
-                              ? key.substring(pipeIdx + 1)
-                              : '';
-                          final ability = available
+                          final baseKey = pipeIdx > 0 ? key.substring(0, pipeIdx) : key;
+                          final choice = pipeIdx > 0 ? key.substring(pipeIdx + 1) : '';
+                          final ab = available
                               .where((a) => a.getKeyName() == baseKey)
                               .firstOrNull;
-                          final displayName = ability?.getDisplayName() ?? baseKey;
+                          final displayName = ab?.getDisplayName() ?? baseKey;
                           return ListTile(
                             dense: true,
                             title: Text(
-                              choice.isNotEmpty
-                                  ? '$displayName ($choice)'
-                                  : displayName,
+                              choice.isNotEmpty ? '$displayName ($choice)' : displayName,
                               style: const TextStyle(fontSize: 12)),
+                            onTap: ab != null
+                                ? () => setState(() => _focusedAbility = ab)
+                                : null,
                             trailing: IconButton(
                               icon: const Icon(Icons.remove_circle_outline,
                                   size: 16, color: Colors.red),
                               onPressed: character == null
                                   ? null
-                                  : () => _removeAbility(
-                                      character, category, key),
+                                  : () => _removeAbility(character, category, key),
                             ),
                           );
                         },
@@ -333,6 +332,119 @@ class AbilitiesInfoTabState extends State<AbilitiesInfoTab>
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildDetailPanel(Ability? ability, dynamic character, String category, List<String> selectedKeys) {
+    if (ability == null) {
+      return const Center(
+        child: Text('Tap an entry to see details.',
+            style: TextStyle(color: Colors.grey, fontStyle: FontStyle.italic, fontSize: 12)),
+      );
+    }
+
+    String? desc;
+    try { desc = ability.getString(StringKey.description); } catch (_) {}
+    String? benefit;
+    try { benefit = ability.getString(StringKey.benefit); } catch (_) {}
+    List<String> saList = [];
+    try {
+      saList = (ability.getSafeListFor(ListKey.getConstant<String>('SAB_LIST')) as List?)
+          ?.whereType<String>().toList() ?? [];
+    } catch (_) {}
+    List<dynamic> prereqs = [];
+    try {
+      prereqs = (ability.getSafeListFor(ListKey.getConstant<ParsedPrereq>('PARSED_PREREQ')) as List?) ?? [];
+    } catch (_) {}
+    String? source;
+    try { source = ability.getSourceURI()?.toString(); } catch (_) {}
+
+    final isSelected = selectedKeys.contains(ability.getKeyName());
+    final prereqResult = character != null ? _checkPrereqs(character, ability) : (true, '');
+    final qualifies = prereqResult.$1;
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Name + action button
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Text(ability.getDisplayName(),
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+              ),
+              if (character != null) ...[
+                const SizedBox(width: 8),
+                isSelected
+                    ? OutlinedButton.icon(
+                        icon: const Icon(Icons.remove, size: 14),
+                        label: const Text('Remove', style: TextStyle(fontSize: 12)),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: Colors.red,
+                          side: const BorderSide(color: Colors.red),
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        ),
+                        onPressed: () => _removeAbility(character, category, ability.getKeyName()),
+                      )
+                    : ElevatedButton.icon(
+                        icon: const Icon(Icons.add, size: 14),
+                        label: const Text('Add', style: TextStyle(fontSize: 12)),
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        ),
+                        onPressed: qualifies
+                            ? () => _addAbility(character, category, ability.getKeyName())
+                            : null,
+                      ),
+              ],
+            ],
+          ),
+          if (!qualifies && prereqResult.$2.isNotEmpty) ...[
+            const SizedBox(height: 4),
+            Text(prereqResult.$2,
+                style: TextStyle(fontSize: 11, color: Colors.red.shade700, fontStyle: FontStyle.italic)),
+          ],
+          if (desc != null && desc.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            Text('Description',
+                style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey.shade700)),
+            const SizedBox(height: 3),
+            Text(desc, style: const TextStyle(fontSize: 12)),
+          ],
+          if (benefit != null && benefit.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            Text('Benefit',
+                style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey.shade700)),
+            const SizedBox(height: 3),
+            Text(benefit, style: const TextStyle(fontSize: 12)),
+          ],
+          if (saList.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            Text('Special',
+                style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey.shade700)),
+            const SizedBox(height: 3),
+            ...saList.map((s) => Padding(
+                  padding: const EdgeInsets.only(top: 2),
+                  child: Text('• $s', style: const TextStyle(fontSize: 12)),
+                )),
+          ],
+          if (prereqs.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            Text('Prerequisites',
+                style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey.shade700)),
+            const SizedBox(height: 3),
+            Text(prereqs.map((p) => p is ParsedPrereq ? p.raw : p.toString()).join(', '),
+                style: const TextStyle(fontSize: 11, fontStyle: FontStyle.italic)),
+          ],
+          if (source != null && source.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            Text(source, style: const TextStyle(fontSize: 10, color: Colors.grey)),
+          ],
+        ],
+      ),
     );
   }
 
