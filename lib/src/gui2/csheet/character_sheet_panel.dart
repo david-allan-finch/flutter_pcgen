@@ -505,10 +505,11 @@ class _CharacterSheetView extends StatelessWidget {
     );
   }
 
+  // Slots that are inherently weapon positions — show regardless of TYPE.
+  static const _weaponSlots = {'Primary Hand', 'Off Hand', 'Both Hands', 'Natural-Primary', 'Natural-Secondary'};
+
   Widget _weaponsCard(BuildContext context, ThemeData theme, Map data) {
     final dataset = loadedDataSet.value;
-    if (dataset == null) return const SizedBox.shrink();
-
     final equippedSlots = data['equippedSlots'] as Map? ?? {};
     final weapons = <_WeaponEntry>[];
 
@@ -519,31 +520,47 @@ class _CharacterSheetView extends StatelessWidget {
     try { tohitBonus  = _tryGet(() => (character as dynamic).getTohitBonus())        as int? ?? 0; } catch (_) {}
     try { damageBonus = _tryGet(() => (character as dynamic).getDamageBonus())       as int? ?? 0; } catch (_) {}
 
-    // Collect all candidate weapon keys: directly slotted + inside hand containers.
-    // Maps itemKey → slot label for display.
+    final gearRaw = data['gear'] as List? ?? [];
+
+    // Build gear lookup maps.
+    final keyToName     = <String, String>{};  // gearKey → display name
+    final keyToBaseItem = <String, String>{};  // gearKey → base item key
+    for (final g in gearRaw) {
+      if (g is! Map) continue;
+      final k = g['key']      as String? ?? '';
+      final n = g['name']     as String? ?? '';
+      final b = g['baseItem'] as String? ?? '';
+      if (k.isNotEmpty) {
+        if (n.isNotEmpty) keyToName[k]     = n;
+        if (b.isNotEmpty) keyToBaseItem[k] = b;
+      }
+    }
+    final gear = gearRaw.whereType<Map>().cast<Map<String, dynamic>>().toList();
+
+    // Collect weapon candidates: hand slots + containers inside hand slots.
+    // Maps gearKey → slot label.
     final weaponCandidates = <String, String>{};
     for (final entry in equippedSlots.entries) {
       final slot = entry.key as String;
       final key  = entry.value as String?;
-      if (key != null && key.isNotEmpty) weaponCandidates[key] = slot;
+      if (key == null || key.isEmpty) continue;
+      // Include items that are explicitly in weapon slots OR classified as
+      // WEAPON type in the dataset (checked below).
+      weaponCandidates[key] = slot;
     }
-    // Also include weapons inside hand-slot containers (e.g. Glove of Storing).
+    // Weapons inside hand-slot containers (e.g. Glove of Storing).
     try {
       final containers = (data['containerContents'] as Map? ?? {})
           .cast<String, List<dynamic>>();
       for (final cEntry in containers.entries) {
         final containerName = cEntry.key;
-        // Find the slot this container is equipped in
         final containerSlot = equippedSlots.entries
-            .where((e) => _gearNameForKey(
-                (data['gear'] as List? ?? []).cast<Map<String, dynamic>>(),
-                e.value as String? ?? '') == containerName)
+            .where((e) => (_gearNameForKey(gear, e.value as String? ?? '')) == containerName)
             .map((e) => e.key as String)
             .firstOrNull;
         if (containerSlot == null) continue;
         for (final itemName in cEntry.value) {
-          final key = (data['gear'] as List? ?? [])
-              .cast<Map<String, dynamic>>()
+          final key = gear
               .where((g) => g['name'] == itemName)
               .map((g) => g['key'] as String? ?? '')
               .firstOrNull ?? '';
@@ -552,44 +569,53 @@ class _CharacterSheetView extends StatelessWidget {
       }
     } catch (_) {}
 
-    // Build a name→baseItem map from gear for custom item fallback.
-    final keyToBaseItem = <String, String>{};
-    for (final g in (data['gear'] as List? ?? [])) {
-      if (g is Map) {
-        final k = g['key'] as String? ?? '';
-        final b = g['baseItem'] as String? ?? '';
-        if (k.isNotEmpty && b.isNotEmpty) keyToBaseItem[k] = b;
-      }
-    }
-
-    // Check every candidate for weapons
     for (final entry in weaponCandidates.entries) {
       final key  = entry.key;
       final slot = entry.value;
-      // Try key first, then baseItem (handles custom items like "Diamond Lance" → "Lance")
-      var item = dataset.equipment.where((e) => e.getKeyName() == key).firstOrNull;
-      if (item == null) {
-        final base = keyToBaseItem[key] ?? '';
-        if (base.isNotEmpty) {
-          item = dataset.equipment.where((e) => e.getKeyName() == base).firstOrNull;
+
+      // Look up the dataset item — first by exact key, then by base item.
+      dynamic item;
+      if (dataset != null) {
+        item = dataset.equipment
+            .where((e) => (e as dynamic).getKeyName() == key)
+            .firstOrNull;
+        if (item == null) {
+          final base = keyToBaseItem[key] ?? '';
+          if (base.isNotEmpty) {
+            item = dataset.equipment
+                .where((e) => (e as dynamic).getKeyName() == base)
+                .firstOrNull;
+          }
         }
       }
-      if (item == null) continue;
 
-      // Skip non-weapons (armor, shields, etc.)
+      // Determine whether this is a weapon via TYPE list.
       final typeList = <String>[];
-      try {
-        final tl = item.getSafeListFor(ListKey.getConstant<String>('TYPE')) as List?;
-        if (tl != null) for (final t in tl) { if (t is String) typeList.add(t.toUpperCase()); }
-      } catch (_) {}
-      final isWeapon = typeList.any((t) => t == 'WEAPON' || t.endsWith('WEAPON'));
-      if (!isWeapon) continue;
+      if (item != null) {
+        try {
+          final tl = (item as dynamic).getSafeListFor(ListKey.getConstant<String>('TYPE')) as List?;
+          if (tl != null) for (final t in tl) { if (t is String) typeList.add(t.toUpperCase()); }
+        } catch (_) {}
+      }
+      final isWeaponByType  = typeList.any((t) => t == 'WEAPON' || t.endsWith('WEAPON'));
+      final isWeaponBySlot  = _weaponSlots.contains(slot);
+      if (!isWeaponByType && !isWeaponBySlot) continue;
 
-      final dmg    = item.getDamageString();
-      final critR  = item.getCritRange();
-      final critM  = item.getCritMult();
-      final thrRange = critR <= 1 ? '20' : '${21 - critR}–20';
-      final isRanged = typeList.any((t) => t == 'RANGED');
+      // Use actual gear entry name (not base-item name) for display.
+      final displayName = keyToName[key] ?? (item != null ? (item as dynamic).getDisplayName() as String? ?? key : key);
+
+      String dmg = '—', critStr = '20', wield = 'Melee';
+      bool isRanged = false;
+      if (item != null) {
+        try { dmg   = (item as dynamic).getDamageString() as String? ?? '—'; } catch (_) {}
+        try {
+          final critR = (item as dynamic).getCritRange() as int? ?? 1;
+          final critM = (item as dynamic).getCritMult()  as String? ?? '';
+          final thrRange = critR <= 1 ? '20' : '${21 - critR}–20';
+          critStr = critM.isNotEmpty ? '$thrRange / $critM' : thrRange;
+        } catch (_) {}
+        isRanged = typeList.contains('RANGED');
+      }
 
       bool proficient = true;
       try { proficient = (character as dynamic).isWeaponProficient(typeList) as bool? ?? true; } catch (_) {}
@@ -597,33 +623,31 @@ class _CharacterSheetView extends StatelessWidget {
       final atkMod   = isRanged ? dexMod : strMod;
       final nonprof  = proficient ? 0 : -4;
       final atkBonus = bab + atkMod + tohitBonus + nonprof;
-      // Build iterative attack string for high BAB (e.g. +8/+3)
       final atkParts = <String>[];
-      int cur = atkBonus;
-      final baseIter = bab;
-      if (baseIter >= 6) {
+      if (bab >= 6) {
         int b = bab;
-        while (b > (bab - atkBonus) - 5) {
+        while (b > 0) {
           final a = b + (atkBonus - bab);
           atkParts.add('${a >= 0 ? '+' : ''}$a');
           b -= 5;
-          if (b <= 0) break;
         }
       } else {
         atkParts.add('${atkBonus >= 0 ? '+' : ''}$atkBonus');
       }
-      final atkStr   = '${atkParts.join('/')}${proficient ? '' : '*'}';
-      final totalDmg = isRanged ? 0 : strMod + damageBonus;
+      final atkStr    = '${atkParts.join('/')}${proficient ? '' : '*'}';
+      final totalDmg  = isRanged ? 0 : strMod + damageBonus;
       final dmgSuffix = totalDmg > 0 ? '+$totalDmg' : (totalDmg < 0 ? '$totalDmg' : '');
-      final dmgStr   = dmg.isNotEmpty ? '$dmg$dmgSuffix' : '—';
+      final dmgStr    = dmg.isNotEmpty && dmg != '—' ? '$dmg$dmgSuffix' : '—';
+
+      wield = isRanged ? 'Ranged' : 'Melee';
 
       weapons.add(_WeaponEntry(
         slot: slot,
-        name: item.getDisplayName(),
+        name: displayName,
         attack: atkStr,
         damage: dmgStr,
-        crit: critM.isNotEmpty ? '$thrRange / $critM' : thrRange,
-        wield: isRanged ? 'Ranged' : 'Melee',
+        crit: critStr,
+        wield: wield,
       ));
     }
 

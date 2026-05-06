@@ -1132,6 +1132,8 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
         final n = (e as dynamic).getDisplayName() as String? ?? '';
         final k = (e as dynamic).getKeyName()     as String? ?? '';
         if (n.isNotEmpty && k.isNotEmpty) nameToKey[n.toLowerCase()] = k;
+        // Also index by key name itself (handles OUTPUTNAME ≠ item name cases).
+        if (k.isNotEmpty) nameToKey[k.toLowerCase()] = k;
       }
       final gear = _data['gear'] as List? ?? [];
       for (final item in gear) {
