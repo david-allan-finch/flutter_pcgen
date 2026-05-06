@@ -112,8 +112,8 @@ class ParsedPrereq {
       case 'PREPROFWITHARMOR':
       case 'PREPROFWITHSHIELD':
       case 'PREWIELD':
-      case 'PRELEVEL':
-      case 'PRELEVELMAX':
+      case 'PRELEVEL':        result = _evalPreLevel(ctx, false); break;
+      case 'PRELEVELMAX':     result = _evalPreLevel(ctx, true);  break;
       case 'PRESREQ':
       case 'PREEQUIP':
       case 'PREMOVE':
@@ -235,6 +235,19 @@ class ParsedPrereq {
     // PREPCLEVEL:N — total level >= N
     final needed = int.tryParse(raw.trim()) ?? 0;
     return ctx.totalLevel >= needed;
+  }
+
+  bool _evalPreLevel(PrereqContext ctx, bool isMax) {
+    // PRELEVEL:MIN=6  or  PRELEVEL:6  or  PRELEVELMAX:MAX=20
+    // Extract the numeric value from raw (handles MIN=N, MAX=N, or bare N).
+    final r = raw.trim().toUpperCase();
+    int n = 0;
+    if (r.startsWith('MIN=') || r.startsWith('MAX=')) {
+      n = int.tryParse(r.substring(4)) ?? 0;
+    } else {
+      n = int.tryParse(r) ?? 0;
+    }
+    return isMax ? ctx.totalLevel <= n : ctx.totalLevel >= n;
   }
 
   bool _evalTotalAb(PrereqContext ctx) {
@@ -475,15 +488,27 @@ class ParsedBonus {
     final parts = value.split('|');
     if (parts.length < 3) return null;
 
-    final category = parts[0].trim().toUpperCase();
-    final targets  = parts[1].split(',').map((s) => s.trim()).toList();
-    final formula  = parts[2].trim();
+    // BONUS:ANYPC|<category>|<targets>|<formula>  and
+    // BONUS:PC|<category>|<targets>|<formula>
+    // mean "apply to PC only" — normalize to the inner category.
+    final first = parts[0].trim().toUpperCase();
+    final int baseOffset;
+    if ((first == 'ANYPC' || first == 'PC') && parts.length >= 4) {
+      baseOffset = 1; // shift category/targets/formula one slot to the right
+    } else {
+      baseOffset = 0;
+    }
+    if (parts.length < baseOffset + 3) return null;
+
+    final category = parts[baseOffset].trim().toUpperCase();
+    final targets  = parts[baseOffset + 1].split(',').map((s) => s.trim()).toList();
+    final formula  = parts[baseOffset + 2].trim();
 
     String bonusType = '';
     BonusStack stack = BonusStack.normal;
     final prereqs = <ParsedPrereq>[];
 
-    for (int i = 3; i < parts.length; i++) {
+    for (int i = baseOffset + 3; i < parts.length; i++) {
       final p = parts[i].trim();
       if (p.toUpperCase().startsWith('TYPE=')) {
         final tv = p.substring(5);

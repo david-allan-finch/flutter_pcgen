@@ -274,7 +274,14 @@ class _CharacterSheetView extends StatelessWidget {
     final will   = _tryGet(() => (character as dynamic).getWillSave())    as int? ?? 0;
 
     // Movement speeds from race
-    final raceSpeeds = data['raceSpeeds'] as Map? ?? {};
+    final raceSpeeds = Map<String, dynamic>.from(data['raceSpeeds'] as Map? ?? {});
+    // Add BONUS:MOVEADD bonuses to base speeds
+    final moveBonuses = _tryGet(() => (character as dynamic).getMovementBonuses())
+        as Map<String, int>? ?? {};
+    for (final entry in moveBonuses.entries) {
+      final cur = (raceSpeeds[entry.key] as num?)?.toInt() ?? 0;
+      if (cur > 0 || entry.value != 0) raceSpeeds[entry.key] = cur + entry.value;
+    }
     final speedStr = raceSpeeds.isEmpty ? '' : raceSpeeds.entries
         .map((e) => '${e.key} ${e.value} ft.')
         .join(', ');
@@ -430,11 +437,14 @@ class _CharacterSheetView extends StatelessWidget {
       final isClass    = classSkills.contains(key) || classSkills.contains(name);
       final csBonus    = (isClass && rank > 0) ? 3 : 0;
       int miscBonus    = 0;
+      int rankBonus    = 0;
       try { miscBonus  = _tryGet(() => (character as dynamic).getSkillMiscBonus(name)) as int? ?? 0; } catch (_) {}
-      final total      = rank + statMod + csBonus + miscBonus;
+      try { rankBonus  = _tryGet(() => (character as dynamic).getSkillRankBonus(name)) as int? ?? 0; } catch (_) {}
+      final effectiveRank = rank + rankBonus;
+      final total      = effectiveRank + statMod + csBonus + miscBonus;
 
       rows.add(_SkillRow(name: name, total: total, stat: statAbb,
-          statMod: statMod, ranks: rank, isClass: isClass));
+          statMod: statMod, ranks: rank, rankBonus: rankBonus, isClass: isClass));
     }
 
     rows.sort((a, b) {
@@ -482,8 +492,8 @@ class _CharacterSheetView extends StatelessWidget {
                       _tdC(r.isClass ? '✓' : '', color: Colors.green.shade700),
                       _tdC(r.total >= 0 ? '+${r.total}' : '${r.total}',
                           bold: r.ranks > 0),
-                      _tdC('${r.ranks}',
-                          color: r.ranks > 0 ? Colors.blue.shade700 : Colors.grey),
+                      _tdC('${r.ranks}${r.rankBonus > 0 ? "+${r.rankBonus}" : ""}',
+                          color: r.ranks > 0 || r.rankBonus > 0 ? Colors.blue.shade700 : Colors.grey),
                       _td(r.stat),
                       _td(r.statMod >= 0 ? '+${r.statMod}' : '${r.statMod}'),
                     ],
@@ -871,11 +881,12 @@ class _CharacterSheetView extends StatelessWidget {
 
 class _SkillRow {
   final String name, stat;
-  final int total, statMod, ranks;
+  final int total, statMod, ranks, rankBonus;
   final bool isClass;
   const _SkillRow({
     required this.name, required this.total, required this.stat,
     required this.statMod, required this.ranks, required this.isClass,
+    this.rankBonus = 0,
   });
 }
 

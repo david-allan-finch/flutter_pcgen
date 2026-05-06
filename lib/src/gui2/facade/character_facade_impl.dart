@@ -1348,10 +1348,42 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
   }
 
   /// Caster level for a given spell class or school.
+  /// Includes BONUS:CASTERLEVEL and BONUS:PCLEVEL (prestige class spell
+  /// progression bonuses like "Dragon Disciple adds to Sorcerer CL").
   int getCasterLevel(String classOrSchool) {
     final key = classOrSchool.toUpperCase();
-    return _bonusAcc.totalInt('CASTERLEVEL', key) +
-           _bonusAcc.totalIntWithAll('CASTERLEVEL', key);
+    final cl = _bonusAcc.totalInt('CASTERLEVEL', key) +
+               _bonusAcc.totalIntWithAll('CASTERLEVEL', key);
+    // BONUS:PCLEVEL|ClassName|CL — prestige class effective-level bonus
+    final pcl = _bonusAcc.totalInt('PCLEVEL', classOrSchool) +
+                _bonusAcc.totalInt('PCLEVEL', key);
+    return cl + pcl;
+  }
+
+  /// Bonus ranks to a specific skill from BONUS:SKILLRANK.
+  int getSkillRankBonus(String skillName) =>
+      _bonusAcc.totalInt('SKILLRANK', skillName) +
+      _bonusAcc.totalIntWithAll('SKILLRANK', skillName);
+
+  /// Miscellaneous skill bonus from BONUS:SKILL (circumstance, competence, etc).
+  int getSkillMiscBonus(String skillName) =>
+      _bonusAcc.totalInt('SKILL', skillName) +
+      _bonusAcc.totalIntWithAll('SKILL', skillName);
+
+  /// Movement speed bonus from BONUS:MOVEADD|TYPE.Walk|N.
+  Map<String, int> getMovementBonuses() {
+    final result = <String, int>{};
+    // The BonusAccumulator stores category='MOVEADD', target='TYPE.Walk' etc.
+    for (final moveType in ['TYPE.Walk', 'Walk', 'TYPE.Fly', 'Fly',
+                             'TYPE.Swim', 'Swim', 'TYPE.Burrow', 'Burrow',
+                             'TYPE.Climb', 'Climb']) {
+      final bonus = _bonusAcc.totalInt('MOVEADD', moveType);
+      if (bonus != 0) {
+        final label = moveType.startsWith('TYPE.') ? moveType.substring(5) : moveType;
+        result[label] = (result[label] ?? 0) + bonus;
+      }
+    }
+    return result;
   }
 
   /// Innate spells collected from race and its AUTO_ABILITIES chain.

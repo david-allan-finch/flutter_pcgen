@@ -490,6 +490,11 @@ class GenericLoader<T extends CDOMObject> extends LstObjectFileLoader<T> {
           }
           return;
 
+        case 'SPROP':
+          // Special property for equipment — store for display
+          try { obj.addToListFor(ListKey.getConstant<String>('SPROP_LIST'), value.trim()); } catch (_) {}
+          return;
+
         // ---- Class skill lists ----
         case 'CSKILL':
           for (final s in value.split('|')) {
