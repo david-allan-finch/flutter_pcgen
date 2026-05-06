@@ -68,10 +68,36 @@ class GenericLoader<T extends CDOMObject> extends LstObjectFileLoader<T> {
   void processToken(LoadContext context, T obj, SourceEntry source, String token) {
     if (token.trim().isEmpty) return;
 
-    // Dispatch common tokens understood by all CDOMObjects.
     final (tag, value) = LstUtils.splitToken(token);
+    final tagUp = tag.toUpperCase();
+
+    // ---- Pattern-based dispatch (handles any subtype generically) ----
+
+    // All PRE*/!PRE* tokens → ParsedPrereq regardless of specific subtype.
+    if (LstUtils.isPrereqToken(tag)) {
+      final prereq = ParsedPrereq.parse('$tag:$value');
+      if (prereq != null) {
+        try { obj.addToListFor(ListKey.getConstant<ParsedPrereq>('PARSED_PREREQ'), prereq); } catch (_) {}
+      }
+      return;
+    }
+
+    // CHOOSE → ParsedChoose
+    if (tagUp == 'CHOOSE') {
+      final choose = ParsedChoose.parse(value);
+      try { obj.putObject(CDOMObjectKey.getConstant<ParsedChoose>('PARSED_CHOOSE'), choose); } catch (_) {}
+      return;
+    }
+
+    // AUTO → _parseAutoToken
+    if (tagUp == 'AUTO') {
+      _parseAutoToken(obj, value);
+      return;
+    }
+
+    // Token-specific dispatch.
     if (value.isNotEmpty) {
-      switch (tag.toUpperCase()) {
+      switch (tagUp) {
         case 'TYPE':
           // TYPE:Fighter.Magic — dot-separated list of type tags.
           for (final t in value.split('.')) {
@@ -614,166 +640,23 @@ class GenericLoader<T extends CDOMObject> extends LstObjectFileLoader<T> {
           try { obj.putString(StringKey.nameText, value.trim()); } catch (_) {}
           return;
 
-        // ---- Acknowledged / no-op tokens ----
-        case 'CONTAINS':
-        case 'ALTERNATECOST':
-        case 'MODS':
-        case 'QUALITY':
-        case 'NUMPAGES':
-        case 'PAGEUSAGE':
-        case 'SPELLTYPE':
-        case 'CLASSTYPE':
-        case 'PROHIBITSPELL':
-        case 'COMPANIONLIST':
-        case 'USEMEASURE':
-        case 'WEAPONBONUS':
-        case 'ATTACKCYCLE':
-        case 'ITEM':
-        case 'ITEMTYPE':
-        case 'DESCISIP':
+        // ---- Pure metadata — no rules value, discard ----
         case 'SOURCEPAGE':
         case 'SOURCEWEB2':
-        case 'SUBSCHOOL2':
-        case 'SPELL':
-        case 'SPELLLEVEL2':
-        case 'ADDDOMAINS':
-        case 'DOMAINS':
-        case 'PANTHEON':
-        case 'WORSHIPPERS':
-        case 'SYMBOL':
-        case 'TITLE':
-        case 'APPEARANCE':
-        case 'ALTCRITMULT':
-        case 'ALTCRITRANGE':
-        case 'ALTDAMAGE':
-        case 'ALTEQMOD':
-        case 'ALTTYPE':
-        case 'FUMBLERANGE':
-        case 'MAXDEX2':
-        case 'WT2':
-        case 'COST2':
-        case 'NUMPAGES2':
-        case 'PAGEUSAGE2':
-        case 'REGION':
-        case 'SUBREGION':
-        case 'RACENAME':
-        case 'ALIGN':
-        case 'SUBRACE':
-        case 'EYES':
-        case 'HAIR':
-        case 'SKINTONE':
-        case 'GENDERLOCK':
-        case 'SEX':
-        case 'AGEDIEROLL':
-        case 'AGESET':
-        case 'BASEAGE':
-        case 'MAXAGE':
+        case 'SOURCELONG2':
+        case 'SOURCESHORT2':
+        case 'COMMENT':
         case 'NAMEISPI':
         case 'NAMEOPT':
-        case 'PLURAL':
-        case 'APPLY':
-        case 'ARMORTYPE':
-        case 'ISDEFAULTSIZE':
-        case 'CHARGES':
-        case 'BASEQTY':
-        case 'MAXCOST':
-        case 'USEMASTERSKILL':
-        case 'COPYMASTERBAB':
-        case 'COPYMASTERCHECK':
-        case 'COPYMASTERHP':
-        case 'MASTERBONUSRACE':
-        case 'COUNT':
-        case 'TOTAL':
-        case 'VALUES':
-        case 'SELECTION':
-        case 'SELECTABLE':
-        case 'REQUIRED':
-        case 'VALIDFORDEITY':
-        case 'VALIDFORFOLLOWER':
-        case 'LOOKUP':
-        case 'OPTION':
-        case 'SITUATION':
-        case 'RANK':
-        case 'EQUIPBUY':
-        case 'STARTPACK':
-        case 'FUNDS':
-        case 'REMOVABLE':
-        case 'LOCATION':
-        case 'ITYPE':
-        case 'SIZENUM':
-        case 'CHANGEPROF':
-        case 'DONOTADD':
-        case 'DISPLAYLOCATION':
-        case 'ASSIGNTOALL':
-        case 'POOL':
-        case 'EDITPOOL':
-        case 'EDITABLE':
-        case 'FRACTIONALPOOL':
-        case 'BONUSSPELLSTAT':
-        case 'EXCHANGELEVEL':
-        case 'ADDLEVEL':
-        case 'ADDSPELLLEVEL':
-        case 'ADDSPELLPOINTS':
-        case 'MOVECLONE':
-        case 'MODTOSKILLS':
-        case 'FOLLOWERS':
-        case 'FOLLOWER':
-        case 'ALLOWBASECLASS':
-        case 'LEVEL':
-        case 'ABILITYCATEGORY':
-        case 'ABILITYLIST':
-        case 'SPELLKNOWN':
-        case 'SPELLLIST':
-        case 'SUBCLASS':
-        case 'SUBCLASSLEVEL':
-        case 'SUBSTITUTIONCLASS':
-        case 'SUBSTITUTIONLEVEL':
-        case 'VARIANTS':
-        case 'GEAR':
-        case 'TABLE':
-        case 'CLASS':
-        case 'DOMAIN':
-        case 'DEITY':
-        case 'COMMENT':
-        case 'FREE':
-        case 'CHOICE':
-        case 'PLUS':
+        case 'DESCISIP':
         case 'FORMATCAT':
-        case 'MONNONSKILLHD':
-        case 'REACHMULT':
-        case 'DECRIPTOR':
-        case 'MONSKILL':
-        case 'SPELLSTAT':
-          return; // recognised but not needed for character building
+          return;
 
+        // ---- Everything else: store generically so nothing is silently lost ----
         default:
-          break; // fall through to registered handlers
+          _storeExtraToken(obj, tag, value);
+          return;
       }
-    }
-
-    // Store PRE tokens as ParsedPrereq for the rules engine.
-    if (LstUtils.isPrereqToken(tag)) {
-      final prereq = ParsedPrereq.parse('$tag:$value');
-      if (prereq != null) {
-        try {
-          obj.addToListFor(
-            ListKey.getConstant<ParsedPrereq>('PARSED_PREREQ'), prereq);
-        } catch (_) {}
-      }
-      return;
-    }
-
-    if (tag.toUpperCase() == 'CHOOSE') {
-      final choose = ParsedChoose.parse(value);
-      try {
-        obj.putObject(CDOMObjectKey.getConstant<ParsedChoose>('PARSED_CHOOSE'), choose);
-      } catch (_) {}
-      return;
-    }
-
-    if (tag.toUpperCase() == 'AUTO') {
-      _parseAutoToken(obj, value);
-      return;
     }
 
     // Registered token handlers (added via addTokenHandler).
@@ -937,6 +820,51 @@ class GenericLoader<T extends CDOMObject> extends LstObjectFileLoader<T> {
       default:
         break;
     }
+  }
+
+  // ---- Generic token storage -------------------------------------------------
+  //
+  // Any token not explicitly handled is stored in EXTRA_TOKENS_MAP so it is
+  // never silently lost.  The map is keyed by TAG_NAME (upper-case) and each
+  // value is the list of raw values seen for that tag.
+  //
+  // Retrieve with [getExtraTokenValues].
+
+  static void _storeExtraToken(CDOMObject obj, String tag, String value) {
+    final key = tag.trim().toUpperCase();
+    if (key.isEmpty) return;
+    try {
+      final mapKey = CDOMObjectKey.getConstant<Map<String, List<String>>>('EXTRA_TOKENS_MAP');
+      final existing = obj.getSafeObject(mapKey) as Map<String, List<String>>?
+          ?? <String, List<String>>{};
+      (existing[key] ??= []).add(value);
+      obj.putObject(mapKey, existing);
+    } catch (_) {}
+    // Debug: log tokens we haven't explicitly coded so we can prioritise them.
+    if (kDebugMode) {
+      _unknownTags.add(key);
+    }
+  }
+
+  /// Returns the stored values for [tag] on [obj], or an empty list.
+  static List<String> getExtraTokenValues(CDOMObject obj, String tag) {
+    try {
+      final mapKey = CDOMObjectKey.getConstant<Map<String, List<String>>>('EXTRA_TOKENS_MAP');
+      final m = obj.getSafeObject(mapKey) as Map<String, List<String>>?;
+      return m?[tag.trim().toUpperCase()] ?? const [];
+    } catch (_) { return const []; }
+  }
+
+  // In debug mode: accumulate unseen tag names and print a summary once.
+  static final Set<String> _unknownTags = {};
+  static bool _debugFlushed = false;
+
+  static void flushUnknownTagReport() {
+    if (!kDebugMode || _debugFlushed || _unknownTags.isEmpty) return;
+    _debugFlushed = true;
+    // ignore: avoid_print
+    print('[GenericLoader] Tokens stored generically (not explicitly handled): '
+        '${_unknownTags.toList()..sort()}');
   }
 
   /// Parse a BONUS: token and store as a [ParsedBonus] on the object.

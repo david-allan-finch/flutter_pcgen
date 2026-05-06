@@ -40,6 +40,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_pcgen/src/gui2/app_state.dart';
 import 'package:flutter_pcgen/src/gui2/sources/source_selection_dialog.dart';
 import 'package:flutter_pcgen/src/gui2/facade/character_facade_impl.dart';
+import 'package:flutter_pcgen/src/persistence/lst/generic_loader.dart';
 import 'package:flutter_pcgen/src/io/character_file_io.dart';
 import 'package:flutter_pcgen/src/io/character_text_export.dart';
 import 'package:flutter_pcgen/src/io/pcg_character_io.dart';
@@ -321,6 +322,7 @@ class PCGenFrameState extends State<PCGenFrame> {
     final dataset = loader.getDataSetFacade();
     if (dataset != null) {
       loadedDataSet.value = dataset;
+      GenericLoader.flushUnknownTagReport();
     }
   }
 
