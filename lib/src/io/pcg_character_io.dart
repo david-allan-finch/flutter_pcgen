@@ -855,6 +855,7 @@ class PCGCharacterIO {
     double cost   = 0;
     double weight = 0;
     String location = '';
+    String baseItem = ''; // from CUSTOMIZATION:[BASEITEM:X|...]
     for (final p in value.split('|').skip(1)) {
       final up = p.toUpperCase();
       if (up.startsWith('QUANTITY:') || up.startsWith('QTY:')) {
@@ -865,18 +866,24 @@ class PCGCharacterIO {
         weight = double.tryParse(p.substring(3).trim()) ?? 0;
       } else if (up.startsWith('LOCATION:')) {
         location = p.substring(9).trim();
+      } else if (up.startsWith('CUSTOMIZATION:')) {
+        // CUSTOMIZATION:[BASEITEM:Lance|DATA:NAME=Diamond Lance$EQMOD=...]
+        final m = RegExp(r'BASEITEM:([^\]|$]+)').firstMatch(p);
+        if (m != null) baseItem = m.group(1)!.trim();
       }
     }
     // Use the item name as a temporary key; restoreFromDataset() will replace
     // this with the proper dataset key (getKeyName()) by matching on name.
     final key = itemName;
-    (data['gear'] as List).add({
+    final entry = <String, dynamic>{
       'name':   itemName,
       'key':    key,
       'qty':    qty.toInt(),
       'cost':   cost,
       'weight': weight,
-    });
+    };
+    if (baseItem.isNotEmpty) entry['baseItem'] = baseItem;
+    (data['gear'] as List).add(entry);
     // Map PCGen Java location names to our slot names
     if (location.isNotEmpty) {
       final slot = _pcgenLocationToSlot(location);

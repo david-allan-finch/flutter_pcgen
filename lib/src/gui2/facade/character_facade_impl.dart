@@ -1136,8 +1136,10 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
       final gear = _data['gear'] as List? ?? [];
       for (final item in gear) {
         if (item is! Map) continue;
-        final name = (item['name'] as String? ?? '').toLowerCase();
-        final dsKey = nameToKey[name];
+        final name     = (item['name']     as String? ?? '').toLowerCase();
+        final baseItem = (item['baseItem'] as String? ?? '').toLowerCase();
+        // Try display name first, then BASEITEM (for custom/modified items).
+        final dsKey = nameToKey[name] ?? nameToKey[baseItem];
         if (dsKey != null && dsKey != item['key']) {
           final oldKey = item['key'] as String? ?? '';
           item['key'] = dsKey;

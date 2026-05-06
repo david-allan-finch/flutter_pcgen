@@ -447,11 +447,10 @@ class _CharacterSheetView extends StatelessWidget {
           statMod: statMod, ranks: rank, rankBonus: rankBonus, isClass: isClass));
     }
 
-    rows.sort((a, b) {
-      if (a.ranks > 0 && b.ranks == 0) return -1;
-      if (a.ranks == 0 && b.ranks > 0) return 1;
-      return a.name.compareTo(b.name);
-    });
+    // Only show skills where the character has actually spent ranks (or has a rank bonus).
+    final displayRows = rows.where((r) => r.ranks > 0 || r.rankBonus > 0).toList()
+      ..sort((a, b) => a.name.compareTo(b.name));
+    if (displayRows.isEmpty) return const SizedBox.shrink();
 
     return Card(
       child: Padding(
@@ -479,7 +478,7 @@ class _CharacterSheetView extends StatelessWidget {
                     _th('Stat'), _th('Mod'),
                   ],
                 ),
-                for (final r in rows)
+                for (final r in displayRows)
                   TableRow(
                     decoration: r.ranks > 0
                         ? BoxDecoration(
@@ -553,11 +552,28 @@ class _CharacterSheetView extends StatelessWidget {
       }
     } catch (_) {}
 
+    // Build a name→baseItem map from gear for custom item fallback.
+    final keyToBaseItem = <String, String>{};
+    for (final g in (data['gear'] as List? ?? [])) {
+      if (g is Map) {
+        final k = g['key'] as String? ?? '';
+        final b = g['baseItem'] as String? ?? '';
+        if (k.isNotEmpty && b.isNotEmpty) keyToBaseItem[k] = b;
+      }
+    }
+
     // Check every candidate for weapons
     for (final entry in weaponCandidates.entries) {
       final key  = entry.key;
       final slot = entry.value;
-      final item = dataset.equipment.where((e) => e.getKeyName() == key).firstOrNull;
+      // Try key first, then baseItem (handles custom items like "Diamond Lance" → "Lance")
+      var item = dataset.equipment.where((e) => e.getKeyName() == key).firstOrNull;
+      if (item == null) {
+        final base = keyToBaseItem[key] ?? '';
+        if (base.isNotEmpty) {
+          item = dataset.equipment.where((e) => e.getKeyName() == base).firstOrNull;
+        }
+      }
       if (item == null) continue;
 
       // Skip non-weapons (armor, shields, etc.)
@@ -684,12 +700,23 @@ class _CharacterSheetView extends StatelessWidget {
     const armorSlots = ['Armor', 'Off Hand']; // shield in off hand
     final armors = <_ArmorEntry>[];
 
+    final armorKeyToBase = <String, String>{};
+    for (final g in (data['gear'] as List? ?? [])) {
+      if (g is Map) {
+        final k = g['key'] as String? ?? '';
+        final b = g['baseItem'] as String? ?? '';
+        if (k.isNotEmpty && b.isNotEmpty) armorKeyToBase[k] = b;
+      }
+    }
+
     for (final slot in armorSlots) {
       final key = equippedSlots[slot] as String?;
       if (key == null) continue;
-      final item = dataset.equipment
-          .where((e) => e.getKeyName() == key)
-          .firstOrNull;
+      var item = dataset.equipment.where((e) => e.getKeyName() == key).firstOrNull;
+      if (item == null) {
+        final base = armorKeyToBase[key] ?? '';
+        if (base.isNotEmpty) item = dataset.equipment.where((e) => e.getKeyName() == base).firstOrNull;
+      }
       if (item == null) continue;
       if (!item.isArmor() && !item.isShield()) continue;
 
