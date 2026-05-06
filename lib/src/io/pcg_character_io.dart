@@ -403,6 +403,7 @@ class PCGCharacterIO {
       'languageKeys': <String>[],
       'gear': <dynamic>[],
       'equippedSlots': <String, String>{},
+      'containerContents': <String, List<String>>{}, // containerItemName → [itemNames]
       'abilityChoices': <String, String>{},
       'companions': <dynamic>[],
       'tempBonuses': <dynamic>[],
@@ -886,13 +887,20 @@ class PCGCharacterIO {
     }
   }
 
-  /// Convert collected EQUIPSET entries into equippedSlots after the full parse.
-  /// EQUIPSET:Body|ID:0.1.04|VALUE:Full Plate +5|... → equippedSlots['Armor'] = gearKey
+  /// Convert collected EQUIPSET entries into equippedSlots and containerContents.
+  ///
+  /// Java PCGen uses a tree-structured equipment set where:
+  ///   Direct children of the root set → body-slot items
+  ///   Children of a body-slot item   → contents of that container
+  ///
+  /// Example:
+  ///   EQUIPSET:Hands|ID:0.1.58|VALUE:Glove of Storing      → equippedSlots['Hands']
+  ///   EQUIPSET:Glove of Storing|ID:0.1.58.01|VALUE:Diamond Lance → containerContents['Glove of Storing'] += [Diamond Lance]
   static void _resolveEquipSets(Map<String, dynamic> data,
       List<Map<String, String>> sets, String activeId) {
     if (sets.isEmpty) return;
     final gear = data['gear'] as List? ?? [];
-    // Build name→key map for gear items
+    // name (lower) → item key
     final nameToGearKey = <String, String>{};
     for (final item in gear) {
       if (item is Map) {
@@ -902,25 +910,58 @@ class PCGCharacterIO {
       }
     }
 
-    final eq = (data['equippedSlots'] ??= <String, String>{}) as Map;
+    // Build ID → entry map for parent-chain lookups
+    final idToEntry = <String, Map<String, String>>{};
+    for (final entry in sets) {
+      final id = entry['id'] ?? '';
+      if (id.isNotEmpty) idToEntry[id] = entry;
+    }
+
+    final eq   = (data['equippedSlots'] ??= <String, String>{}) as Map;
+    final cont = (data['containerContents'] ??= <String, List<String>>{}) as Map<String, List<String>>;
     bool rightRingUsed = false;
 
     for (final entry in sets) {
-      final esId   = entry['id']    ?? '';
-      final esSlot = entry['slot']  ?? '';
-      final value  = entry['value'] ?? '';
-      if (value.isEmpty) continue;
+      final esId    = entry['id']    ?? '';
+      final esSlot  = entry['slot']  ?? '';
+      final value   = entry['value'] ?? '';
+      if (value.isEmpty || !esId.startsWith('$activeId.')) continue;
 
-      // Only process direct children of the active set (ID starts with activeId + '.')
-      if (!esId.startsWith('$activeId.')) continue;
-
-      final slot = _equipsetSlotToSlot(esSlot, rightRingUsed);
-      if (slot == null) continue;
-      if (slot == 'Ring (Right)') rightRingUsed = true;
-
-      // Find the matching gear key
       final gearKey = nameToGearKey[value.toLowerCase()] ?? value;
-      eq[slot] = gearKey;
+
+      // Determine depth: count dots beyond the active ID prefix
+      final suffix    = esId.substring(activeId.length + 1); // e.g. "58.01"
+      final depth     = '.'.allMatches(suffix).length;       // 0 = direct child, 1 = container content
+
+      if (depth == 0) {
+        // Direct child of active set → body slot
+        final slot = _equipsetSlotToSlot(esSlot, rightRingUsed);
+        if (slot != null) {
+          if (slot == 'Ring (Right)') rightRingUsed = true;
+          eq[slot] = gearKey;
+        }
+        // Items with 'Equipped' slot that aren't body slots go to Carried
+        // (already handled by default in _equipsetSlotToSlot)
+      } else {
+        // Nested item → inside a container.  Record in containerContents.
+        // The slot name IS the container's item name (e.g. "Glove of Storing").
+        (cont[esSlot] ??= []).add(value);
+
+        // If the container is in a hand-type slot, a weapon inside it is the
+        // effective equipped weapon for that slot.
+        final parentId = esId.substring(0, esId.lastIndexOf('.'));
+        final parentEntry = idToEntry[parentId];
+        if (parentEntry != null) {
+          final parentSlot = _equipsetSlotToSlot(parentEntry['slot'] ?? '', rightRingUsed);
+          if (parentSlot == 'Hands' || parentSlot == 'Primary Hand') {
+            // Weapon inside a hand-slot container → treat as Primary Hand weapon
+            // only if no explicit Primary Hand item is already set.
+            if (!eq.containsKey('Primary Hand')) {
+              eq['Primary Hand'] = gearKey;
+            }
+          }
+        }
+      }
     }
   }
 
@@ -930,6 +971,7 @@ class PCGCharacterIO {
       case 'both hands':     return 'Primary Hand';
       case 'secondary hand':
       case 'off hand':       return 'Off Hand';
+      case 'shield':         return 'Off Hand';
       case 'head':           return 'Head';
       case 'eyes':           return 'Eyes';
       case 'neck':           return 'Neck';
@@ -946,10 +988,12 @@ class PCGCharacterIO {
       case 'ring (right)':   return 'Ring (Right)';
       case 'waist':
       case 'belt':           return 'Belt';
+      case 'foot':
       case 'feet':           return 'Feet';
       case 'ammunition':     return 'Ammunition';
+      case 'equipped':
       case 'carried':        return 'Carried';
-      default:               return null;  // natural attacks, equipped, etc.
+      default:               return null; // container or unknown
     }
   }
 

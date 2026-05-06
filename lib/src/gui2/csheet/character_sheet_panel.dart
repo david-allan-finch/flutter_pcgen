@@ -520,11 +520,43 @@ class _CharacterSheetView extends StatelessWidget {
     try { tohitBonus  = _tryGet(() => (character as dynamic).getTohitBonus())        as int? ?? 0; } catch (_) {}
     try { damageBonus = _tryGet(() => (character as dynamic).getDamageBonus())       as int? ?? 0; } catch (_) {}
 
-    // Check every equipped slot for weapons
+    // Collect all candidate weapon keys: directly slotted + inside hand containers.
+    // Maps itemKey → slot label for display.
+    final weaponCandidates = <String, String>{};
     for (final entry in equippedSlots.entries) {
       final slot = entry.key as String;
       final key  = entry.value as String?;
-      if (key == null) continue;
+      if (key != null && key.isNotEmpty) weaponCandidates[key] = slot;
+    }
+    // Also include weapons inside hand-slot containers (e.g. Glove of Storing).
+    try {
+      final containers = (data['containerContents'] as Map? ?? {})
+          .cast<String, List<dynamic>>();
+      for (final cEntry in containers.entries) {
+        final containerName = cEntry.key;
+        // Find the slot this container is equipped in
+        final containerSlot = equippedSlots.entries
+            .where((e) => _gearNameForKey(
+                (data['gear'] as List? ?? []).cast<Map<String, dynamic>>(),
+                e.value as String? ?? '') == containerName)
+            .map((e) => e.key as String)
+            .firstOrNull;
+        if (containerSlot == null) continue;
+        for (final itemName in cEntry.value) {
+          final key = (data['gear'] as List? ?? [])
+              .cast<Map<String, dynamic>>()
+              .where((g) => g['name'] == itemName)
+              .map((g) => g['key'] as String? ?? '')
+              .firstOrNull ?? '';
+          if (key.isNotEmpty) weaponCandidates[key] = 'in $containerName';
+        }
+      }
+    } catch (_) {}
+
+    // Check every candidate for weapons
+    for (final entry in weaponCandidates.entries) {
+      final key  = entry.key;
+      final slot = entry.value;
       final item = dataset.equipment.where((e) => e.getKeyName() == key).firstOrNull;
       if (item == null) continue;
 
@@ -726,6 +758,11 @@ class _CharacterSheetView extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  static String _gearNameForKey(List<Map<String, dynamic>> gear, String key) {
+    try { return gear.firstWhere((g) => g['key'] == key)['name'] as String; }
+    catch (_) { return key; }
   }
 
   static Widget _th(String text) => Padding(

@@ -174,6 +174,29 @@ class EquipInfoTabState extends State<EquipInfoTab> {
 
   Widget _buildSlotsPanel(
       dynamic character, List<Map<String, dynamic>> gear, Map<String, String> equipped) {
+    // Container contents (bags, pouches, gloves of storing, etc.)
+    Map<String, List<String>> containers = {};
+    try {
+      final data = (character as dynamic).toJson() as Map<String, dynamic>;
+      containers = (data['containerContents'] as Map? ?? {}).cast<String, List<String>>();
+    } catch (_) {}
+
+    // Build a list: slot rows + container sections
+    final items = <Widget>[];
+    for (final slot in _kSlots) {
+      final equippedKey = equipped[slot];
+      final equippedName = equippedKey != null ? _gearNameForKey(gear, equippedKey) : null;
+      items.add(_buildSlotRow(character, slot, equippedName, equippedKey, gear));
+
+      // If this slot has an equipped item that is a container, show its contents
+      if (equippedName != null && containers.containsKey(equippedName)) {
+        final contents = containers[equippedName]!;
+        if (contents.isNotEmpty) {
+          items.add(_buildContainerContents(equippedName, contents));
+        }
+      }
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -185,20 +208,32 @@ class EquipInfoTabState extends State<EquipInfoTab> {
         ),
         const Divider(height: 1),
         Expanded(
-          child: ListView.builder(
+          child: ListView(
             padding: const EdgeInsets.all(8),
-            itemCount: _kSlots.length,
-            itemBuilder: (context, i) {
-              final slot = _kSlots[i];
-              final equippedKey = equipped[slot];
-              final equippedName = equippedKey != null
-                  ? _gearNameForKey(gear, equippedKey)
-                  : null;
-              return _buildSlotRow(character, slot, equippedName, equippedKey, gear);
-            },
+            children: items,
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildContainerContents(String containerName, List<String> contents) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 16, bottom: 4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ...contents.map((item) => Padding(
+            padding: const EdgeInsets.symmetric(vertical: 1),
+            child: Row(children: [
+              const Icon(Icons.subdirectory_arrow_right, size: 12, color: Colors.grey),
+              const SizedBox(width: 4),
+              Expanded(child: Text(item,
+                  style: const TextStyle(fontSize: 11, color: Colors.grey))),
+            ]),
+          )),
+        ],
+      ),
     );
   }
 
