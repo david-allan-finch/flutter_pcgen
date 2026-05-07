@@ -911,6 +911,7 @@ class PCGCharacterIO {
     double weight = 0;
     String location = '';
     String baseItem = ''; // from CUSTOMIZATION:[BASEITEM:X|...]
+    List<String> eqmods = []; // from CUSTOMIZATION DATA:EQMOD=...
     for (final p in value.split('|').skip(1)) {
       final up = p.toUpperCase();
       if (up.startsWith('QUANTITY:') || up.startsWith('QTY:')) {
@@ -922,9 +923,19 @@ class PCGCharacterIO {
       } else if (up.startsWith('LOCATION:')) {
         location = p.substring(9).trim();
       } else if (up.startsWith('CUSTOMIZATION:')) {
-        // CUSTOMIZATION:[BASEITEM:Lance|DATA:NAME=Diamond Lance$EQMOD=...]
+        // CUSTOMIZATION:[BASEITEM:Lance|DATA:NAME=Diamond Lance$EQMOD=KEY1.KEY2|ARG...]
         final m = RegExp(r'BASEITEM:([^\]|$]+)').firstMatch(p);
         if (m != null) baseItem = m.group(1)!.trim();
+        // Parse EQMOD list: &pipe; is escaped |; each entry is DOT-separated
+        final em = RegExp(r'\$EQMOD=([^\$\]]+)').firstMatch(p);
+        if (em != null) {
+          final raw = em.group(1)!.replaceAll('&pipe;', '|');
+          // Split by '.' — each segment is KEY or KEY|ARG; take the part before '|'
+          eqmods = raw.split('.')
+              .map((s) => s.split('|').first.trim())
+              .where((s) => s.isNotEmpty)
+              .toList();
+        }
       }
     }
     // Use the item name as a temporary key; restoreFromDataset() will replace
@@ -938,6 +949,7 @@ class PCGCharacterIO {
       'weight': weight,
     };
     if (baseItem.isNotEmpty) entry['baseItem'] = baseItem;
+    if (eqmods.isNotEmpty)   entry['eqmods']  = eqmods;
     (data['gear'] as List).add(entry);
     // Map PCGen Java location names to our slot names
     if (location.isNotEmpty) {

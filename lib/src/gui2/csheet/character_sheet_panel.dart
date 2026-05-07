@@ -523,8 +523,9 @@ class _CharacterSheetView extends StatelessWidget {
     final gearRaw = data['gear'] as List? ?? [];
 
     // Build gear lookup maps.
-    final keyToName     = <String, String>{};  // gearKey → display name
-    final keyToBaseItem = <String, String>{};  // gearKey → base item key
+    final keyToName     = <String, String>{};       // gearKey → display name
+    final keyToBaseItem = <String, String>{};       // gearKey → base item key
+    final keyToEqmods   = <String, List<String>>{}; // gearKey → EQMOD key list
     for (final g in gearRaw) {
       if (g is! Map) continue;
       final k = g['key']      as String? ?? '';
@@ -533,6 +534,8 @@ class _CharacterSheetView extends StatelessWidget {
       if (k.isNotEmpty) {
         if (n.isNotEmpty) keyToName[k]     = n;
         if (b.isNotEmpty) keyToBaseItem[k] = b;
+        final em = g['eqmods'];
+        if (em is List) keyToEqmods[k] = em.cast<String>();
       }
     }
     final gear = gearRaw.whereType<Map>().cast<Map<String, dynamic>>().toList();
@@ -604,6 +607,10 @@ class _CharacterSheetView extends StatelessWidget {
       // Use actual gear entry name (not base-item name) for display.
       final displayName = keyToName[key] ?? (item != null ? (item as dynamic).getDisplayName() as String? ?? key : key);
 
+      // Compute EQMOD bonuses to attack and damage (e.g. PLUS3W → +3/+3)
+      final eqmodList = keyToEqmods[key] ?? [];
+      final (eqTohit, eqDamage) = _eqmodBonuses(eqmodList, dataset);
+
       String dmg = '—', critStr = '20', wield = 'Melee';
       bool isRanged = false;
       if (item != null) {
@@ -622,7 +629,7 @@ class _CharacterSheetView extends StatelessWidget {
 
       final atkMod   = isRanged ? dexMod : strMod;
       final nonprof  = proficient ? 0 : -4;
-      final atkBonus = bab + atkMod + tohitBonus + nonprof;
+      final atkBonus = bab + atkMod + tohitBonus + nonprof + eqTohit;
       final atkParts = <String>[];
       if (bab >= 6) {
         int b = bab;
@@ -635,7 +642,7 @@ class _CharacterSheetView extends StatelessWidget {
         atkParts.add('${atkBonus >= 0 ? '+' : ''}$atkBonus');
       }
       final atkStr    = '${atkParts.join('/')}${proficient ? '' : '*'}';
-      final totalDmg  = isRanged ? 0 : strMod + damageBonus;
+      final totalDmg  = (isRanged ? 0 : strMod + damageBonus) + eqDamage;
       final dmgSuffix = totalDmg > 0 ? '+$totalDmg' : (totalDmg < 0 ? '$totalDmg' : '');
       final dmgStr    = dmg.isNotEmpty && dmg != '—' ? '$dmg$dmgSuffix' : '—';
 
@@ -814,6 +821,48 @@ class _CharacterSheetView extends StatelessWidget {
   static String _gearNameForKey(List<Map<String, dynamic>> gear, String key) {
     try { return gear.firstWhere((g) => g['key'] == key)['name'] as String; }
     catch (_) { return key; }
+  }
+
+  /// Returns (tohit bonus, damage bonus) from EQMOD entries on a gear item.
+  /// Handles enhancement bonus EQMODs (PLUS1W..PLUS5W) plus masterwork,
+  /// and falls back to reading BONUS:WEAPON tokens from the dataset EqMod object.
+  static (int, int) _eqmodBonuses(List<String> eqmods, dynamic dataset) {
+    int tohit = 0, damage = 0;
+    for (final key in eqmods) {
+      // Enhancement bonus from key name: PLUS1W, PLUS2W, etc.
+      final plusMatch = RegExp(r'^PLUS(\d+)W$', caseSensitive: false).firstMatch(key);
+      if (plusMatch != null) {
+        final n = int.tryParse(plusMatch.group(1)!) ?? 0;
+        tohit  += n;
+        damage += n;
+        continue;
+      }
+      // Masterwork: +1 attack only
+      if (key.toUpperCase() == 'MWORKW') { tohit += 1; continue; }
+
+      // For other EQMODs, look them up in the dataset and read BONUS:WEAPON tokens.
+      if (dataset == null) continue;
+      try {
+        final eqmod = (dataset as dynamic).equipment
+            .where((e) => (e as dynamic).getKeyName() == key)
+            .firstOrNull;
+        if (eqmod == null) continue;
+        final bonuses = (eqmod as dynamic)
+            .getSafeListFor(ListKey.getConstant<ParsedBonus>('PARSED_BONUS')) as List?;
+        if (bonuses == null) continue;
+        for (final b in bonuses) {
+          if (b is! ParsedBonus || b.category != 'WEAPON') continue;
+          final val = int.tryParse(b.formula) ?? 0;
+          if (val == 0) continue;
+          for (final t in b.targets) {
+            final tu = t.toUpperCase();
+            if (tu == 'TOHIT')  tohit  += val;
+            if (tu == 'DAMAGE') damage += val;
+          }
+        }
+      } catch (_) {}
+    }
+    return (tohit, damage);
   }
 
   static Widget _th(String text) => Padding(
