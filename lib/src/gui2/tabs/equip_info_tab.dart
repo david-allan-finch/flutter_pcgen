@@ -25,7 +25,6 @@ const _kSlots = [
   'Off Hand',
   'Feet',
   'Ammunition',
-  'Carried',   // catch-all for items not worn in a named slot
 ];
 
 // Which item TYPEs can go in which slots (used for soft validation hints only).
@@ -67,21 +66,22 @@ class EquipInfoTabState extends State<EquipInfoTab> {
         if (character == null) {
           return const Center(child: Text('No character selected.'));
         }
-        final gear = _getGear(character);
+        final gear     = _getGear(character);
         final equipped = _getEquipped(character);
+        final carried  = _getCarried(character);
         return Column(
           children: [
             Expanded(
               child: Row(
                 children: [
-                  // Left: carried gear list
+                  // Left: gear list (all items, shows equipped status)
                   SizedBox(
                     width: 240,
-                    child: _buildGearPanel(character, gear, equipped),
+                    child: _buildGearPanel(character, gear, equipped, carried),
                   ),
                   const VerticalDivider(width: 1),
-                  // Right: body slot grid
-                  Expanded(child: _buildSlotsPanel(character, gear, equipped)),
+                  // Right: body slots + carried containers
+                  Expanded(child: _buildSlotsPanel(character, gear, equipped, carried)),
                 ],
               ),
             ),
@@ -96,8 +96,11 @@ class EquipInfoTabState extends State<EquipInfoTab> {
   // ---- Left panel: carried gear --------------------------------------------
 
   Widget _buildGearPanel(
-      dynamic character, List<Map<String, dynamic>> gear, Map<String, String> equipped) {
-    final usedKeys = equipped.values.toSet();
+      dynamic character, List<Map<String, dynamic>> gear,
+      Map<String, String> equipped, List<String> carriedKeys) {
+    final slotKeys    = equipped.values.toSet();
+    final carriedSet  = carriedKeys.toSet();
+    final allUsedKeys = {...slotKeys, ...carriedSet};
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -107,7 +110,7 @@ class EquipInfoTabState extends State<EquipInfoTab> {
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
           child: const Row(
             children: [
-              Expanded(child: Text('Carried Gear',
+              Expanded(child: Text('Gear',
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13))),
               SizedBox(width: 32, child: Text('Qty',
                   textAlign: TextAlign.center,
@@ -133,22 +136,26 @@ class EquipInfoTabState extends State<EquipInfoTab> {
               itemBuilder: (context, i) {
                 final item = gear[i];
                 final name = item['name'] as String? ?? 'Unknown';
-                final qty = item['qty'] as int? ?? 1;
-                final key = item['key'] as String? ?? '';
-                final isEquipped = usedKeys.contains(key);
-                // Find which slot(s) this item occupies
-                final equippedSlots = equipped.entries
+                final qty  = item['qty']  as int?    ?? 1;
+                final key  = item['key']  as String? ?? '';
+                final isCarried  = carriedSet.contains(key);
+                final isSlotted  = slotKeys.contains(key);
+                final isEquipped = isCarried || isSlotted;
+                final slotLabels = equipped.entries
                     .where((e) => e.value == key)
                     .map((e) => e.key)
                     .toList();
+                final subtitle = isCarried
+                    ? 'Carried'
+                    : isSlotted
+                        ? slotLabels.join(', ')
+                        : null;
                 return ListTile(
                   dense: true,
-                  tileColor: isEquipped
-                      ? Colors.green.withValues(alpha: 0.05)
-                      : null,
+                  tileColor: isEquipped ? Colors.green.withValues(alpha: 0.05) : null,
                   title: Text(name, style: const TextStyle(fontSize: 12)),
-                  subtitle: isEquipped
-                      ? Text('Equipped: ${equippedSlots.join(', ')}',
+                  subtitle: subtitle != null
+                      ? Text(subtitle,
                           style: const TextStyle(fontSize: 10, color: Colors.green))
                       : const Text('Tap to equip →',
                           style: TextStyle(fontSize: 10, color: Colors.grey,
@@ -173,7 +180,8 @@ class EquipInfoTabState extends State<EquipInfoTab> {
   // ---- Right panel: slots --------------------------------------------------
 
   Widget _buildSlotsPanel(
-      dynamic character, List<Map<String, dynamic>> gear, Map<String, String> equipped) {
+      dynamic character, List<Map<String, dynamic>> gear,
+      Map<String, String> equipped, List<String> carriedKeys) {
     // Container contents (bags, pouches, gloves of storing, etc.)
     Map<String, List<String>> containers = {};
     try {
@@ -208,36 +216,70 @@ class EquipInfoTabState extends State<EquipInfoTab> {
       }
     }
 
-    // Carried containers (bags, quivers, haversacks not in a body slot)
-    final carriedContainers = containers.keys
-        .where((name) => !shownContainers.contains(name))
-        .toList()..sort();
-
-    if (carriedContainers.isNotEmpty) {
+    // Carried items section (bags, wands, potions, etc. in carriedItems list)
+    if (carriedKeys.isNotEmpty) {
       items.add(const SizedBox(height: 8));
       items.add(Container(
         color: Theme.of(context).colorScheme.surfaceContainerHighest,
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-        child: const Text('Containers (Carried)',
+        child: const Text('Carried / Equipped',
             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
       ));
-      for (final containerName in carriedContainers) {
+      // Build name lookup from gear
+      final keyToName = <String, String>{};
+      for (final g in gear) { keyToName[g['key'] as String? ?? ''] = g['name'] as String? ?? ''; }
+
+      for (final key in carriedKeys) {
+        final name = keyToName[key] ?? key;
+        final contents = containers[name];
+        final isContainer = contents != null && contents.isNotEmpty;
         items.add(Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
           child: Row(
             children: [
-              const Icon(Icons.backpack, size: 14, color: Colors.brown),
+              Icon(isContainer ? Icons.backpack : Icons.inventory_2_outlined,
+                  size: 13, color: Colors.brown.shade400),
               const SizedBox(width: 6),
-              Text(containerName,
-                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500)),
+              Expanded(child: Text(name,
+                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500))),
+              // Uncarry button
+              InkWell(
+                onTap: () => _uncarryItem(character, key),
+                borderRadius: BorderRadius.circular(10),
+                child: const Padding(
+                  padding: EdgeInsets.all(3),
+                  child: Icon(Icons.close, size: 12, color: Colors.red),
+                ),
+              ),
             ],
           ),
         ));
-        final contents = containers[containerName]!;
-        if (contents.isNotEmpty) {
-          items.add(_buildContainerContents(containerName, contents));
+        if (isContainer && !shownContainers.contains(name)) {
+          items.add(_buildContainerContents(name, contents));
         }
       }
+      // Add button to carry a new item
+      items.add(Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        child: TextButton.icon(
+          style: TextButton.styleFrom(padding: const EdgeInsets.all(4)),
+          icon: const Icon(Icons.add, size: 14),
+          label: const Text('Carry item…', style: TextStyle(fontSize: 11)),
+          onPressed: () => _pickCarriedItem(character, gear, carriedKeys),
+        ),
+      ));
+    } else {
+      // No carried items yet — show an add button
+      items.add(const SizedBox(height: 8));
+      items.add(Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8),
+        child: TextButton.icon(
+          style: TextButton.styleFrom(padding: const EdgeInsets.all(4)),
+          icon: const Icon(Icons.add, size: 14),
+          label: const Text('Carry item…', style: TextStyle(fontSize: 11)),
+          onPressed: () => _pickCarriedItem(character, gear, carriedKeys),
+        ),
+      ));
     }
 
     return Column(
@@ -372,13 +414,8 @@ class EquipInfoTabState extends State<EquipInfoTab> {
       return allowed.any((t) => itemTypes.contains(t.toLowerCase()));
     }
 
-    final compatibleSlots = _kSlots
-        .where((s) => s != 'Carried' && slotCompatible(s))
-        .toList();
-    // If no compatible slots found, fall back to all slots
-    final offerSlots = compatibleSlots.isEmpty
-        ? _kSlots.where((s) => s != 'Carried').toList()
-        : compatibleSlots;
+    final compatibleSlots = _kSlots.where(slotCompatible).toList();
+    final offerSlots = compatibleSlots.isEmpty ? _kSlots.toList() : compatibleSlots;
 
     // Offer compatible slots; mark occupied ones
     final picked = await showDialog<String>(
@@ -416,12 +453,14 @@ class EquipInfoTabState extends State<EquipInfoTab> {
     );
     if (picked == null) return;
     if (picked == '__unequip__') {
-      // Remove from all slots
+      // Remove from body slot and move to carriedItems.
       try {
         final data = (character as dynamic).toJson() as Map<String, dynamic>;
         final eq = data['equippedSlots'] as Map?;
         if (eq != null) {
           eq.removeWhere((_, v) => v == key);
+          final ci = (data['carriedItems'] ??= <String>[]) as List;
+          if (!ci.contains(key)) ci.add(key);
           currentCharacter.notifyListeners();
           setState(() {});
         }
@@ -563,8 +602,12 @@ class EquipInfoTabState extends State<EquipInfoTab> {
   void _equipToSlot(dynamic character, String slot, Map<String, dynamic> item) {
     try {
       final data = (character as dynamic).toJson() as Map<String, dynamic>;
-      final eq = (data['equippedSlots'] ??= <String, String>{}) as Map;
-      eq[slot] = item['key'] as String? ?? '';
+      final key = item['key'] as String? ?? '';
+      final eq  = (data['equippedSlots'] ??= <String, String>{}) as Map;
+      eq[slot] = key;
+      // If this item was previously carried, remove it from carriedItems.
+      final ci = data['carriedItems'] as List?;
+      ci?.remove(key);
       currentCharacter.notifyListeners();
       setState(() {});
     } catch (_) {}
@@ -579,6 +622,66 @@ class EquipInfoTabState extends State<EquipInfoTab> {
         currentCharacter.notifyListeners();
         setState(() {});
       }
+    } catch (_) {}
+  }
+
+  // ---- Carried items helpers -----------------------------------------------
+
+  List<String> _getCarried(dynamic character) {
+    try {
+      final data = (character as dynamic).toJson() as Map<String, dynamic>;
+      final ci = data['carriedItems'];
+      if (ci is List) return ci.cast<String>();
+    } catch (_) {}
+    return [];
+  }
+
+  void _uncarryItem(dynamic character, String key) {
+    try {
+      final data = (character as dynamic).toJson() as Map<String, dynamic>;
+      final ci = data['carriedItems'] as List?;
+      if (ci != null) {
+        ci.remove(key);
+        currentCharacter.notifyListeners();
+        setState(() {});
+      }
+    } catch (_) {}
+  }
+
+  Future<void> _pickCarriedItem(dynamic character,
+      List<Map<String, dynamic>> gear, List<String> currentCarried) async {
+    final carriedSet = currentCarried.toSet();
+    final available = gear.where((g) {
+      final k = g['key'] as String? ?? '';
+      return k.isNotEmpty && !carriedSet.contains(k);
+    }).toList();
+    if (available.isEmpty) return;
+
+    final picked = await showDialog<Map<String, dynamic>>(
+      context: context,
+      builder: (_) => SimpleDialog(
+        title: const Text('Carry item', style: TextStyle(fontSize: 15)),
+        children: available.map((item) {
+          final name = item['name'] as String? ?? '';
+          final qty  = item['qty']  as int?    ?? 1;
+          return SimpleDialogOption(
+            onPressed: () => Navigator.pop(context, item),
+            child: Row(children: [
+              Expanded(child: Text(name, style: const TextStyle(fontSize: 13))),
+              Text('×$qty', style: const TextStyle(fontSize: 11, color: Colors.grey)),
+            ]),
+          );
+        }).toList(),
+      ),
+    );
+    if (picked == null) return;
+    try {
+      final data = (character as dynamic).toJson() as Map<String, dynamic>;
+      final ci = (data['carriedItems'] ??= <String>[]) as List;
+      final key = picked['key'] as String? ?? '';
+      if (key.isNotEmpty && !ci.contains(key)) ci.add(key);
+      currentCharacter.notifyListeners();
+      setState(() {});
     } catch (_) {}
   }
 }

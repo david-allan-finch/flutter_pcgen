@@ -244,11 +244,33 @@ class PCGCharacterIO {
     final funds = (data['funds'] as num?)?.toDouble() ?? 0.0;
     buf.writeln('# Character Equipment');
     buf.writeln('MONEY:${funds.toStringAsFixed(2)}');
-    final equippedSlots = data['equippedSlots'] as Map? ?? {};
+    final equippedSlots   = data['equippedSlots']   as Map?    ?? {};
+    final carriedItemKeys = (data['carriedItems']   as List?   ?? []).cast<String>();
+    final containerConts  = (data['containerContents'] as Map? ?? {});
+    // key → slot (body slots only)
     final keyToSlot = <String, String>{};
     equippedSlots.forEach((slot, key) {
       if (key is String && key.isNotEmpty) keyToSlot[key] = slot as String;
     });
+    // name → gear entry for quick lookup
+    final nameToGear = <String, Map>{};
+    final keyToGear  = <String, Map>{};
+    for (final item in gear) {
+      if (item is! Map) continue;
+      final n = item['name'] as String? ?? '';
+      final k = item['key']  as String? ?? '';
+      if (n.isNotEmpty) nameToGear[n] = item;
+      if (k.isNotEmpty) keyToGear[k]  = item;
+    }
+    // Build set of items that live INSIDE a container (skip at top level).
+    final insideContainer = <String>{};
+    for (final e in containerConts.entries) {
+      final contents = e.value;
+      if (contents is List) {
+        for (final n in contents) { if (n is String) insideContainer.add(n); }
+      }
+    }
+
     // EQUIPNAME — inventory definition
     if (gear.isNotEmpty) {
       int eqOrder = 1;
@@ -265,17 +287,49 @@ class PCGCharacterIO {
     // EQUIPSET tree
     buf.writeln('EQUIPSET:Default Set|ID:0.1|USETEMPMODS:Y');
     int esIdx = 1;
+    // Track container top-level indices so we can write nested contents
+    final containerTopIdx = <String, int>{}; // containerName → esIdx
+
     for (final item in gear) {
       if (item is! Map) continue;
-      final name    = item['name'] as String? ?? '';
-      final key     = item['key']  as String? ?? '';
-      final qty     = (item['qty'] as num?)?.toInt() ?? 1;
+      final name = item['name'] as String? ?? '';
+      final key  = item['key']  as String? ?? '';
+      final qty  = (item['qty'] as num?)?.toInt() ?? 1;
+      if (name.isEmpty) continue;
+      // Items inside containers are written nested — skip here.
+      if (insideContainer.contains(name)) continue;
+
       final ourSlot = keyToSlot[key];
-      final esSlot  = (ourSlot != null && ourSlot != 'Carried')
-          ? _slotToEquipsetName(ourSlot) : 'Carried';
+      String esSlot;
+      if (ourSlot != null && ourSlot != 'Carried') {
+        esSlot = _slotToEquipsetName(ourSlot);
+      } else {
+        esSlot = 'Equipped'; // Java PCGen uses 'Equipped' for all carried items
+      }
       final id = '0.1.${esIdx.toString().padLeft(2, '0')}';
       buf.writeln('EQUIPSET:$esSlot|ID:$id|VALUE:$name|QUANTITY:$qty.0|USETEMPMODS:Y');
+      // If this item is a container, record its index for nested writes
+      if (containerConts.containsKey(name)) {
+        containerTopIdx[name] = esIdx;
+      }
       esIdx++;
+    }
+    // Write container contents as nested EQUIPSET lines
+    for (final e in containerConts.entries) {
+      final containerName = e.key as String;
+      final contents      = e.value;
+      if (contents is! List) continue;
+      final parentIdx = containerTopIdx[containerName];
+      if (parentIdx == null) continue; // container not in gear
+      int subIdx = 1;
+      for (final itemName in contents) {
+        if (itemName is! String) continue;
+        final subItem = nameToGear[itemName];
+        final qty = (subItem?['qty'] as num?)?.toInt() ?? 1;
+        final subId = '0.1.${parentIdx.toString().padLeft(2,'0')}.${subIdx.toString().padLeft(2,'0')}';
+        buf.writeln('EQUIPSET:$containerName|ID:$subId|VALUE:$itemName|QUANTITY:$qty.0|USETEMPMODS:Y');
+        subIdx++;
+      }
     }
     buf.writeln('CALCEQUIPSET:0.1');
     buf.writeln();
@@ -403,6 +457,7 @@ class PCGCharacterIO {
       'languageKeys': <String>[],
       'gear': <dynamic>[],
       'equippedSlots': <String, String>{},
+      'carriedItems': <String>[],              // item keys carried but not in a body slot
       'containerContents': <String, List<String>>{}, // containerItemName → [itemNames]
       'abilityChoices': <String, String>{},
       'companions': <dynamic>[],
@@ -924,8 +979,9 @@ class PCGCharacterIO {
       if (id.isNotEmpty) idToEntry[id] = entry;
     }
 
-    final eq   = (data['equippedSlots'] ??= <String, String>{}) as Map;
-    final cont = (data['containerContents'] ??= <String, List<String>>{}) as Map<String, List<String>>;
+    final eq      = (data['equippedSlots'] ??= <String, String>{}) as Map;
+    final carried = (data['carriedItems']  ??= <String>[])         as List;
+    final cont    = (data['containerContents'] ??= <String, List<String>>{}) as Map<String, List<String>>;
     bool rightRingUsed = false;
 
     for (final entry in sets) {
@@ -943,12 +999,15 @@ class PCGCharacterIO {
       if (depth == 0) {
         // Direct child of active set → body slot
         final slot = _equipsetSlotToSlot(esSlot, rightRingUsed);
-        if (slot != null) {
+        if (slot == 'Carried') {
+          // Multiple items can be carried — store in list, not single-value map.
+          if (!carried.contains(gearKey)) carried.add(gearKey);
+        } else if (slot != null) {
           if (slot == 'Ring (Right)') rightRingUsed = true;
           eq[slot] = gearKey;
         }
         // Items with 'Equipped' slot that aren't body slots go to Carried
-        // (already handled by default in _equipsetSlotToSlot)
+        // (slot == 'Carried' handled above)
       } else {
         // Nested item → inside a container.  Record in containerContents.
         // The slot name IS the container's item name (e.g. "Glove of Storing").

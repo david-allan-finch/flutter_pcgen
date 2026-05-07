@@ -1150,6 +1150,11 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
           for (final entry in slots.entries.toList()) {
             if (entry.value == oldKey) slots[entry.key] = dsKey;
           }
+          // Fix up carriedItems references
+          final ci = _data['carriedItems'] as List? ?? [];
+          for (int i = 0; i < ci.length; i++) {
+            if (ci[i] == oldKey) ci[i] = dsKey;
+          }
           // Fix up containerContents references
           final containers = _data['containerContents'] as Map? ?? {};
           for (final cEntry in containers.entries.toList()) {

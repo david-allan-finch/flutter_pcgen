@@ -99,6 +99,7 @@ final class CharacterManager {
       'knownSpells': <dynamic>[],
       'preparedSpells': <dynamic>[],
       'equippedSlots': <String, String>{},
+      'carriedItems': <String>[],
       'abilityChoices': <String, String>{},
     });
     // Wire the dataset so _rebuild() works immediately (race bonuses, feat
