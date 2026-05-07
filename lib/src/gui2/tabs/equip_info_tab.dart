@@ -485,12 +485,11 @@ class EquipInfoTabState extends State<EquipInfoTab> {
         final key      = item['key']      as String? ?? '';
         final baseItem = item['baseItem'] as String? ?? '';
         // Look up dataset item by key, then baseItem fallback.
-        dynamic dsItem = (dataset as dynamic).equipment
-            .where((e) => (e as dynamic).getKeyName() == key)
-            .firstOrNull;
-        dsItem ??= (dataset as dynamic).equipment
-            .where((e) => (e as dynamic).getKeyName() == baseItem)
-            .firstOrNull;
+        // Use a loop instead of .firstOrNull because extensions aren't
+        // visible at runtime when the iterable is typed as dynamic.
+        final equipment = ((dataset as dynamic).equipment as List<dynamic>?) ?? <dynamic>[];
+        dynamic dsItem = _findFirst(equipment, (e) => (e as dynamic).getKeyName() == key);
+        dsItem ??= _findFirst(equipment, (e) => (e as dynamic).getKeyName() == baseItem);
         if (dsItem == null) return true; // unknown item — show anyway
         final types = <String>[];
         try {
@@ -624,6 +623,13 @@ class EquipInfoTabState extends State<EquipInfoTab> {
       if (eq is Map) return eq.cast<String, String>();
     } catch (_) {}
     return {};
+  }
+
+  // Extension methods (e.g. firstOrNull) are not visible at runtime on dynamic
+  // values. Use this loop-based helper for any dynamic iterable lookup.
+  static dynamic _findFirst(List<dynamic> list, bool Function(dynamic) test) {
+    for (final item in list) { if (test(item)) return item; }
+    return null;
   }
 
   String? _gearNameForKey(List<Map<String, dynamic>> gear, String key) {

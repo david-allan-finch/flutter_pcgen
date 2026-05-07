@@ -843,9 +843,13 @@ class _CharacterSheetView extends StatelessWidget {
       // For other EQMODs, look them up in the dataset and read BONUS:WEAPON tokens.
       if (dataset == null) continue;
       try {
-        final eqmod = (dataset as dynamic).equipment
-            .where((e) => (e as dynamic).getKeyName() == key)
-            .firstOrNull;
+        // Use a loop instead of .firstOrNull: extensions aren't visible at runtime
+        // on dynamic iterable results.
+        final equipment = ((dataset as dynamic).equipment as List<dynamic>?) ?? <dynamic>[];
+        dynamic eqmod;
+        for (final e in equipment) {
+          if ((e as dynamic).getKeyName() == key) { eqmod = e; break; }
+        }
         if (eqmod == null) continue;
         final bonuses = (eqmod as dynamic)
             .getSafeListFor(ListKey.getConstant<ParsedBonus>('PARSED_BONUS')) as List?;
