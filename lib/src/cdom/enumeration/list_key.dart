@@ -49,21 +49,35 @@ class ListKey<T> {
 
   ListKey._(this._fieldName, this.elementType);
 
+  // Identity is name-only so that ListKey<String>('TYPE') == ListKey<dynamic>('TYPE').
+  // This means getConstant<String>('TYPE') and getConstant<dynamic>('TYPE') return
+  // equal keys and hit the same slot in ListKeyMapToList without any cast.
+  @override
+  bool operator ==(Object other) =>
+      other is ListKey && other._fieldName.toLowerCase() == _fieldName.toLowerCase();
+
+  @override
+  int get hashCode => _fieldName.toLowerCase().hashCode;
+
   @override
   String toString() => _fieldName;
 
   static ListKey<T> getConstant<T>(String name) {
-    final existing = _typeMap[name];
-    if (existing != null) return existing as ListKey<T>;
-    final key = ListKey<T>._(name, T);
-    _typeMap[name] = key;
-    return key;
+    // Register in the introspection map on first use (any T).
+    if (!_typeMap.containsKey(name)) {
+      _typeMap[name] = ListKey<dynamic>._(name, T);
+    }
+    // Return a new ListKey<T> with the right type parameter.
+    // Name-based == means it compares equal to any previously registered key
+    // with the same name, so map lookups in ListKeyMapToList always work.
+    return ListKey<T>._(name, T);
   }
 
   static ListKey<T> valueOf<T>(String name) {
-    final key = _typeMap[name];
-    if (key == null) throw ArgumentError('$name is not a previously defined ListKey');
-    return key as ListKey<T>;
+    if (!_typeMap.containsKey(name)) {
+      throw ArgumentError('$name is not a previously defined ListKey');
+    }
+    return ListKey<T>._(name, T);
   }
 
   static Iterable<ListKey<dynamic>> getAllConstants() =>
