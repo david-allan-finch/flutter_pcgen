@@ -178,8 +178,18 @@ class EquipInfoTabState extends State<EquipInfoTab> {
     Map<String, List<String>> containers = {};
     try {
       final data = (character as dynamic).toJson() as Map<String, dynamic>;
-      containers = (data['containerContents'] as Map? ?? {}).cast<String, List<String>>();
+      final raw = data['containerContents'] as Map? ?? {};
+      for (final e in raw.entries) {
+        final k = e.key as String? ?? '';
+        final v = e.value;
+        if (k.isNotEmpty && v is List) {
+          containers[k] = v.cast<String>();
+        }
+      }
     } catch (_) {}
+
+    // Track which containers were shown inside a body slot (to avoid duplication).
+    final shownContainers = <String>{};
 
     // Build a list: slot rows + container sections
     final items = <Widget>[];
@@ -193,6 +203,39 @@ class EquipInfoTabState extends State<EquipInfoTab> {
         final contents = containers[equippedName]!;
         if (contents.isNotEmpty) {
           items.add(_buildContainerContents(equippedName, contents));
+        }
+        shownContainers.add(equippedName);
+      }
+    }
+
+    // Carried containers (bags, quivers, haversacks not in a body slot)
+    final carriedContainers = containers.keys
+        .where((name) => !shownContainers.contains(name))
+        .toList()..sort();
+
+    if (carriedContainers.isNotEmpty) {
+      items.add(const SizedBox(height: 8));
+      items.add(Container(
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        child: const Text('Containers (Carried)',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+      ));
+      for (final containerName in carriedContainers) {
+        items.add(Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          child: Row(
+            children: [
+              const Icon(Icons.backpack, size: 14, color: Colors.brown),
+              const SizedBox(width: 6),
+              Text(containerName,
+                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500)),
+            ],
+          ),
+        ));
+        final contents = containers[containerName]!;
+        if (contents.isNotEmpty) {
+          items.add(_buildContainerContents(containerName, contents));
         }
       }
     }
