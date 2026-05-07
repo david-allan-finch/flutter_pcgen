@@ -47,8 +47,9 @@ class PObject extends CDOMObject implements Comparable<Object> {
     return types.map((t) => t.toString()).join('.');
   }
 
-  List<Type> getTrueTypeList(bool visibleOnly) {
-    return getSafeListFor<Type>(ListKey.getConstant<Type>('TYPE'));
+  // TYPE list stores plain String tokens (e.g. "Weapon", "Martial").
+  List<String> getTrueTypeList(bool visibleOnly) {
+    return getSafeListFor<String>(ListKey.getConstant<String>('TYPE'));
   }
 
   @override
@@ -62,13 +63,9 @@ class PObject extends CDOMObject implements Comparable<Object> {
     } else {
       myType = aType.toUpperCase();
     }
-
-    final parts = myType.split('.');
-    final typeListKey = ListKey.getConstant<Type>('TYPE');
-    for (final part in parts) {
-      if (!containsInList(typeListKey, Type.getConstant(part))) {
-        return false;
-      }
+    final typeList = getSafeListFor<String>(ListKey.getConstant<String>('TYPE'));
+    for (final part in myType.split('.')) {
+      if (!typeList.any((t) => t.toUpperCase() == part)) return false;
     }
     return true;
   }
