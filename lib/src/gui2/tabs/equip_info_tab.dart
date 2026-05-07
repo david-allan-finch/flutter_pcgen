@@ -472,13 +472,48 @@ class EquipInfoTabState extends State<EquipInfoTab> {
 
   Future<void> _pickItemForSlot(dynamic character, String slot,
       List<Map<String, dynamic>> gear) async {
+    // Filter gear to items compatible with this slot via dataset TYPE lookup.
+    final allowedTypes = _kSlotTypes[slot];
+    final dataset = loadedDataSet.value;
+
+    List<Map<String, dynamic>> compatible;
+    if (allowedTypes == null || allowedTypes.isEmpty || dataset == null) {
+      compatible = gear;
+    } else {
+      final allowedLower = allowedTypes.map((t) => t.toLowerCase()).toSet();
+      compatible = gear.where((item) {
+        final key      = item['key']      as String? ?? '';
+        final baseItem = item['baseItem'] as String? ?? '';
+        // Look up dataset item by key, then baseItem fallback.
+        dynamic dsItem = (dataset as dynamic).equipment
+            .where((e) => (e as dynamic).getKeyName() == key)
+            .firstOrNull;
+        dsItem ??= (dataset as dynamic).equipment
+            .where((e) => (e as dynamic).getKeyName() == baseItem)
+            .firstOrNull;
+        if (dsItem == null) return true; // unknown item — show anyway
+        final types = <String>[];
+        try {
+          final tl = (dsItem as dynamic).getSafeListFor(
+              ListKey.getConstant<dynamic>('TYPE')) as List?;
+          if (tl != null) {
+            for (final t in tl) { if (t is String) types.add(t.toLowerCase()); }
+          }
+        } catch (_) {}
+        if (types.isEmpty) return true; // no type info — show anyway
+        return types.any(allowedLower.contains);
+      }).toList();
+      // If nothing matched, fall back to full list so slot is never unusable.
+      if (compatible.isEmpty) compatible = gear;
+    }
+
     final picked = await showDialog<Map<String, dynamic>>(
       context: context,
       builder: (_) => SimpleDialog(
         title: Text('Equip to $slot', style: const TextStyle(fontSize: 15)),
-        children: gear.map((item) {
+        children: compatible.map((item) {
           final name = item['name'] as String? ?? 'Unknown';
-          final qty = item['qty'] as int? ?? 1;
+          final qty  = item['qty']  as int?    ?? 1;
           return SimpleDialogOption(
             onPressed: () => Navigator.pop(context, item),
             child: Row(children: [
