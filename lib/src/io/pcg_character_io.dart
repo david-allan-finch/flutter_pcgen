@@ -1240,7 +1240,7 @@ class PCGCharacterIO {
       content.trimLeft().startsWith('PCGVERSION:');
 
   /// Quickly peek key fields from the first ~80 lines of a PCG or JSON file.
-  /// Returns a map with keys: name, gameMode, race, primaryClass, totalLevel.
+  /// Returns a map with keys: name, gameMode, race, primaryClass, totalLevel, campaigns.
   static Map<String, String> peekHeader(String content) {
     final result = <String, String>{};
     if (content.trimLeft().startsWith('{')) {
@@ -1272,7 +1272,8 @@ class PCGCharacterIO {
 
     // PCG — scan first 80 lines
     // CLASS lines: CLASS:Name|SUBCLASS:None|LEVEL:5|...
-    final classes = <String, int>{}; // className → level
+    final classes    = <String, int>{}; // className → level
+    final campaigns  = <String>[];      // CAMPAIGN: entries
     int lineCount = 0;
     for (final raw in content.split('\n')) {
       if (++lineCount > 80) break;
@@ -1290,6 +1291,18 @@ class PCGCharacterIO {
           result['gameMode'] = val;
         case 'RACE':
           result['race'] = val;
+        case 'CAMPAIGN':
+          // CAMPAIGN:3.5 RSRD Basics|CAMPAIGN:3.5 RSRD Monsters|...
+          for (final part in val.split('|')) {
+            final p = part.trim();
+            if (p.toUpperCase().startsWith('CAMPAIGN:')) {
+              final name = p.substring(9).trim();
+              if (name.isNotEmpty) campaigns.add(name);
+            } else if (p.isNotEmpty && !p.contains(':')) {
+              // bare name on first segment
+              campaigns.add(p);
+            }
+          }
         case 'CLASS':
           // CLASS:Paladin|SUBCLASS:None|LEVEL:5|...
           final parts = val.split('|');
@@ -1304,6 +1317,7 @@ class PCGCharacterIO {
           if (className.isNotEmpty) classes[className] = level;
       }
     }
+    if (campaigns.isNotEmpty) result['campaigns'] = campaigns.join('|');
     if (classes.isNotEmpty) {
       final total = classes.values.fold(0, (s, v) => s + v);
       // Primary class = highest level; on tie, first encountered

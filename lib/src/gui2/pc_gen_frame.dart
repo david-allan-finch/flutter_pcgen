@@ -46,6 +46,7 @@ import 'package:flutter_pcgen/src/io/character_text_export.dart';
 import 'package:flutter_pcgen/src/io/pcg_character_io.dart';
 import 'package:flutter_pcgen/src/persistence/source_file_loader.dart';
 import 'package:flutter_pcgen/src/system/character_manager.dart';
+import 'package:flutter_pcgen/src/core/globals.dart';
 
 /// The main window for PCGen. Also responsible for global UI functions
 /// such as message dialogs.
@@ -94,15 +95,53 @@ class PCGenFrameState extends State<PCGenFrame> {
   }
 
   void _doStartup() {
-    final skipSources = UIPropertyContext.getInstance()
-        .getBoolean(UIPropertyContext.skipSourceSelection);
-    if (!skipSources) {
-      // Small delay so the OS window is fully focused before we show the dialog.
-      // Without this Flutter Windows renders the dialog blank until the user
-      // clicks the main window.
-      Future.delayed(const Duration(milliseconds: 300), () {
-        if (mounted) showSourceSelectionDialog();
-      });
+    // Delay so the OS window is fully focused before we show a dialog.
+    Future.delayed(const Duration(milliseconds: 300), () {
+      if (!mounted) return;
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => _CharacterLauncherDialog(
+          onLoadCharacter: _loadCharacterWithSources,
+          onNewCharacter: showSourceSelectionDialog,
+        ),
+      );
+    });
+  }
+
+  /// Load sources matching the PCG file's CAMPAIGN header then load the character.
+  Future<void> _loadCharacterWithSources(String path, Map<String, String> header) async {
+    if (!mounted) return;
+    final gameModeName = header['gameMode'] ?? '35e';
+    final campaignNames = (header['campaigns'] ?? '').split('|')
+        .map((s) => s.trim()).where((s) => s.isNotEmpty).toList();
+
+    // Match campaign names to loaded Campaign objects.
+    final allCampaigns = Globals.getCampaignList();
+    final matched = <Campaign>[];
+    for (final name in campaignNames) {
+      final nameLower = name.toLowerCase();
+      final found = allCampaigns.where((c) =>
+          c.getDisplayName().toLowerCase() == nameLower ||
+          c.getKeyName().toLowerCase() == nameLower).firstOrNull;
+      if (found != null) matched.add(found);
+    }
+
+    // Show loading indicator
+    if (!mounted) return;
+    final loadCtx = context;
+
+    // Load sources if any campaigns were matched.
+    if (matched.isNotEmpty) {
+      await _loadSources(matched, gameModeName);
+    }
+
+    // Now load the character itself.
+    if (!mounted) return;
+    final character = await CharacterFileIO.load(path);
+    if (character != null) {
+      CharacterManager.getCharacters().addElement(character);
+      setCharacter(character);
     }
   }
 
@@ -1112,3 +1151,233 @@ class _LoadCharacterDialogState extends State<_LoadCharacterDialog> {
 class _SaveIntent extends Intent { const _SaveIntent(); }
 class _NewIntent  extends Intent { const _NewIntent(); }
 class _OpenIntent extends Intent { const _OpenIntent(); }
+
+// ---------------------------------------------------------------------------
+// Character Launcher — startup dialog replacing source selection
+// ---------------------------------------------------------------------------
+
+class _CharacterLauncherDialog extends StatefulWidget {
+  /// Called when user selects a character to load.
+  final Future<void> Function(String path, Map<String, String> header) onLoadCharacter;
+  /// Called when user wants to create a new character (shows source selection).
+  final VoidCallback onNewCharacter;
+
+  const _CharacterLauncherDialog({
+    required this.onLoadCharacter,
+    required this.onNewCharacter,
+  });
+
+  @override
+  State<_CharacterLauncherDialog> createState() => _CharacterLauncherDialogState();
+}
+
+class _CharacterLauncherDialogState extends State<_CharacterLauncherDialog> {
+  List<File> _files = [];
+  final Map<String, Map<String, String>> _headers = {};
+  bool _scanning = true;
+  bool _loading  = false;
+  String _loadingMsg = '';
+  final _search = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _scan();
+  }
+
+  @override
+  void dispose() {
+    _search.dispose();
+    super.dispose();
+  }
+
+  Future<void> _scan() async {
+    setState(() { _scanning = true; _files = []; _headers.clear(); });
+    try {
+      final dir = Directory(await CharacterFileIO.getCharDir());
+      if (await dir.exists()) {
+        final files = dir.listSync().whereType<File>()
+            .where((f) => f.path.endsWith('.pcg') || f.path.endsWith('.json'))
+            .toList()
+          ..sort((a, b) => p.basenameWithoutExtension(a.path)
+              .toLowerCase()
+              .compareTo(p.basenameWithoutExtension(b.path).toLowerCase()));
+        if (mounted) setState(() => _files = files);
+        for (final file in files) {
+          try {
+            final h = PCGCharacterIO.peekHeader(await file.readAsString());
+            if (mounted) setState(() => _headers[file.path] = h);
+          } catch (_) {}
+        }
+      }
+    } catch (_) {}
+    if (mounted) setState(() => _scanning = false);
+  }
+
+  List<File> get _filtered {
+    final q = _search.text.trim().toLowerCase();
+    if (q.isEmpty) return _files;
+    return _files.where((f) {
+      final h = _headers[f.path];
+      final name = (h?['name'] ?? p.basenameWithoutExtension(f.path)).toLowerCase();
+      return name.contains(q);
+    }).toList();
+  }
+
+  Future<void> _select(File file) async {
+    final header = _headers[file.path] ?? {};
+    final name = header['name'] ?? p.basenameWithoutExtension(file.path);
+    final campaigns = header['campaigns'] ?? '';
+    final gameMode  = header['gameMode']  ?? '';
+    setState(() {
+      _loading = true;
+      _loadingMsg = 'Loading sources for $name…';
+    });
+    Navigator.of(context).pop();
+    await widget.onLoadCharacter(file.path, header);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final filtered = _filtered;
+
+    return Dialog(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 560, maxHeight: 680),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Header
+            Container(
+              color: theme.colorScheme.primaryContainer,
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              child: Row(
+                children: [
+                  const Icon(Icons.menu_book, size: 28),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('PCGen', style: theme.textTheme.headlineSmall),
+                        Text('Open a character or create a new one',
+                            style: theme.textTheme.bodySmall),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // New Character button
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+              child: OutlinedButton.icon(
+                icon: const Icon(Icons.add, size: 18),
+                label: const Text('New Character…'),
+                style: OutlinedButton.styleFrom(
+                  alignment: Alignment.centerLeft,
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                ),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  widget.onNewCharacter();
+                },
+              ),
+            ),
+
+            const Divider(height: 16),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Text('Recent Characters',
+                  style: theme.textTheme.labelLarge?.copyWith(color: Colors.grey)),
+            ),
+            const SizedBox(height: 6),
+
+            // Search
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: TextField(
+                controller: _search,
+                decoration: const InputDecoration(
+                  isDense: true,
+                  hintText: 'Filter…',
+                  prefixIcon: Icon(Icons.search, size: 18),
+                  border: OutlineInputBorder(),
+                  contentPadding: EdgeInsets.symmetric(vertical: 8),
+                ),
+                onChanged: (_) => setState(() {}),
+              ),
+            ),
+            const SizedBox(height: 8),
+
+            // Character list
+            Expanded(
+              child: _scanning
+                  ? const Center(child: CircularProgressIndicator())
+                  : filtered.isEmpty
+                      ? Center(
+                          child: Text(
+                            _files.isEmpty ? 'No saved characters found.' : 'No matches.',
+                            style: const TextStyle(color: Colors.grey),
+                          ),
+                        )
+                      : ListView.builder(
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                          itemCount: filtered.length,
+                          itemBuilder: (_, i) {
+                            final file = filtered[i];
+                            final header = _headers[file.path];
+                            final charName = header?['name'] ??
+                                p.basenameWithoutExtension(file.path);
+                            final cls      = header?['primaryClass'] ?? '';
+                            final level    = header?['totalLevel']  ?? '';
+                            final race     = header?['race']        ?? '';
+                            final mode     = header?['gameMode']    ?? '';
+                            final subtitle = [
+                              if (race.isNotEmpty) race,
+                              if (cls.isNotEmpty && level.isNotEmpty)
+                                '$cls $level'
+                              else if (cls.isNotEmpty)
+                                cls,
+                              if (mode.isNotEmpty) '($mode)',
+                            ].join(' · ');
+                            return ListTile(
+                              leading: const Icon(Icons.person, size: 22),
+                              title: Text(charName,
+                                  style: const TextStyle(fontWeight: FontWeight.w600)),
+                              subtitle: subtitle.isNotEmpty
+                                  ? Text(subtitle,
+                                      style: const TextStyle(fontSize: 11))
+                                  : null,
+                              trailing: header == null
+                                  ? const SizedBox(
+                                      width: 16, height: 16,
+                                      child: CircularProgressIndicator(strokeWidth: 2))
+                                  : const Icon(Icons.chevron_right, size: 18),
+                              onTap: header == null ? null : () => _select(file),
+                            );
+                          },
+                        ),
+            ),
+
+            // Footer
+            Padding(
+              padding: const EdgeInsets.all(12),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: const Text('Skip'),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
