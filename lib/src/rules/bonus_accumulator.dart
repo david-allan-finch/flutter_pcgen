@@ -28,7 +28,12 @@ class BonusAccumulator {
   }
 
   /// Add a single evaluated bonus.
-  void add(ParsedBonus bonus, double value, {PrereqContext? prereqCtx}) {
+  /// [sourceKey] differentiates REPLACE bonuses from different source objects
+  /// (e.g. different classes) so they each contribute independently rather than
+  /// competing in the "take max" rule. Within the same source, REPLACE still
+  /// takes the max (preventing double-counting of multi-formula classes).
+  void add(ParsedBonus bonus, double value,
+      {PrereqContext? prereqCtx, String sourceKey = ''}) {
     if (prereqCtx != null && !bonus.checkPrereqs(prereqCtx)) return;
 
     for (final target in bonus.targets) {
@@ -39,13 +44,16 @@ class BonusAccumulator {
         // Untyped: always stacks
         _untyped.putIfAbsent(cat, () => {}).putIfAbsent(tgt, () => []).add(value);
       } else {
-        final type = bonus.bonusType.toUpperCase();
+        // For REPLACE bonuses from a named source (e.g. a class), append the
+        // source key so each source gets its own max bucket and they still sum.
+        // This correctly models multi-class BAB where each class contributes
+        // its own REPLACE base bonus independently.
+        String type = bonus.bonusType.toUpperCase();
+        if (sourceKey.isNotEmpty && type.contains('REPLACE')) {
+          type = '$type.${sourceKey.toUpperCase()}';
+        }
         _values.putIfAbsent(cat, () => {}).putIfAbsent(tgt, () => {})
                .putIfAbsent(type, () => []).add(value);
-        if (bonus.stack == BonusStack.stack) {
-          // Mark as stacking by storing each value individually (they'll all be summed)
-          // (already stored above; summing handles .STACK correctly via separate tracking)
-        }
       }
     }
   }

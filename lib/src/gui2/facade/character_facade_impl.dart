@@ -1833,7 +1833,7 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
       for (final bonus in entry.value) {
         if (!bonus.checkPrereqs(prereqCtx)) continue;
         final value = bonus.evaluate(clsFormulaCtx);
-        _bonusAcc.add(bonus, value);
+        _bonusAcc.add(bonus, value, sourceKey: clsKey);
       }
     }
 
