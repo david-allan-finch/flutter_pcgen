@@ -1833,12 +1833,17 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
       for (final bonus in entry.value) {
         if (!bonus.checkPrereqs(prereqCtx)) continue;
         final value = bonus.evaluate(clsFormulaCtx);
+        if (bonus.category == 'COMBAT' && bonus.targets.any((t) => t.toUpperCase() == 'BASEAB')) {
+          debugPrint('BAB_DBG class=$clsKey lvl=$clsLvl formula=${bonus.formula} type=${bonus.bonusType} prereqs=${bonus.prereqs.map((p) => p.toString()).toList()} value=$value');
+        }
         _bonusAcc.add(bonus, value, sourceKey: clsKey);
       }
     }
 
     // Apply active temporary bonuses (spell effects, rage, etc.)
     _applyTempBonuses();
+
+    debugPrint('BAB_DBG final BASEAB=${_bonusAcc.totalInt("COMBAT","BASEAB")} totalLevel=${classLevels.length} classCounts=$counts');
 
     _bonusDirty = false;
   }
