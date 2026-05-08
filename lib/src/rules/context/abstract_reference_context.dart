@@ -49,6 +49,11 @@ abstract class AbstractReferenceContext {
     return _DeferredSingleRef<T>(key);
   }
 
+  // Get a single object by type and key, or null if not found.
+  T? getConstructed<T extends Loadable>(Type type, String key) {
+    return _registry[type]?[key] as T?;
+  }
+
   // Get all objects of a type
   List<T> getAllConstructed<T extends Loadable>(Type type) {
     final byKey = _registry[type];

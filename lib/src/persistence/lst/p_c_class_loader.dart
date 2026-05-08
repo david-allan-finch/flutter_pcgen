@@ -38,6 +38,12 @@ import 'package:flutter_pcgen/src/rules/parsed_bonus.dart';
 /// helpers for the complex class-level logic.
 class PCClassLoader extends GenericLoader<PCClass> {
   PCClassLoader() : super(() => PCClass());
+
+  // Tracks the class being built across multiple LST lines for the same class.
+  // The loader calls parseLine sequentially; level lines (numbers) returned null
+  // which lost track of the current class. We keep it here instead.
+  PCClass? _currentClass;
+
   @override
   PCClass? parseLine(
       LoadContext context, PCClass? target, String lstLine, SourceEntry source) {
@@ -83,27 +89,37 @@ class PCClassLoader extends GenericLoader<PCClass> {
     // e.g.: "1\tCAST:0,1\tKNOWN:4,2\tABILITY:Class|AUTOMATIC|Barbarian"
     final levelNum = int.tryParse(firstToken);
     if (levelNum != null) {
-      if (target != null) {
-        _parseLevelLine(target, levelNum, fields.sublist(1));
+      final cls = target ?? _currentClass;
+      if (cls != null) {
+        _parseLevelLine(cls, levelNum, fields.sublist(1));
       }
-      return null; // level lines don't change the current class object
+      return _currentClass; // keep current class as target for subsequent level lines
     }
 
     // New class (or .MOD of existing) — first field is class name.
-    final isMod = firstToken.endsWith('.MOD');
-    final className = isMod
+    // The LST format uses "CLASS:Bard" as the first token; strip the prefix.
+    final isMod = firstToken.toUpperCase().endsWith('.MOD');
+    String className = isMod
         ? firstToken.substring(0, firstToken.length - 4)
         : firstToken;
+    if (className.toUpperCase().startsWith('CLASS:')) {
+      className = className.substring(6).trim();
+    }
 
-    PCClass pcClass = target ?? PCClass();
-    if (target == null) {
+    // Reuse the already-registered class if it exists, so that all
+    // CLASS:Bard continuation lines (PREALIGN, STARTSKILLPTS, etc.)
+    // apply to the same object.
+    final existing = context.getReferenceContext().getConstructed<PCClass>(PCClass, className);
+    PCClass pcClass = existing ?? target ?? PCClass();
+    if (existing == null && target == null && pcClass.getKeyName().isEmpty) {
       pcClass.setName(className);
       pcClass.setSourceURI(source.getURI().toString());
       context.getReferenceContext().register(pcClass);
     }
 
+    _currentClass = pcClass;
     _parseLineIntoClass(context, pcClass, source, restOfLine);
-    return null;
+    return pcClass;
   }
 
   /// Parse a numbered class-level line (e.g. "1\tCAST:0,1\tKNOWN:4,2\tABILITY:...").
