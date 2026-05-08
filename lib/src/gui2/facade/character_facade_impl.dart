@@ -1537,6 +1537,7 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
     final classBonuses = <String, List<ParsedBonus>>{}; // classKey → bonuses
     try {
       final classes = (dataset as dynamic).classes as List? ?? [];
+      debugPrint('BAB_DBG dataset has ${classes.length} classes, charCounts=$counts');
       for (final cls in classes) {
         final key = (cls as dynamic).getKeyName() as String? ?? '';
         final lvl = counts[key] ?? 0;
@@ -1545,13 +1546,15 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
         try {
           final list = (cls as dynamic)
               .getSafeListFor(ListKey.getConstant<ParsedBonus>('PARSED_BONUS')) as List?;
+          debugPrint('BAB_DBG class=$key lvl=$lvl parsedBonusCount=${list?.length ?? 0}');
           if (list != null) {
             for (final b in list) { if (b is ParsedBonus) bonuses.add(b); }
           }
-        } catch (_) {}
+        } catch (e) { debugPrint('BAB_DBG class=$key getSafeListFor error: $e'); }
+        debugPrint('BAB_DBG class=$key COMBAT|BASEAB bonuses=${bonuses.where((b) => b.category == "COMBAT" && b.targets.any((t) => t.toUpperCase() == "BASEAB")).length}');
         if (bonuses.isNotEmpty) classBonuses[key] = bonuses;
       }
-    } catch (_) {}
+    } catch (e) { debugPrint('BAB_DBG classBonuses build error: $e'); }
 
     // Selected feats / abilities
     final selectedAbilities = _data['selectedAbilities'] as Map? ?? {};
