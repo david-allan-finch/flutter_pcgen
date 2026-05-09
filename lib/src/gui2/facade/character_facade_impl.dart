@@ -423,11 +423,10 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
   @override
   int getFortSave() {
     final acc = _bonusAcc;
+    // totalIntWithAll already includes the SAVE|ALL bucket — don't add it again.
     final base = acc.totalIntWithAll('SAVE', 'Fortitude') +
                  acc.totalIntWithAll('SAVE', 'BASE.FORTITUDE') +
-                 acc.totalIntWithAll('CHECKS', 'Fortitude') +
-                 acc.totalIntWithAll('SAVE', 'ALL') +
-                 acc.totalIntWithAll('CHECKS', 'ALL');
+                 acc.totalIntWithAll('CHECKS', 'Fortitude');
     if (base == 0) return (_data['fortSave'] as num?)?.toInt() ?? _statModByAbb('CON');
     return base + _statModByAbb('CON');
   }
@@ -437,9 +436,7 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
     final acc = _bonusAcc;
     final base = acc.totalIntWithAll('SAVE', 'Reflex') +
                  acc.totalIntWithAll('SAVE', 'BASE.REFLEX') +
-                 acc.totalIntWithAll('CHECKS', 'Reflex') +
-                 acc.totalIntWithAll('SAVE', 'ALL') +
-                 acc.totalIntWithAll('CHECKS', 'ALL');
+                 acc.totalIntWithAll('CHECKS', 'Reflex');
     if (base == 0) return (_data['refSave'] as num?)?.toInt() ?? _statModByAbb('DEX');
     return base + _statModByAbb('DEX');
   }
@@ -449,9 +446,7 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
     final acc = _bonusAcc;
     final base = acc.totalIntWithAll('SAVE', 'Will') +
                  acc.totalIntWithAll('SAVE', 'BASE.WILL') +
-                 acc.totalIntWithAll('CHECKS', 'Will') +
-                 acc.totalIntWithAll('SAVE', 'ALL') +
-                 acc.totalIntWithAll('CHECKS', 'ALL');
+                 acc.totalIntWithAll('CHECKS', 'Will');
     if (base == 0) return (_data['willSave'] as num?)?.toInt() ?? _statModByAbb('WIS');
     return base + _statModByAbb('WIS');
   }
@@ -599,16 +594,16 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
   int getTohitBonus() => _bonusAcc.totalInt('COMBAT', 'TOHIT');
 
   /// Melee-specific to-hit (TOHIT + TOHIT.MELEE). Use for melee weapons only.
+  /// BONUS:WEAPON|TOHIT from EQMODs is handled separately by the sheet via
+  /// _eqmodBonuses — don't include it here to avoid double-counting.
   int getTohitBonusMelee() =>
       _bonusAcc.totalInt('COMBAT', 'TOHIT') +
-      _bonusAcc.totalInt('COMBAT', 'TOHIT.MELEE') +
-      _bonusAcc.totalInt('WEAPON', 'TOHIT');
+      _bonusAcc.totalInt('COMBAT', 'TOHIT.MELEE');
 
   /// Ranged-specific to-hit (TOHIT + TOHIT.RANGED). Use for ranged weapons only.
   int getTohitBonusRanged() =>
       _bonusAcc.totalInt('COMBAT', 'TOHIT') +
-      _bonusAcc.totalInt('COMBAT', 'TOHIT.RANGED') +
-      _bonusAcc.totalInt('WEAPON', 'TOHIT');
+      _bonusAcc.totalInt('COMBAT', 'TOHIT.RANGED');
 
   /// Universal damage bonus (BONUS:COMBAT|DAMAGE — applies to all attacks).
   int getDamageBonus() => _bonusAcc.totalInt('COMBAT', 'DAMAGE');
@@ -616,14 +611,12 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
   /// Melee-specific damage (DAMAGE + DAMAGE.MELEE).
   int getDamageBonusMelee() =>
       _bonusAcc.totalInt('COMBAT', 'DAMAGE') +
-      _bonusAcc.totalInt('COMBAT', 'DAMAGE.MELEE') +
-      _bonusAcc.totalInt('WEAPON', 'DAMAGE');
+      _bonusAcc.totalInt('COMBAT', 'DAMAGE.MELEE');
 
   /// Ranged-specific damage (DAMAGE + DAMAGE.RANGED).
   int getDamageBonusRanged() =>
       _bonusAcc.totalInt('COMBAT', 'DAMAGE') +
-      _bonusAcc.totalInt('COMBAT', 'DAMAGE.RANGED') +
-      _bonusAcc.totalInt('WEAPON', 'DAMAGE');
+      _bonusAcc.totalInt('COMBAT', 'DAMAGE.RANGED');
 
   /// Short-range (≤30ft) to-hit bonus — Point Blank Shot etc.
   int getShortRangeTohitBonus() =>
@@ -2124,7 +2117,14 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
                 final list = (ability as dynamic)
                     .getSafeListFor(ListKey.getConstant<ParsedBonus>('PARSED_BONUS')) as List?;
                 if (list != null) {
-                  for (final b in list) { if (b is ParsedBonus) out.add(b); }
+                  for (final b in list) {
+                    // Don't collect BONUS:STAT from the ability chain — racial stat
+                    // bonuses flow in via the race object directly and via selectedAbilities
+                    // (the character's subrace ability). Walking the chain also picks up
+                    // wrong-subrace abilities (e.g. Elf ~ High for a Wood Elf) because
+                    // auto-ability prereqs aren't evaluated here.
+                    if (b is ParsedBonus && b.category != 'STAT') out.add(b);
+                  }
                 }
               } catch (_) {}
               _collectAbilityChainBonuses(ability, dataset, out, seen);

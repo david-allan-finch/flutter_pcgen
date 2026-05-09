@@ -372,6 +372,10 @@ class ParsedPrereq {
   }
 
   bool _evalPreWeaponProf(PrereqContext ctx) {
+    // If the context has no proficiency data, assume the character IS proficient
+    // (optimistic). This ensures !PREWEAPONPROF bonuses (for non-proficient users)
+    // are NOT incorrectly applied when proficiency data is unavailable.
+    if (ctx.weaponProficiencies.isEmpty) return true;
     final parts = raw.split(',');
     if (parts.length < 2) return true;
     final needed = int.tryParse(parts[0].trim()) ?? 1;
