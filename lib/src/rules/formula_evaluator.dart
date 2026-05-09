@@ -280,6 +280,9 @@ class _Parser {
           }
         } else if (_cur() != ')') {
           result = parseExpr();
+        } else if (nameLower == 'classlevel') {
+          // classlevel() with no argument → current class level context
+          result = _ctx.classLevel();
         }
         _skipWs();
         if (_cur() == ')') _pos++;

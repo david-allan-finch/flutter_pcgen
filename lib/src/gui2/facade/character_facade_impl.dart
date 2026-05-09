@@ -1381,8 +1381,28 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
   }
 
   /// Whether the character is proficient with [weaponTypes] (TYPE list from the item).
-  bool isWeaponProficient(List<String> weaponTypes) {
+  bool isWeaponProficient(List<String> weaponTypes) =>
+      isWeaponProficientByName(weaponTypes, '');
+
+  /// Proficiency check that also matches by the weapon's display name.
+  /// PCG WEAPONPROF lists store individual weapon names (e.g. "Greatsword"),
+  /// while the dataset TYPE list has category names ("Martial", "Slashing").
+  /// Both are checked so that either a matching type category or matching
+  /// weapon name grants proficiency.
+  bool isWeaponProficientByName(List<String> weaponTypes, String weaponName) {
     final profs = getWeaponProficiencies();
+    // Check by weapon display name: strip trailing " +N" enhancement suffix.
+    if (weaponName.isNotEmpty) {
+      final name = weaponName.toLowerCase();
+      final base = name.replaceAll(RegExp(r'\s*\+\d+\s*$'), '').trim();
+      for (final p in profs) {
+        final pl = p.toLowerCase();
+        if (pl == name || pl == base) return true;
+        // Partial prefix match: prof "Greatsword" matches weapon "Greatsword +2"
+        if (name.startsWith(pl) && pl.length >= 3) return true;
+      }
+    }
+    // Check by TYPE category (Martial, Simple, Exotic, etc.)
     for (final t in weaponTypes) {
       if (profs.contains(t)) return true;
       if (profs.any((p) => p.toLowerCase() == t.toLowerCase())) return true;

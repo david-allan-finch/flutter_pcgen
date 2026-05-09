@@ -507,6 +507,7 @@ class _CharacterSheetView extends StatelessWidget {
 
   // Slots that are inherently weapon positions — show regardless of TYPE.
   static const _weaponSlots = {'Primary Hand', 'Off Hand', 'Both Hands', 'Natural-Primary', 'Natural-Secondary'};
+  static const _naturalAttackSlots = {'Natural-Primary', 'Natural-Secondary'};
 
   Widget _weaponsCard(BuildContext context, ThemeData theme, Map data) {
     final dataset = loadedDataSet.value;
@@ -637,8 +638,15 @@ class _CharacterSheetView extends StatelessWidget {
         isRanged = typeList.contains('RANGED');
       }
 
-      bool proficient = true;
-      try { proficient = (character as dynamic).isWeaponProficient(typeList) as bool? ?? true; } catch (_) {}
+      // Natural attacks are always proficient — no prof check needed.
+      bool proficient = _naturalAttackSlots.contains(slot);
+      if (!proficient) {
+        try {
+          final weaponName = keyToName[key] ?? key;
+          proficient = (character as dynamic)
+              .isWeaponProficientByName(typeList, weaponName) as bool? ?? true;
+        } catch (_) { proficient = true; }
+      }
 
       final atkMod  = isRanged ? dexMod : strMod;
       final nonprof = proficient ? 0 : -4;
