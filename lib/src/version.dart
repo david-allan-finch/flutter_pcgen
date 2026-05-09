@@ -1,2 +1,2 @@
 // Auto-updated on each commit — check this matches the running app.
-const String kBuildVersion = 'build-2026-05-09-014';
+const String kBuildVersion = 'build-2026-05-09-015';

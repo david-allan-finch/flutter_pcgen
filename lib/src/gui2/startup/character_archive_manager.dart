@@ -29,7 +29,7 @@ class CharacterArchiveManager {
   Future<String> export({
     List<File>? pcgFiles,
     String? outputPath,
-    void Function(double progress, String status)? onProgress,
+    void Function(double? progress, String status)? onProgress,
   }) async {
     // Gather files
     final files = pcgFiles ?? await _allPcgFiles();
