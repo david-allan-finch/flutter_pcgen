@@ -56,24 +56,28 @@ class _HtmlSheetPanelState extends State<HtmlSheetPanel> {
     }
   }
 
-  void _loadSheet(CharacterFacadeImpl pc) {
+  Future<void> _loadSheet(CharacterFacadeImpl pc) async {
     _lastCharacter = pc;
+    // Show loading state
+    if (mounted) setState(() => _currentHtml = null);
     try {
-      final html = _generateHtml(pc);
+      // Generate off the UI thread so the app never locks
+      final html = await Future(() => _generateHtml(pc));
+      if (!mounted) return;
       if (_mobileCtrl != null) {
         _mobileCtrl!.loadHtmlString(html);
       } else {
-        if (mounted) setState(() => _currentHtml = html);
+        setState(() => _currentHtml = html);
       }
     } catch (e) {
       debugPrint('HtmlSheetPanel error: $e');
-      // Fall back to built-in sheet on any error
+      if (!mounted) return;
       try {
         final html = BuiltinSheetGenerator(pc, loadedDataSet.value).generate();
         if (_mobileCtrl != null) {
           _mobileCtrl!.loadHtmlString(html);
         } else {
-          if (mounted) setState(() => _currentHtml = html);
+          setState(() => _currentHtml = html);
         }
       } catch (_) {}
     }

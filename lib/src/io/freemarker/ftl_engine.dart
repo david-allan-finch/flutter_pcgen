@@ -158,6 +158,11 @@ class _Parser {
           nodes.add(_parseMacroCall());
           continue;
         }
+        // Plain HTML tag or unrecognised '<' — emit it as literal text and advance.
+        // Without this, _pos never moves and we loop forever.
+        nodes.add(_TextNode('<'));
+        _pos++;
+        continue;
       }
 
       if (ch == r'$' && _pos + 1 < _src.length && _src[_pos + 1] == '{') {
@@ -290,6 +295,10 @@ class _Parser {
         if (_startsWith('<#')) { _skipDirectiveTag(); continue; }
         if (_startsWith('</@') || _startsWith('</#')) { _skipEndTag(); continue; }
         if (_startsWith('<@')) { nodes.add(_parseMacroCall()); continue; }
+        // Plain HTML tag — emit literal '<' and advance to avoid infinite loop.
+        nodes.add(_TextNode('<'));
+        _pos++;
+        continue;
       }
       if (ch == r'$' && _pos + 1 < _src.length && _src[_pos + 1] == '{') {
         nodes.add(_parseInterpolation()); continue;
