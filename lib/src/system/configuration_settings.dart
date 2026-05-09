@@ -35,6 +35,17 @@ class ConfigurationSettings extends PropertyContext {
 
   static ConfigurationSettings? _instance;
 
+  /// When set, all '@relative' tokens resolve under this root instead of
+  /// looking next to the executable. Used on Android (and other mobile
+  /// platforms) where data is downloaded to the app documents directory.
+  static String? _dataRoot;
+
+  /// Call this during app startup on platforms where the data files are not
+  /// bundled next to the executable (e.g. Android/iOS after download).
+  static void setDataRoot(String path) => _dataRoot = path;
+
+  static String? get dataRoot => _dataRoot;
+
   ConfigurationSettings._(String configFileName) : super(configFileName) {
     setProperty(systemsDir, '@system');
     setProperty(outputSheetsDir, '@outputsheets');
@@ -73,19 +84,28 @@ class ConfigurationSettings extends PropertyContext {
       _resolve(getInstance().getProperty(customDataDir) ?? '@custom');
 
   /// Resolves a path token. Tokens starting with '@' are treated as directory
-  /// names relative to the data root (executable dir in production, project
-  /// working directory during development).
+  /// names relative to the data root.
+  ///
+  /// Resolution order:
+  ///   0. Pre-configured [_dataRoot] (Android/iOS — set after data download).
+  ///   1. CWD — project directory when running via `flutter run`.
+  ///   2. Sibling pcgen repo — dev convenience.
+  ///   3. Next to the executable — production desktop build.
   static String _resolve(String path) {
     if (!path.startsWith('@')) return path;
     final relative = path.substring(1);
     final sep = Platform.pathSeparator;
+
+    // 0. Explicit data root (mobile platforms after download).
+    if (_dataRoot != null) {
+      return '$_dataRoot$sep$relative';
+    }
 
     // 1. CWD — project directory when running via `flutter run`.
     final fromCwd = '${Directory.current.path}$sep$relative';
     if (Directory(fromCwd).existsSync()) return fromCwd;
 
     // 2. Sibling pcgen repo — dev convenience so data/ doesn't need to be copied.
-    //    flutter_pcgen/ and pcgen/ live side-by-side; pcgen/data/ has the LST files.
     final sibling = Directory(
         '${Directory.current.path}$sep..${sep}pcgen$sep$relative');
     if (sibling.existsSync()) return sibling.resolveSymbolicLinksSync();

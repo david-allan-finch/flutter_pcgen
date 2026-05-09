@@ -1,6 +1,9 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_pcgen/src/gui2/pc_gen_frame.dart';
+import 'package:flutter_pcgen/src/gui2/startup/data_manager.dart';
+import 'package:flutter_pcgen/src/gui2/startup/data_download_screen.dart';
 import 'package:flutter_pcgen/src/gui3/preloader/pc_gen_preloader.dart';
 import 'package:flutter_pcgen/src/gui3/preloader/pc_gen_preloader_controller.dart';
 import 'package:flutter_pcgen/src/gui2/ui_context.dart';
@@ -51,10 +54,26 @@ class _PCGenRoot extends StatefulWidget {
 
 class _PCGenRootState extends State<_PCGenRoot> {
   bool _ready = false;
+  bool _needsDownload = false;
+
+  final _dataMgr = DataManager();
 
   @override
   void initState() {
     super.initState();
+    _checkData();
+  }
+
+  Future<void> _checkData() async {
+    // Only mobile platforms need the download gate.
+    if (Platform.isAndroid || Platform.isIOS) {
+      final ready = await _dataMgr.isDataReady();
+      if (!ready) {
+        if (mounted) setState(() => _needsDownload = true);
+        return;
+      }
+      await _dataMgr.configureDataRoot();
+    }
     _initialise();
   }
 
@@ -63,18 +82,27 @@ class _PCGenRootState extends State<_PCGenRoot> {
 
     await LstSystemLoader().loadSystemResources(
       onProgress: (fraction, message) {
-        // Reserve the last 10% for GUI startup so the bar never stalls at 100%.
         controller.setProgress(fraction * 0.9, message);
       },
     );
 
     controller.setProgress(0.95, 'Starting GUI...');
     controller.complete();
-    if (mounted) setState(() => _ready = true);
+    if (mounted) setState(() { _ready = true; _needsDownload = false; });
   }
 
   @override
   Widget build(BuildContext context) {
+    // Show download screen on mobile when data files are absent.
+    if (_needsDownload) {
+      return DataDownloadScreen(
+        onComplete: () {
+          setState(() => _needsDownload = false);
+          _initialise();
+        },
+      );
+    }
+
     if (!_ready) {
       return PCGenPreloader(
         controller: context.read<PCGenPreloaderController>(),
