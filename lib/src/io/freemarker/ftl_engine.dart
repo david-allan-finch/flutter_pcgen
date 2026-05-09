@@ -160,7 +160,7 @@ class _Parser {
         }
       }
 
-      if (ch == '$' && _pos + 1 < _src.length && _src[_pos + 1] == '{') {
+      if (ch == r'$' && _pos + 1 < _src.length && _src[_pos + 1] == '{') {
         nodes.add(_parseInterpolation());
         continue;
       }
@@ -169,7 +169,7 @@ class _Parser {
       final start = _pos;
       while (_pos < _src.length) {
         final c = _src[_pos];
-        if (c == '<' || (c == '$' && _pos + 1 < _src.length && _src[_pos + 1] == '{')) break;
+        if (c == '<' || (c == r'$' && _pos + 1 < _src.length && _src[_pos + 1] == '{')) break;
         _pos++;
       }
       if (_pos > start) nodes.add(_TextNode(_src.substring(start, _pos)));
@@ -291,13 +291,13 @@ class _Parser {
         if (_startsWith('</@') || _startsWith('</#')) { _skipEndTag(); continue; }
         if (_startsWith('<@')) { nodes.add(_parseMacroCall()); continue; }
       }
-      if (ch == '$' && _pos + 1 < _src.length && _src[_pos + 1] == '{') {
+      if (ch == r'$' && _pos + 1 < _src.length && _src[_pos + 1] == '{') {
         nodes.add(_parseInterpolation()); continue;
       }
       final start = _pos;
       while (_pos < _src.length) {
         final c = _src[_pos];
-        if (c == '<' || (c == '$' && _pos + 1 < _src.length && _src[_pos + 1] == '{')) break;
+        if (c == '<' || (c == r'$' && _pos + 1 < _src.length && _src[_pos + 1] == '{')) break;
         _pos++;
       }
       if (_pos > start) nodes.add(_TextNode(_src.substring(start, _pos)));

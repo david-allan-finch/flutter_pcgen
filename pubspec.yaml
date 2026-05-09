@@ -19,6 +19,7 @@ dependencies:
   collection: ^1.18.0
   petitparser: ^6.0.2
   webview_flutter: ^4.10.0
+  webview_flutter_windows: ^0.2.2
   http: ^1.2.0
   archive: ^3.6.0
 

@@ -604,7 +604,7 @@ class PcgenTokenContext extends FtlContext {
   // ─── Helpers ───────────────────────────────────────────────────────────────
 
   String _raceName() {
-    try { return _pc.getRaceRef().get()?.getDisplayName() as String? ?? _pc.getRaceKey(); }
+    try { return (_pc.getRaceRef().get() as dynamic)?.getDisplayName() as String? ?? _pc.getRaceKey(); }
     catch (_) { return _pc.getRaceKey(); }
   }
 
