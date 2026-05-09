@@ -47,6 +47,7 @@ import 'package:flutter_pcgen/src/io/pcg_character_io.dart';
 import 'package:flutter_pcgen/src/persistence/source_file_loader.dart';
 import 'package:flutter_pcgen/src/system/character_manager.dart';
 import 'package:flutter_pcgen/src/core/globals.dart';
+import 'package:flutter_pcgen/src/version.dart';
 
 /// The main window for PCGen. Also responsible for global UI functions
 /// such as message dialogs.
@@ -566,6 +567,8 @@ class PCGenFrameState extends State<PCGenFrame> {
                   Image.asset('assets/images/pcgen_logo.png', height: 28, width: 28),
                   const SizedBox(width: 8),
                   Text(_title ?? 'PCGen 7 α'),
+                  const SizedBox(width: 8),
+                  Text(kBuildVersion, style: const TextStyle(fontSize: 10, color: Colors.white54)),
                 ],
               ),
               actions: [
