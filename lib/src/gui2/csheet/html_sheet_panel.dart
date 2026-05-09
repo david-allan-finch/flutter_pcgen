@@ -1,18 +1,20 @@
-// Inline HTML character sheet panel.
-// Renders the built-in (or FTL-processed) HTML sheet inside the app using
-// a WebView — equivalent to how Java PCGen shows the sheet tab.
+// Inline HTML character sheet — renders inside the app on all platforms.
+//
+// Android / iOS : webview_flutter  (Chromium WebView)
+// Windows       : webview_windows  (Edge WebView2, pre-installed on Win10/11)
+// macOS / Linux : open-in-browser fallback
 
+import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:webview_flutter/webview_flutter.dart';
+import 'package:webview_flutter/webview_flutter.dart' as wf;
+import 'package:webview_windows/webview_windows.dart' as ww;
 import 'package:flutter_pcgen/src/gui2/app_state.dart';
 import 'package:flutter_pcgen/src/gui2/facade/character_facade_impl.dart';
 import 'package:flutter_pcgen/src/io/html/builtin_sheet_generator.dart';
 import 'package:flutter_pcgen/src/io/freemarker/character_export_action.dart';
 
 class HtmlSheetPanel extends StatefulWidget {
-  /// Optional path to an external .htm.ftl template. If null, uses the built-in sheet.
   final String? templatePath;
-
   const HtmlSheetPanel({super.key, this.templatePath});
 
   @override
@@ -20,22 +22,50 @@ class HtmlSheetPanel extends StatefulWidget {
 }
 
 class _HtmlSheetPanelState extends State<HtmlSheetPanel> {
-  WebViewController? _controller;
+  // Mobile controller (Android/iOS)
+  wf.WebViewController? _mobileCtrl;
+  // Windows controller
+  ww.WebviewController? _winCtrl;
+  bool _winReady = false;
+
   CharacterFacadeImpl? _lastCharacter;
-  bool _loading = true;
-  String? _error;
+  bool _initialised = false;
+  String? _pendingHtml;
 
   @override
   void initState() {
     super.initState();
     currentCharacter.addListener(_onCharacterChanged);
-    _initWebView();
+    _init();
   }
 
   @override
   void dispose() {
     currentCharacter.removeListener(_onCharacterChanged);
+    _winCtrl?.dispose();
     super.dispose();
+  }
+
+  Future<void> _init() async {
+    if (Platform.isAndroid || Platform.isIOS) {
+      _mobileCtrl = wf.WebViewController()
+        ..setJavaScriptMode(wf.JavaScriptMode.unrestricted);
+    } else if (Platform.isWindows) {
+      try {
+        final ctrl = ww.WebviewController();
+        await ctrl.initialize();
+        _winCtrl = ctrl;
+        _winReady = true;
+      } catch (e) {
+        debugPrint('webview_windows init failed: $e');
+      }
+    }
+    _initialised = true;
+    if (mounted) setState(() {});
+
+    // Load pending sheet
+    final char = currentCharacter.value;
+    if (char is CharacterFacadeImpl) _loadSheet(char);
   }
 
   void _onCharacterChanged() {
@@ -45,41 +75,26 @@ class _HtmlSheetPanelState extends State<HtmlSheetPanel> {
     }
   }
 
-  void _initWebView() {
-    final ctrl = WebViewController()
-      ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..setNavigationDelegate(NavigationDelegate(
-        onPageFinished: (_) => setState(() => _loading = false),
-        onWebResourceError: (e) => setState(() {
-          _loading = false;
-          _error = e.description;
-        }),
-      ));
-    setState(() => _controller = ctrl);
-
-    final char = currentCharacter.value;
-    if (char is CharacterFacadeImpl) {
-      _loadSheet(char);
+  void _loadSheet(CharacterFacadeImpl pc) {
+    _lastCharacter = pc;
+    try {
+      final html = widget.templatePath != null
+          ? CharacterExportAction(pc, dataset: loadedDataSet.value)
+              .executeFromTemplate(widget.templatePath!)
+          : BuiltinSheetGenerator(pc, loadedDataSet.value).generate();
+      _setHtml(html);
+    } catch (e) {
+      debugPrint('HtmlSheetPanel._loadSheet error: $e');
     }
   }
 
-  void _loadSheet(CharacterFacadeImpl pc) {
-    final ctrl = _controller;
-    if (ctrl == null) return;
-    _lastCharacter = pc;
-    setState(() { _loading = true; _error = null; });
-
-    try {
-      final String html;
-      if (widget.templatePath != null) {
-        html = CharacterExportAction(pc, dataset: loadedDataSet.value)
-            .executeFromTemplate(widget.templatePath!);
-      } else {
-        html = BuiltinSheetGenerator(pc, loadedDataSet.value).generate();
-      }
-      ctrl.loadHtmlString(html, baseUrl: 'about:blank');
-    } catch (e) {
-      setState(() { _loading = false; _error = e.toString(); });
+  void _setHtml(String html) {
+    if (_mobileCtrl != null) {
+      _mobileCtrl!.loadHtmlString(html);
+    } else if (_winCtrl != null && _winReady) {
+      _winCtrl!.loadStringContent(html);
+    } else {
+      _pendingHtml = html; // will be applied once init completes
     }
   }
 
@@ -91,49 +106,50 @@ class _HtmlSheetPanelState extends State<HtmlSheetPanel> {
         if (character == null) {
           return const Center(
             child: Text('No character selected.',
-                style: TextStyle(color: Colors.grey, fontStyle: FontStyle.italic)),
+                style: TextStyle(color: Colors.grey,
+                    fontStyle: FontStyle.italic)),
           );
         }
 
-        if (character is CharacterFacadeImpl && character != _lastCharacter) {
-          // Schedule sheet reload after build
-          WidgetsBinding.instance.addPostFrameCallback((_) => _loadSheet(character));
+        if (character is CharacterFacadeImpl &&
+            character != _lastCharacter) {
+          WidgetsBinding.instance
+              .addPostFrameCallback((_) => _loadSheet(character));
         }
 
-        if (_error != null) {
-          return Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.error_outline, size: 48, color: Colors.red),
-                const SizedBox(height: 8),
-                Text('Sheet render error: $_error',
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(color: Colors.red)),
-                const SizedBox(height: 12),
-                ElevatedButton(
-                  onPressed: () {
-                    if (character is CharacterFacadeImpl) _loadSheet(character);
-                  },
-                  child: const Text('Retry'),
-                ),
-              ],
-            ),
-          );
-        }
-
-        if (_controller == null) {
+        if (!_initialised) {
           return const Center(child: CircularProgressIndicator());
         }
 
-        return Stack(
-          children: [
-            WebViewWidget(controller: _controller!),
-            if (_loading)
-              const Center(child: CircularProgressIndicator()),
-          ],
-        );
+        // Mobile
+        if (_mobileCtrl != null) {
+          return wf.WebViewWidget(controller: _mobileCtrl!);
+        }
+
+        // Windows
+        if (_winCtrl != null && _winReady) {
+          return Webview(_winCtrl!);
+        }
+
+        // Fallback
+        return const _NoWebViewFallback();
       },
     );
   }
+}
+
+class _NoWebViewFallback extends StatelessWidget {
+  const _NoWebViewFallback();
+  @override
+  Widget build(BuildContext context) => const Center(
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          Icon(Icons.web_asset_off, size: 48, color: Colors.grey),
+          SizedBox(height: 12),
+          Text('WebView not available on this platform.',
+              style: TextStyle(color: Colors.grey)),
+          SizedBox(height: 4),
+          Text('Use the "View HTML Sheet" button to open in your browser.',
+              style: TextStyle(fontSize: 12, color: Colors.grey)),
+        ]),
+      );
 }
