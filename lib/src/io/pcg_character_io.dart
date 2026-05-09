@@ -635,8 +635,10 @@ class PCGCharacterIO {
         case 'REGION':
         case 'SUPPRESSBIOFIELDS':
         case 'KIT':
-        case 'TEMPBONUS':
           break; // recognised but not yet used
+        case 'TEMPBONUS':
+          _readTempBonus(data, value);
+          break;
         case 'LANGUAGE':
           _readLanguages(data, value);
           break;
@@ -889,6 +891,49 @@ class PCGCharacterIO {
     // Preserve TYPE and DESC for round-trip
     if (abilType.isNotEmpty) (data['abilityTypes'] as Map)[abilityKey] = abilType;
     if (abilDesc.isNotEmpty) (data['abilityDescs'] as Map)[abilityKey] = abilDesc;
+  }
+
+  static void _readTempBonus(Map<String, dynamic> data, String value) {
+    // Format (| separators, &pipe; inside bonus values):
+    //   SPELL=SpellName|TBTARGET:PC|TBBONUS:COMBAT&pipe;AC&pipe;formula&pipe;TYPE=X
+    // All TEMPBONUS lines saved in a PCG were active at save time.
+    final parts = value.split('|');
+    if (parts.isEmpty) return;
+    final source = parts[0].trim(); // e.g. "SPELL=Barkskin" or "FEAT=..."
+    final tempBonuses = (data['tempBonuses'] ??= <dynamic>[]) as List;
+
+    for (final p in parts.skip(1)) {
+      if (!p.toUpperCase().startsWith('TBBONUS:')) continue;
+      // Unescape &pipe; → | inside the bonus string
+      final bonusStr = p.substring(8).replaceAll('&pipe;', '|');
+      // bonusStr is now like "COMBAT|AC|formula|TYPE=X"
+      // Split on | to extract category, targets, formula, optional TYPE
+      final bParts = bonusStr.split('|');
+      if (bParts.length < 3) continue;
+      final category  = bParts[0].trim();
+      final target    = bParts[1].trim();
+      final formula   = bParts[2].trim();
+      String bonusType = '';
+      for (int i = 3; i < bParts.length; i++) {
+        final bp = bParts[i].trim();
+        if (bp.toUpperCase().startsWith('TYPE=')) {
+          bonusType = bp.substring(5).trim();
+          // Strip .REPLACE/.STACK suffixes (stored separately in Java)
+          bonusType = bonusType
+              .replaceAll(RegExp(r'\.REPLACE$', caseSensitive: false), '')
+              .replaceAll(RegExp(r'\.STACK$',   caseSensitive: false), '');
+        }
+      }
+      // Store as our internal tempBonus map format
+      tempBonuses.add({
+        'source':    source,
+        'category':  category,
+        'target':    target,
+        'value':     formula,
+        'bonusType': bonusType,
+        'active':    true,
+      });
+    }
   }
 
   static void _readFeat(Map<String, dynamic> data, String value) {

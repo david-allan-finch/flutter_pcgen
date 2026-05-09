@@ -424,8 +424,10 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
   int getFortSave() {
     final acc = _bonusAcc;
     final base = acc.totalIntWithAll('SAVE', 'Fortitude') +
-                 acc.totalIntWithAll('SAVE', 'BASE.FORTITUDE');
-    // Fallback: if no bonus data, use CON mod + stored value
+                 acc.totalIntWithAll('SAVE', 'BASE.FORTITUDE') +
+                 acc.totalIntWithAll('CHECKS', 'Fortitude') +
+                 acc.totalIntWithAll('SAVE', 'ALL') +
+                 acc.totalIntWithAll('CHECKS', 'ALL');
     if (base == 0) return (_data['fortSave'] as num?)?.toInt() ?? _statModByAbb('CON');
     return base + _statModByAbb('CON');
   }
@@ -434,7 +436,10 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
   int getRefSave() {
     final acc = _bonusAcc;
     final base = acc.totalIntWithAll('SAVE', 'Reflex') +
-                 acc.totalIntWithAll('SAVE', 'BASE.REFLEX');
+                 acc.totalIntWithAll('SAVE', 'BASE.REFLEX') +
+                 acc.totalIntWithAll('CHECKS', 'Reflex') +
+                 acc.totalIntWithAll('SAVE', 'ALL') +
+                 acc.totalIntWithAll('CHECKS', 'ALL');
     if (base == 0) return (_data['refSave'] as num?)?.toInt() ?? _statModByAbb('DEX');
     return base + _statModByAbb('DEX');
   }
@@ -443,27 +448,39 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
   int getWillSave() {
     final acc = _bonusAcc;
     final base = acc.totalIntWithAll('SAVE', 'Will') +
-                 acc.totalIntWithAll('SAVE', 'BASE.WILL');
+                 acc.totalIntWithAll('SAVE', 'BASE.WILL') +
+                 acc.totalIntWithAll('CHECKS', 'Will') +
+                 acc.totalIntWithAll('SAVE', 'ALL') +
+                 acc.totalIntWithAll('CHECKS', 'ALL');
     if (base == 0) return (_data['willSave'] as num?)?.toInt() ?? _statModByAbb('WIS');
     return base + _statModByAbb('WIS');
   }
 
   int _statModByAbb(String abb) {
-    final scores = _data['statScores'];
-    int base = 10;
-    if (scores is Map) base = (scores[abb] as num?)?.toInt() ?? 10;
-    // Add level ASI gains
-    int levelGains = 0;
-    final levels = _data['classLevels'] as List? ?? [];
-    for (final l in levels) {
-      if (l is Map) {
-        final gains = l['statGains'] as Map?;
-        if (gains != null) {
-          levelGains += (gains[abb.toUpperCase()] as num?)?.toInt() ?? 0;
+    // Delegate to getModTotal so magic item bonuses (Amulet of Health, etc.)
+    // are included in saves, HP, initiative, and AC calculations.
+    final upper = abb.toUpperCase();
+    // Find the matching PCStat by abbreviation
+    try {
+      // Try direct abbreviation lookup in statScores
+      final scores = _data['statScores'];
+      if (scores is Map && scores.containsKey(upper)) {
+        final base = (scores[upper] as num?)?.toInt() ?? 10;
+        int levelGains = 0;
+        final levels = _data['classLevels'] as List? ?? [];
+        for (final l in levels) {
+          if (l is Map) {
+            final gains = l['statGains'] as Map?;
+            if (gains != null) {
+              levelGains += (gains[upper] as num?)?.toInt() ?? 0;
+            }
+          }
         }
+        final itemBonus = _bonusAcc.totalIntWithAll('STAT', upper);
+        return ((base + levelGains + itemBonus - 10) / 2).floor();
       }
-    }
-    return ((base + levelGains - 10) / 2).floor();
+    } catch (_) {}
+    return 0;
   }
 
   // ---- Initiative ---------------------------------------------------------
@@ -478,24 +495,34 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
 
   // ---- AC -----------------------------------------------------------------
 
+  // Bonus types excluded from touch AC (physical protection that touch ignores).
+  static const _touchACExclude = {'ARMOR', 'ARMORENHANCEMENT', 'NATURALARMOR', 'SHIELD', 'SHIELDENHANCEMENT'};
+  // Flat-footed additionally loses Dodge and DEX.
+  static const _flatFootedACExclude = {'ARMOR', 'ARMORENHANCEMENT', 'NATURALARMOR', 'SHIELD', 'SHIELDENHANCEMENT', 'DODGE'};
+
   @override
   int getAC() {
-    // 10 base + DEX modifier (capped by armor MAXDEX) + all typed/untyped AC bonuses
-    // from the accumulator (armor, shield, natural armor, dodge, deflection, etc.)
     return 10 + _effectiveDexForAC() +
         _bonusAcc.totalIntWithAll('COMBAT', 'AC');
   }
 
   @override
   int getTouchAC() {
-    // Touch AC: base + DEX + dodge + deflection, no armor/natural/shield
+    // Touch AC: excludes Armor, NaturalArmor, Shield typed bonuses.
     return 10 + _effectiveDexForAC() +
-        _bonusAcc.totalInt('COMBAT', 'AC'); // will include dodge/deflect from accumulator
-    // A more correct impl would separately sum only typed bonuses; this is acceptable for now
+        _bonusAcc.totalIntExcluding('COMBAT', 'AC', _touchACExclude) +
+        _bonusAcc.totalInt('COMBAT', 'ALL');
   }
 
   @override
-  int getFlatFootedAC() => getAC() - _effectiveDexForAC().clamp(0, 99);
+  int getFlatFootedAC() {
+    // Flat-footed: loses DEX and Dodge bonuses in addition to touch exclusions.
+    final dexContrib = _effectiveDexForAC().clamp(0, 99);
+    return 10 +
+        _bonusAcc.totalIntExcluding('COMBAT', 'AC', _flatFootedACExclude) +
+        _bonusAcc.totalInt('COMBAT', 'ALL') -
+        dexContrib;
+  }
 
   /// DEX bonus to AC, capped by the lowest MAXDEX among equipped armor/shields.
   int _effectiveDexForAC() {
@@ -529,21 +556,74 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
     final bab = _bonusAcc.totalInt('COMBAT', 'BASEAB');
     if (bab == 0) return _str('bab');
     if (bab < 6) return '+$bab';
+
+    // Check for a non-standard attack cycle (e.g. Monk: 5|5|2 instead of 5|5|5).
+    List<int> cycles = [5, 5, 5, 5, 5];
+    try {
+      final dataset = _dataset;
+      if (dataset != null) {
+        final classes = (dataset as dynamic).classes as List? ?? [];
+        final classLevels = _data['classLevels'] as List? ?? [];
+        final usedKeys = <String>{};
+        for (final l in classLevels) {
+          if (l is! Map) continue;
+          final key = l['classKey'] as String? ?? '';
+          if (!usedKeys.add(key)) continue;
+          for (final cls in classes) {
+            if ((cls as dynamic).getKeyName() != key) continue;
+            final cycle = (cls as dynamic).getString(StringKey.attackCycle) as String?;
+            if (cycle != null && cycle.isNotEmpty) {
+              final parts = cycle.split('|')
+                  .map((s) => int.tryParse(s.trim()) ?? 5).toList();
+              if (parts.isNotEmpty) { cycles = parts; break; }
+            }
+            break;
+          }
+        }
+      }
+    } catch (_) {}
+
     final attacks = <String>[];
     int cur = bab;
-    while (cur > 0) { attacks.add('+$cur'); cur -= 5; }
+    int ci = 0;
+    while (cur > 0) {
+      attacks.add('${cur >= 0 ? '+' : ''}$cur');
+      cur -= cycles[ci < cycles.length ? ci : cycles.length - 1];
+      ci++;
+      if (ci > 8) break; // safety
+    }
     return attacks.join('/');
   }
 
-  /// Miscellaneous to-hit bonus from BONUS:COMBAT|TOHIT (feats, items, etc.)
-  int getTohitBonus() =>
-      _bonusAcc.totalInt('COMBAT', 'TOHIT') +
-      _bonusAcc.totalInt('COMBAT', 'TOHIT.MELEE');
+  /// Universal to-hit bonus (BONUS:COMBAT|TOHIT — applies to all attacks).
+  int getTohitBonus() => _bonusAcc.totalInt('COMBAT', 'TOHIT');
 
-  /// Miscellaneous damage bonus from BONUS:COMBAT|DAMAGE (feats, items, etc.)
-  int getDamageBonus() =>
+  /// Melee-specific to-hit (TOHIT + TOHIT.MELEE). Use for melee weapons only.
+  int getTohitBonusMelee() =>
+      _bonusAcc.totalInt('COMBAT', 'TOHIT') +
+      _bonusAcc.totalInt('COMBAT', 'TOHIT.MELEE') +
+      _bonusAcc.totalInt('WEAPON', 'TOHIT');
+
+  /// Ranged-specific to-hit (TOHIT + TOHIT.RANGED). Use for ranged weapons only.
+  int getTohitBonusRanged() =>
+      _bonusAcc.totalInt('COMBAT', 'TOHIT') +
+      _bonusAcc.totalInt('COMBAT', 'TOHIT.RANGED') +
+      _bonusAcc.totalInt('WEAPON', 'TOHIT');
+
+  /// Universal damage bonus (BONUS:COMBAT|DAMAGE — applies to all attacks).
+  int getDamageBonus() => _bonusAcc.totalInt('COMBAT', 'DAMAGE');
+
+  /// Melee-specific damage (DAMAGE + DAMAGE.MELEE).
+  int getDamageBonusMelee() =>
       _bonusAcc.totalInt('COMBAT', 'DAMAGE') +
-      _bonusAcc.totalInt('COMBAT', 'DAMAGE.MELEE');
+      _bonusAcc.totalInt('COMBAT', 'DAMAGE.MELEE') +
+      _bonusAcc.totalInt('WEAPON', 'DAMAGE');
+
+  /// Ranged-specific damage (DAMAGE + DAMAGE.RANGED).
+  int getDamageBonusRanged() =>
+      _bonusAcc.totalInt('COMBAT', 'DAMAGE') +
+      _bonusAcc.totalInt('COMBAT', 'DAMAGE.RANGED') +
+      _bonusAcc.totalInt('WEAPON', 'DAMAGE');
 
   /// Short-range (≤30ft) to-hit bonus — Point Blank Shot etc.
   int getShortRangeTohitBonus() =>
@@ -612,18 +692,47 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
   }
 
   /// BONUS:SKILL total for a skill (from feats, racial traits, items, etc.)
-  /// Also resolves BONUS:SKILL|LIST|N bonuses from CHOOSE-based abilities.
+  /// Includes SKILL|Name, SKILL|ALL, SKILL|TYPE.X, CSKILL|Name, CCSKILL|Name,
+  /// and CHOOSE-based LIST bonuses.
   int getSkillBonus(String displayName, String keyName) {
     final acc = _bonusAcc;
-    int total = acc.totalIntWithAll('SKILL', displayName.toUpperCase()) +
-                acc.totalIntWithAll('SKILL', keyName.toUpperCase());
+    final nameUp = displayName.toUpperCase();
+    final keyUp  = keyName.toUpperCase();
+
+    int total = acc.totalIntWithAll('SKILL', nameUp) +
+                acc.totalIntWithAll('SKILL', keyUp);
+
+    // Class-skill and cross-class-skill specific bonuses
+    total += acc.totalIntWithAll('CSKILL',  nameUp) +
+             acc.totalIntWithAll('CSKILL',  keyUp)  +
+             acc.totalIntWithAll('CCSKILL', nameUp) +
+             acc.totalIntWithAll('CCSKILL', keyUp);
+
+    // Type-based skill bonuses: BONUS:SKILL|TYPE.Craft etc.
+    // Skill types come from the dataset skill object's type list.
+    try {
+      final dataset = _dataset;
+      if (dataset != null) {
+        final skills = (dataset as dynamic).skills as List? ?? [];
+        for (final sk in skills) {
+          final skName = (sk as dynamic).getDisplayName() as String? ?? '';
+          if (skName.toLowerCase() != displayName.toLowerCase()) continue;
+          final typeList = (sk as dynamic)
+              .getSafeListFor(ListKey.getConstant<String>('TYPE')) as List? ?? [];
+          for (final t in typeList) {
+            if (t is String && t.isNotEmpty) {
+              total += acc.totalInt('SKILL', 'TYPE.${t.toUpperCase()}');
+            }
+          }
+          break;
+        }
+      }
+    } catch (_) {}
 
     // Resolve LIST bonuses: check abilityChoices for any that match this skill
     try {
-      final data = _data;
-      final choices = data['abilityChoices'] as Map? ?? {};
-      final selectedAbilities = data['selectedAbilities'] as Map? ?? {};
-      // Gather all selected keys across categories
+      final choices = _data['abilityChoices'] as Map? ?? {};
+      final selectedAbilities = _data['selectedAbilities'] as Map? ?? {};
       final allSelected = <String>[];
       for (final cat in selectedAbilities.values) {
         if (cat is List) allSelected.addAll(cat.cast<String>());
@@ -631,10 +740,8 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
       for (final storedKey in allSelected) {
         final choice = choices[storedKey] as String?;
         if (choice == null) continue;
-        // Does this choice match the skill we're computing?
         if (choice.toLowerCase() != displayName.toLowerCase() &&
             choice.toLowerCase() != keyName.toLowerCase()) continue;
-        // Look up the LIST bonus on the ability
         total += _listBonusForAbility(storedKey, 'SKILL');
       }
     } catch (_) {}
@@ -679,11 +786,39 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
     });
     final statMods =
         statScores.map((k, v) => MapEntry(k, ((v - 10) / 2).floor()));
-    final classLevels = _data['classLevels'] as List? ?? [];
+    final classLevelList = _data['classLevels'] as List? ?? [];
+    final counts = <String, int>{};
+    for (final l in classLevelList) {
+      if (l is Map) {
+        final k = l['classKey'] as String? ?? '';
+        counts[k] = (counts[k] ?? 0) + 1;
+      }
+    }
     return FormulaContext(
       statMods: statMods,
       statScores: statScores,
-      totalLevel: classLevels.length,
+      totalLevel: classLevelList.length,
+      classLevels: counts,
+      variables: Map<String, double>.from(_data['charVariables'] as Map? ?? {}),
+      charbonusto: (category, target) =>
+          _bonusAcc.totalWithAll(category, target),
+      countFn: (what) {
+        final w = what.toUpperCase();
+        if (w == 'CLASSES') return counts.length.toDouble();
+        if (w.startsWith('ABILITIES') || w.startsWith('FEATS')) {
+          final selected = _data['selectedAbilities'] as Map? ?? {};
+          int total = 0;
+          for (final cat in selected.values) {
+            if (cat is List) total += cat.length;
+          }
+          return total.toDouble();
+        }
+        return 0.0;
+      },
+      skillinfo: (skillName) {
+        // Returns total skill modifier for the named skill
+        return getSkillBonus(skillName, skillName).toDouble();
+      },
     );
   }
 
@@ -1394,11 +1529,40 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
   /// progression bonuses like "Dragon Disciple adds to Sorcerer CL").
   int getCasterLevel(String classOrSchool) {
     final key = classOrSchool.toUpperCase();
-    final cl = _bonusAcc.totalInt('CASTERLEVEL', key) +
-               _bonusAcc.totalIntWithAll('CASTERLEVEL', key);
+    int cl = _bonusAcc.totalInt('CASTERLEVEL', key) +
+             _bonusAcc.totalIntWithAll('CASTERLEVEL', key);
     // BONUS:PCLEVEL|ClassName|CL — prestige class effective-level bonus
     final pcl = _bonusAcc.totalInt('PCLEVEL', classOrSchool) +
                 _bonusAcc.totalInt('PCLEVEL', key);
+
+    // CASTERLEVEL:ClassName token on prestige classes — adds levels to a base class.
+    // Each prestige class that has CASTERLEVEL:Wizard grants its class levels
+    // to Wizard caster level.
+    try {
+      final dataset = _dataset;
+      if (dataset != null) {
+        final classes = (dataset as dynamic).classes as List? ?? [];
+        final classLevels = _data['classLevels'] as List? ?? [];
+        final counts = <String, int>{};
+        for (final l in classLevels) {
+          if (l is Map) {
+            final k = l['classKey'] as String? ?? '';
+            counts[k] = (counts[k] ?? 0) + 1;
+          }
+        }
+        for (final cls in classes) {
+          final clsKey = (cls as dynamic).getKeyName() as String? ?? '';
+          final lvl = counts[clsKey] ?? 0;
+          if (lvl == 0) continue;
+          final grants = (cls as dynamic)
+              .getSafeListFor(ListKey.getConstant<String>('CASTERLEVEL_GRANTS')) as List? ?? [];
+          for (final g in grants) {
+            if (g is String && g.toUpperCase() == key) cl += lvl;
+          }
+        }
+      }
+    } catch (_) {}
+
     return cl + pcl;
   }
 
@@ -1872,9 +2036,47 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
     // Apply active temporary bonuses (spell effects, rage, etc.)
     _applyTempBonuses();
 
+    // Apply size modifiers (standard 3.5e/PF table).
+    _applySizeModifiers();
+
     debugPrint('BAB_DBG final BASEAB=${_bonusAcc.totalInt("COMBAT","BASEAB")} totalLevel=${classLevels.length} classCounts=$counts');
 
     _bonusDirty = false;
+  }
+
+  // Standard 3.5e size modifier table: size abbreviation → (AC/Attack bonus, Grapple bonus)
+  static const _sizeMods = {
+    'F': (8,  -24), // Fine
+    'D': (4,  -12), // Diminutive
+    'T': (2,   -8), // Tiny
+    'S': (1,   -4), // Small
+    'M': (0,    0), // Medium
+    'L': (-1,   4), // Large
+    'H': (-2,   8), // Huge
+    'G': (-4,  12), // Gargantuan
+    'C': (-8,  16), // Colossal
+  };
+
+  void _applySizeModifiers() {
+    final sizeKey = (_data['raceSize'] as String? ?? 'M').toUpperCase();
+    final mods = _sizeMods[sizeKey];
+    if (mods == null || mods.$1 == 0) return; // Medium has no modifier
+
+    final acAttackBonus = mods.$1.toDouble();
+
+    // AC size modifier
+    final acBonus = ParsedBonus(
+      category: 'COMBAT', targets: ['AC'],
+      formula: acAttackBonus.toString(), bonusType: 'Size', stack: BonusStack.normal,
+    );
+    _bonusAcc.add(acBonus, acAttackBonus);
+
+    // Attack size modifier
+    final hitBonus = ParsedBonus(
+      category: 'COMBAT', targets: ['TOHIT'],
+      formula: acAttackBonus.toString(), bonusType: 'Size', stack: BonusStack.normal,
+    );
+    _bonusAcc.add(hitBonus, acAttackBonus);
   }
 
   void _applyTempBonuses() {

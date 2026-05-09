@@ -347,10 +347,27 @@ class PCClassLoader extends GenericLoader<PCClass> {
       case 'MAXLEVEL':
         try { pcClass.putObject(CDOMObjectKey.getConstant<int>('MAX_LEVEL'), int.tryParse(value) ?? 20); } catch (_) {}
         return true;
-      case 'EXCLASS':
-      case 'CASTERLEVEL':
-      case 'INTMOD':
       case 'ATTACKCYCLE':
+        // ATTACKCYCLE:5|5|2 — non-standard attack progression (Monk).
+        // Store as a pipe-joined string for the sheet to interpret.
+        try { pcClass.putString(StringKey.attackCycle, value); } catch (_) {}
+        return true;
+      case 'BONUSSPELLSTAT':
+        // Which stat governs bonus spell slots (default is primary spellcasting stat).
+        try { pcClass.putString(StringKey.bonusSpellStat, value.toUpperCase()); } catch (_) {}
+        return true;
+      case 'MODTOSKILLS':
+        // MODTOSKILLS:YES — monster classes apply stat mod to skill points.
+        try { pcClass.putObject(CDOMObjectKey.getConstant<bool>('MOD_TO_SKILLS'),
+            value.toUpperCase() == 'YES'); } catch (_) {}
+        return true;
+      case 'CASTERLEVEL':
+        // CASTERLEVEL:ClassName — prestige class adds caster levels to another class.
+        // Store as "CASTERLEVEL:ClassName" for use in getCasterLevel().
+        try { pcClass.addToListFor(ListKey.getConstant<String>('CASTERLEVEL_GRANTS'), value); } catch (_) {}
+        return true;
+      case 'EXCLASS':
+      case 'INTMOD':
       case 'SUBCLASS':
       case 'SUBCLASSLEVEL':
       case 'SUBSTITUTIONLEVEL':

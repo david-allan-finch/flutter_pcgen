@@ -19,8 +19,15 @@ class BonusAccumulator {
   // category → target → typeTag → list of values
   final Map<String, Map<String, Map<String, List<double>>>> _values = {};
 
-  // category → target → list of untyped values (always stack)
+  // category → target → list of untyped/stacking values (always stack)
   final Map<String, Map<String, List<double>>> _untyped = {};
+
+  /// Bonus types that always stack (from game mode BONUSSTACKS).
+  /// e.g. Dodge, Circumstance, Defense — multiple sources sum rather than max.
+  static final Set<String> _stackingTypes = {
+    'DODGE', 'CIRCUMSTANCE', 'DEFENSE', 'RACIAL',
+    'NOTRANGED', 'NOTFLATFOOTED',
+  };
 
   void clear() {
     _values.clear();
@@ -44,11 +51,14 @@ class BonusAccumulator {
         // Untyped: always stacks
         _untyped.putIfAbsent(cat, () => {}).putIfAbsent(tgt, () => []).add(value);
       } else {
+        String type = bonus.bonusType.toUpperCase();
+        // Types in the game-mode BONUSSTACKS list always stack additively.
+        if (_stackingTypes.contains(type)) {
+          _untyped.putIfAbsent(cat, () => {}).putIfAbsent(tgt, () => []).add(value);
+          continue;
+        }
         // For REPLACE bonuses from a named source (e.g. a class), append the
         // source key so each source gets its own max bucket and they still sum.
-        // This correctly models multi-class BAB where each class contributes
-        // its own REPLACE base bonus independently.
-        String type = bonus.bonusType.toUpperCase();
         if (sourceKey.isNotEmpty && bonus.stack == BonusStack.replace) {
           type = '$type.$sourceKey';
         }
@@ -103,10 +113,41 @@ class BonusAccumulator {
     return total(category, target) + total(category, 'ALL');
   }
 
+  /// Total excluding contributions whose type matches any in [excludeTypes].
+  /// Used for touch AC (exclude Armor, NaturalArmor, Shield, ArmorEnhancement)
+  /// and flat-footed AC (also exclude Dodge).
+  double totalExcluding(String category, String target, Set<String> excludeTypes) {
+    final cat = category.toUpperCase();
+    final tgt = target.toUpperCase();
+    final excl = excludeTypes.map((t) => t.toUpperCase()).toSet();
+    double sum = 0;
+
+    // Untyped always included
+    final untypedList = _untyped[cat]?[tgt];
+    if (untypedList != null) {
+      for (final v in untypedList) sum += v;
+    }
+
+    final typed = _values[cat]?[tgt];
+    if (typed != null) {
+      for (final entry in typed.entries) {
+        // Strip any sourceKey suffix (e.g. "BASE.Barbarian") before checking
+        final baseType = entry.key.split('.').first;
+        if (excl.contains(baseType)) continue;
+        final typeValues = entry.value;
+        if (typeValues.isEmpty) continue;
+        sum += typeValues.reduce((a, b) => a > b ? a : b);
+      }
+    }
+    return sum;
+  }
+
   /// Integer version (rounds toward zero).
   int totalInt(String category, String target) => total(category, target).truncate();
   int totalIntWithAll(String category, String target) =>
       totalWithAll(category, target).truncate();
+  int totalIntExcluding(String category, String target, Set<String> excludeTypes) =>
+      totalExcluding(category, target, excludeTypes).truncate();
 }
 
 // ---------------------------------------------------------------------------

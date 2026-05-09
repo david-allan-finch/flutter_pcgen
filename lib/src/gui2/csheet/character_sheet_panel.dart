@@ -514,13 +514,16 @@ class _CharacterSheetView extends StatelessWidget {
     final equippedSlots = data['equippedSlots'] as Map? ?? {};
     final weapons = <_WeaponEntry>[];
 
-    int bab = 0, strMod = 0, dexMod = 0, tohitBonus = 0, damageBonus = 0;
-    try { bab         = (character as dynamic).getBABAsInt()                         as int? ?? 0; } catch (_) {}
-    try { strMod      = _tryGet(() => (character as dynamic).getStatModByAbb('STR')) as int? ?? 0; } catch (_) {}
-    try { dexMod      = _tryGet(() => (character as dynamic).getStatModByAbb('DEX')) as int? ?? 0; } catch (_) {}
-    try { tohitBonus  = _tryGet(() => (character as dynamic).getTohitBonus())        as int? ?? 0; } catch (_) {}
-    try { damageBonus = _tryGet(() => (character as dynamic).getDamageBonus())       as int? ?? 0; } catch (_) {}
-    debugPrint('SHEET_DBG bab=$bab strMod=$strMod dexMod=$dexMod tohit=$tohitBonus dmg=$damageBonus');
+    int bab = 0, strMod = 0, dexMod = 0;
+    int tohitMelee = 0, tohitRanged = 0, damageMelee = 0, damageRanged = 0;
+    try { bab          = (character as dynamic).getBABAsInt()                              as int? ?? 0; } catch (_) {}
+    try { strMod       = _tryGet(() => (character as dynamic).getStatModByAbb('STR'))      as int? ?? 0; } catch (_) {}
+    try { dexMod       = _tryGet(() => (character as dynamic).getStatModByAbb('DEX'))      as int? ?? 0; } catch (_) {}
+    try { tohitMelee   = _tryGet(() => (character as dynamic).getTohitBonusMelee())        as int? ?? 0; } catch (_) {}
+    try { tohitRanged  = _tryGet(() => (character as dynamic).getTohitBonusRanged())       as int? ?? 0; } catch (_) {}
+    try { damageMelee  = _tryGet(() => (character as dynamic).getDamageBonusMelee())       as int? ?? 0; } catch (_) {}
+    try { damageRanged = _tryGet(() => (character as dynamic).getDamageBonusRanged())      as int? ?? 0; } catch (_) {}
+    debugPrint('SHEET_DBG bab=$bab strMod=$strMod dexMod=$dexMod tohitM=$tohitMelee tohitR=$tohitRanged');
 
     final gearRaw = data['gear'] as List? ?? [];
 
@@ -661,6 +664,9 @@ class _CharacterSheetView extends StatelessWidget {
 
       final atkMod  = isRanged ? dexMod : strMod;
       final nonprof = proficient ? 0 : -4;
+      // Use melee or ranged specific tohit/damage bonuses (splits TOHIT.MELEE from ranged).
+      final tohitBonus  = isRanged ? tohitRanged  : tohitMelee;
+      final damageBonus = isRanged ? damageRanged : damageMelee;
 
       // BONUS:WEAPONPROF=<Type>|TOHIT and DAMAGE (e.g. Bracers of Archery)
       int weaponProfTohit = 0, weaponProfDamage = 0;
@@ -695,7 +701,7 @@ class _CharacterSheetView extends StatelessWidget {
         atkParts.add('${atkBonus >= 0 ? '+' : ''}$atkBonus');
       }
       final atkStr   = '${atkParts.join('/')}${proficient ? '' : '*'}';
-      // Ranged weapons: no STR to damage unless composite bow (BOWSTR handled in eqDamage).
+      // Ranged: no STR to damage unless composite bow (BOWSTR handled in eqDamage).
       final totalDmg = (isRanged ? 0 : strMod + damageBonus) +
                        eqDamage + weaponProfDamage + shortRangeDamage;
       final dmgSuffix = totalDmg > 0 ? '+$totalDmg' : (totalDmg < 0 ? '$totalDmg' : '');

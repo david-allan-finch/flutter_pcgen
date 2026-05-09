@@ -80,4 +80,6 @@ enum StringKey {
   benefit,       // feat/ability benefit text
   monsterClass,  // monster class type e.g. "Undead:8"
   keystatFormula, // key stat abbreviation for class skill points
+  attackCycle,    // non-standard attack progression e.g. "5|5|2" for Monk
+  bonusSpellStat, // stat that governs bonus spell slots (overrides spellStat)
 }

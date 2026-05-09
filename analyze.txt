@@ -177,52 +177,53 @@ warning - Unused import: 'package:flutter_pcgen/src/io/character_text_export.dar
    info - Use 'const' literals as arguments to constructors of '@immutable' classes - lib\src\gui2\csheet\character_sheet_panel.dart:207:36 - prefer_const_literals_to_create_immutables
    info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\src\gui2\equip\equip_qualified_tree_cell_renderer.dart:31:65 - deprecated_member_use
 warning - Unused import: 'package:flutter_pcgen/src/facade/util/list_facade.dart' - lib\src\gui2\facade\character_abilities.dart:21:8 - unused_import
-warning - The value of the field '_bonusDirty' isn't used - lib\src\gui2\facade\character_facade_impl.dart:73:8 - unused_field
-warning - The method doesn't override an inherited method - lib\src\gui2\facade\character_facade_impl.dart:101:10 - override_on_non_overriding_member
-warning - The method doesn't override an inherited method - lib\src\gui2\facade\character_facade_impl.dart:151:8 - override_on_non_overriding_member
-warning - The method doesn't override an inherited method - lib\src\gui2\facade\character_facade_impl.dart:161:34 - override_on_non_overriding_member
-warning - The method doesn't override an inherited method - lib\src\gui2\facade\character_facade_impl.dart:210:34 - override_on_non_overriding_member
-warning - The method doesn't override an inherited method - lib\src\gui2\facade\character_facade_impl.dart:225:34 - override_on_non_overriding_member
-warning - The method doesn't override an inherited method - lib\src\gui2\facade\character_facade_impl.dart:245:7 - override_on_non_overriding_member
-warning - The method doesn't override an inherited method - lib\src\gui2\facade\character_facade_impl.dart:248:8 - override_on_non_overriding_member
-warning - The method doesn't override an inherited method - lib\src\gui2\facade\character_facade_impl.dart:254:10 - override_on_non_overriding_member
-warning - The method doesn't override an inherited method - lib\src\gui2\facade\character_facade_impl.dart:264:25 - override_on_non_overriding_member
-warning - The method doesn't override an inherited method - lib\src\gui2\facade\character_facade_impl.dart:268:7 - override_on_non_overriding_member
-   info - The member 'adjustXP' overrides an inherited member but isn't annotated with '@override' - lib\src\gui2\facade\character_facade_impl.dart:284:8 - annotate_overrides
-warning - The method doesn't override an inherited method - lib\src\gui2\facade\character_facade_impl.dart:293:10 - override_on_non_overriding_member
-warning - The method doesn't override an inherited method - lib\src\gui2\facade\character_facade_impl.dart:298:21 - override_on_non_overriding_member
-warning - The method doesn't override an inherited method - lib\src\gui2\facade\character_facade_impl.dart:305:23 - override_on_non_overriding_member
-warning - The method doesn't override an inherited method - lib\src\gui2\facade\character_facade_impl.dart:309:28 - override_on_non_overriding_member
-warning - The method doesn't override an inherited method - lib\src\gui2\facade\character_facade_impl.dart:313:22 - override_on_non_overriding_member
-warning - The method doesn't override an inherited method - lib\src\gui2\facade\character_facade_impl.dart:317:8 - override_on_non_overriding_member
-warning - The method doesn't override an inherited method - lib\src\gui2\facade\character_facade_impl.dart:323:8 - override_on_non_overriding_member
+warning - The value of the field '_bonusDirty' isn't used - lib\src\gui2\facade\character_facade_impl.dart:74:8 - unused_field
+warning - The method doesn't override an inherited method - lib\src\gui2\facade\character_facade_impl.dart:102:10 - override_on_non_overriding_member
+warning - The method doesn't override an inherited method - lib\src\gui2\facade\character_facade_impl.dart:152:8 - override_on_non_overriding_member
+warning - The method doesn't override an inherited method - lib\src\gui2\facade\character_facade_impl.dart:162:34 - override_on_non_overriding_member
+warning - The method doesn't override an inherited method - lib\src\gui2\facade\character_facade_impl.dart:211:34 - override_on_non_overriding_member
+warning - The method doesn't override an inherited method - lib\src\gui2\facade\character_facade_impl.dart:226:34 - override_on_non_overriding_member
+  error - Undefined name 'StringKey' - lib\src\gui2\facade\character_facade_impl.dart:234:51 - undefined_identifier
+warning - The method doesn't override an inherited method - lib\src\gui2\facade\character_facade_impl.dart:254:7 - override_on_non_overriding_member
+warning - The method doesn't override an inherited method - lib\src\gui2\facade\character_facade_impl.dart:257:8 - override_on_non_overriding_member
+warning - The method doesn't override an inherited method - lib\src\gui2\facade\character_facade_impl.dart:263:10 - override_on_non_overriding_member
+warning - The method doesn't override an inherited method - lib\src\gui2\facade\character_facade_impl.dart:273:25 - override_on_non_overriding_member
+warning - The method doesn't override an inherited method - lib\src\gui2\facade\character_facade_impl.dart:277:7 - override_on_non_overriding_member
+   info - The member 'adjustXP' overrides an inherited member but isn't annotated with '@override' - lib\src\gui2\facade\character_facade_impl.dart:293:8 - annotate_overrides
+warning - The method doesn't override an inherited method - lib\src\gui2\facade\character_facade_impl.dart:302:10 - override_on_non_overriding_member
+warning - The method doesn't override an inherited method - lib\src\gui2\facade\character_facade_impl.dart:307:21 - override_on_non_overriding_member
+warning - The method doesn't override an inherited method - lib\src\gui2\facade\character_facade_impl.dart:314:23 - override_on_non_overriding_member
+warning - The method doesn't override an inherited method - lib\src\gui2\facade\character_facade_impl.dart:318:28 - override_on_non_overriding_member
+warning - The method doesn't override an inherited method - lib\src\gui2\facade\character_facade_impl.dart:322:22 - override_on_non_overriding_member
+warning - The method doesn't override an inherited method - lib\src\gui2\facade\character_facade_impl.dart:326:8 - override_on_non_overriding_member
 warning - The method doesn't override an inherited method - lib\src\gui2\facade\character_facade_impl.dart:332:8 - override_on_non_overriding_member
-warning - The method doesn't override an inherited method - lib\src\gui2\facade\character_facade_impl.dart:343:26 - override_on_non_overriding_member
-warning - The method doesn't override an inherited method - lib\src\gui2\facade\character_facade_impl.dart:349:22 - override_on_non_overriding_member
-warning - The method doesn't override an inherited method - lib\src\gui2\facade\character_facade_impl.dart:355:19 - override_on_non_overriding_member
-warning - The method doesn't override an inherited method - lib\src\gui2\facade\character_facade_impl.dart:362:7 - override_on_non_overriding_member
-warning - The method doesn't override an inherited method - lib\src\gui2\facade\character_facade_impl.dart:367:7 - override_on_non_overriding_member
-warning - The method doesn't override an inherited method - lib\src\gui2\facade\character_facade_impl.dart:386:8 - override_on_non_overriding_member
-warning - The method doesn't override an inherited method - lib\src\gui2\facade\character_facade_impl.dart:414:7 - override_on_non_overriding_member
-warning - The method doesn't override an inherited method - lib\src\gui2\facade\character_facade_impl.dart:424:7 - override_on_non_overriding_member
+warning - The method doesn't override an inherited method - lib\src\gui2\facade\character_facade_impl.dart:341:8 - override_on_non_overriding_member
+warning - The method doesn't override an inherited method - lib\src\gui2\facade\character_facade_impl.dart:352:26 - override_on_non_overriding_member
+warning - The method doesn't override an inherited method - lib\src\gui2\facade\character_facade_impl.dart:358:22 - override_on_non_overriding_member
+warning - The method doesn't override an inherited method - lib\src\gui2\facade\character_facade_impl.dart:364:19 - override_on_non_overriding_member
+warning - The method doesn't override an inherited method - lib\src\gui2\facade\character_facade_impl.dart:371:7 - override_on_non_overriding_member
+warning - The method doesn't override an inherited method - lib\src\gui2\facade\character_facade_impl.dart:376:7 - override_on_non_overriding_member
+warning - The method doesn't override an inherited method - lib\src\gui2\facade\character_facade_impl.dart:395:8 - override_on_non_overriding_member
+warning - The method doesn't override an inherited method - lib\src\gui2\facade\character_facade_impl.dart:423:7 - override_on_non_overriding_member
 warning - The method doesn't override an inherited method - lib\src\gui2\facade\character_facade_impl.dart:433:7 - override_on_non_overriding_member
-warning - The method doesn't override an inherited method - lib\src\gui2\facade\character_facade_impl.dart:462:7 - override_on_non_overriding_member
-warning - The method doesn't override an inherited method - lib\src\gui2\facade\character_facade_impl.dart:472:7 - override_on_non_overriding_member
-warning - The method doesn't override an inherited method - lib\src\gui2\facade\character_facade_impl.dart:480:7 - override_on_non_overriding_member
-warning - The method doesn't override an inherited method - lib\src\gui2\facade\character_facade_impl.dart:488:7 - override_on_non_overriding_member
-warning - The method doesn't override an inherited method - lib\src\gui2\facade\character_facade_impl.dart:518:10 - override_on_non_overriding_member
-warning - The method doesn't override an inherited method - lib\src\gui2\facade\character_facade_impl.dart:541:7 - override_on_non_overriding_member
+warning - The method doesn't override an inherited method - lib\src\gui2\facade\character_facade_impl.dart:442:7 - override_on_non_overriding_member
+warning - The method doesn't override an inherited method - lib\src\gui2\facade\character_facade_impl.dart:471:7 - override_on_non_overriding_member
+warning - The method doesn't override an inherited method - lib\src\gui2\facade\character_facade_impl.dart:481:7 - override_on_non_overriding_member
+warning - The method doesn't override an inherited method - lib\src\gui2\facade\character_facade_impl.dart:489:7 - override_on_non_overriding_member
+warning - The method doesn't override an inherited method - lib\src\gui2\facade\character_facade_impl.dart:497:7 - override_on_non_overriding_member
+warning - The method doesn't override an inherited method - lib\src\gui2\facade\character_facade_impl.dart:527:10 - override_on_non_overriding_member
 warning - The method doesn't override an inherited method - lib\src\gui2\facade\character_facade_impl.dart:550:7 - override_on_non_overriding_member
-warning - The method doesn't override an inherited method - lib\src\gui2\facade\character_facade_impl.dart:559:8 - override_on_non_overriding_member
-   info - Statements in an if should be enclosed in a block - lib\src\gui2\facade\character_facade_impl.dart:605:60 - curly_braces_in_flow_control_structures
-warning - The method doesn't override an inherited method - lib\src\gui2\facade\character_facade_impl.dart:660:7 - override_on_non_overriding_member
-warning - The method doesn't override an inherited method - lib\src\gui2\facade\character_facade_impl.dart:681:10 - override_on_non_overriding_member
-warning - The method doesn't override an inherited method - lib\src\gui2\facade\character_facade_impl.dart:684:8 - override_on_non_overriding_member
-   info - Use 'const' for final variables initialized to a constant value - lib\src\gui2\facade\character_facade_impl.dart:780:11 - prefer_const_declarations
-   info - Statements in a for should be enclosed in a block - lib\src\gui2\facade\character_facade_impl.dart:795:56 - curly_braces_in_flow_control_structures
-   info - Use 'const' for final variables initialized to a constant value - lib\src\gui2\facade\character_facade_impl.dart:919:13 - prefer_const_declarations
-  error - Undefined name 'CDOMObjectKey' - lib\src\gui2\facade\character_facade_impl.dart:1022:26 - undefined_identifier
-   info - The parameter name 'i' doesn't match the name 'invocation' in the overridden method - lib\src\gui2\facade\character_facade_impl.dart:1723:35 - avoid_renaming_method_parameters
+warning - The method doesn't override an inherited method - lib\src\gui2\facade\character_facade_impl.dart:559:7 - override_on_non_overriding_member
+warning - The method doesn't override an inherited method - lib\src\gui2\facade\character_facade_impl.dart:568:8 - override_on_non_overriding_member
+   info - Statements in an if should be enclosed in a block - lib\src\gui2\facade\character_facade_impl.dart:614:60 - curly_braces_in_flow_control_structures
+warning - The method doesn't override an inherited method - lib\src\gui2\facade\character_facade_impl.dart:669:7 - override_on_non_overriding_member
+warning - The method doesn't override an inherited method - lib\src\gui2\facade\character_facade_impl.dart:690:10 - override_on_non_overriding_member
+warning - The method doesn't override an inherited method - lib\src\gui2\facade\character_facade_impl.dart:693:8 - override_on_non_overriding_member
+   info - Use 'const' for final variables initialized to a constant value - lib\src\gui2\facade\character_facade_impl.dart:789:11 - prefer_const_declarations
+   info - Statements in a for should be enclosed in a block - lib\src\gui2\facade\character_facade_impl.dart:804:56 - curly_braces_in_flow_control_structures
+   info - Use 'const' for final variables initialized to a constant value - lib\src\gui2\facade\character_facade_impl.dart:928:13 - prefer_const_declarations
+  error - Undefined name 'StringKey' - lib\src\gui2\facade\character_facade_impl.dart:1290:52 - undefined_identifier
+   info - The parameter name 'i' doesn't match the name 'invocation' in the overridden method - lib\src\gui2\facade\character_facade_impl.dart:1878:35 - avoid_renaming_method_parameters
 warning - The method doesn't override an inherited method - lib\src\gui2\facade\character_level_facade_impl.dart:32:11 - override_on_non_overriding_member
 warning - The method doesn't override an inherited method - lib\src\gui2\facade\character_level_facade_impl.dart:35:7 - override_on_non_overriding_member
 warning - The method doesn't override an inherited method - lib\src\gui2\facade\character_levels_facade_impl.dart:51:36 - override_on_non_overriding_member
@@ -333,12 +334,14 @@ warning - The value of the field '_selectedDeity' isn't used - lib\src\gui2\tabs
 warning - The member 'notifyListeners' can only be used within 'package:flutter/src/foundation/change_notifier.dart' or a test - lib\src\gui2\tabs\domain_info_tab.dart:90:46 - invalid_use_of_visible_for_testing_member
 warning - The member 'notifyListeners' can only be used within instance members of subclasses of 'ChangeNotifier' - lib\src\gui2\tabs\domain_info_tab.dart:90:46 - invalid_use_of_protected_member
    info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\src\gui2\tabs\domain_info_tab.dart:138:72 - deprecated_member_use
-warning - The member 'notifyListeners' can only be used within 'package:flutter/src/foundation/change_notifier.dart' or a test - lib\src\gui2\tabs\domain_info_tab.dart:211:70 - invalid_use_of_visible_for_testing_member
-warning - The member 'notifyListeners' can only be used within instance members of subclasses of 'ChangeNotifier' - lib\src\gui2\tabs\domain_info_tab.dart:211:70 - invalid_use_of_protected_member
-warning - The member 'notifyListeners' can only be used within 'package:flutter/src/foundation/change_notifier.dart' or a test - lib\src\gui2\tabs\domain_info_tab.dart:216:73 - invalid_use_of_visible_for_testing_member
-warning - The member 'notifyListeners' can only be used within instance members of subclasses of 'ChangeNotifier' - lib\src\gui2\tabs\domain_info_tab.dart:216:73 - invalid_use_of_protected_member
-  error - The superclass 'AbstractTreeTableModel' doesn't have a zero argument constructor - lib\src\gui2\tabs\equip\equipment_tree_table_model.dart:26:7 - no_default_super_constructor
-warning - The method doesn't override an inherited method - lib\src\gui2\tabs\equip\equipment_tree_table_model.dart:52:8 - override_on_non_overriding_member
+  error - The method 'getDescription' isn't defined for the type 'Domain' - lib\src\gui2\tabs\domain_info_tab.dart:205:49 - undefined_method
+  error - The method 'getDescription' isn't defined for the type 'Domain' - lib\src\gui2\tabs\domain_info_tab.dart:208:61 - undefined_method
+  error - The element type 'MapEntry<String, String>' can't be assigned to the list type 'Widget' - lib\src\gui2\tabs\domain_info_tab.dart:216:42 - list_element_type_not_assignable
+warning - The member 'notifyListeners' can only be used within 'package:flutter/src/foundation/change_notifier.dart' or a test - lib\src\gui2\tabs\domain_info_tab.dart:245:70 - invalid_use_of_visible_for_testing_member
+warning - The member 'notifyListeners' can only be used within instance members of subclasses of 'ChangeNotifier' - lib\src\gui2\tabs\domain_info_tab.dart:245:70 - invalid_use_of_protected_member
+warning - The member 'notifyListeners' can only be used within 'package:flutter/src/foundation/change_notifier.dart' or a test - lib\src\gui2\tabs\domain_info_tab.dart:250:73 - invalid_use_of_visible_for_testing_member
+warning - The member 'notifyListeners' can only be used within instance members of subclasses of 'ChangeNotifier' - lib\src\gui2\tabs\domain_info_tab.dart:250:73 - invalid_use_of_protected_member
+warning - The method doesn't override an inherited method - lib\src\gui2\tabs\equip\equipment_tree_table_model.dart:54:8 - override_on_non_overriding_member
 warning - Unused import: 'package:flutter/foundation.dart' - lib\src\gui2\tabs\equip_info_tab.dart:6:8 - unused_import
 warning - The declaration '_kSlotTypes' isn't referenced - lib\src\gui2\tabs\equip_info_tab.dart:32:7 - unused_element
    info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\src\gui2\tabs\equip_info_tab.dart:141:56 - deprecated_member_use
@@ -421,16 +424,19 @@ warning - The member 'notifyListeners' can only be used within 'package:flutter/
 warning - The member 'notifyListeners' can only be used within instance members of subclasses of 'ChangeNotifier' - lib\src\gui2\tabs\summary_info_tab.dart:1377:40 - invalid_use_of_protected_member
 warning - The member 'notifyListeners' can only be used within 'package:flutter/src/foundation/change_notifier.dart' or a test - lib\src\gui2\tabs\summary_info_tab.dart:1456:34 - invalid_use_of_visible_for_testing_member
 warning - The member 'notifyListeners' can only be used within instance members of subclasses of 'ChangeNotifier' - lib\src\gui2\tabs\summary_info_tab.dart:1456:34 - invalid_use_of_protected_member
-warning - The value of the field '_character' isn't used - lib\src\gui2\tabs\temp_bonus_info_tab.dart:15:11 - unused_field
-warning - The member 'notifyListeners' can only be used within 'package:flutter/src/foundation/change_notifier.dart' or a test - lib\src\gui2\tabs\temp_bonus_info_tab.dart:114:26 - invalid_use_of_visible_for_testing_member
-warning - The member 'notifyListeners' can only be used within instance members of subclasses of 'ChangeNotifier' - lib\src\gui2\tabs\temp_bonus_info_tab.dart:114:26 - invalid_use_of_protected_member
-warning - The member 'notifyListeners' can only be used within 'package:flutter/src/foundation/change_notifier.dart' or a test - lib\src\gui2\tabs\temp_bonus_info_tab.dart:126:26 - invalid_use_of_visible_for_testing_member
-warning - The member 'notifyListeners' can only be used within instance members of subclasses of 'ChangeNotifier' - lib\src\gui2\tabs\temp_bonus_info_tab.dart:126:26 - invalid_use_of_protected_member
-   info - 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre - lib\src\gui2\tabs\temp_bonus_info_tab.dart:177:25 - deprecated_member_use
-   info - 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre - lib\src\gui2\tabs\temp_bonus_info_tab.dart:187:25 - deprecated_member_use
-   info - 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre - lib\src\gui2\tabs\temp_bonus_info_tab.dart:199:25 - deprecated_member_use
-warning - The member 'notifyListeners' can only be used within 'package:flutter/src/foundation/change_notifier.dart' or a test - lib\src\gui2\tabs\temp_bonus_info_tab.dart:252:24 - invalid_use_of_visible_for_testing_member
-warning - The member 'notifyListeners' can only be used within instance members of subclasses of 'ChangeNotifier' - lib\src\gui2\tabs\temp_bonus_info_tab.dart:252:24 - invalid_use_of_protected_member
+warning - The value of the field '_character' isn't used - lib\src\gui2\tabs\temp_bonus_info_tab.dart:17:11 - unused_field
+warning - The member 'notifyListeners' can only be used within 'package:flutter/src/foundation/change_notifier.dart' or a test - lib\src\gui2\tabs\temp_bonus_info_tab.dart:140:26 - invalid_use_of_visible_for_testing_member
+warning - The member 'notifyListeners' can only be used within instance members of subclasses of 'ChangeNotifier' - lib\src\gui2\tabs\temp_bonus_info_tab.dart:140:26 - invalid_use_of_protected_member
+warning - The member 'notifyListeners' can only be used within 'package:flutter/src/foundation/change_notifier.dart' or a test - lib\src\gui2\tabs\temp_bonus_info_tab.dart:152:26 - invalid_use_of_visible_for_testing_member
+warning - The member 'notifyListeners' can only be used within instance members of subclasses of 'ChangeNotifier' - lib\src\gui2\tabs\temp_bonus_info_tab.dart:152:26 - invalid_use_of_protected_member
+   info - 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre - lib\src\gui2\tabs\temp_bonus_info_tab.dart:203:25 - deprecated_member_use
+   info - 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre - lib\src\gui2\tabs\temp_bonus_info_tab.dart:213:25 - deprecated_member_use
+   info - 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre - lib\src\gui2\tabs\temp_bonus_info_tab.dart:225:25 - deprecated_member_use
+warning - The member 'notifyListeners' can only be used within 'package:flutter/src/foundation/change_notifier.dart' or a test - lib\src\gui2\tabs\temp_bonus_info_tab.dart:278:24 - invalid_use_of_visible_for_testing_member
+warning - The member 'notifyListeners' can only be used within instance members of subclasses of 'ChangeNotifier' - lib\src\gui2\tabs\temp_bonus_info_tab.dart:278:24 - invalid_use_of_protected_member
+  error - Undefined name 'StringKey' - lib\src\gui2\tabs\temp_bonus_info_tab.dart:302:48 - undefined_identifier
+warning - The member 'notifyListeners' can only be used within 'package:flutter/src/foundation/change_notifier.dart' or a test - lib\src\gui2\tabs\temp_bonus_info_tab.dart:351:24 - invalid_use_of_visible_for_testing_member
+warning - The member 'notifyListeners' can only be used within instance members of subclasses of 'ChangeNotifier' - lib\src\gui2\tabs\temp_bonus_info_tab.dart:351:24 - invalid_use_of_protected_member
 warning - Unnecessary cast - lib\src\gui2\tabs\template_info_tab.dart:43:17 - unnecessary_cast
    info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\src\gui2\tabs\template_info_tab.dart:156:45 - deprecated_member_use
 warning - The member 'notifyListeners' can only be used within 'package:flutter/src/foundation/change_notifier.dart' or a test - lib\src\gui2\tabs\template_info_tab.dart:330:24 - invalid_use_of_visible_for_testing_member
@@ -452,7 +458,7 @@ warning - Unused import: 'package:flutter_pcgen/src/io/io_constants.dart' - lib\
    info - Parameter 'pc' could be a super parameter - lib\src\io\p_c_g_ver2_parser.dart:32:3 - use_super_parameters
    info - Don't invoke 'print' in production code - lib\src\io\p_c_g_ver2_parser.dart:46:9 - avoid_print
 warning - The value of the field '_tokenDelimiter' isn't used - lib\src\io\p_c_gen_export_handler.dart:21:23 - unused_field
-   info - Statements in a for should be enclosed in a block - lib\src\io\pcg_character_io.dart:947:38 - curly_braces_in_flow_control_structures
+   info - Statements in a for should be enclosed in a block - lib\src\io\pcg_character_io.dart:949:38 - curly_braces_in_flow_control_structures
    info - Don't invoke 'print' in production code - lib\src\persistence\campaign_file_loader.dart:80:11 - avoid_print
    info - Don't invoke 'print' in production code - lib\src\persistence\game_mode_file_loader.dart:95:9 - avoid_print
    info - Don't invoke 'print' in production code - lib\src\persistence\game_mode_file_loader.dart:121:7 - avoid_print
@@ -465,10 +471,10 @@ warning - Unused import: 'package:flutter_pcgen/src/persistence/lst/source_entry
 warning - Unused import: 'package:flutter_pcgen/src/core/game_mode.dart' - lib\src\persistence\lst\equip_slot_loader.dart:21:8 - unused_import
 warning - The value of the field '_featCategory' isn't used - lib\src\persistence\lst\feat_loader.dart:31:32 - unused_field
 warning - Unused import: 'package:flutter/foundation.dart' - lib\src\persistence\lst\generic_loader.dart:20:8 - unused_import
-warning - This case is covered by the previous cases - lib\src\persistence\lst\generic_loader.dart:642:9 - unreachable_switch_case
-   info - Statements in an if should be enclosed in a block - lib\src\persistence\lst\generic_loader.dart:977:39 - curly_braces_in_flow_control_structures
-   info - Statements in an if should be enclosed in a block - lib\src\persistence\lst\generic_loader.dart:978:44 - curly_braces_in_flow_control_structures
-   info - Statements in an if should be enclosed in a block - lib\src\persistence\lst\generic_loader.dart:979:73 - curly_braces_in_flow_control_structures
+warning - This case is covered by the previous cases - lib\src\persistence\lst\generic_loader.dart:646:9 - unreachable_switch_case
+   info - Statements in an if should be enclosed in a block - lib\src\persistence\lst\generic_loader.dart:981:39 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\src\persistence\lst\generic_loader.dart:982:44 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\src\persistence\lst\generic_loader.dart:983:73 - curly_braces_in_flow_control_structures
 warning - Unused import: 'package:flutter_pcgen/src/rules/context/load_context.dart' - lib\src\persistence\lst\generic_local_variable_loader.dart:20:8 - unused_import
 warning - Unused import: 'package:flutter_pcgen/src/persistence/lst/source_entry.dart' - lib\src\persistence\lst\generic_local_variable_loader.dart:22:8 - unused_import
 warning - The operand can't be 'null', so the condition is always 'false' - lib\src\persistence\lst\level_loader.dart:37:18 - unnecessary_null_comparison
@@ -558,4 +564,4 @@ warning - Unused import: 'package:flutter_pcgen/src/system/progress_container.da
 warning - The value of the local variable 'type' isn't used - lib\src\system\plugin_class_loader.dart:49:16 - unused_local_variable
    info - Don't invoke 'print' in production code - lib\src\system\plugin_class_loader.dart:89:11 - avoid_print
 
-557 issues found. (ran in 44.6s)
+563 issues found. (ran in 29.2s)

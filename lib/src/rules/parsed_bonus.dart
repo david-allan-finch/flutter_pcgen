@@ -92,13 +92,21 @@ class ParsedPrereq {
       case 'PREBASESIZEGT':
       case 'PREBASESIZEGTEQ': result = true; break;
       case 'PRERULE':         result = true; break;
+      case 'PREHD':           result = _evalPreHD(ctx);          break;
+      case 'PREHP':           result = _evalPreHP(ctx);          break;
+      case 'PREMOVE':         result = _evalPreMove(ctx);        break;
+      case 'PREDR':           result = _evalPreDR(ctx);          break;
+      case 'PRESRGTEQ':       result = _evalPreSR(ctx, true);    break;
+      case 'PRESRLT':         result = _evalPreSR(ctx, false);   break;
+      case 'PRESPELLTYPE':    result = _evalPreSpellType(ctx);   break;
+      case 'PRESPELLCAST':    result = _evalPreSpellCast(ctx);   break;
+      case 'PRELEVEL':        result = _evalPreLevel(ctx, false); break;
+      case 'PRELEVELMAX':     result = _evalPreLevel(ctx, true);  break;
       case 'PREHANDSEQ':
       case 'PREHANDSGTEQ':
       case 'PREHANDSLT':
-      case 'PRESPELLTYPE':
       case 'PRESPELLSCHOOL':
       case 'PRESPELLSCHOOLSUB':
-      case 'PRESPELLCAST':
       case 'PRESPELL':
       case 'PRESPELLBOOK':
       case 'PRESPELLDESCRIPTOR':
@@ -112,19 +120,11 @@ class ParsedPrereq {
       case 'PREPROFWITHARMOR':
       case 'PREPROFWITHSHIELD':
       case 'PREWIELD':
-      case 'PRELEVEL':        result = _evalPreLevel(ctx, false); break;
-      case 'PRELEVELMAX':     result = _evalPreLevel(ctx, true);  break;
       case 'PRESREQ':
       case 'PREEQUIP':
-      case 'PREMOVE':
       case 'PREREGION':
-      case 'PREDR':
       case 'PRESUBCLASS':
       case 'PREAGESET':
-      case 'PREHD':
-      case 'PREHP':
-      case 'PRESRGTEQ':
-      case 'PRESRLT':
       case 'PRETEXT':         result = true; break;
       default:                result = true; break;
     }
@@ -413,6 +413,75 @@ class ParsedPrereq {
   }
 
   bool _evalPreCheck(PrereqContext ctx) => true; // optimistic
+
+  bool _evalPreHD(PrereqContext ctx) {
+    // PREHD:N — character must have N or more total hit dice (approximated by total level)
+    final needed = int.tryParse(raw.trim()) ?? 0;
+    return ctx.totalLevel >= needed;
+  }
+
+  bool _evalPreHP(PrereqContext ctx) {
+    // PREHP:N — requires at least N HP; not feasible without live HP data, pass optimistically
+    return true;
+  }
+
+  bool _evalPreMove(PrereqContext ctx) {
+    // PREMOVE:TYPE=N — movement speed check; pass optimistically (no move speed in ctx)
+    return true;
+  }
+
+  bool _evalPreDR(PrereqContext ctx) {
+    // PREDR:N/type — damage reduction check; pass optimistically
+    return true;
+  }
+
+  bool _evalPreSR(PrereqContext ctx, bool gteq) {
+    // PRESRGTEQ:N / PRESRLT:N — spell resistance check; pass optimistically
+    return true;
+  }
+
+  bool _evalPreSpellType(PrereqContext ctx) {
+    // PRESPELLTYPE:Arcane=1 or PRESPELLTYPE:1,Arcane — checks spellcasting ability.
+    // Use class keys as a proxy: arcane casters have Bard/Sorcerer/Wizard etc. class levels.
+    final parts = raw.split(',');
+    // Format: N,SpellType or SpellType=N
+    String spellType = '';
+    int needed = 1;
+    if (parts.length >= 2) {
+      needed = int.tryParse(parts[0].trim()) ?? 1;
+      spellType = parts[1].trim().toUpperCase();
+    } else {
+      final eq = raw.indexOf('=');
+      if (eq > 0) {
+        spellType = raw.substring(0, eq).trim().toUpperCase();
+        needed = int.tryParse(raw.substring(eq + 1).trim()) ?? 1;
+      } else {
+        spellType = raw.trim().toUpperCase();
+      }
+    }
+    // Arcane casters: Bard, Sorcerer, Wizard, Witch, Arcanist, Magus, etc.
+    // Divine casters: Cleric, Druid, Paladin, Ranger, Oracle, etc.
+    const arcaneCasters = {'BARD', 'SORCERER', 'WIZARD', 'WITCH', 'ARCANIST', 'MAGUS', 'SUMMONER', 'ALCHEMIST'};
+    const divineCasters = {'CLERIC', 'DRUID', 'PALADIN', 'RANGER', 'ORACLE', 'INQUISITOR', 'WARPRIEST', 'SHAMAN'};
+    final classKeys = <String>[];
+    for (final k in ctx.selectedAbilityKeys()) {
+      final ck = k.split('|').first.toUpperCase();
+      classKeys.add(ck);
+    }
+    // Check via totalLevel proxy — if character has levels they might be a caster
+    if (spellType == 'ARCANE') {
+      return arcaneCasters.any((c) => ctx.getVariable('CL.$c') >= needed);
+    } else if (spellType == 'DIVINE') {
+      return divineCasters.any((c) => ctx.getVariable('CL.$c') >= needed);
+    }
+    return true; // unknown spell type — pass optimistically
+  }
+
+  bool _evalPreSpellCast(PrereqContext ctx) {
+    // PRESPELLCAST:MEMORIZE=YES or PRESPELLCAST:PREPARE=YES — checks casting type
+    // Approximate: if character has any spellcasting class, pass
+    return ctx.totalLevel > 0;
+  }
 }
 
 extension on String {

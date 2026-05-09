@@ -37,6 +37,16 @@ class FormulaContext {
   /// that class's level so classlevel("APPLIEDAS=NONEPIC") returns correctly.
   final int currentClassLevel;
 
+  /// Optional callback for charbonusto("CATEGORY","TARGET") — returns the
+  /// total bonus value from the character's bonus accumulator.
+  final double Function(String category, String target)? charbonusto;
+
+  /// Optional callback for count("CLASSES") etc.
+  final double Function(String what)? countFn;
+
+  /// Optional callback for skillinfo("SkillName") — returns skill total.
+  final double Function(String skillName)? skillinfo;
+
   const FormulaContext({
     this.statMods = const {},
     this.statScores = const {},
@@ -44,6 +54,9 @@ class FormulaContext {
     this.classLevels = const {},
     this.variables = const {},
     this.currentClassLevel = 0,
+    this.charbonusto,
+    this.countFn,
+    this.skillinfo,
   });
 
   /// Resolve a variable name to a numeric value.
@@ -263,6 +276,37 @@ class _Parser {
       // Special case: classlevel("ClassName") and mastervar("VarName") —
       // we need the raw string argument, not a numeric evaluation.
       final nameLower = name.toLowerCase();
+      if (nameLower == 'charbonusto' || nameLower == 'skillinfo' || nameLower == 'count') {
+        // Functions that take string arguments and access character state.
+        final strArgs = <String>[];
+        _skipWs();
+        while (_cur() != ')' && _pos < _src.length) {
+          if (_cur() == '"' || _cur() == "'") {
+            final q = _cur(); _pos++;
+            final s = _pos;
+            while (_pos < _src.length && _src[_pos] != q) _pos++;
+            strArgs.add(_src.substring(s, _pos));
+            if (_pos < _src.length) _pos++;
+          } else if (_cur() == ',') {
+            _pos++;
+          } else {
+            _pos++;
+          }
+          _skipWs();
+        }
+        if (_cur() == ')') _pos++;
+        if (nameLower == 'charbonusto' && strArgs.length >= 2) {
+          return _ctx.charbonusto?.call(strArgs[0], strArgs[1]) ?? 0.0;
+        }
+        if (nameLower == 'skillinfo' && strArgs.isNotEmpty) {
+          return _ctx.skillinfo?.call(strArgs[0]) ?? 0.0;
+        }
+        if (nameLower == 'count' && strArgs.isNotEmpty) {
+          return _ctx.countFn?.call(strArgs[0]) ?? 0.0;
+        }
+        return 0.0;
+      }
+
       if (nameLower == 'classlevel' || nameLower == 'mastervar' || nameLower == 'var') {
         _skipWs();
         double result = 0;
