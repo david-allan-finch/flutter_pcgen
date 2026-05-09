@@ -524,19 +524,23 @@ class _CharacterSheetView extends StatelessWidget {
 
     final gearRaw = data['gear'] as List? ?? [];
 
-    // Build gear lookup maps.
+    // Build gear lookup maps (keyed by the original name-derived gear key,
+    // which is unique per item even when two items share the same base type).
     final keyToName     = <String, String>{};         // gearKey → display name
+    final keyToDsKey    = <String, String>{};         // gearKey → dataset key
     final keyToBaseItem = <String, String>{};         // gearKey → base item key
     final keyToEqmods   = <String, List<String>>{};   // gearKey → EQMOD key list
     final keyToEqmodArgs = <String, Map<String, String>>{}; // gearKey → EQMOD args
     for (final g in gearRaw) {
       if (g is! Map) continue;
-      final k = g['key']      as String? ?? '';
-      final n = g['name']     as String? ?? '';
-      final b = g['baseItem'] as String? ?? '';
+      final k  = g['key']      as String? ?? '';
+      final n  = g['name']     as String? ?? '';
+      final b  = g['baseItem'] as String? ?? '';
+      final ds = g['dsKey']    as String? ?? '';
       if (k.isNotEmpty) {
-        if (n.isNotEmpty) keyToName[k]     = n;
-        if (b.isNotEmpty) keyToBaseItem[k] = b;
+        if (n.isNotEmpty)  keyToName[k]    = n;
+        if (ds.isNotEmpty) keyToDsKey[k]   = ds;
+        if (b.isNotEmpty)  keyToBaseItem[k] = b;
         final em = g['eqmods'];
         if (em is List) keyToEqmods[k] = em.cast<String>();
         final ea = g['eqmodArgs'];
@@ -587,18 +591,25 @@ class _CharacterSheetView extends StatelessWidget {
       final key  = entry.key;
       final slot = entry.value;
 
-      // Look up the dataset item — first by exact key, then by base item.
+      // Look up the dataset item. Use dsKey (resolved base type) first, then
+      // fall back to the raw gear key, then the baseItem name.
       dynamic item;
       if (dataset != null) {
-        item = dataset.equipment
-            .where((e) => (e as dynamic).getKeyName() == key)
-            .firstOrNull;
+        final dsKey = keyToDsKey[key] ?? key;
+        for (final e in dataset.equipment as List) {
+          if ((e as dynamic).getKeyName() == dsKey) { item = e; break; }
+        }
+        if (item == null && dsKey != key) {
+          for (final e in dataset.equipment as List) {
+            if ((e as dynamic).getKeyName() == key) { item = e; break; }
+          }
+        }
         if (item == null) {
           final base = keyToBaseItem[key] ?? '';
           if (base.isNotEmpty) {
-            item = dataset.equipment
-                .where((e) => (e as dynamic).getKeyName() == base)
-                .firstOrNull;
+            for (final e in dataset.equipment as List) {
+              if ((e as dynamic).getKeyName() == base) { item = e; break; }
+            }
           }
         }
       }

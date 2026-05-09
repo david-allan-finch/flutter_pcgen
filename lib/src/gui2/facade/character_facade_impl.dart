@@ -1143,9 +1143,13 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
     // Cache dataset and rebuild the bonus accumulator with all loaded data.
     _dataset = dataset;
 
-    // Resolve equipment names → proper dataset keys so the sheet can look
-    // them up by getKeyName(). The PCG loader stores a name-derived key; we
-    // replace it with the actual LST key here.
+    // For each gear item find its dataset key and store it as 'dsKey'.
+    // We deliberately do NOT replace item['key'] (which is the display-name-
+    // derived unique key used in equippedSlots/carriedItems) because two
+    // custom items can share the same base type (e.g. "+3 Moonbow" and
+    // "Masterwork Longbow" both resolve to "Longbow (Composite)") and
+    // replacing would cause collisions. The sheet uses 'dsKey' for dataset
+    // lookups and 'key' for all identity/slot references.
     try {
       final allEquip = (dataset as dynamic).equipment as List? ?? [];
       final nameToKey = <String, String>{};
@@ -1153,7 +1157,6 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
         final n = (e as dynamic).getDisplayName() as String? ?? '';
         final k = (e as dynamic).getKeyName()     as String? ?? '';
         if (n.isNotEmpty && k.isNotEmpty) nameToKey[n.toLowerCase()] = k;
-        // Also index by key name itself (handles OUTPUTNAME ≠ item name cases).
         if (k.isNotEmpty) nameToKey[k.toLowerCase()] = k;
       }
       final gear = _data['gear'] as List? ?? [];
@@ -1161,32 +1164,8 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
         if (item is! Map) continue;
         final name     = (item['name']     as String? ?? '').toLowerCase();
         final baseItem = (item['baseItem'] as String? ?? '').toLowerCase();
-        // Try display name first, then BASEITEM (for custom/modified items).
         final dsKey = nameToKey[name] ?? nameToKey[baseItem];
-        if (dsKey != null && dsKey != item['key']) {
-          final oldKey = item['key'] as String? ?? '';
-          item['key'] = dsKey;
-          // Fix up equippedSlots references to old derived key
-          final slots = _data['equippedSlots'] as Map? ?? {};
-          for (final entry in slots.entries.toList()) {
-            if (entry.value == oldKey) slots[entry.key] = dsKey;
-          }
-          // Fix up carriedItems references
-          final ci = _data['carriedItems'] as List? ?? [];
-          for (int i = 0; i < ci.length; i++) {
-            if (ci[i] == oldKey) ci[i] = dsKey;
-          }
-          // Fix up containerContents references
-          final containers = _data['containerContents'] as Map? ?? {};
-          for (final cEntry in containers.entries.toList()) {
-            final list = cEntry.value as List?;
-            if (list != null) {
-              for (int i = 0; i < list.length; i++) {
-                if (list[i] == oldKey) list[i] = dsKey;
-              }
-            }
-          }
-        }
+        if (dsKey != null) item['dsKey'] = dsKey;
       }
     } catch (_) {}
 
