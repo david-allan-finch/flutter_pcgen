@@ -1538,6 +1538,9 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
     try {
       final classes = (dataset as dynamic).classes as List? ?? [];
       debugPrint('BAB_DBG dataset has ${classes.length} classes, charCounts=$counts');
+      // Print first 10 class keys to see what format they're stored in
+      final sampleKeys = classes.take(10).map((c) => (c as dynamic).getKeyName() as String? ?? '').toList();
+      debugPrint('BAB_DBG sample class keys: $sampleKeys');
       for (final cls in classes) {
         final key = (cls as dynamic).getKeyName() as String? ?? '';
         final lvl = counts[key] ?? 0;
