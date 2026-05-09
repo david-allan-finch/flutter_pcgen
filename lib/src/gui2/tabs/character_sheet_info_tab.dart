@@ -18,23 +18,13 @@
 // Translation of pcgen.gui2.tabs.CharacterSheetInfoTab
 
 import 'package:flutter/material.dart';
-import 'package:flutter_pcgen/src/gui2/app_state.dart';
-import 'package:flutter_pcgen/src/gui2/csheet/character_sheet_panel.dart';
+import 'package:flutter_pcgen/src/gui2/csheet/html_sheet_panel.dart';
 
-/// Tab panel that shows the rendered character sheet.
+/// Tab panel that shows the rendered HTML character sheet inline,
+/// equivalent to how Java PCGen renders the sheet tab via FreeMarker + WebView.
 class CharacterSheetInfoTab extends StatelessWidget {
   const CharacterSheetInfoTab({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return ValueListenableBuilder(
-      valueListenable: currentCharacter,
-      builder: (context, character, _) {
-        if (character == null) {
-          return const Center(child: Text('No character selected.'));
-        }
-        return CharacterSheetPanel(character: character);
-      },
-    );
-  }
+  Widget build(BuildContext context) => const HtmlSheetPanel();
 }

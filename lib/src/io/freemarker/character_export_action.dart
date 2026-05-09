@@ -16,17 +16,42 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.io.freemarker.CharacterExportAction
-// Note: FreeMarker template engine is not available in Dart; stub only.
+// Generates an HTML character sheet by either:
+//   (a) processing a FreeMarker .htm.ftl template, or
+//   (b) using the built-in HTML sheet generator.
 
-import 'package:flutter_pcgen/src/core/player_character.dart';
+import 'dart:io';
+import 'package:flutter_pcgen/src/gui2/facade/character_facade_impl.dart';
+import 'package:flutter_pcgen/src/io/freemarker/ftl_engine.dart';
+import 'package:flutter_pcgen/src/io/freemarker/pcgen_token_api.dart';
+import 'package:flutter_pcgen/src/io/html/builtin_sheet_generator.dart';
 
 class CharacterExportAction {
-  final PlayerCharacter pc;
+  final CharacterFacadeImpl pc;
+  final dynamic dataset;
 
-  CharacterExportAction(this.pc);
+  CharacterExportAction(this.pc, {this.dataset});
 
-  String execute(String templateContent) {
-    // TODO: implement template processing without FreeMarker
-    return '';
+  /// Generate HTML from an external FreeMarker template file.
+  String executeFromTemplate(String templatePath) {
+    final ctx = PcgenTokenContext(pc, dataset);
+    final baseDir = File(templatePath).parent.path;
+    final content = File(templatePath).readAsStringSync();
+    return FtlEngine().render(content, ctx, baseDir: baseDir);
+  }
+
+  /// Generate HTML using the built-in character sheet.
+  String executeBuiltIn() => BuiltinSheetGenerator(pc, dataset).generate();
+
+  /// Export HTML to a temp file and return its path.
+  Future<String> exportToTempFile({String? templatePath}) async {
+    final html = templatePath != null
+        ? executeFromTemplate(templatePath)
+        : executeBuiltIn();
+    final dir = Directory.systemTemp;
+    final safeName = pc.getName().replaceAll(RegExp(r'[^\w\-]'), '_');
+    final file = File('${dir.path}/$safeName.html');
+    await file.writeAsString(html);
+    return file.path;
   }
 }

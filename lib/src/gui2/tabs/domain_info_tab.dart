@@ -217,13 +217,13 @@ class DomainInfoTabState extends State<DomainInfoTab> {
                                         padding: EdgeInsets.only(left: 12, top: 4),
                                         child: Text('Domain Spells:', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
                                       ),
-                                      ...(spellMap.entries.toList()
-                                        ..sort((a, b) => (int.tryParse(a.key) ?? 0).compareTo(int.tryParse(b.key) ?? 0)))
-                                        .map((e) => Padding(
+                                      for (final e in (spellMap.entries.toList()
+                                          ..sort((a, b) => (int.tryParse(a.key) ?? 0).compareTo(int.tryParse(b.key) ?? 0))))
+                                        Padding(
                                           padding: const EdgeInsets.only(left: 16, bottom: 2),
                                           child: Text('${e.key}: ${e.value}',
                                               style: const TextStyle(fontSize: 11)),
-                                        )).toList(),
+                                        ),
                                     ],
                                   ],
                                 );

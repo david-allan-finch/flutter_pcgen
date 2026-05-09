@@ -1,5 +1,6 @@
 // Translation of pcgen.gui2.csheet.CharacterSheetPanel
 
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/list_key.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/string_key.dart';
@@ -7,6 +8,7 @@ import 'package:flutter_pcgen/src/core/pc_class.dart';
 import 'package:flutter_pcgen/src/gui2/app_state.dart';
 import 'package:flutter_pcgen/src/gui2/facade/character_facade_impl.dart';
 import 'package:flutter_pcgen/src/io/character_text_export.dart';
+import 'package:flutter_pcgen/src/io/freemarker/character_export_action.dart';
 import 'package:flutter_pcgen/src/rules/parsed_bonus.dart';
 
 /// Rendered character sheet panel.
@@ -75,27 +77,71 @@ class _CharacterSheetView extends StatelessWidget {
           // Companions
           _companionsCard(context, theme, data),
           const SizedBox(height: 16),
-          // Export button
-          Center(
-            child: OutlinedButton.icon(
-              icon: const Icon(Icons.copy),
-              label: const Text('Copy Full Sheet to Clipboard'),
-              onPressed: character is CharacterFacadeImpl
-                  ? () {
-                      // Full text export handled by PCGenFrame.showExportDialog()
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Use File > Export for full clipboard export'),
-                          duration: Duration(seconds: 2),
-                        ),
-                      );
-                    }
-                  : null,
-            ),
+          // Export buttons
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              OutlinedButton.icon(
+                icon: const Icon(Icons.html),
+                label: const Text('View HTML Sheet'),
+                onPressed: character is CharacterFacadeImpl
+                    ? () => _exportAndOpen(context, character as CharacterFacadeImpl)
+                    : null,
+              ),
+              const SizedBox(width: 12),
+              OutlinedButton.icon(
+                icon: const Icon(Icons.copy),
+                label: const Text('Copy Text Sheet'),
+                onPressed: character is CharacterFacadeImpl
+                    ? () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Use File > Export for full clipboard export'),
+                            duration: Duration(seconds: 2),
+                          ),
+                        );
+                      }
+                    : null,
+              ),
+            ],
           ),
         ],
       ),
     );
+  }
+
+  Future<void> _exportAndOpen(BuildContext ctx, CharacterFacadeImpl pc) async {
+    try {
+      final dataset = loadedDataSet.value;
+      final action = CharacterExportAction(pc, dataset: dataset);
+      final path = await action.exportToTempFile();
+      if (!ctx.mounted) return;
+      ScaffoldMessenger.of(ctx).showSnackBar(
+        SnackBar(
+          content: Text('HTML sheet saved to $path'),
+          action: SnackBarAction(
+            label: 'Open',
+            onPressed: () async {
+              // Open in default browser using platform shell command
+              final uri = Uri.file(path);
+              if (Platform.isWindows) {
+                await Process.run('explorer', [uri.toFilePath(windows: true)]);
+              } else if (Platform.isMacOS) {
+                await Process.run('open', [path]);
+              } else {
+                await Process.run('xdg-open', [path]);
+              }
+            },
+          ),
+          duration: const Duration(seconds: 8),
+        ),
+      );
+    } catch (e) {
+      if (!ctx.mounted) return;
+      ScaffoldMessenger.of(ctx).showSnackBar(
+        SnackBar(content: Text('Export failed: $e'), backgroundColor: Colors.red),
+      );
+    }
   }
 
   Map<String, dynamic> _data() {
