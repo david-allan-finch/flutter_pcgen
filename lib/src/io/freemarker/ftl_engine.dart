@@ -60,6 +60,16 @@ class _ListNode extends _Node {
   _ListNode(this.sequence, this.iterVar, this.body);
 }
 
+// PCGen's <@loop from=X to=Y ; iterVar , hasNextVar> directive
+class _PcLoopNode extends _Node {
+  final String fromExpr;
+  final String toExpr;
+  final String iterVar;
+  final String hasNextVar;
+  final List<_Node> body;
+  _PcLoopNode(this.fromExpr, this.toExpr, this.iterVar, this.hasNextVar, this.body);
+}
+
 class _AssignNode extends _Node {
   final String name;
   final String src;    // empty if block-assign
@@ -358,20 +368,54 @@ class _Parser {
     return _MacroNode(name, params, body);
   }
 
-  _CallMacroNode _parseMacroCall() {
+  _Node _parseMacroCall() {
     _pos += 2; // skip <@
     final end = _src.indexOf('>', _pos);
     if (end < 0) { _pos = _src.length; return _CallMacroNode('', {}); }
     final raw = _src.substring(_pos, end).trim();
     _pos = end + 1;
-    // Self-closing or not: strip trailing /
     final clean = raw.endsWith('/') ? raw.substring(0, raw.length - 1).trim() : raw;
     final spIdx = clean.indexOf(' ');
-    if (spIdx < 0) return _CallMacroNode(clean, {});
-    final name = clean.substring(0, spIdx);
-    final argStr = clean.substring(spIdx + 1).trim();
+    final name = spIdx < 0 ? clean : clean.substring(0, spIdx);
+    final argStr = spIdx < 0 ? '' : clean.substring(spIdx + 1).trim();
+
+    // PCGen's <@loop from=X to=Y ; iterVar , hasNextVar> directive
+    if (name == 'loop') {
+      return _parsePcLoop(argStr);
+    }
+
     final args = _parseArgs(argStr);
     return _CallMacroNode(name, args);
+  }
+
+  _PcLoopNode _parsePcLoop(String argStr) {
+    // Format: from=EXPR to=EXPR ; iterVar , hasNextVar
+    // Also seen: from=0 to=pcvar('COUNT[STATS]-1') ; stat , stat_has_next
+    String fromExpr = '0';
+    String toExpr = '0';
+    String iterVar = 'item';
+    String hasNextVar = 'item_has_next';
+
+    // Split on ';' to separate key=value args from iter var declarations
+    final semiIdx = argStr.indexOf(';');
+    final keyPart = semiIdx >= 0 ? argStr.substring(0, semiIdx).trim() : argStr;
+    final varPart = semiIdx >= 0 ? argStr.substring(semiIdx + 1).trim() : '';
+
+    // Parse from=X to=Y (values may contain balanced parens/quotes)
+    final fromMatch = RegExp(r'from\s*=\s*(.+?)(?=\s+to\s*=)', dotAll: true).firstMatch(keyPart);
+    final toMatch   = RegExp(r'to\s*=\s*(.+)$').firstMatch(keyPart);
+    if (fromMatch != null) fromExpr = fromMatch.group(1)!.trim();
+    if (toMatch   != null) toExpr   = toMatch.group(1)!.trim();
+
+    // Parse iterVar , hasNextVar
+    if (varPart.isNotEmpty) {
+      final vars = varPart.split(',');
+      if (vars.isNotEmpty) iterVar = vars[0].trim();
+      if (vars.length > 1) hasNextVar = vars[1].trim();
+    }
+
+    final body = _parseUntil('loop');
+    return _PcLoopNode(fromExpr, toExpr, iterVar, hasNextVar, body);
   }
 
   Map<String, String> _parseArgs(String src) {
@@ -457,6 +501,26 @@ class _Evaluator {
           ..remove('${node.iterVar}_index')
           ..remove('${node.iterVar}_has_next');
         // Restore overwritten outer vars
+        for (final k in savedVars.keys) {
+          if (!_ctx.vars.containsKey(k)) _ctx.vars[k] = savedVars[k];
+        }
+      } catch (_) {}
+      return;
+    }
+
+    if (node is _PcLoopNode) {
+      try {
+        final from = (_evalExpr(node.fromExpr, _ctx.vars) as num?)?.toInt() ?? 0;
+        final to   = (_evalExpr(node.toExpr,   _ctx.vars) as num?)?.toInt() ?? -1;
+        final savedVars = Map<String, dynamic>.from(_ctx.vars);
+        for (var i = from; i <= to; i++) {
+          _ctx.vars[node.iterVar]    = i;
+          _ctx.vars[node.hasNextVar] = i < to;
+          evalList(node.body, out);
+        }
+        _ctx.vars
+          ..remove(node.iterVar)
+          ..remove(node.hasNextVar);
         for (final k in savedVars.keys) {
           if (!_ctx.vars.containsKey(k)) _ctx.vars[k] = savedVars[k];
         }
@@ -653,10 +717,11 @@ class _Evaluator {
       return _evalExpr(src.substring(1, src.length - 1), vars);
     }
 
-    // String literal
+    // String literal — expand any ${var} interpolations inside it
     if ((src.startsWith('"') && src.endsWith('"')) ||
         (src.startsWith("'") && src.endsWith("'"))) {
-      return src.substring(1, src.length - 1);
+      final inner = src.substring(1, src.length - 1);
+      return _expandStringInterpolation(inner, vars);
     }
 
     // Numeric literal
@@ -738,6 +803,31 @@ class _Evaluator {
   }
 
   String _unquote(String s) => s.trim().replaceAll('"', '').replaceAll("'", '');
+
+  /// Expand ${varName} and ${expr} inside a string literal value.
+  /// e.g. 'STAT.${stat}.NAME' with stat=2 → 'STAT.2.NAME'
+  String _expandStringInterpolation(String s, Map<String, dynamic> vars) {
+    if (!s.contains(r'${')) return s;
+    final buf = StringBuffer();
+    int i = 0;
+    while (i < s.length) {
+      if (s[i] == r'$' && i + 1 < s.length && s[i + 1] == '{') {
+        final end = s.indexOf('}', i + 2);
+        if (end < 0) { buf.write(s.substring(i)); break; }
+        final expr = s.substring(i + 2, end);
+        try {
+          buf.write(_toStr(_evalExpr(expr, vars)));
+        } catch (_) {
+          buf.write('\${$expr}');
+        }
+        i = end + 1;
+      } else {
+        buf.write(s[i]);
+        i++;
+      }
+    }
+    return buf.toString();
+  }
 
   bool _compare(dynamic left, dynamic right, String op) {
     final ls = _toStr(left);

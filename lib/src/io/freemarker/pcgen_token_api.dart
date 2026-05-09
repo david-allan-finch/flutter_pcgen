@@ -94,12 +94,27 @@ class PcgenTokenContext extends FtlContext {
       case 'NOTES':       return _pc.getNotes();
       case 'HP':          return _pc.getHP().toString();
       case 'MAXHP':       return _pc.getMaxHP().toString();
-      case 'XP':          return _pc.getXP().toString();
-      case 'XPNEXT':      return _pc.getXPForNextLevel().toString();
+      case 'ALTHP':       return _pc.getMaxHP().toString();
+      case 'XP':
+      case 'EXP':         return _pc.getXP().toString();
+      case 'XPNEXT':
+      case 'EXP.CURRENT': return _pc.getXP().toString();
+      case 'EXP.NEXT':    return _pc.getXPForNextLevel().toString();
       case 'TOTALLEVELS': return _pc.getTotalCharacterLevel().toString();
       case 'CR':          return _pc.getTotalCharacterLevel().toString();
       case 'SIZE':        return _pc.getRaceSize();
+      case 'SIZELONG':    return _sizeToLong(_pc.getRaceSize());
       case 'GAMEMODE':    return _pc.getGameMode();
+      case 'FOLLOWEROF':  return '';
+      case 'PORTRAIT.THUMB': return '';
+      case 'FACE.SHORT':  return '5 ft.';
+      case 'FACE':        return '5 ft. × 5 ft.';
+      case 'REACH':       return '5 ft.';
+      case 'VISION':      return _data('vision') as String? ?? '';
+      case 'COLOR':       return _color(parts);
+      case 'LENGTH':      return _length(parts);
+      case 'MOVE':        return _move(parts);
+      case 'POOL':        return _pool(parts);
 
       case 'STAT':        return _stat(parts);
       case 'BASESAVE':
@@ -161,6 +176,9 @@ class PcgenTokenContext extends FtlContext {
     switch (parts[2]) {
       case 'NAME':    return abb;
       case 'ABB':     return abb;
+      case 'NOTEMP':
+      case 'NOEQUIP':
+      case 'NOTEMP.NOEQUIP':
       case 'SCORE':
       case 'TOTAL':
         if (dataset != null) {
@@ -205,8 +223,28 @@ class PcgenTokenContext extends FtlContext {
         }
         return '0';
       case 'MISC':
-        return '0'; // misc modifier (not commonly used)
+        return '0';
+      case 'LONGNAME':
+        // Full stat name e.g. "Strength"
+        const longNames = {
+          'STR': 'Strength', 'DEX': 'Dexterity', 'CON': 'Constitution',
+          'INT': 'Intelligence', 'WIS': 'Wisdom', 'CHA': 'Charisma',
+        };
+        return longNames[abb] ?? abb;
+      case 'MOD.NOTEMP.NOEQUIP':
+      case 'MOD.NOTEMP':
+        // base mod without temp/equip bonuses — use base score
+        if (dataset != null) {
+          try {
+            final stat = (dataset.stats as List).firstWhere((s) => s.getKeyName() == abb);
+            final base = _pc.getScoreBase(stat);
+            return _signed(((base - 10) / 2).floor());
+          } catch (_) {}
+        }
+        return '+0';
     }
+    // Multi-part: STAT.N.MOD.NOTEMP etc — try first sub-token
+    if (parts.length > 3) return _stat(parts.sublist(0, 3));
     return '';
   }
 
@@ -528,10 +566,61 @@ class PcgenTokenContext extends FtlContext {
     return '';
   }
 
+  // ─── Color / length / move / pool tokens ─────────────────────────────────
+
+  String _color(List<String> parts) {
+    if (parts.length < 2) return '';
+    switch (parts[1]) {
+      case 'EYE':  return _pc.getEyeColor();
+      case 'HAIR': return _pc.getHairColor();
+      case 'SKIN': return _pc.getSkinColor();
+    }
+    return '';
+  }
+
+  String _length(List<String> parts) {
+    if (parts.length < 2) return '';
+    switch (parts[1]) {
+      case 'HAIR': return '';
+    }
+    return '';
+  }
+
+  String _move(List<String> parts) {
+    // MOVE.N.NAME / MOVE.N.RATE
+    if (parts.length < 3) return '';
+    final idx = int.tryParse(parts[1]) ?? 0;
+    final speeds = (_data('moveSpeeds') as Map? ?? {});
+    final keys = speeds.keys.toList();
+    if (idx >= keys.length) return '';
+    final key = keys[idx];
+    switch (parts[2]) {
+      case 'NAME': return key.toString();
+      case 'RATE': return speeds[key].toString();
+    }
+    return '';
+  }
+
+  String _pool(List<String> parts) {
+    if (parts.length < 2) return '';
+    switch (parts[1]) {
+      case 'COST': return '0'; // point-buy cost — not tracked
+    }
+    return '';
+  }
+
+  String _sizeToLong(String abbr) {
+    const map = {
+      'F': 'Fine', 'D': 'Diminutive', 'T': 'Tiny', 'S': 'Small',
+      'M': 'Medium', 'L': 'Large', 'H': 'Huge', 'G': 'Gargantuan', 'C': 'Colossal',
+    };
+    return map[abbr.toUpperCase()] ?? abbr;
+  }
+
   // ─── COUNT[...] ────────────────────────────────────────────────────────────
 
   int _count(String what) {
-    final w = what.toUpperCase();
+    final w = what.toUpperCase().trim();
     if (w == 'CLASSES' || w == 'CLASS') {
       final classLevels = _data('classLevels') as List? ?? [];
       final seen = <String>{};
@@ -540,8 +629,18 @@ class PcgenTokenContext extends FtlContext {
       }
       return seen.length;
     }
+    if (w == 'STATS') {
+      try { return (_dataset?.stats as List?)?.length ?? _statOrder.length; }
+      catch (_) { return _statOrder.length; }
+    }
     if (w == 'SKILLS') {
       try { return (_dataset?.skills as List?)?.length ?? 0; } catch(_) { return 0; }
+    }
+    if (w == 'VISION') {
+      return (_data('vision') as String? ?? '').isNotEmpty ? 1 : 0;
+    }
+    if (w == 'MOVE') {
+      return (_data('moveSpeeds') as Map? ?? {}).length;
     }
     if (w.startsWith('ABILITY.FEAT') || w == 'FEATS') {
       return _abilitiesForCat('FEAT').length;
@@ -561,6 +660,14 @@ class PcgenTokenContext extends FtlContext {
       return (_data('gear') as List? ?? []).length;
     }
     if (w == 'WEAPONPROFS') return _pc.getWeaponProficiencies().length;
+    if (w == 'SAVES') return _saveNames.length;
+    // COUNT[expr] arithmetic — e.g. COUNT[STATS]-1
+    final dashIdx = what.indexOf('-');
+    if (dashIdx > 0) {
+      final base = _count(what.substring(0, dashIdx));
+      final sub  = int.tryParse(what.substring(dashIdx + 1).trim()) ?? 0;
+      return base - sub;
+    }
     return 0;
   }
 
