@@ -1,122 +1,197 @@
-// DataManager — handles downloading and extracting PCGen system/data files
-// on platforms where they cannot be shipped inside the app bundle (Android, iOS).
+// DataManager — installs and manages .pcglst data packs on mobile platforms.
 //
-// Usage:
-//   final mgr = DataManager();
-//   if (!await mgr.isDataReady()) {
-//     // show DataDownloadScreen
-//   } else {
-//     mgr.configureDataRoot();  // point ConfigurationSettings at the local copy
-//   }
+// .pcglst format: a zip file containing:
+//   pack.json        — PackMetadata (name, version, gameMode, etc.)
+//   system/          — game mode files (optional)
+//   data/            — LST source files (optional)
+//
+// Installed packs are tracked in <baseDir>/installed_packs.json.
+// All packs are merged into the single <baseDir> tree so ConfigurationSettings
+// can point @system and @data at it without needing to know about pack structure.
 
+import 'dart:convert';
 import 'dart:io';
 import 'package:archive/archive_io.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
+import 'package:flutter_pcgen/src/gui2/startup/pack_metadata.dart';
 import 'package:flutter_pcgen/src/system/configuration_settings.dart';
 
 class DataManager {
-  // ── Configuration ──────────────────────────────────────────────────────────
+  // ── Built-in catalogue ────────────────────────────────────────────────────
+  // Update these URLs when you publish releases.
 
-  /// URL of the zip that contains system/ and data/ directories.
-  /// Update this to point at your GitHub release or CDN.
-  static const String dataZipUrl =
-      'https://github.com/david-allan-finch/flutter_pcgen/releases/download/data-v1/pcgen-data.zip';
+  static const List<CatalogueEntry> catalogue = [
+    CatalogueEntry(
+      metadata: PackMetadata(
+        id: 'srd35',
+        name: '3.5e SRD',
+        version: '1.0.0',
+        gameMode: '35e',
+        description: 'D&D 3.5 System Reference Document — core rules and monsters',
+        author: 'PCGen Community',
+      ),
+      url: 'https://github.com/david-allan-finch/flutter_pcgen/releases/download/pcglst-v1/srd35.pcglst',
+      sizeMb: '~45 MB',
+    ),
+    CatalogueEntry(
+      metadata: PackMetadata(
+        id: 'pathfinder1e',
+        name: 'Pathfinder 1e',
+        version: '1.0.0',
+        gameMode: 'Pathfinder',
+        description: 'Pathfinder 1st Edition core rules',
+        author: 'PCGen Community',
+      ),
+      url: 'https://github.com/david-allan-finch/flutter_pcgen/releases/download/pcglst-v1/pathfinder1e.pcglst',
+      sizeMb: '~60 MB',
+    ),
+  ];
 
-  /// Version token stored in <dataRoot>/pcgen_data_version.txt.
-  /// Bump this to force a re-download when the data changes.
-  static const String expectedDataVersion = '1.0.0';
+  // ── Paths ─────────────────────────────────────────────────────────────────
 
-  // ── Internal paths ─────────────────────────────────────────────────────────
-
-  Future<Directory> get _baseDir async {
+  static Future<Directory> get baseDir async {
     final appDir = await getApplicationDocumentsDirectory();
-    return Directory('${appDir.path}/pcgen');
+    final dir = Directory('${appDir.path}/pcgen');
+    if (!dir.existsSync()) await dir.create(recursive: true);
+    return dir;
   }
 
-  Future<File> get _versionFile async =>
-      File('${(await _baseDir).path}/pcgen_data_version.txt');
+  static Future<File> get _manifestFile async =>
+      File('${(await baseDir).path}/installed_packs.json');
 
-  // ── Public API ─────────────────────────────────────────────────────────────
+  // ── Installed pack management ─────────────────────────────────────────────
 
-  /// Returns true if locally extracted data is present and up-to-date.
-  Future<bool> isDataReady() async {
+  Future<List<InstalledPack>> getInstalledPacks() async {
     try {
-      final vf = await _versionFile;
-      if (!vf.existsSync()) return false;
-      final version = (await vf.readAsString()).trim();
-      if (version != expectedDataVersion) return false;
-      // Quick sanity: check system/ and data/ exist.
-      final base = await _baseDir;
-      final systemOk = Directory('${base.path}/system').existsSync();
-      final dataOk   = Directory('${base.path}/data').existsSync();
-      return systemOk && dataOk;
+      final f = await _manifestFile;
+      if (!f.existsSync()) return [];
+      final json = jsonDecode(await f.readAsString()) as Map<String, dynamic>;
+      return (json['installedPacks'] as List? ?? [])
+          .map((e) => InstalledPack.fromJson(e as Map<String, dynamic>))
+          .toList();
     } catch (_) {
-      return false;
+      return [];
     }
   }
 
-  /// Sets [ConfigurationSettings.dataRoot] to the local data directory.
-  /// Call this after confirming [isDataReady] is true.
+  Future<void> _saveInstalledPacks(List<InstalledPack> packs) async {
+    final f = await _manifestFile;
+    await f.writeAsString(jsonEncode({
+      'installedPacks': packs.map((p) => p.toJson()).toList(),
+    }));
+  }
+
+  Future<bool> isPackInstalled(String id) async {
+    final installed = await getInstalledPacks();
+    return installed.any((p) => p.metadata.id == id);
+  }
+
+  Future<void> removePack(String id) async {
+    final packs = await getInstalledPacks();
+    await _saveInstalledPacks(packs.where((p) => p.metadata.id != id).toList());
+    // Note: we don't delete the extracted files because multiple packs share
+    // the same directory tree. A full reinstall is needed if files must be removed.
+  }
+
+  // ── Ready check ───────────────────────────────────────────────────────────
+
+  /// True if at least one data pack is installed and the system/ dir exists.
+  Future<bool> isDataReady() async {
+    final packs = await getInstalledPacks();
+    if (packs.isEmpty) return false;
+    final base = await baseDir;
+    return Directory('${base.path}/system').existsSync() ||
+           Directory('${base.path}/data').existsSync();
+  }
+
+  /// Sets ConfigurationSettings data root to our base directory.
   Future<void> configureDataRoot() async {
-    final base = await _baseDir;
+    final base = await baseDir;
     ConfigurationSettings.setDataRoot(base.path);
   }
 
-  /// Downloads the data zip from [dataZipUrl] and extracts it.
-  ///
-  /// [onProgress] receives values 0.0–1.0 during download, then null during
-  /// extraction (indeterminate), then 1.0 when complete.
-  Future<void> downloadAndExtract({
+  // ── Download + install from URL ───────────────────────────────────────────
+
+  Future<void> downloadAndInstall(
+    String url, {
     required void Function(double? progress, String status) onProgress,
   }) async {
-    final base = await _baseDir;
-    await base.create(recursive: true);
-    final zipFile = File('${base.path}/pcgen-data.zip');
+    final base = await baseDir;
+    final tmpFile = File('${base.path}/_download.pcglst');
 
-    // ── Download ──────────────────────────────────────────────────────────────
+    // Download
     onProgress(0.0, 'Connecting…');
-    final request = http.Request('GET', Uri.parse(dataZipUrl));
+    final request = http.Request('GET', Uri.parse(url));
     final response = await request.send();
-
     if (response.statusCode != 200) {
       throw Exception('Download failed: HTTP ${response.statusCode}');
     }
 
     final total = response.contentLength ?? 0;
     int received = 0;
-    final sink = zipFile.openWrite();
-
+    final sink = tmpFile.openWrite();
     await for (final chunk in response.stream) {
       sink.add(chunk);
       received += chunk.length;
-      if (total > 0) {
-        onProgress(received / total * 0.8, // 0–80% = download
-            'Downloading… ${_mb(received)} / ${_mb(total)} MB');
-      } else {
-        onProgress(null, 'Downloading… ${_mb(received)} MB');
-      }
+      final frac = total > 0 ? received / total * 0.8 : null;
+      onProgress(frac, 'Downloading… ${_mb(received)}${total > 0 ? " / ${_mb(total)}" : ""} MB');
     }
     await sink.flush();
     await sink.close();
 
-    // ── Extract ───────────────────────────────────────────────────────────────
-    onProgress(null, 'Extracting…');
-    await _extractZip(zipFile, base);
-
-    // ── Finalise ──────────────────────────────────────────────────────────────
-    await (await _versionFile).writeAsString(expectedDataVersion);
-    await zipFile.delete(); // free space
-    onProgress(1.0, 'Complete');
+    // Install from the downloaded file
+    await installFromFile(tmpFile.path, onProgress: onProgress);
+    await tmpFile.delete();
   }
 
-  // ── Helpers ────────────────────────────────────────────────────────────────
+  // ── Install from local .pcglst file ──────────────────────────────────────
+
+  Future<PackMetadata> installFromFile(
+    String filePath, {
+    required void Function(double? progress, String status) onProgress,
+  }) async {
+    onProgress(null, 'Reading pack…');
+    final base = await baseDir;
+
+    // Read pack.json from zip without full extraction first
+    final meta = await readPackMetadata(filePath);
+    if (meta == null) throw Exception('Invalid .pcglst: missing pack.json');
+
+    onProgress(null, 'Installing ${meta.name}…');
+    await _extractZip(File(filePath), base);
+
+    // Update manifest
+    final packs = await getInstalledPacks();
+    packs.removeWhere((p) => p.metadata.id == meta.id); // replace if updating
+    packs.add(InstalledPack(metadata: meta, installedAt: DateTime.now()));
+    await _saveInstalledPacks(packs);
+
+    onProgress(1.0, 'Installed ${meta.name}');
+    return meta;
+  }
+
+  /// Reads only the pack.json from a .pcglst zip without full extraction.
+  Future<PackMetadata?> readPackMetadata(String filePath) async {
+    try {
+      final bytes = await File(filePath).readAsBytes();
+      final archive = ZipDecoder().decodeBytes(bytes);
+      final entry = archive.findFile('pack.json');
+      if (entry == null) return null;
+      final json = jsonDecode(utf8.decode(entry.content as List<int>));
+      return PackMetadata.fromJson(json as Map<String, dynamic>);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  // ── Helpers ───────────────────────────────────────────────────────────────
 
   Future<void> _extractZip(File zipFile, Directory dest) async {
-    // Use streaming extraction to avoid loading the whole zip into RAM.
     final inputStream = InputFileStream(zipFile.path);
     final archive = ZipDecoder().decodeBuffer(inputStream);
     for (final file in archive) {
+      if (file.name == 'pack.json') continue; // metadata handled separately
       final outPath = '${dest.path}/${file.name}';
       if (file.isFile) {
         final outFile = File(outPath);

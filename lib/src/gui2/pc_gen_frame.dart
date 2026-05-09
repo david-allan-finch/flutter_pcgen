@@ -22,6 +22,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
+import 'package:flutter_pcgen/src/gui2/startup/data_packs_screen.dart';
+import 'package:flutter_pcgen/src/gui2/startup/character_archive_screen.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_pcgen/src/gui2/ui_context.dart';
 import 'package:flutter_pcgen/src/gui2/ui_property_context.dart';
@@ -339,7 +341,21 @@ class PCGenFrameState extends State<PCGenFrame> {
   }
 
   void showDataInstallerDialog() {
-    _showInfo('Install Data');
+    if (!mounted) return;
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const DataPacksScreen()),
+    );
+  }
+
+  void showCharacterArchiveDialog() {
+    if (!mounted) return;
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => CharacterArchiveScreen(
+          onImportComplete: () => setState(() {}),
+        ),
+      ),
+    );
   }
 
   void showSourceSelectionDialog() {

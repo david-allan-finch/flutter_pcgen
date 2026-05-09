@@ -87,6 +87,7 @@ class PCGenActionMap {
   // Tools menu commands
   static const String toolsCommand = 'tools';
   static const String preferencesCommand = 'tools.preferences';
+  static const String characterArchiveCommand = 'tools.characterArchive';
   static const String logCommand = 'tools.log';
   static const String loggingLevelCommand = 'tools.loggingLevel';
   static const String calculatorCommand = 'tools.calculator';
@@ -170,6 +171,8 @@ class PCGenActionMap {
         handler: () => frame.showSolverViewDialog());
     _put(installDataCommand, 'Install Data',
         handler: () => frame.showDataInstallerDialog());
+    _put(characterArchiveCommand, 'Character Archive',
+        handler: () => frame.showCharacterArchiveDialog());
     _put(sourcesLoadSelectCommand, 'Load Sources', accelerator: 'Ctrl+L',
         handler: () => frame.showSourceSelectionDialog());
     _put(sourcesReloadCommand, 'Reload Sources', accelerator: 'Shift+Ctrl+R',

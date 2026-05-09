@@ -105,6 +105,8 @@ class _PCGenMenuBarState extends State<PCGenMenuBar> {
   List<PopupMenuEntry<String>> _buildToolsItems(BuildContext context) => [
         _item(PCGenActionMap.preferencesCommand, 'Preferences...'),
         const PopupMenuDivider(),
+        _item(PCGenActionMap.characterArchiveCommand, 'Character Archive (.pcgch)…'),
+        const PopupMenuDivider(),
         _item(PCGenActionMap.logCommand, 'Log'),
         _item(PCGenActionMap.calculatorCommand, 'Calculator'),
         _item(PCGenActionMap.coreviewCommand, 'Core View'),
