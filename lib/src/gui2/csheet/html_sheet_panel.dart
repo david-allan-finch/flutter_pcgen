@@ -13,6 +13,8 @@ import 'package:flutter_pcgen/src/gui2/app_state.dart';
 import 'package:flutter_pcgen/src/gui2/facade/character_facade_impl.dart';
 import 'package:flutter_pcgen/src/io/html/builtin_sheet_generator.dart';
 import 'package:flutter_pcgen/src/io/freemarker/character_export_action.dart';
+import 'package:flutter_pcgen/src/system/configuration_settings.dart';
+import 'package:path/path.dart' as p;
 
 class HtmlSheetPanel extends StatefulWidget {
   final String? templatePath;
@@ -57,10 +59,7 @@ class _HtmlSheetPanelState extends State<HtmlSheetPanel> {
   void _loadSheet(CharacterFacadeImpl pc) {
     _lastCharacter = pc;
     try {
-      final html = widget.templatePath != null
-          ? CharacterExportAction(pc, dataset: loadedDataSet.value)
-              .executeFromTemplate(widget.templatePath!)
-          : BuiltinSheetGenerator(pc, loadedDataSet.value).generate();
+      final html = _generateHtml(pc);
       if (_mobileCtrl != null) {
         _mobileCtrl!.loadHtmlString(html);
       } else {
@@ -68,7 +67,43 @@ class _HtmlSheetPanelState extends State<HtmlSheetPanel> {
       }
     } catch (e) {
       debugPrint('HtmlSheetPanel error: $e');
+      // Fall back to built-in sheet on any error
+      try {
+        final html = BuiltinSheetGenerator(pc, loadedDataSet.value).generate();
+        if (_mobileCtrl != null) {
+          _mobileCtrl!.loadHtmlString(html);
+        } else {
+          if (mounted) setState(() => _currentHtml = html);
+        }
+      } catch (_) {}
     }
+  }
+
+  String _generateHtml(CharacterFacadeImpl pc) {
+    // Explicit template path takes priority
+    if (widget.templatePath != null) {
+      return CharacterExportAction(pc, dataset: loadedDataSet.value)
+          .executeFromTemplate(widget.templatePath!);
+    }
+
+    // Try the game's default preview sheet (Standard.htm.ftl)
+    final previewDir = ConfigurationSettings.getPreviewDir();
+    // PREVIEWDIR in 35e miscinfo.lst is 'd20/fantasy', so the sheet is at:
+    //   <previewDir>/d20/fantasy/Standard.htm.ftl  (if previewDir = outputsheets/preview)
+    // But our copy is at:  preview/d20/fantasy/Standard.htm.ftl
+    final candidates = [
+      p.join(previewDir, 'Standard.htm.ftl'),
+      p.join(previewDir, 'd20', 'fantasy', 'Standard.htm.ftl'),
+    ];
+    for (final path in candidates) {
+      if (File(path).existsSync()) {
+        return CharacterExportAction(pc, dataset: loadedDataSet.value)
+            .executeFromTemplate(path);
+      }
+    }
+
+    // Fall back to built-in sheet
+    return BuiltinSheetGenerator(pc, loadedDataSet.value).generate();
   }
 
   @override
