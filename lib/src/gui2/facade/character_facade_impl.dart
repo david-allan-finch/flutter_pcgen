@@ -545,6 +545,27 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
       _bonusAcc.totalInt('COMBAT', 'DAMAGE') +
       _bonusAcc.totalInt('COMBAT', 'DAMAGE.MELEE');
 
+  /// Short-range (≤30ft) to-hit bonus — Point Blank Shot etc.
+  int getShortRangeTohitBonus() =>
+      _bonusAcc.totalInt('COMBAT', 'TOHIT-SHORTRANGE');
+
+  /// Short-range (≤30ft) damage bonus — Point Blank Shot etc.
+  int getShortRangeDamageBonus() =>
+      _bonusAcc.totalInt('COMBAT', 'DAMAGE-SHORTRANGE');
+
+  /// Weapon-type-specific to-hit bonus (e.g. Bracers of Archery give +2 to Longbow).
+  /// [weaponType] should be a TYPE string from the weapon (e.g. 'Longbow', 'Shortbow').
+  int getWeaponTypeTohitBonus(String weaponType) {
+    final cat = 'WEAPONPROF=${weaponType.toUpperCase()}';
+    return _bonusAcc.totalInt(cat, 'TOHIT');
+  }
+
+  /// Weapon-type-specific damage bonus (e.g. Bracers of Archery give +1 damage to Longbow).
+  int getWeaponTypeDamageBonus(String weaponType) {
+    final cat = 'WEAPONPROF=${weaponType.toUpperCase()}';
+    return _bonusAcc.totalInt(cat, 'DAMAGE');
+  }
+
   // ---- Skills -------------------------------------------------------------
 
   @override

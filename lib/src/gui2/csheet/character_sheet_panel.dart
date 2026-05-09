@@ -524,9 +524,10 @@ class _CharacterSheetView extends StatelessWidget {
     final gearRaw = data['gear'] as List? ?? [];
 
     // Build gear lookup maps.
-    final keyToName     = <String, String>{};       // gearKey → display name
-    final keyToBaseItem = <String, String>{};       // gearKey → base item key
-    final keyToEqmods   = <String, List<String>>{}; // gearKey → EQMOD key list
+    final keyToName     = <String, String>{};         // gearKey → display name
+    final keyToBaseItem = <String, String>{};         // gearKey → base item key
+    final keyToEqmods   = <String, List<String>>{};   // gearKey → EQMOD key list
+    final keyToEqmodArgs = <String, Map<String, String>>{}; // gearKey → EQMOD args
     for (final g in gearRaw) {
       if (g is! Map) continue;
       final k = g['key']      as String? ?? '';
@@ -537,20 +538,28 @@ class _CharacterSheetView extends StatelessWidget {
         if (b.isNotEmpty) keyToBaseItem[k] = b;
         final em = g['eqmods'];
         if (em is List) keyToEqmods[k] = em.cast<String>();
+        final ea = g['eqmodArgs'];
+        if (ea is Map) keyToEqmodArgs[k] = Map<String, String>.from(ea.map(
+            (k2, v2) => MapEntry(k2.toString().toUpperCase(), v2.toString())));
       }
     }
     final gear = gearRaw.whereType<Map>().cast<Map<String, dynamic>>().toList();
 
-    // Collect weapon candidates: hand slots + containers inside hand slots.
+    // Collect weapon candidates: hand/natural slots + carried items + containers.
     // Maps gearKey → slot label.
     final weaponCandidates = <String, String>{};
     for (final entry in equippedSlots.entries) {
       final slot = entry.key as String;
       final key  = entry.value as String?;
       if (key == null || key.isEmpty) continue;
-      // Include items that are explicitly in weapon slots OR classified as
-      // WEAPON type in the dataset (checked below).
       weaponCandidates[key] = slot;
+    }
+    // Carried items — show if they are weapon type.
+    for (final carriedKey in (data['carriedItems'] as List? ?? [])) {
+      if (carriedKey is String && carriedKey.isNotEmpty &&
+          !weaponCandidates.containsKey(carriedKey)) {
+        weaponCandidates[carriedKey] = 'Carried';
+      }
     }
     // Weapons inside hand-slot containers (e.g. Glove of Storing).
     try {
@@ -610,7 +619,10 @@ class _CharacterSheetView extends StatelessWidget {
 
       // Compute EQMOD bonuses to attack and damage (e.g. PLUS3W → +3/+3)
       final eqmodList = keyToEqmods[key] ?? [];
-      final (eqTohit, eqDamage) = _eqmodBonuses(eqmodList, dataset);
+      final eqArgs    = keyToEqmodArgs[key] ?? {};
+      final bowstrRating = int.tryParse(eqArgs['BOWSTR'] ?? '') ?? 0;
+      final (eqTohit, eqDamage) = _eqmodBonuses(eqmodList, dataset,
+          strMod: strMod, bowstrRating: bowstrRating);
 
       String dmg = '—', critStr = '20', wield = 'Melee';
       bool isRanged = false;
@@ -628,9 +640,29 @@ class _CharacterSheetView extends StatelessWidget {
       bool proficient = true;
       try { proficient = (character as dynamic).isWeaponProficient(typeList) as bool? ?? true; } catch (_) {}
 
-      final atkMod   = isRanged ? dexMod : strMod;
-      final nonprof  = proficient ? 0 : -4;
-      final atkBonus = bab + atkMod + tohitBonus + nonprof + eqTohit;
+      final atkMod  = isRanged ? dexMod : strMod;
+      final nonprof = proficient ? 0 : -4;
+
+      // BONUS:WEAPONPROF=<Type>|TOHIT and DAMAGE (e.g. Bracers of Archery)
+      int weaponProfTohit = 0, weaponProfDamage = 0;
+      try {
+        for (final t in typeList) {
+          weaponProfTohit  += (character as dynamic).getWeaponTypeTohitBonus(t)  as int? ?? 0;
+          weaponProfDamage += (character as dynamic).getWeaponTypeDamageBonus(t) as int? ?? 0;
+        }
+      } catch (_) {}
+
+      // PBS short-range bonus (BONUS:COMBAT|TOHIT-SHORTRANGE / DAMAGE-SHORTRANGE)
+      // Always include for ranged weapons since sheet shows close-range attack.
+      int shortRangeTohit = 0, shortRangeDamage = 0;
+      if (isRanged) {
+        try {
+          shortRangeTohit  = (character as dynamic).getShortRangeTohitBonus()  as int? ?? 0;
+          shortRangeDamage = (character as dynamic).getShortRangeDamageBonus() as int? ?? 0;
+        } catch (_) {}
+      }
+
+      final atkBonus = bab + atkMod + tohitBonus + nonprof + eqTohit + weaponProfTohit + shortRangeTohit;
       debugPrint('SHEET_DBG weapon=${keyToName[key] ?? key} eqmods=$eqmodList eqTohit=$eqTohit atkMod=$atkMod nonprof=$nonprof atkBonus=$atkBonus isRanged=$isRanged');
       final atkParts = <String>[];
       if (bab >= 6) {
@@ -643,10 +675,12 @@ class _CharacterSheetView extends StatelessWidget {
       } else {
         atkParts.add('${atkBonus >= 0 ? '+' : ''}$atkBonus');
       }
-      final atkStr    = '${atkParts.join('/')}${proficient ? '' : '*'}';
-      final totalDmg  = (isRanged ? 0 : strMod + damageBonus) + eqDamage;
+      final atkStr   = '${atkParts.join('/')}${proficient ? '' : '*'}';
+      // Ranged weapons: no STR to damage unless composite bow (BOWSTR handled in eqDamage).
+      final totalDmg = (isRanged ? 0 : strMod + damageBonus) +
+                       eqDamage + weaponProfDamage + shortRangeDamage;
       final dmgSuffix = totalDmg > 0 ? '+$totalDmg' : (totalDmg < 0 ? '$totalDmg' : '');
-      final dmgStr    = dmg.isNotEmpty && dmg != '—' ? '$dmg$dmgSuffix' : '—';
+      final dmgStr   = dmg.isNotEmpty && dmg != '—' ? '$dmg$dmgSuffix' : '—';
 
       wield = isRanged ? 'Ranged' : 'Melee';
 
@@ -826,10 +860,13 @@ class _CharacterSheetView extends StatelessWidget {
   }
 
   /// Returns (tohit bonus, damage bonus) from EQMOD entries on a gear item.
-  /// Handles enhancement bonus EQMODs (PLUS1W..PLUS5W) plus masterwork,
+  /// Handles PLUS1W–PLUS5W, masterwork, BOWSTR (composite bow STR damage),
   /// and falls back to reading BONUS:WEAPON tokens from the dataset EqMod object.
-  static (int, int) _eqmodBonuses(List<String> eqmods, dynamic dataset) {
+  static (int, int) _eqmodBonuses(List<String> eqmods, dynamic dataset,
+      {int strMod = 0, int bowstrRating = 0}) {
     int tohit = 0, damage = 0;
+    // First pass: find BOWSTR rating from eqmods list (it strips the |arg).
+    // The arg was lost at parse time; we use the passed-in bowstrRating instead.
     for (final key in eqmods) {
       // Enhancement bonus from key name: PLUS1W, PLUS2W, etc.
       final plusMatch = RegExp(r'^PLUS(\d+)W$', caseSensitive: false).firstMatch(key);
@@ -841,6 +878,15 @@ class _CharacterSheetView extends StatelessWidget {
       }
       // Masterwork: +1 attack only
       if (key.toUpperCase() == 'MWORKW') { tohit += 1; continue; }
+      // BOWSTR: composite bow adds min(strMod, bowstrRating) to damage.
+      // bowstrRating is passed in (extracted from the EQMOD arg).
+      if (key.toUpperCase() == 'BOWSTR') {
+        final bowDmg = bowstrRating > 0
+            ? (strMod < bowstrRating ? strMod : bowstrRating)
+            : strMod;
+        damage += bowDmg > 0 ? bowDmg : 0;
+        continue;
+      }
 
       // For other EQMODs, look them up in the dataset and read BONUS:WEAPON tokens.
       if (dataset == null) continue;

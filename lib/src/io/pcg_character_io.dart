@@ -911,7 +911,8 @@ class PCGCharacterIO {
     double weight = 0;
     String location = '';
     String baseItem = ''; // from CUSTOMIZATION:[BASEITEM:X|...]
-    List<String> eqmods = []; // from CUSTOMIZATION DATA:EQMOD=...
+    List<String> eqmods = []; // from CUSTOMIZATION DATA:EQMOD=... (key names only)
+    final Map<String, String> eqmodArgs = {}; // key → arg (e.g. BOWSTR → "7", PLUS2W → "")
     // Extract CUSTOMIZATION:[...] block BEFORE splitting on | because the block
     // itself contains | characters (e.g. BASEITEM:X|DATA:NAME=Y$EQMOD=Z).
     final custMatch = RegExp(r'CUSTOMIZATION:\[([^\]]+)\]', caseSensitive: false).firstMatch(value);
@@ -922,10 +923,17 @@ class PCGCharacterIO {
       final em = RegExp(r'\$EQMOD=([^\$\]]+)').firstMatch(custContent);
       if (em != null) {
         final raw = em.group(1)!.replaceAll('&pipe;', '|');
-        eqmods = raw.split('.')
-            .map((s) => s.split('|').first.trim())
-            .where((s) => s.isNotEmpty)
-            .toList();
+        // Each segment is KEY or KEY|ARG. Preserve the arg for numeric EQMODs.
+        for (final seg in raw.split('.')) {
+          if (seg.trim().isEmpty) continue;
+          final pipeIdx = seg.indexOf('|');
+          final k = (pipeIdx > 0 ? seg.substring(0, pipeIdx) : seg).trim();
+          final a = pipeIdx > 0 ? seg.substring(pipeIdx + 1).trim() : '';
+          if (k.isNotEmpty) {
+            eqmods.add(k);
+            if (a.isNotEmpty) eqmodArgs[k.toUpperCase()] = a;
+          }
+        }
       }
     }
     // Scan remaining simple key:value fields (safe to split on | here since
@@ -952,8 +960,9 @@ class PCGCharacterIO {
       'cost':   cost,
       'weight': weight,
     };
-    if (baseItem.isNotEmpty) entry['baseItem'] = baseItem;
-    if (eqmods.isNotEmpty)   entry['eqmods']  = eqmods;
+    if (baseItem.isNotEmpty) entry['baseItem']  = baseItem;
+    if (eqmods.isNotEmpty)   entry['eqmods']   = eqmods;
+    if (eqmodArgs.isNotEmpty) entry['eqmodArgs'] = eqmodArgs;
     (data['gear'] as List).add(entry);
     // Map PCGen Java location names to our slot names
     if (location.isNotEmpty) {
@@ -1073,6 +1082,8 @@ class PCGCharacterIO {
       case 'foot':
       case 'feet':           return 'Feet';
       case 'ammunition':     return 'Ammunition';
+      case 'natural-primary':   return 'Natural-Primary';
+      case 'natural-secondary': return 'Natural-Secondary';
       case 'equipped':
       case 'carried':        return 'Carried';
       default:               return null; // container or unknown
