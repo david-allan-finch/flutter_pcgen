@@ -49,8 +49,8 @@ class BonusAccumulator {
         // This correctly models multi-class BAB where each class contributes
         // its own REPLACE base bonus independently.
         String type = bonus.bonusType.toUpperCase();
-        if (sourceKey.isNotEmpty && type.contains('REPLACE')) {
-          type = '$type.${sourceKey.toUpperCase()}';
+        if (sourceKey.isNotEmpty && bonus.stack == BonusStack.replace) {
+          type = '$type.$sourceKey';
         }
         _values.putIfAbsent(cat, () => {}).putIfAbsent(tgt, () => {})
                .putIfAbsent(type, () => []).add(value);

@@ -1330,6 +1330,9 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
       // Deity weapon
       final deityProfs = _data['deityWeaponProfs'] as List? ?? [];
       profs.addAll(deityProfs.cast<String>());
+      // Explicit proficiency list stored in the PCG file (WEAPONPROF: line)
+      final pcgProfs = _data['weaponProfs'] as List? ?? [];
+      profs.addAll(pcgProfs.cast<String>());
     } catch (_) {}
     return profs;
   }

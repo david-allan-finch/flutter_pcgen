@@ -912,6 +912,24 @@ class PCGCharacterIO {
     String location = '';
     String baseItem = ''; // from CUSTOMIZATION:[BASEITEM:X|...]
     List<String> eqmods = []; // from CUSTOMIZATION DATA:EQMOD=...
+    // Extract CUSTOMIZATION:[...] block BEFORE splitting on | because the block
+    // itself contains | characters (e.g. BASEITEM:X|DATA:NAME=Y$EQMOD=Z).
+    final custMatch = RegExp(r'CUSTOMIZATION:\[([^\]]+)\]', caseSensitive: false).firstMatch(value);
+    if (custMatch != null) {
+      final custContent = custMatch.group(1)!;
+      final bm = RegExp(r'BASEITEM:([^|$]+)', caseSensitive: false).firstMatch(custContent);
+      if (bm != null) baseItem = bm.group(1)!.trim();
+      final em = RegExp(r'\$EQMOD=([^\$\]]+)').firstMatch(custContent);
+      if (em != null) {
+        final raw = em.group(1)!.replaceAll('&pipe;', '|');
+        eqmods = raw.split('.')
+            .map((s) => s.split('|').first.trim())
+            .where((s) => s.isNotEmpty)
+            .toList();
+      }
+    }
+    // Scan remaining simple key:value fields (safe to split on | here since
+    // CUSTOMIZATION block has already been extracted above).
     for (final p in value.split('|').skip(1)) {
       final up = p.toUpperCase();
       if (up.startsWith('QUANTITY:') || up.startsWith('QTY:')) {
@@ -922,20 +940,6 @@ class PCGCharacterIO {
         weight = double.tryParse(p.substring(3).trim()) ?? 0;
       } else if (up.startsWith('LOCATION:')) {
         location = p.substring(9).trim();
-      } else if (up.startsWith('CUSTOMIZATION:')) {
-        // CUSTOMIZATION:[BASEITEM:Lance|DATA:NAME=Diamond Lance$EQMOD=KEY1.KEY2|ARG...]
-        final m = RegExp(r'BASEITEM:([^\]|$]+)').firstMatch(p);
-        if (m != null) baseItem = m.group(1)!.trim();
-        // Parse EQMOD list: &pipe; is escaped |; each entry is DOT-separated
-        final em = RegExp(r'\$EQMOD=([^\$\]]+)').firstMatch(p);
-        if (em != null) {
-          final raw = em.group(1)!.replaceAll('&pipe;', '|');
-          // Split by '.' — each segment is KEY or KEY|ARG; take the part before '|'
-          eqmods = raw.split('.')
-              .map((s) => s.split('|').first.trim())
-              .where((s) => s.isNotEmpty)
-              .toList();
-        }
       }
     }
     // Use the item name as a temporary key; restoreFromDataset() will replace
