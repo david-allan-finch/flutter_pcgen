@@ -106,15 +106,30 @@ class PCClassLoader extends GenericLoader<PCClass> {
       className = className.substring(6).trim();
     }
 
-    // Reuse the already-registered class if it exists, so that all
-    // CLASS:Bard continuation lines (PREALIGN, STARTSKILLPTS, etc.)
-    // apply to the same object.
+    // Find the already-registered class (handles CLASS:Bard continuation lines).
+    // Never reuse the target object for a different class name — the loader
+    // passes the previous parseLine return value as target, so without this
+    // guard every class in a file would be merged into the first one.
     final existing = context.getReferenceContext().getConstructed<PCClass>(PCClass, className);
-    PCClass pcClass = existing ?? target ?? PCClass();
-    if (existing == null && target == null && pcClass.getKeyName().isEmpty) {
-      pcClass.setName(className);
-      pcClass.setSourceURI(source.getURI().toString());
-      context.getReferenceContext().register(pcClass);
+    PCClass pcClass;
+    if (existing != null) {
+      pcClass = existing;
+    } else {
+      // Only reuse target if it is the same class (or unnamed placeholder).
+      final targetName = target?.getKeyName() ?? '';
+      if (target != null && (targetName == className || targetName.isEmpty)) {
+        pcClass = target;
+        if (pcClass.getKeyName().isEmpty) {
+          pcClass.setName(className);
+          pcClass.setSourceURI(source.getURI().toString());
+          context.getReferenceContext().register(pcClass);
+        }
+      } else {
+        pcClass = PCClass();
+        pcClass.setName(className);
+        pcClass.setSourceURI(source.getURI().toString());
+        context.getReferenceContext().register(pcClass);
+      }
     }
 
     _currentClass = pcClass;
