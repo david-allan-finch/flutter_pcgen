@@ -10,6 +10,7 @@
 //   SKILL.0.TOTAL       → first skill total
 //   ABILITY.FEAT.0.NAME → first feat name
 
+import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter_pcgen/src/io/freemarker/ftl_context.dart';
 import 'package:flutter_pcgen/src/gui2/facade/character_facade_impl.dart';
 
@@ -28,8 +29,11 @@ class PcgenTokenContext extends FtlContext {
   @override
   String pcstring(String token) {
     try {
-      return _resolve(token.trim());
-    } catch (_) {
+      final result = _resolve(token.trim());
+      debugPrint('FTL_DBG pcstring("$token") = "$result"');
+      return result;
+    } catch (e) {
+      debugPrint('FTL_DBG pcstring("$token") ERROR: $e');
       return '';
     }
   }
@@ -38,8 +42,11 @@ class PcgenTokenContext extends FtlContext {
   double pcvar(String token) {
     try {
       final v = _resolve(token.trim());
-      return double.tryParse(v) ?? 0.0;
-    } catch (_) {
+      final d = double.tryParse(v) ?? 0.0;
+      debugPrint('FTL_DBG pcvar("$token") = $d  (resolved: "$v")');
+      return d;
+    } catch (e) {
+      debugPrint('FTL_DBG pcvar("$token") ERROR: $e');
       return 0.0;
     }
   }
@@ -55,9 +62,21 @@ class PcgenTokenContext extends FtlContext {
   // ─── Main token dispatcher ─────────────────────────────────────────────────
 
   String _resolve(String token) {
-    // COUNT[...] tokens
-    if (token.startsWith('COUNT[') && token.endsWith(']')) {
-      return _count(token.substring(6, token.length - 1)).toString();
+    // COUNT[...] tokens (with optional arithmetic suffix: COUNT[STATS]-1)
+    if (token.startsWith('COUNT[')) {
+      final closeIdx = token.indexOf(']');
+      if (closeIdx > 0) {
+        final inner  = token.substring(6, closeIdx);
+        final suffix = token.substring(closeIdx + 1).trim();
+        int base = _count(inner);
+        if (suffix.startsWith('-')) {
+          base -= int.tryParse(suffix.substring(1).trim()) ?? 0;
+        } else if (suffix.startsWith('+')) {
+          base += int.tryParse(suffix.substring(1).trim()) ?? 0;
+        }
+        debugPrint('FTL_DBG COUNT[$inner]$suffix = $base');
+        return base.toString();
+      }
     }
 
     // VAR.name tokens
