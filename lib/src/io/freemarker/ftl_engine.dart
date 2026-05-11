@@ -163,6 +163,18 @@ class _Parser {
           _skipEndTag();
           continue;
         }
+        // End of custom directive: </@name>  (PCGen uses </@loop>, not </#loop>)
+        if (_startsWith('</@')) {
+          final end = _src.indexOf('>', _pos);
+          final name = end >= 0 ? _src.substring(_pos + 3, end).trim() : '';
+          if (stopDirective != null && name == stopDirective) {
+            _pos = end < 0 ? _src.length : end + 1;
+            return nodes;
+          }
+          // Not our closing tag — skip it (already consumed by inner _parseUntil)
+          _pos = end < 0 ? _src.length : end + 1;
+          continue;
+        }
         // Check for macro call: <@name .../>  or  <@name ...> ... </@name>
         if (_startsWith('<@')) {
           nodes.add(_parseMacroCall());
