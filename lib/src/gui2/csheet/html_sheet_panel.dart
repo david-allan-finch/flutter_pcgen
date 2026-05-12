@@ -14,6 +14,8 @@ import 'package:flutter_pcgen/src/gui2/app_state.dart';
 import 'package:flutter_pcgen/src/gui2/csheet/ftl_widget_renderer.dart';
 import 'package:flutter_pcgen/src/gui2/facade/character_facade_impl.dart';
 import 'package:flutter_pcgen/src/io/freemarker/character_export_action.dart';
+import 'package:flutter_pcgen/src/io/freemarker/ftl_engine.dart';
+import 'package:flutter_pcgen/src/io/freemarker/pcgen_token_api.dart';
 import 'package:flutter_pcgen/src/system/configuration_settings.dart';
 
 class HtmlSheetPanel extends StatefulWidget {
@@ -32,8 +34,8 @@ class _HtmlSheetPanelState extends State<HtmlSheetPanel> {
   List<_TemplateEntry> _templates = [];
   String? _selectedPath;
 
-  // Rendered HTML from FTL engine (desktop: converted to widgets)
-  String? _renderedHtml;
+  // Rendered widget — built directly from FTL engine, no HTML intermediate
+  Widget? _renderedWidget;
   bool _loading = false;
 
   CharacterFacadeImpl? _lastCharacter;
@@ -104,20 +106,28 @@ class _HtmlSheetPanelState extends State<HtmlSheetPanel> {
     final key = '${pc.getName()}|$template';
     if (key == _lastRenderKey) return;
 
-    if (mounted) setState(() { _loading = true; _renderedHtml = null; });
+    if (mounted) setState(() { _loading = true; _renderedWidget = null; });
     try {
-      final html = await Future(() =>
-          CharacterExportAction(pc, dataset: loadedDataSet.value)
-              .executeFromTemplate(template));
-
-      if (!mounted || _selectedPath != template) return;
-      _lastRenderKey = key;
-
       if (_mobileCtrl != null) {
+        // Mobile: WebView needs an HTML string
+        final html = await Future(() =>
+            CharacterExportAction(pc, dataset: loadedDataSet.value)
+                .executeFromTemplate(template));
+        if (!mounted || _selectedPath != template) return;
+        _lastRenderKey = key;
         await _mobileCtrl!.loadHtmlString(html);
         if (mounted) setState(() => _loading = false);
       } else {
-        if (mounted) setState(() { _renderedHtml = html; _loading = false; });
+        // Desktop: FTL engine writes directly into FtlWidgetSink — no HTML string
+        final widget = await Future(() {
+          final ctx  = PcgenTokenContext(pc, loadedDataSet.value);
+          final sink = FtlWidgetSink();
+          FtlEngine().renderFileToSink(template, ctx, sink);
+          return sink.build();
+        });
+        if (!mounted || _selectedPath != template) return;
+        _lastRenderKey = key;
+        if (mounted) setState(() { _renderedWidget = widget; _loading = false; });
       }
     } catch (e) {
       debugPrint('HtmlSheetPanel FTL error: $e');
@@ -180,7 +190,7 @@ class _HtmlSheetPanelState extends State<HtmlSheetPanel> {
               if (val == null) return;
               setState(() {
                 _selectedPath   = val;
-                _renderedHtml   = null;
+                _renderedWidget = null;
                 _lastRenderKey  = null;
               });
               final char = currentCharacter.value;
@@ -209,10 +219,8 @@ class _HtmlSheetPanelState extends State<HtmlSheetPanel> {
       return const Center(child: CircularProgressIndicator());
     }
 
-    // Desktop: FTL HTML → Flutter widgets via FtlWidgetRenderer
-    if (_renderedHtml != null) {
-      return FtlWidgetRenderer.render(_renderedHtml!);
-    }
+    // Desktop: widget built directly from FTL engine via FtlWidgetSink
+    if (_renderedWidget != null) return _renderedWidget!;
 
     return const Center(child: CircularProgressIndicator());
   }

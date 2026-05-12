@@ -16,13 +16,25 @@ import 'package:flutter_pcgen/src/io/freemarker/ftl_context.dart';
 
 // ─── Public API ──────────────────────────────────────────────────────────────
 
+/// Abstract output sink — allows the evaluator to write to a StringBuffer
+/// (for string output) or to a custom widget-building sink.
+abstract class FtlSink {
+  void write(String s);
+}
+
+class _StringSink extends FtlSink {
+  final _buf = StringBuffer();
+  @override void write(String s) => _buf.write(s);
+  String build() => _buf.toString();
+}
+
 class FtlEngine {
   /// Render [template] using [ctx]. Optionally pass [baseDir] for #include.
   String render(String template, FtlContext ctx, {String? baseDir}) {
     final nodes = _Parser(template).parse();
-    final buf = StringBuffer();
-    _Evaluator(ctx, baseDir: baseDir).evalList(nodes, buf);
-    return buf.toString();
+    final sink  = _StringSink();
+    _Evaluator(ctx, baseDir: baseDir).evalList(nodes, sink);
+    return sink.build();
   }
 
   /// Render the template file at [path].
@@ -30,6 +42,14 @@ class FtlEngine {
     final file = File(path);
     final template = file.readAsStringSync();
     return render(template, ctx, baseDir: file.parent.path);
+  }
+
+  /// Evaluate the template file at [path], writing directly into [sink].
+  /// Use with [FtlWidgetSink] to produce Flutter widgets without an HTML string.
+  void renderFileToSink(String path, FtlContext ctx, FtlSink sink) {
+    final file  = File(path);
+    final nodes = _Parser(file.readAsStringSync()).parse();
+    _Evaluator(ctx, baseDir: file.parent.path).evalList(nodes, sink);
   }
 }
 
@@ -465,13 +485,13 @@ class _Evaluator {
 
   _Evaluator(this._ctx, {String? baseDir}) : _baseDir = baseDir;
 
-  void evalList(List<_Node> nodes, StringBuffer out) {
+  void evalList(List<_Node> nodes, FtlSink out) {
     for (final node in nodes) {
       _eval(node, out);
     }
   }
 
-  void _eval(_Node node, StringBuffer out) {
+  void _eval(_Node node, FtlSink out) {
     if (node is _TextNode) { out.write(node.text); return; }
     if (node is _CommentNode) return;
 
@@ -548,9 +568,9 @@ class _Evaluator {
           _ctx.vars[node.name] = _evalExpr(node.src, _ctx.vars);
         } catch (_) {}
       } else {
-        final buf = StringBuffer();
+        final buf = _StringSink();
         evalList(node.body, buf);
-        _ctx.vars[node.name] = buf.toString();
+        _ctx.vars[node.name] = buf.build();
       }
       return;
     }
