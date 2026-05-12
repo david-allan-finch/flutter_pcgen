@@ -523,8 +523,10 @@ class _Evaluator {
 
     if (node is _PcLoopNode) {
       try {
-        final from = (_evalExpr(node.fromExpr, _ctx.vars) as num?)?.toInt() ?? 0;
-        final to   = (_evalExpr(node.toExpr,   _ctx.vars) as num?)?.toInt() ?? -1;
+        final fromRaw = _evalExpr(node.fromExpr, _ctx.vars);
+        final toRaw   = _evalExpr(node.toExpr,   _ctx.vars);
+        final from = fromRaw is num ? fromRaw.toInt() : int.tryParse(_toStr(fromRaw)) ?? 0;
+        final to   = toRaw   is num ? toRaw.toInt()   : int.tryParse(_toStr(toRaw))   ?? -1;
         debugPrint('FTL_DBG <@loop iterVar="${node.iterVar}" from=$from to=$to toExpr="${node.toExpr}">');
         final savedVars = Map<String, dynamic>.from(_ctx.vars);
         for (var i = from; i <= to; i++) {

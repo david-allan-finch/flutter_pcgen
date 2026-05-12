@@ -79,6 +79,24 @@ class PcgenTokenContext extends FtlContext {
       }
     }
 
+    // count(...) / countdistinct(...) function-call tokens used in pcvar()
+    if (token.startsWith('count(') || token.startsWith('countdistinct(')) {
+      final tl = token.toLowerCase();
+      if (tl.contains('"skillsit"') || tl.contains("'skillsit'")) {
+        return _allSkills().length.toString();
+      }
+      if (tl.contains('category=feat') || tl.contains("category=feat")) {
+        return _abilitiesForCat('FEAT').length.toString();
+      }
+      if (tl.contains('category=special ability')) {
+        return _abilitiesForCat('Special Ability').length.toString();
+      }
+      if (tl.contains('category=trait')) {
+        return _abilitiesForCat('TRAIT').length.toString();
+      }
+      return '0';
+    }
+
     // VAR.name tokens
     if (token.startsWith('VAR.')) {
       final parts = token.split('.');
@@ -111,7 +129,7 @@ class PcgenTokenContext extends FtlContext {
       case 'BIOGRAPHY':   return _pc.getBiography();
       case 'APPEARANCE':  return _pc.getAppearance();
       case 'NOTES':       return _pc.getNotes();
-      case 'HP':          return _pc.getHP().toString();
+      case 'HP':          return _pc.getMaxHP().toString();
       case 'MAXHP':       return _pc.getMaxHP().toString();
       case 'ALTHP':       return _pc.getMaxHP().toString();
       case 'XP':
@@ -138,7 +156,10 @@ class PcgenTokenContext extends FtlContext {
       case 'STAT':        return _stat(parts);
       case 'BASESAVE':
       case 'SAVE':        return _save(parts);
+      case 'CHECK':
       case 'CHECKS':      return _save(parts);
+      case 'ATTACK':      return _attack(parts);
+      case 'SKILLSIT':    return _skillSit(parts);
 
       case 'AC':          return _ac(parts);
       case 'INITIATIVEMOD':
@@ -294,16 +315,18 @@ class PcgenTokenContext extends FtlContext {
 
   String _ac(List<String> parts) {
     if (parts.length == 1) return _pc.getAC().toString();
-    switch (parts[1]) {
+    switch (parts[1].toUpperCase()) {
       case 'TOTAL':        return _pc.getAC().toString();
       case 'FLATFOOTED':   return _pc.getFlatFootedAC().toString();
       case 'TOUCH':        return _pc.getTouchAC().toString();
       case 'BASE':         return '10';
       case 'ARMOR':        return '0';
       case 'SHIELD':       return '0';
+      case 'ABILITY':
       case 'DEX':          return _signed(_pc.getStatModByAbb('DEX'));
       case 'DEFLECTION':   return '0';
       case 'DODGE':        return '0';
+      case 'NATURALARMOR':
       case 'NATURAL':      return '0';
       case 'SIZE':         return '0';
       case 'MISC':         return '0';
@@ -411,8 +434,21 @@ class PcgenTokenContext extends FtlContext {
       case 'ISRANGED': return (w['isRanged'] as bool? ?? false) ? '1' : '0';
       case 'WEIGHT':  return '0';
       case 'ATTACKS':
-        // Multiple attacks string e.g. "+12/+7/+2"
-        return w['tohit'] as String? ?? '+0';
+      case 'BASEHIT':
+      case 'TOTALHIT':    return w['tohit'] as String? ?? '+0';
+      // Off-hand / two-handed / two-weapon variants — approximations
+      case 'OHHIT':       return w['tohit'] as String? ?? '+0';
+      case 'THHIT':       return w['tohit'] as String? ?? '+0';
+      case 'TWPHITH':     return w['tohit'] as String? ?? '+0';
+      case 'TWPHITL':     return w['tohit'] as String? ?? '+0';
+      case 'TWOHIT':      return w['tohit'] as String? ?? '+0';
+      case 'BASICDAMAGE': return w['damage'] as String? ?? '1d6';
+      case 'OHDAMAGE':    return w['damage'] as String? ?? '1d6';
+      case 'THDAMAGE':    return w['damage'] as String? ?? '1d6';
+      case 'SPROP':       return w['sprop'] as String? ?? '';
+      case 'CATEGORY':    return (w['isRanged'] as bool? ?? false) ? 'Ranged' : 'Melee';
+      case 'LONGNAME':    return w['name'] as String? ?? '';
+      case 'PROFICIENCY': return w['name'] as String? ?? '';
     }
     return '';
   }
@@ -436,7 +472,13 @@ class PcgenTokenContext extends FtlContext {
 
     for (final slotKey in slots.keys) {
       final slotLower = slotKey.toString().toLowerCase();
-      final isWeaponSlot = weaponSlotKeys.any((k) => k.toLowerCase() == slotLower);
+      // Match "Primary Hand", "Both Hands", "Secondary Hand", "Natural-Primary", etc.
+      final isWeaponSlot = weaponSlotKeys.any((k) => k.toLowerCase() == slotLower) ||
+          slotLower.contains('primary') ||
+          slotLower.contains('secondary') ||
+          slotLower.startsWith('both') ||
+          slotLower.startsWith('natural') ||
+          slotLower == 'unarmed';
       if (!isWeaponSlot) continue;
       final gearKey = slots[slotKey];
       if (gearKey == null) continue;
@@ -466,6 +508,103 @@ class PcgenTokenContext extends FtlContext {
       'range': isRanged ? '60 ft.' : 'melee',
       'type': '',
     };
+  }
+
+  // ─── SKILLSIT tokens: SKILLSIT.N / .NAME / .TOTAL / .RANK / .ABILITY etc. ──
+
+  String _skillSit(List<String> parts) {
+    if (parts.length < 2) return '';
+    final idx = int.tryParse(parts[1]);
+    if (idx == null) return '';
+    final skills = _allSkills();
+    if (idx >= skills.length) return '';
+    final sk = skills[idx];
+    final skName = sk['name'] as String? ?? '';
+    final skKey  = sk['key'] as String? ?? skName;
+    // SKILLSIT.N with no sub-token → skill name (used in <#assign skillTemp>)
+    if (parts.length == 2) return skName;
+    switch (parts[2]) {
+      case 'NAME':      return skName;
+      case 'TOTAL':     return _pc.getSkillBonus(skName, skKey).toString();
+      case 'RANK':      return _pc.getSkillRanks(sk).toString();
+      case 'ABMOD':
+      case 'MOD':       return _signed(_pc.getStatModByAbb(_skillAbility(sk)));
+      case 'MISC':      return _pc.getSkillMiscBonus(skName).toString();
+      case 'ABILITY':   return _skillAbility(sk);
+      case 'UNTRAINED': return '1';
+      case 'EXCLUSIVE': return '0';
+      case 'CLASSSK':   return '0';
+      case 'ACPv':      return '';  // 'v' if armor-check-penalty applies
+    }
+    return '';
+  }
+
+  String _skillAbility(Map<String, dynamic> sk) {
+    try {
+      final s = sk['skill'];
+      if (s != null) return (s as dynamic).getKeyName() != null
+          ? _statAbbForSkill(s)
+          : 'DEX';
+    } catch (_) {}
+    return 'DEX';
+  }
+
+  String _statAbbForSkill(dynamic skill) {
+    try {
+      final statKey = (skill as dynamic).get(null)?.toString() ?? '';
+      if (statKey.isNotEmpty) return statKey.toUpperCase();
+    } catch (_) {}
+    return 'DEX';
+  }
+
+  // ─── ATTACK tokens: ATTACK.MELEE / .RANGED / .GRAPPLE ─────────────────────
+
+  String _attack(List<String> parts) {
+    if (parts.length < 2) return '';
+    final type = parts[1].toUpperCase();
+    final sub  = parts.length > 2 ? parts[2].toUpperCase() : '';
+
+    final bab = _pc.getBABAsInt();
+    int totalHit;
+    int statMod;
+    switch (type) {
+      case 'MELEE':
+        statMod  = _pc.getStatModByAbb('STR');
+        totalHit = bab + statMod + _pc.getTohitBonusMelee();
+        break;
+      case 'RANGED':
+        statMod  = _pc.getStatModByAbb('DEX');
+        totalHit = bab + statMod + _pc.getTohitBonusRanged();
+        break;
+      case 'GRAPPLE':
+        statMod  = _pc.getStatModByAbb('STR');
+        totalHit = bab + statMod;
+        break;
+      default:
+        return '';
+    }
+
+    String _atkString(int base) {
+      final attacks = <String>[];
+      var cur = base;
+      do {
+        attacks.add(_signed(cur));
+        cur -= 5;
+      } while (cur > base - 20 && attacks.length < 5);
+      return attacks.join('/');
+    }
+
+    switch (sub) {
+      case '':
+      case 'TOTAL':    return _atkString(totalHit);
+      case 'BASE':     return _atkString(bab);
+      case 'STAT':     return _signed(statMod);
+      case 'SIZE':     return '+0';
+      case 'EPIC':     return '+0';
+      case 'MISC':     return '+0';
+      case 'NOMAGIC.NOSTAT': return _signed(bab);
+    }
+    return '';
   }
 
   String _weaponProfs(List<String> parts) {
@@ -672,7 +811,13 @@ class PcgenTokenContext extends FtlContext {
       final cat = what.split('.').skip(1).first;
       return _abilitiesForCat(cat).length;
     }
+    if (w == 'CHECKS' || w == 'SAVES') return _saveNames.length;
     if (w == 'WEAPONS') return _equippedWeapons().length;
+    if (w.startsWith('EQTYPE.')) {
+      final type = what.substring(7).toLowerCase();
+      if (type == 'weapon') return _equippedWeapons().length;
+      return 0;
+    }
     if (w == 'DOMAINS') return _pc.getSelectedDomainKeys().length;
     if (w == 'TEMPLATES') return _pc.getAppliedTemplateKeys().length;
     if (w == 'GEAR' || w == 'EQUIP') {
