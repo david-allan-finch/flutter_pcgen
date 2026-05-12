@@ -109,8 +109,17 @@ class FtlWidgetSink extends FtlSink {
   void _flushText() {
     final t = _textBuf.toString();
     _textBuf.clear();
-    if (t.trim().isNotEmpty) _top.addText(t);
+    if (t.trim().isNotEmpty) _top.addText(_decodeEntities(t));
   }
+
+  static String _decodeEntities(String s) => s
+      .replaceAll('&nbsp;', ' ')
+      .replaceAll('&#160;', ' ')
+      .replaceAll('&amp;',  '&')
+      .replaceAll('&lt;',   '<')
+      .replaceAll('&gt;',   '>')
+      .replaceAll('&quot;', '"')
+      .replaceAll('&apos;', "'");
 
   // ─── CSS parsing ──────────────────────────────────────────────────────────
 
@@ -157,13 +166,14 @@ class FtlWidgetSink extends FtlSink {
         : selfClose ? inner.substring(0, inner.length - 1).trimRight()
         : inner;
     final name = _tagName(body);
-    final classAttr = _attrValue(body, 'class');
-    final bgAttr    = _attrValue(body, 'bgcolor');
+    final classAttr  = _attrValue(body, 'class');
+    final bgAttr     = _attrValue(body, 'bgcolor');
+    final alignAttr  = _attrValue(body, 'align');
 
     if (closing) {
       _handleClose(name);
     } else {
-      _handleOpen(name, classAttr, bgAttr, body);
+      _handleOpen(name, classAttr, bgAttr, alignAttr, body);
       if (selfClose) _handleClose(name);
     }
   }
@@ -180,11 +190,20 @@ class FtlWidgetSink extends FtlSink {
 
   // ─── Open tags ────────────────────────────────────────────────────────────
 
-  void _handleOpen(String name, String? classAttr, String? bgColor, String attrs) {
+  void _handleOpen(String name, String? classAttr, String? bgColor,
+      String? alignAttr, String attrs) {
     final css = _resolve(classAttr);
     // Inline bgcolor attribute supplements CSS
     if (bgColor != null && css.bgColor == null) {
       css.bgColor = _CssStyle._parseColor(bgColor);
+    }
+    // Inline align attribute supplements CSS
+    if (alignAttr != null && css.textAlign == null) {
+      switch (alignAttr.toLowerCase()) {
+        case 'center': css.textAlign = TextAlign.center; break;
+        case 'right':  css.textAlign = TextAlign.right;  break;
+        case 'left':   css.textAlign = TextAlign.left;   break;
+      }
     }
 
     switch (name) {
@@ -194,8 +213,8 @@ class FtlWidgetSink extends FtlSink {
         _mode = _Mode.skip; _skipUntil = '</script>'; return;
       case 'head':
         _mode = _Mode.skip; _skipUntil = '</head>'; return;
-      case 'html': case 'body': case 'meta': case 'link':
-      case 'title': case 'doctype': return;
+      case 'html': case 'body': case 'meta': case 'link': case 'doctype': return;
+      case 'title': _mode = _Mode.skip; _skipUntil = '</title>'; return;
 
       case 'h1': _stack.add(_Heading(1, css)); return;
       case 'h2': _stack.add(_Heading(2, css)); return;
@@ -237,8 +256,7 @@ class FtlWidgetSink extends FtlSink {
 
       case 'h1': case 'h2': case 'h3': case 'h4': case 'h5': case 'h6':
       case 'p': case 'div': case 'center':
-      case 'table': case 'thead': case 'tbody': case 'tfoot':
-      case 'tr': case 'th': case 'td':
+      case 'table': case 'tr': case 'th': case 'td':
       case 'ul': case 'ol': case 'li':
         if (_stack.length > 1) {
           final done = _stack.removeLast();
@@ -248,6 +266,7 @@ class FtlWidgetSink extends FtlSink {
         return;
       case 'html': case 'body': case 'head':
       case 'meta': case 'link': case 'title':
+      case 'thead': case 'tbody': case 'tfoot':
       case 'br': case 'hr': return;
     }
   }
@@ -408,6 +427,13 @@ class _CssStyle {
       color: color ?? const Color(0xFF000000),
     );
   }
+}
+
+// Auto-contrast: if bg is dark and no explicit fg given, use white text.
+Color? _autoFg(Color? bg, Color? fg) {
+  if (fg != null) return fg;
+  if (bg == null) return null;
+  return bg.computeLuminance() < 0.35 ? Colors.white : Colors.black;
 }
 
 // ─── Builder base ──────────────────────────────────────────────────────────────
@@ -592,7 +618,7 @@ class _CellB extends _Builder {
 
     // Determine effective styles from CSS + header flag
     final bg  = css.bgColor ?? (isHeader ? const Color(0xFFD0D7DC) : null);
-    final fg  = css.textColor;
+    final fg  = _autoFg(bg, css.textColor);
     final fs  = css.fontSize ?? 10.0;
     final fw  = css.fontWeight ?? (isHeader ? FontWeight.bold : FontWeight.normal);
     final ta  = css.textAlign ?? (isHeader ? TextAlign.center : TextAlign.start);
