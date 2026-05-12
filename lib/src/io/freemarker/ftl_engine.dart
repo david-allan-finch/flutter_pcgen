@@ -867,28 +867,6 @@ class _Evaluator {
 
   String _unquote(String s) => s.trim().replaceAll('"', '').replaceAll("'", '');
 
-  // Split comma-separated args respecting quoted strings.
-  List<String> _splitArgs(String s) {
-    final result = <String>[];
-    var buf = StringBuffer();
-    var inQ = false;
-    var qChar = '';
-    for (var i = 0; i < s.length; i++) {
-      final c = s[i];
-      if (inQ) {
-        if (c == qChar) inQ = false; else buf.write(c);
-      } else if (c == '"' || c == "'") {
-        inQ = true; qChar = c;
-      } else if (c == ',') {
-        result.add(buf.toString().trim()); buf.clear();
-      } else {
-        buf.write(c);
-      }
-    }
-    if (buf.isNotEmpty) result.add(buf.toString().trim());
-    return result;
-  }
-
   /// Expand ${varName} and ${expr} inside a string literal value.
   /// e.g. 'STAT.${stat}.NAME' with stat=2 → 'STAT.2.NAME'
   String _expandStringInterpolation(String s, Map<String, dynamic> vars) {

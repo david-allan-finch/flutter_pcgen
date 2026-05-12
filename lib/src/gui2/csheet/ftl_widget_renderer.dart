@@ -130,15 +130,7 @@ class FtlWidgetSink extends FtlSink {
         .replaceAll('&gt;',   '>')
         .replaceAll('&quot;', '"')
         .replaceAll("&apos;", "'");
-  }', ' ')
-      .replaceAll('&#160;', ' ')
-      .replaceAll('&nl;',   '\n')
-      .replaceAll('&amp;',  '&')
-      .replaceAll('&lt;',   '<')
-      .replaceAll('&gt;',   '>')
-      .replaceAll('&quot;', '"')
-      .replaceAll('&apos;', "'");
-
+  }
   // Returns (widthFraction, widthFixed) — at most one is non-null.
   static (double?, double?) _parseCellWidth(String? w) {
     if (w == null || w.isEmpty) return (null, null);
