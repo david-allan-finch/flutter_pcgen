@@ -1,11 +1,9 @@
-// Character sheet panel — renders inside the app on all platforms.
+// Character sheet panel — FTL template selector.
 //
-// Toolbar lets the user pick:
-//   "Native"      → CharacterSheetWidget (Flutter widgets, always works)
-//   <template>    → FTL engine → HTML → flutter_html body extraction
-//                   + "Open in Browser" button for full styled view
-//
-// Mobile (Android / iOS) uses a native WebView for FTL templates.
+// Toolbar dropdown lists all .htm.ftl files in the preview directory.
+// Selected template is rendered by the FTL engine and shown in-app via
+// flutter_html (body content). "Open in Browser" button gives full styled view.
+// Falls back to the native Flutter widget sheet if no templates are found.
 
 import 'dart:io';
 import 'package:flutter/material.dart';
@@ -28,24 +26,18 @@ class HtmlSheetPanel extends StatefulWidget {
   State<HtmlSheetPanel> createState() => _HtmlSheetPanelState();
 }
 
-/// Sentinel value meaning "use the native Flutter widget sheet".
-const _kNative = '__native__';
-
 class _HtmlSheetPanelState extends State<HtmlSheetPanel> {
-  // Mobile WebView
   wf.WebViewController? _mobileCtrl;
 
-  // Template selection — null = first load pending
-  String _selectedTemplate = _kNative;
   List<_TemplateEntry> _templates = [];
+  String? _selectedPath;   // null = native fallback (no templates found)
 
-  // Generated HTML (FTL mode desktop)
   String? _currentHtml;
   String? _tempHtmlPath;
   bool _loading = false;
 
   CharacterFacadeImpl? _lastCharacter;
-  String? _lastTemplate;
+  String? _lastRenderedKey; // character+template key to avoid duplicate renders
 
   static bool get _isMobile => Platform.isAndroid || Platform.isIOS;
 
@@ -53,12 +45,10 @@ class _HtmlSheetPanelState extends State<HtmlSheetPanel> {
   void initState() {
     super.initState();
     _templates = _discoverTemplates();
-    // Default: prefer Standard.htm.ftl if available, otherwise native
-    if (_templates.isNotEmpty) {
-      _selectedTemplate = _templates.first.path;
-    }
+    _selectedPath = _templates.isNotEmpty ? _templates.first.path : null;
+
     currentCharacter.addListener(_onCharacterChanged);
-    if (_isMobile) {
+    if (_isMobile && _selectedPath != null) {
       _mobileCtrl = wf.WebViewController()
         ..setJavaScriptMode(wf.JavaScriptMode.unrestricted)
         ..setBackgroundColor(Colors.white);
@@ -83,19 +73,14 @@ class _HtmlSheetPanelState extends State<HtmlSheetPanel> {
   List<_TemplateEntry> _discoverTemplates() {
     final results = <_TemplateEntry>[];
     final previewDir = ConfigurationSettings.getPreviewDir();
-    _scanDir(Directory(previewDir), results);
-    return results;
-  }
-
-  void _scanDir(Directory dir, List<_TemplateEntry> out) {
-    if (!dir.existsSync()) return;
     try {
+      final dir = Directory(previewDir);
+      if (!dir.existsSync()) return results;
       for (final entity in dir.listSync(recursive: true)) {
         if (entity is File) {
           final name = p.basename(entity.path);
-          // Only top-level sheet templates, not #include helpers
           if (name.endsWith('.htm.ftl') || name.endsWith('.html.ftl')) {
-            out.add(_TemplateEntry(
+            results.add(_TemplateEntry(
               path: entity.path,
               label: name.replaceAll('.htm.ftl', '').replaceAll('.html.ftl', ''),
             ));
@@ -103,41 +88,46 @@ class _HtmlSheetPanelState extends State<HtmlSheetPanel> {
         }
       }
     } catch (_) {}
-    out.sort((a, b) => a.label.compareTo(b.label));
+    results.sort((a, b) => a.label.compareTo(b.label));
+    return results;
   }
 
   // ─── Rendering ────────────────────────────────────────────────────────────
 
   Future<void> _reload(CharacterFacadeImpl pc) async {
     _lastCharacter = pc;
-    _lastTemplate  = _selectedTemplate;
+    final template = _selectedPath;
 
-    if (_selectedTemplate == _kNative) {
+    // No template → show native widget (no loading needed)
+    if (template == null) {
       if (mounted) setState(() { _currentHtml = null; _loading = false; });
       return;
     }
 
+    final renderKey = '${pc.getName()}|$template';
+    if (renderKey == _lastRenderedKey) return;
+
     if (mounted) setState(() { _loading = true; _currentHtml = null; });
     try {
-      final html = await Future(() => CharacterExportAction(pc,
-              dataset: loadedDataSet.value)
-          .executeFromTemplate(_selectedTemplate));
+      final html = await Future(() =>
+          CharacterExportAction(pc, dataset: loadedDataSet.value)
+              .executeFromTemplate(template));
 
-      if (!mounted || _lastTemplate != _selectedTemplate) return;
+      if (!mounted || _selectedPath != template) return;
+      _lastRenderedKey = renderKey;
 
       if (_mobileCtrl != null) {
         await _mobileCtrl!.loadHtmlString(html);
         if (mounted) setState(() => _loading = false);
       } else {
-        // Write full HTML to temp file for "Open in Browser"
         final dir  = await getTemporaryDirectory();
         final safe = pc.getName().replaceAll(RegExp(r'[^a-zA-Z0-9_-]'), '_');
         final path = p.join(dir.path, 'pcgen_$safe.html');
         await File(path).writeAsString(html);
         if (mounted) setState(() {
-          _currentHtml   = html;
-          _tempHtmlPath  = path;
-          _loading       = false;
+          _currentHtml  = html;
+          _tempHtmlPath = path;
+          _loading      = false;
         });
       }
     } catch (e) {
@@ -179,6 +169,18 @@ class _HtmlSheetPanelState extends State<HtmlSheetPanel> {
           WidgetsBinding.instance.addPostFrameCallback((_) => _reload(character));
         }
 
+        // No templates found → native widget only, no toolbar
+        if (_templates.isEmpty) {
+          if (character is CharacterFacadeImpl) {
+            return CharacterSheetWidget(
+              key: ValueKey(character.getName()),
+              pc: character,
+              dataset: loadedDataSet.value,
+            );
+          }
+          return const Center(child: CircularProgressIndicator());
+        }
+
         return Column(children: [
           _buildToolbar(),
           Expanded(child: _buildBody(character)),
@@ -188,47 +190,40 @@ class _HtmlSheetPanelState extends State<HtmlSheetPanel> {
   }
 
   Widget _buildToolbar() {
-    final items = <DropdownMenuItem<String>>[
-      const DropdownMenuItem(value: _kNative,
-          child: Text('Native view', style: TextStyle(fontSize: 13))),
-      if (_templates.isNotEmpty)
-        const DropdownMenuItem(enabled: false, value: '',
-            child: Divider(height: 1)),
-      ..._templates.map((t) => DropdownMenuItem(
-          value: t.path,
-          child: Text(t.label, style: const TextStyle(fontSize: 13)))),
-    ];
-
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       color: const Color(0xFF37474F),
       child: Row(children: [
-        const Text('Sheet:', style: TextStyle(color: Colors.white, fontSize: 12)),
+        const Text('Template:', style: TextStyle(color: Colors.white70, fontSize: 12)),
         const SizedBox(width: 8),
         Expanded(child: DropdownButtonHideUnderline(
           child: DropdownButton<String>(
-            value: _selectedTemplate,
+            value: _selectedPath,
             dropdownColor: const Color(0xFF455A64),
             style: const TextStyle(color: Colors.white, fontSize: 13),
             iconEnabledColor: Colors.white,
             isExpanded: true,
-            items: items,
+            items: _templates.map((t) => DropdownMenuItem(
+              value: t.path,
+              child: Text(t.label, style: const TextStyle(fontSize: 13)),
+            )).toList(),
             onChanged: (val) {
-              if (val == null || val.isEmpty) return;
+              if (val == null) return;
               setState(() {
-                _selectedTemplate = val;
-                _currentHtml = null;
-                _tempHtmlPath = null;
+                _selectedPath  = val;
+                _currentHtml   = null;
+                _tempHtmlPath  = null;
+                _lastRenderedKey = null;
               });
               final char = currentCharacter.value;
               if (char is CharacterFacadeImpl) _reload(char);
             },
           ),
         )),
-        if (_selectedTemplate != _kNative && _tempHtmlPath != null)
+        if (_tempHtmlPath != null)
           IconButton(
             icon: const Icon(Icons.open_in_browser, color: Colors.white, size: 20),
-            tooltip: 'Open in Browser',
+            tooltip: 'Open in Browser (full styling)',
             onPressed: _openInBrowser,
             padding: const EdgeInsets.symmetric(horizontal: 8),
             constraints: const BoxConstraints(),
@@ -237,32 +232,24 @@ class _HtmlSheetPanelState extends State<HtmlSheetPanel> {
           const Padding(
             padding: EdgeInsets.symmetric(horizontal: 8),
             child: SizedBox(width: 16, height: 16,
-                child: CircularProgressIndicator(
-                    strokeWidth: 2, color: Colors.white)),
+                child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)),
           ),
       ]),
     );
   }
 
   Widget _buildBody(dynamic character) {
-    // Mobile WebView (FTL templates)
-    if (_mobileCtrl != null && _selectedTemplate != _kNative) {
+    // Mobile: native WebView
+    if (_mobileCtrl != null) {
       return wf.WebViewWidget(controller: _mobileCtrl!);
     }
 
-    // Native Flutter widget sheet
-    if (_selectedTemplate == _kNative && character is CharacterFacadeImpl) {
-      return CharacterSheetWidget(
-        key: ValueKey(character.getName()),
-        pc: character,
-        dataset: loadedDataSet.value,
-      );
-    }
-
-    // FTL template → flutter_html (desktop)
+    // Loading
     if (_loading) {
       return const Center(child: CircularProgressIndicator());
     }
+
+    // FTL rendered HTML (desktop: flutter_html body extract)
     if (_currentHtml != null) {
       return SingleChildScrollView(
         child: Html(data: _bodyContent(_currentHtml!)),
