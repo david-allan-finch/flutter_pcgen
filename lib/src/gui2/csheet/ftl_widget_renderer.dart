@@ -323,10 +323,20 @@ enum _Style { bold, italic }
 class _CssStyle {
   Color?       textColor;
   Color?       bgColor;
-  double?      fontSize;   // logical pixels
+  double?      fontSize;    // logical pixels
   FontWeight?  fontWeight;
   TextAlign?   textAlign;
   BoxBorder?   border;
+  // Individual side borders (border-top/bottom/left/right)
+  BorderSide?  borderTop;
+  BorderSide?  borderBottom;
+  BorderSide?  borderLeft;
+  BorderSide?  borderRight;
+  // Extra text properties
+  String?      fontFamily;  // e.g. 'Arial'
+  bool         uppercase = false;   // text-transform: uppercase
+  bool         smallCaps = false;   // font-variant: small-caps
+  CrossAxisAlignment verticalAlign = CrossAxisAlignment.center;
 
   _CssStyle();
 
@@ -345,6 +355,12 @@ class _CssStyle {
         case 'font-size':        s.fontSize   = _parseFontSize(val); break;
         case 'font-weight':
           if (val.contains('bold')) s.fontWeight = FontWeight.bold; break;
+        case 'font-family':
+          // Take first named family, strip quotes
+          s.fontFamily = val.split(',').first.trim()
+              .replaceAll("'", '').replaceAll('"', ''); break;
+        case 'font-variant':
+          if (val.contains('small-caps')) s.smallCaps = true; break;
         case 'text-align':
           switch (val) {
             case 'center': s.textAlign = TextAlign.center; break;
@@ -352,37 +368,80 @@ class _CssStyle {
             case 'left':   s.textAlign = TextAlign.left;   break;
           }
           break;
+        case 'text-transform':
+          if (val.contains('uppercase')) s.uppercase = true; break;
+        case 'vertical-align':
+          switch (val.trim()) {
+            case 'top':    s.verticalAlign = CrossAxisAlignment.start;  break;
+            case 'bottom': s.verticalAlign = CrossAxisAlignment.end;    break;
+            default:       s.verticalAlign = CrossAxisAlignment.center; break;
+          }
+          break;
         case 'border':
           s.border = _parseBorder(val); break;
         case 'border-top':
-          // keep it simple — just flag that a top border exists
-          break;
+          s.borderTop    = _parseBorderSide(val); break;
+        case 'border-bottom':
+          s.borderBottom = _parseBorderSide(val); break;
+        case 'border-left':
+          s.borderLeft   = _parseBorderSide(val); break;
+        case 'border-right':
+          s.borderRight  = _parseBorderSide(val); break;
       }
     }
     return s;
   }
 
-  /// Merge [other] into this, with [other] taking precedence for non-null values.
+  /// Effective border: full `border` takes precedence; fall back to
+  /// assembling from individual sides.
+  BoxBorder? get effectiveBorder {
+    if (border != null) return border;
+    if (borderTop == null && borderBottom == null &&
+        borderLeft == null && borderRight == null) return null;
+    return Border(
+      top:    borderTop    ?? BorderSide.none,
+      bottom: borderBottom ?? BorderSide.none,
+      left:   borderLeft   ?? BorderSide.none,
+      right:  borderRight  ?? BorderSide.none,
+    );
+  }
+
+  /// Merge [other] into this, with [other] taking precedence for non-null/set values.
   _CssStyle merge(_CssStyle other) {
     final m = _CssStyle();
-    m.textColor  = other.textColor  ?? textColor;
-    m.bgColor    = other.bgColor    ?? bgColor;
-    m.fontSize   = other.fontSize   ?? fontSize;
-    m.fontWeight = other.fontWeight ?? fontWeight;
-    m.textAlign  = other.textAlign  ?? textAlign;
-    m.border     = other.border     ?? border;
+    m.textColor    = other.textColor    ?? textColor;
+    m.bgColor      = other.bgColor      ?? bgColor;
+    m.fontSize     = other.fontSize     ?? fontSize;
+    m.fontWeight   = other.fontWeight   ?? fontWeight;
+    m.textAlign    = other.textAlign    ?? textAlign;
+    m.border       = other.border       ?? border;
+    m.borderTop    = other.borderTop    ?? borderTop;
+    m.borderBottom = other.borderBottom ?? borderBottom;
+    m.borderLeft   = other.borderLeft   ?? borderLeft;
+    m.borderRight  = other.borderRight  ?? borderRight;
+    m.fontFamily   = other.fontFamily   ?? fontFamily;
+    m.uppercase    = other.uppercase    || uppercase;
+    m.smallCaps    = other.smallCaps    || smallCaps;
+    m.verticalAlign = other.verticalAlign != CrossAxisAlignment.center
+        ? other.verticalAlign : verticalAlign;
     return m;
   }
 
   bool get isEmpty => textColor == null && bgColor == null && fontSize == null &&
-      fontWeight == null && textAlign == null && border == null;
+      fontWeight == null && textAlign == null && border == null &&
+      borderTop == null && borderBottom == null &&
+      borderLeft == null && borderRight == null;
 
   TextStyle? toTextStyle({Color? fallbackColor}) {
-    if (textColor == null && fontSize == null && fontWeight == null) return null;
+    if (textColor == null && fontSize == null && fontWeight == null &&
+        fontFamily == null && !smallCaps) return null;
     return TextStyle(
       color:      textColor ?? fallbackColor,
       fontSize:   fontSize,
       fontWeight: fontWeight,
+      fontFamily: fontFamily,
+      fontFeatures: smallCaps
+          ? [const FontFeature.enable('smcp')] : null,
     );
   }
 
@@ -439,15 +498,23 @@ class _CssStyle {
   }
 
   static BoxBorder? _parseBorder(String val) {
-    // e.g. "1px solid black"  "1pt solid #aaa"  "5px solid lightgray"
-    final parts = val.trim().split(RegExp(r'\s+'));
-    if (parts.length < 2) return null;
+    final side = _parseBorderSide(val);
+    if (side == null) return null;
+    return Border.fromBorderSide(side);
+  }
+
+  static BorderSide? _parseBorderSide(String val) {
+    // e.g. "1px solid black"  "1pt solid #aaa"  "5px solid lightgray"  "none"
+    final v = val.trim().toLowerCase();
+    if (v == 'none' || v == '0') return BorderSide.none;
+    final parts = v.split(RegExp(r'\s+'));
+    if (parts.isEmpty) return null;
     final widthStr = parts[0];
     final color    = parts.length >= 3 ? _parseColor(parts[2]) : null;
     double width = 1;
     final wm = RegExp(r'^([\d.]+)(?:px|pt)?$').firstMatch(widthStr);
     if (wm != null) width = double.tryParse(wm.group(1)!) ?? 1;
-    return Border.all(
+    return BorderSide(
       width: width,
       color: color ?? const Color(0xFF000000),
     );
@@ -732,13 +799,19 @@ class _CellB extends _Builder {
     final fs  = css.fontSize ?? 10.0;
     final fw  = css.fontWeight ?? (isHeader ? FontWeight.bold : FontWeight.normal);
     final ta  = css.textAlign ?? (isHeader ? TextAlign.center : TextAlign.start);
+    final ff  = css.fontFamily;
+    final va  = css.verticalAlign;
 
     final styledChildren = _children.map((child) {
       if (child is Text) {
-        return Text(child.data ?? '',
+        var text = child.data ?? '';
+        if (css.uppercase) text = text.toUpperCase();
+        if (css.smallCaps) text = text.toUpperCase(); // approximation
+        return Text(text,
             textAlign: ta,
             style: (child.style ?? const TextStyle()).copyWith(
-                fontSize: fs, fontWeight: fw, color: fg));
+                fontSize: fs, fontWeight: fw, color: fg,
+                fontFamily: ff));
       }
       return child;
     }).toList();
@@ -749,9 +822,23 @@ class _CellB extends _Builder {
         : Column(crossAxisAlignment: CrossAxisAlignment.start,
             children: styledChildren);
 
+    // Wrap in vertical alignment if specified
+    if (va != CrossAxisAlignment.center && styledChildren.isNotEmpty) {
+      content = Column(
+        crossAxisAlignment: ta == TextAlign.center
+            ? CrossAxisAlignment.center
+            : CrossAxisAlignment.start,
+        mainAxisAlignment: va == CrossAxisAlignment.end
+            ? MainAxisAlignment.end
+            : MainAxisAlignment.start,
+        mainAxisSize: MainAxisSize.max,
+        children: [content],
+      );
+    }
+
     final cell = Container(
       padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 3),
-      decoration: BoxDecoration(color: bg, border: css.border),
+      decoration: BoxDecoration(color: bg, border: css.effectiveBorder),
       child: content,
     );
     return _CellWidget(_CellData(cell, colspan: colspan, rowspan: rowspan,
