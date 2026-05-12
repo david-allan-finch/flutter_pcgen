@@ -729,11 +729,6 @@ class PcgenTokenContext extends FtlContext {
 
   String _spellClassType(List<String> parts) => '';
 
-  String _spell(List<String> parts) {
-    // Spell tokens are complex — return empty for now
-    return '';
-  }
-
   // ─── Equipment tokens ─────────────────────────────────────────────────────
 
   // ─── Equipment / armor / EQ tokens ───────────────────────────────────────
