@@ -671,11 +671,94 @@ class _TableB extends _Builder {
 
   static const _bc = Color(0xFFB0BEC5);
 
+  bool get _hasRowspan => _rows.any((r) => r.cells.any((c) => c.rowspan > 1));
+  bool get _hasColspan => _rows.any((r) => r.cells.any((c) => c.colspan > 1));
+
   @override Widget? build() {
     if (_rows.isEmpty) return null;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: _hasRowspan
+          ? _buildGrid()        // LayoutGrid — only path that supports rowspan
+          : _hasColspan
+              ? _buildColspanRows()  // LayoutBuilder+Row — colspan, no rowspan
+              : _buildFlutterTable(), // Flutter Table — simple, IntrinsicColumnWidth
+    );
+  }
 
-    // ── HTML cell-placement algorithm ──────────────────────────────────────
-    // Computes (row, col) for each cell respecting colspan and rowspan.
+  // ── Path 1: Flutter Table (no colspan, no rowspan) ─────────────────────
+  // IntrinsicColumnWidth sizes each column to content; safe because no
+  // nested LayoutGrids participate in the measurement.
+  Widget _buildFlutterTable() {
+    final maxCols = _rows.fold(0, (m, r) => r.cells.length > m ? r.cells.length : m);
+    if (maxCols == 0) return const SizedBox.shrink();
+
+    final colWidths = <int, TableColumnWidth>{};
+    for (final row in _rows) {
+      for (int i = 0; i < row.cells.length; i++) {
+        final c = row.cells[i];
+        if (!colWidths.containsKey(i)) {
+          if (c.widthFraction != null) colWidths[i] = FractionColumnWidth(c.widthFraction!);
+          else if (c.widthFixed != null) colWidths[i] = FixedColumnWidth(c.widthFixed!);
+        }
+      }
+    }
+
+    return Table(
+      border: TableBorder.all(color: _bc, width: 0.5),
+      defaultColumnWidth: const IntrinsicColumnWidth(),
+      columnWidths: colWidths.isEmpty ? const {} : colWidths,
+      children: _rows.map((row) {
+        var cells = row.cells.map((c) => c.widget).toList();
+        while (cells.length < maxCols) {
+          cells.add(Container(
+              decoration: BoxDecoration(border: Border.all(color: _bc, width: 0.5))));
+        }
+        return TableRow(children: cells);
+      }).toList(),
+    );
+  }
+
+  // ── Path 2: LayoutBuilder + Row (colspan, no rowspan) ──────────────────
+  // Each row's cells get fixed pixel widths derived from explicit width=
+  // attrs (fraction of available) or colspan proportions. No intrinsic
+  // measurement — no recursion risk.
+  Widget _buildColspanRows() {
+    return LayoutBuilder(builder: (context, constraints) {
+      final available = constraints.maxWidth.isFinite ? constraints.maxWidth : 600.0;
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: _rows.map((row) {
+          if (row.cells.isEmpty) return const SizedBox.shrink();
+          // Determine flex units for each cell in this row
+          final flexes = row.cells.map((c) {
+            if (c.widthFraction != null) return (c.widthFraction! * 1000).round().clamp(1, 1000);
+            return c.colspan.clamp(1, 100);
+          }).toList();
+          final totalFlex = flexes.fold(0, (s, f) => s + f);
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: List.generate(row.cells.length, (i) {
+              final cellWidth = available * flexes[i] / totalFlex;
+              return SizedBox(
+                width: cellWidth,
+                child: Container(
+                  decoration: BoxDecoration(border: Border.all(color: _bc, width: 0.5)),
+                  child: row.cells[i].widget,
+                ),
+              );
+            }),
+          );
+        }).toList(),
+      );
+    });
+  }
+
+  // ── Path 3: LayoutGrid (rowspan present) ───────────────────────────────
+  // Full HTML cell-placement algorithm. Uses flex(1) for unspecified
+  // columns — avoids auto's recursive intrinsic measurement which
+  // stack-overflows when outer grid cells contain inner Flutter Tables.
+  Widget _buildGrid() {
     final placed = <_PlacedCell>[];
     final occupied = <(int, int)>{};
 
@@ -692,17 +775,17 @@ class _TableB extends _Builder {
         ci += cell.colspan;
       }
     }
-
-    if (placed.isEmpty) return null;
+    if (placed.isEmpty) return const SizedBox.shrink();
 
     final totalCols = placed.fold(0, (m, p) {
       final end = p.col + p.cell.colspan;
       return end > m ? end : m;
     });
+    final totalRows = placed.fold(0, (m, p) {
+      final end = p.row + p.cell.rowspan;
+      return end > m ? end : m;
+    });
 
-    // ── Column track sizes ─────────────────────────────────────────────────
-    // Prefer explicit width= on single-colspan cells. Fall back to `auto`
-    // (content-sized) so text is never folded into narrow columns.
     final colFixed    = <int, double>{};
     final colFraction = <int, double>{};
     for (final p in placed) {
@@ -712,47 +795,27 @@ class _TableB extends _Builder {
       }
     }
 
-    // Use flex(1) as the default instead of auto. auto causes recursive
-    // intrinsic-width measurement that stack-overflows on nested tables
-    // (outer grid measures inner grid cells, which measure their own cells…).
-    // flex(1) distributes available space without any intrinsic measurement.
     final columnSizes = List<TrackSize>.generate(totalCols, (i) {
       if (colFixed.containsKey(i))    return fixed(colFixed[i]!);
       if (colFraction.containsKey(i)) return flex(colFraction[i]! * 10);
       return flex(1);
     });
-    // Total rows must account for cells that extend beyond _rows.length via rowspan.
-    final totalRows = placed.fold(0, (m, p) {
-      final end = p.row + p.cell.rowspan;
-      return end > m ? end : m;
-    });
     final rowSizes = List<TrackSize>.generate(totalRows, (_) => auto);
 
-    final grid = LayoutGrid(
+    return LayoutGrid(
       columnSizes: columnSizes,
       rowSizes: rowSizes,
       columnGap: 0,
       rowGap: 0,
       children: placed.map((p) =>
         Container(
-          decoration: BoxDecoration(
-              border: Border.all(color: _bc, width: 0.5)),
+          decoration: BoxDecoration(border: Border.all(color: _bc, width: 0.5)),
           child: p.cell.widget,
         ).withGridPlacement(
-          columnStart: p.col,
-          columnSpan: p.cell.colspan,
-          rowStart: p.row,
-          rowSpan: p.cell.rowspan,
+          columnStart: p.col,  columnSpan: p.cell.colspan,
+          rowStart:    p.row,  rowSpan:    p.cell.rowspan,
         ),
       ).toList(),
-    );
-
-    // flex() track sizes require a bounded parent width — they cannot be
-    // combined with a horizontal SingleChildScrollView (unbounded width).
-    // The grid fills available width; wide tables clip at the edge.
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
-      child: grid,
     );
   }
 }
