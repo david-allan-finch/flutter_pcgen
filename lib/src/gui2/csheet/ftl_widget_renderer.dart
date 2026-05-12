@@ -650,7 +650,12 @@ class _TableB extends _Builder {
       if (colFraction.containsKey(i)) return flex(colFraction[i]! * 10);
       return auto;
     });
-    final rowSizes = List<TrackSize>.generate(_rows.length, (_) => auto);
+    // Total rows must account for cells that extend beyond _rows.length via rowspan.
+    final totalRows = placed.fold(0, (m, p) {
+      final end = p.row + p.cell.rowspan;
+      return end > m ? end : m;
+    });
+    final rowSizes = List<TrackSize>.generate(totalRows, (_) => auto);
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 6),
