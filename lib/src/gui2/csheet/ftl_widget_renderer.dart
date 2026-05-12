@@ -603,28 +603,30 @@ class _TableB extends _Builder {
   }
 
   // ── Flutter Table (no colspan) — strict column alignment ──────────────────
+  // IntrinsicColumnWidth sizes each column to its widest cell's content,
+  // preventing text from being folded in narrow columns.
 
   Widget _buildFlutterTable() {
     final maxCols = _rows.fold(0, (m, r) => r.cells.length > m ? r.cells.length : m);
     if (maxCols == 0) return const SizedBox.shrink();
 
-    // Derive per-column widths from the first row that has any width data.
+    // Build per-column widths. Explicit width= attrs take priority;
+    // everything else falls back to IntrinsicColumnWidth.
     final colWidths = <int, TableColumnWidth>{};
     for (final row in _rows) {
       for (int i = 0; i < row.cells.length; i++) {
         final c = row.cells[i];
-        if (c.widthFraction != null) {
+        if (c.widthFraction != null && !colWidths.containsKey(i)) {
           colWidths[i] = FractionColumnWidth(c.widthFraction!);
-        } else if (c.widthFixed != null) {
+        } else if (c.widthFixed != null && !colWidths.containsKey(i)) {
           colWidths[i] = FixedColumnWidth(c.widthFixed!);
         }
       }
-      if (colWidths.isNotEmpty) break;
     }
 
     return Table(
       border: TableBorder.all(color: _bc, width: 0.5),
-      defaultColumnWidth: const FlexColumnWidth(),
+      defaultColumnWidth: const IntrinsicColumnWidth(),
       columnWidths: colWidths.isEmpty ? const {} : colWidths,
       children: _rows.map((row) {
         var cells = row.cells.map((c) => c.widget).toList();
@@ -639,33 +641,49 @@ class _TableB extends _Builder {
   }
 
   // ── Flex Row table (has colspan) ─────────────────────────────────────────
-  // CrossAxisAlignment.start avoids IntrinsicHeight, which overflows inside
-  // an unbounded SingleChildScrollView when paired with Flexible+stretch.
+  // Uses LayoutBuilder to give each cell a fixed pixel width proportional
+  // to its colspan/widthFraction — prevents Flexible from shrinking cells
+  // below their content width.
 
   Widget _buildFlexTable() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: _rows.map((row) {
-        if (row.cells.isEmpty) return const SizedBox.shrink();
-        return Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: row.cells.map((cell) {
-            final bordered = Container(
-              decoration: BoxDecoration(
-                  border: Border.all(color: _bc, width: 0.5)),
-              child: cell.widget,
-            );
-            final int flex;
-            if (cell.widthFraction != null) {
-              flex = (cell.widthFraction! * 1000).round().clamp(1, 1000);
-            } else {
-              flex = cell.colspan.clamp(1, 100);
+    return LayoutBuilder(builder: (context, constraints) {
+      final available = constraints.maxWidth.isFinite ? constraints.maxWidth : 600.0;
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: _rows.map((row) {
+          if (row.cells.isEmpty) return const SizedBox.shrink();
+
+          // Total flex units for this row
+          final totalFlex = row.cells.fold(0, (sum, c) {
+            if (c.widthFraction != null) {
+              return sum + (c.widthFraction! * 1000).round().clamp(1, 1000);
             }
-            return Flexible(flex: flex, child: bordered);
-          }).toList(),
-        );
-      }).toList(),
-    );
+            return sum + c.colspan.clamp(1, 100);
+          });
+
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: row.cells.map((cell) {
+              final int flex;
+              if (cell.widthFraction != null) {
+                flex = (cell.widthFraction! * 1000).round().clamp(1, 1000);
+              } else {
+                flex = cell.colspan.clamp(1, 100);
+              }
+              final cellWidth = available * flex / totalFlex;
+              return SizedBox(
+                width: cellWidth,
+                child: Container(
+                  decoration: BoxDecoration(
+                      border: Border.all(color: _bc, width: 0.5)),
+                  child: cell.widget,
+                ),
+              );
+            }).toList(),
+          );
+        }).toList(),
+      );
+    });
   }
 }
 
