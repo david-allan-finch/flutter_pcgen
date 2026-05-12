@@ -747,14 +747,12 @@ class _TableB extends _Builder {
       ).toList(),
     );
 
-    // Wrap in horizontal scroll so wide tables (e.g. 23-column AC table)
-    // scroll rather than overflow the screen.
+    // flex() track sizes require a bounded parent width — they cannot be
+    // combined with a horizontal SingleChildScrollView (unbounded width).
+    // The grid fills available width; wide tables clip at the edge.
     return Padding(
       padding: const EdgeInsets.only(bottom: 6),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: grid,
-      ),
+      child: grid,
     );
   }
 }
