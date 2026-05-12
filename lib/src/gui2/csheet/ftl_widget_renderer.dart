@@ -115,6 +115,7 @@ class FtlWidgetSink extends FtlSink {
   static String _decodeEntities(String s) => s
       .replaceAll('&nbsp;', ' ')
       .replaceAll('&#160;', ' ')
+      .replaceAll('&nl;',   '\n')
       .replaceAll('&amp;',  '&')
       .replaceAll('&lt;',   '<')
       .replaceAll('&gt;',   '>')

@@ -157,8 +157,11 @@ class PcgenTokenContext extends FtlContext {
 
       case 'SKILL':       return _skill(parts);
 
-      case 'WEAPON':      return _weapon(parts);
+      case 'LANGUAGES':   return _languages();
+      case 'WEAPONPROFS':
       case 'WEAPONPROF':  return _weaponProfs(parts);
+
+      case 'WEAPON':      return _weapon(parts);
 
       case 'ABILITY':
       case 'ABILITYALL':  return _ability(parts);
@@ -594,22 +597,45 @@ class PcgenTokenContext extends FtlContext {
   // ─── Ability / feat tokens ─────────────────────────────────────────────────
 
   String _ability(List<String> parts) {
-    // ABILITY.FEAT.N.NAME or ABILITYALL.ANY.N.ASPECT=x.ASPECT.x
-    if (parts.length < 4) return '';
-    final cat = parts[1]; // FEAT, TRAIT, etc.
-    final idx = int.tryParse(parts[2]);
+    // Formats:
+    //   ABILITYALL.Feat.VISIBLE.0         → feat name
+    //   ABILITYALL.Feat.VISIBLE.0.DESC    → description
+    //   ABILITYALL.ANY.0.ASPECT=x.ASPECT.x
+    if (parts.length < 3) return '';
+    final cat = parts[1]; // FEAT, Feat, Special Ability, ANY, etc.
+
+    // parts[2] may be 'VISIBLE' filter keyword or an index
+    int sub = 2;
+    if (parts[sub].toUpperCase() == 'VISIBLE') sub++;
+    if (sub >= parts.length) return '';
+
+    final idx = int.tryParse(parts[sub]);
     if (idx == null) return '';
-    final catKey = cat == 'ANY' ? null : cat;
+    sub++;
+
+    final catKey = (cat == 'ANY') ? null : cat;
     final abilities = _abilitiesForCat(catKey);
     if (idx >= abilities.length) return '';
     final ab = abilities[idx];
-    switch (parts[3]) {
-      case 'NAME':        return _displayName(ab);
-      case 'DESC':        return '';
-      case 'BENEFIT':     return '';
-      case 'TYPE':        return cat;
-      default:            return _displayName(ab);
+
+    if (sub >= parts.length) return _displayName(ab);
+    final field = parts[sub];
+    // Ignore ASPECT=xxx / TYPE=xxx filter qualifiers — just return the name
+    if (field.startsWith('ASPECT=') || field.startsWith('TYPE=')) return _displayName(ab);
+    switch (field) {
+      case 'NAME':    return _displayName(ab);
+      case 'SOURCE':  return '';
+      case 'DESC':    return '';
+      case 'BENEFIT': return '';
+      case 'TYPE':    return cat;
+      default:        return _displayName(ab);
     }
+  }
+
+  String _languages() {
+    final langs = _data('languageKeys');
+    if (langs is List) return langs.cast<String>().join(', ');
+    return '';
   }
 
   List<String> _abilitiesForCat(String? cat) {
