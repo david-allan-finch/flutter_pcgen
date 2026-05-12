@@ -569,7 +569,6 @@ class _CharacterSheetView extends StatelessWidget {
     try { tohitRanged  = _tryGet(() => (character as dynamic).getTohitBonusRanged())       as int? ?? 0; } catch (_) {}
     try { damageMelee  = _tryGet(() => (character as dynamic).getDamageBonusMelee())       as int? ?? 0; } catch (_) {}
     try { damageRanged = _tryGet(() => (character as dynamic).getDamageBonusRanged())      as int? ?? 0; } catch (_) {}
-    debugPrint('SHEET_DBG bab=$bab strMod=$strMod dexMod=$dexMod tohitM=$tohitMelee tohitR=$tohitRanged');
 
     final gearRaw = data['gear'] as List? ?? [];
 
@@ -734,7 +733,6 @@ class _CharacterSheetView extends StatelessWidget {
       }
 
       final atkBonus = bab + atkMod + tohitBonus + nonprof + eqTohit + weaponProfTohit + shortRangeTohit;
-      debugPrint('SHEET_DBG weapon=${keyToName[key] ?? key} eqmods=$eqmodList eqTohit=$eqTohit atkMod=$atkMod nonprof=$nonprof atkBonus=$atkBonus isRanged=$isRanged');
       final atkParts = <String>[];
       if (bab >= 6) {
         int b = bab;

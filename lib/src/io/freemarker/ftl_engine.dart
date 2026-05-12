@@ -12,7 +12,6 @@
 
 import 'dart:io';
 
-import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter_pcgen/src/io/freemarker/ftl_context.dart';
 
 // ─── Public API ──────────────────────────────────────────────────────────────
@@ -527,7 +526,6 @@ class _Evaluator {
         final toRaw   = _evalExpr(node.toExpr,   _ctx.vars);
         final from = fromRaw is num ? fromRaw.toInt() : int.tryParse(_toStr(fromRaw)) ?? 0;
         final to   = toRaw   is num ? toRaw.toInt()   : int.tryParse(_toStr(toRaw))   ?? -1;
-        debugPrint('FTL_DBG <@loop iterVar="${node.iterVar}" from=$from to=$to toExpr="${node.toExpr}">');
         final savedVars = Map<String, dynamic>.from(_ctx.vars);
         for (var i = from; i <= to; i++) {
           _ctx.vars[node.iterVar]    = i;
@@ -540,9 +538,7 @@ class _Evaluator {
         for (final k in savedVars.keys) {
           if (!_ctx.vars.containsKey(k)) _ctx.vars[k] = savedVars[k];
         }
-      } catch (e) {
-        debugPrint('FTL_DBG <@loop> ERROR: $e');
-      }
+      } catch (_) {}
       return;
     }
 

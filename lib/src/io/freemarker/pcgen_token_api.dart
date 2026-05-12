@@ -10,7 +10,6 @@
 //   SKILL.0.TOTAL       → first skill total
 //   ABILITY.FEAT.0.NAME → first feat name
 
-import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter_pcgen/src/io/freemarker/ftl_context.dart';
 import 'package:flutter_pcgen/src/gui2/facade/character_facade_impl.dart';
 
@@ -28,27 +27,15 @@ class PcgenTokenContext extends FtlContext {
 
   @override
   String pcstring(String token) {
-    try {
-      final result = _resolve(token.trim());
-      debugPrint('FTL_DBG pcstring("$token") = "$result"');
-      return result;
-    } catch (e) {
-      debugPrint('FTL_DBG pcstring("$token") ERROR: $e');
-      return '';
-    }
+    try { return _resolve(token.trim()); } catch (_) { return ''; }
   }
 
   @override
   double pcvar(String token) {
     try {
       final v = _resolve(token.trim());
-      final d = double.tryParse(v) ?? 0.0;
-      debugPrint('FTL_DBG pcvar("$token") = $d  (resolved: "$v")');
-      return d;
-    } catch (e) {
-      debugPrint('FTL_DBG pcvar("$token") ERROR: $e');
-      return 0.0;
-    }
+      return double.tryParse(v) ?? 0.0;
+    } catch (_) { return 0.0; }
   }
 
   @override
@@ -74,7 +61,6 @@ class PcgenTokenContext extends FtlContext {
         } else if (suffix.startsWith('+')) {
           base += int.tryParse(suffix.substring(1).trim()) ?? 0;
         }
-        debugPrint('FTL_DBG COUNT[$inner]$suffix = $base');
         return base.toString();
       }
     }
@@ -453,17 +439,18 @@ class PcgenTokenContext extends FtlContext {
     return '';
   }
 
-  List<Map<String, dynamic>> _equippedWeapons() {
-    // equippedSlots is a flat Map<slotName, itemKey> built by the PCG parser
-    final gear           = _data('gear')           as List? ?? [];
-    final equippedSlots  = _data('equippedSlots')  as Map?  ?? {};
-    final result = <Map<String, dynamic>>[];
+  List<Map<String, dynamic>>? _weaponCache;
 
-    debugPrint('FTL_DBG _equippedWeapons slots=${equippedSlots.keys.toList()}');
+  List<Map<String, dynamic>> _equippedWeapons() {
+    if (_weaponCache != null) return _weaponCache!;
+    final gear          = _data('gear')          as List? ?? [];
+    final equippedSlots = _data('equippedSlots') as Map?  ?? {};
+    final result = <Map<String, dynamic>>[];
     for (final slotKey in equippedSlots.keys) {
       final slotLower = slotKey.toString().toLowerCase();
       final isWeaponSlot = slotLower.contains('primary') ||
           slotLower.contains('secondary') ||
+          slotLower.contains('off hand') ||
           slotLower.startsWith('both') ||
           slotLower.startsWith('natural') ||
           slotLower == 'unarmed';
@@ -474,7 +461,7 @@ class PcgenTokenContext extends FtlContext {
       if (item == null) continue;
       result.add(_weaponStats(item as Map, slotKey.toString()));
     }
-    return result;
+    return _weaponCache = result;
   }
 
   Map<String, dynamic> _weaponStats(Map item, String slot) {

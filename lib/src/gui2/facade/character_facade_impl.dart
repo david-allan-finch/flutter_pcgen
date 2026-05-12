@@ -1722,10 +1722,6 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
     final classBonuses = <String, List<ParsedBonus>>{}; // classKey → bonuses
     try {
       final classes = (dataset as dynamic).classes as List? ?? [];
-      debugPrint('BAB_DBG dataset has ${classes.length} classes, charCounts=$counts');
-      // Print first 10 class keys to see what format they're stored in
-      final sampleKeys = classes.take(10).map((c) => (c as dynamic).getKeyName() as String? ?? '').toList();
-      debugPrint('BAB_DBG sample class keys: $sampleKeys');
       for (final cls in classes) {
         final key = (cls as dynamic).getKeyName() as String? ?? '';
         final lvl = counts[key] ?? 0;
@@ -1734,15 +1730,13 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
         try {
           final list = (cls as dynamic)
               .getSafeListFor(ListKey.getConstant<ParsedBonus>('PARSED_BONUS')) as List?;
-          debugPrint('BAB_DBG class=$key lvl=$lvl parsedBonusCount=${list?.length ?? 0}');
           if (list != null) {
             for (final b in list) { if (b is ParsedBonus) bonuses.add(b); }
           }
-        } catch (e) { debugPrint('BAB_DBG class=$key getSafeListFor error: $e'); }
-        debugPrint('BAB_DBG class=$key COMBAT|BASEAB bonuses=${bonuses.where((b) => b.category == "COMBAT" && b.targets.any((t) => t.toUpperCase() == "BASEAB")).length}');
+        } catch (_) {}
         if (bonuses.isNotEmpty) classBonuses[key] = bonuses;
       }
-    } catch (e) { debugPrint('BAB_DBG classBonuses build error: $e'); }
+    } catch (_) {}
 
     // Selected feats / abilities
     final selectedAbilities = _data['selectedAbilities'] as Map? ?? {};
@@ -2025,7 +2019,6 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
         if (!bonus.checkPrereqs(prereqCtx)) continue;
         final value = bonus.evaluate(clsFormulaCtx);
         if (bonus.category == 'COMBAT' && bonus.targets.any((t) => t.toUpperCase() == 'BASEAB')) {
-          debugPrint('BAB_DBG class=$clsKey lvl=$clsLvl formula=${bonus.formula} type=${bonus.bonusType} prereqs=${bonus.prereqs.map((p) => p.toString()).toList()} value=$value');
         }
         _bonusAcc.add(bonus, value, sourceKey: clsKey);
       }
@@ -2036,8 +2029,6 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
 
     // Apply size modifiers (standard 3.5e/PF table).
     _applySizeModifiers();
-
-    debugPrint('BAB_DBG final BASEAB=${_bonusAcc.totalInt("COMBAT","BASEAB")} totalLevel=${classLevels.length} classCounts=$counts');
 
     _bonusDirty = false;
   }
