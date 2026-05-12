@@ -1,13 +1,13 @@
 // Inline HTML character sheet — renders inside the app on all platforms.
 //
 // Android / iOS : webview_flutter  (Chromium WebView)
-// Windows       : webview_windows  (Edge WebView2) if NuGet available,
-//                 otherwise flutter_html (pure Flutter HTML renderer)
-// macOS / Linux : flutter_html
+// Desktop       : writes HTML to temp file, opens in system browser via url_launcher.
+//                 Also shows body content in-app via flutter_html (unstyled fallback).
 
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:webview_flutter/webview_flutter.dart' as wf;
 import 'package:flutter_pcgen/src/gui2/app_state.dart';
 import 'package:flutter_pcgen/src/gui2/facade/character_facade_impl.dart';
@@ -15,6 +15,7 @@ import 'package:flutter_pcgen/src/io/html/builtin_sheet_generator.dart';
 import 'package:flutter_pcgen/src/io/freemarker/character_export_action.dart';
 import 'package:flutter_pcgen/src/system/configuration_settings.dart';
 import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 
 class HtmlSheetPanel extends StatefulWidget {
   final String? templatePath;
@@ -27,7 +28,8 @@ class HtmlSheetPanel extends StatefulWidget {
 class _HtmlSheetPanelState extends State<HtmlSheetPanel> {
   wf.WebViewController? _mobileCtrl;
   CharacterFacadeImpl? _lastCharacter;
-  String? _currentHtml;
+  String? _currentHtml;   // full HTML (for browser export)
+  String? _tempHtmlPath;  // path of last written temp file
 
   static bool get _isMobile => Platform.isAndroid || Platform.isIOS;
 
@@ -58,17 +60,19 @@ class _HtmlSheetPanelState extends State<HtmlSheetPanel> {
 
   Future<void> _loadSheet(CharacterFacadeImpl pc) async {
     _lastCharacter = pc;
-    // Show loading state
-    if (mounted) setState(() => _currentHtml = null);
+    if (mounted) setState(() { _currentHtml = null; _tempHtmlPath = null; });
     try {
-      // Generate off the UI thread so the app never locks
       final html = await Future(() => _generateHtml(pc));
-      debugPrint('SHEET_HTML length=${html.length} first200=${html.substring(0, html.length.clamp(0, 200))}');
       if (!mounted) return;
       if (_mobileCtrl != null) {
         _mobileCtrl!.loadHtmlString(html);
       } else {
-        setState(() => _currentHtml = html);
+        // Write to temp file for "Open in Browser"
+        final dir = await getTemporaryDirectory();
+        final safeName = pc.getName().replaceAll(RegExp(r'[^a-zA-Z0-9_-]'), '_');
+        final path = p.join(dir.path, 'pcgen_sheet_$safeName.html');
+        await File(path).writeAsString(html);
+        if (mounted) setState(() { _currentHtml = html; _tempHtmlPath = path; });
       }
     } catch (e) {
       debugPrint('HtmlSheetPanel error: $e');
@@ -84,18 +88,32 @@ class _HtmlSheetPanelState extends State<HtmlSheetPanel> {
     }
   }
 
+  Future<void> _openInBrowser() async {
+    final path = _tempHtmlPath;
+    if (path == null) return;
+    final uri = Uri.file(path);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
+  }
+
+  /// Extract body content from a full HTML document for flutter_html.
+  String _bodyContent(String html) {
+    final bodyStart = html.indexOf('<body');
+    final bodyEnd   = html.lastIndexOf('</body>');
+    if (bodyStart >= 0 && bodyEnd > bodyStart) {
+      final contentStart = html.indexOf('>', bodyStart) + 1;
+      return html.substring(contentStart, bodyEnd);
+    }
+    return html;
+  }
+
   String _generateHtml(CharacterFacadeImpl pc) {
-    // Explicit template path takes priority
     if (widget.templatePath != null) {
       return CharacterExportAction(pc, dataset: loadedDataSet.value)
           .executeFromTemplate(widget.templatePath!);
     }
-
-    // Try the game's default preview sheet (Standard.htm.ftl)
     final previewDir = ConfigurationSettings.getPreviewDir();
-    // PREVIEWDIR in 35e miscinfo.lst is 'd20/fantasy', so the sheet is at:
-    //   <previewDir>/d20/fantasy/Standard.htm.ftl  (if previewDir = outputsheets/preview)
-    // But our copy is at:  preview/d20/fantasy/Standard.htm.ftl
     final candidates = [
       p.join(previewDir, 'Standard.htm.ftl'),
       p.join(previewDir, 'd20', 'fantasy', 'Standard.htm.ftl'),
@@ -106,8 +124,6 @@ class _HtmlSheetPanelState extends State<HtmlSheetPanel> {
             .executeFromTemplate(path);
       }
     }
-
-    // Fall back to built-in sheet
     return BuiltinSheetGenerator(pc, loadedDataSet.value).generate();
   }
 
@@ -119,8 +135,7 @@ class _HtmlSheetPanelState extends State<HtmlSheetPanel> {
         if (character == null) {
           return const Center(
             child: Text('No character selected.',
-                style: TextStyle(color: Colors.grey,
-                    fontStyle: FontStyle.italic)),
+                style: TextStyle(color: Colors.grey, fontStyle: FontStyle.italic)),
           );
         }
         if (character is CharacterFacadeImpl && character != _lastCharacter) {
@@ -133,10 +148,25 @@ class _HtmlSheetPanelState extends State<HtmlSheetPanel> {
           return wf.WebViewWidget(controller: _mobileCtrl!);
         }
 
-        // Desktop: flutter_html (pure Flutter renderer, no NuGet needed)
+        // Desktop: in-app preview (body content only) + Open in Browser button
         if (_currentHtml != null) {
-          return SingleChildScrollView(
-            child: Html(data: _currentHtml!),
+          return Stack(
+            children: [
+              SingleChildScrollView(
+                child: Html(data: _bodyContent(_currentHtml!)),
+              ),
+              Positioned(
+                top: 8, right: 8,
+                child: ElevatedButton.icon(
+                  onPressed: _openInBrowser,
+                  icon: const Icon(Icons.open_in_browser, size: 16),
+                  label: const Text('Open in Browser'),
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  ),
+                ),
+              ),
+            ],
           );
         }
 

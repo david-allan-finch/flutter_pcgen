@@ -454,34 +454,21 @@ class PcgenTokenContext extends FtlContext {
   }
 
   List<Map<String, dynamic>> _equippedWeapons() {
-    // Build weapon list from the sheet data the same way character_sheet_panel does
-    final gear = _data('gear') as List? ?? [];
-    final equipsets = _data('equipSets') as List? ?? [];
+    // equippedSlots is a flat Map<slotName, itemKey> built by the PCG parser
+    final gear           = _data('gear')           as List? ?? [];
+    final equippedSlots  = _data('equippedSlots')  as Map?  ?? {};
     final result = <Map<String, dynamic>>[];
 
-    // Find active equip set
-    Map<String, dynamic>? activeSet;
-    for (final es in equipsets) {
-      if (es is Map && es['active'] == true) { activeSet = Map.from(es as Map); break; }
-    }
-    activeSet ??= equipsets.isNotEmpty ? Map.from(equipsets.first as Map) : {};
-
-    final slots = activeSet['slots'] as Map? ?? {};
-    final weaponSlotKeys = ['primary', 'secondary', 'both', 'primarydouble',
-      'naturalPrimary', 'naturalSecondary', 'Natural-Primary', 'Natural-Secondary'];
-
-    debugPrint('FTL_DBG _equippedWeapons slots=${slots.keys.toList()}');
-    for (final slotKey in slots.keys) {
+    debugPrint('FTL_DBG _equippedWeapons slots=${equippedSlots.keys.toList()}');
+    for (final slotKey in equippedSlots.keys) {
       final slotLower = slotKey.toString().toLowerCase();
-      // Match "Primary Hand", "Both Hands", "Secondary Hand", "Natural-Primary", etc.
-      final isWeaponSlot = weaponSlotKeys.any((k) => k.toLowerCase() == slotLower) ||
-          slotLower.contains('primary') ||
+      final isWeaponSlot = slotLower.contains('primary') ||
           slotLower.contains('secondary') ||
           slotLower.startsWith('both') ||
           slotLower.startsWith('natural') ||
           slotLower == 'unarmed';
       if (!isWeaponSlot) continue;
-      final gearKey = slots[slotKey];
+      final gearKey = equippedSlots[slotKey];
       if (gearKey == null) continue;
       final item = gear.where((g) => g is Map && (g['key'] == gearKey || g['name'] == gearKey)).firstOrNull;
       if (item == null) continue;
