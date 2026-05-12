@@ -823,8 +823,37 @@ class _Evaluator {
           return s.indexOf(arg);
         }
         if (builtin.startsWith('replace(')) {
-          final parts = builtin.substring(8, builtin.length - 1).split(',');
-          if (parts.length >= 2) return s.replaceAll(_unquote(parts[0].trim()), _unquote(parts[1].trim()));
+          final inner = builtin.substring(8, builtin.length - 1);
+          final parts = _splitArgs(inner);
+          if (parts.length >= 2) {
+            final from = _unquote(parts[0]);
+            final to   = _unquote(parts[1]);
+            // Third arg flags: 'r'=regex, 'f'=first-only
+            final flags = parts.length >= 3 ? _unquote(parts[2]) : '';
+            if (flags.contains('r')) {
+              final regex = RegExp(from);
+              return flags.contains('f')
+                  ? s.replaceFirst(regex, to)
+                  : s.replaceAll(regex, to);
+            }
+            return flags.contains('f')
+                ? s.replaceFirst(from, to)
+                : s.replaceAll(from, to);
+          }
+        }
+        if (builtin.startsWith('matches(')) {
+          final pattern = _unquote(builtin.substring(8, builtin.length - 1));
+          try {
+            final regex = RegExp(pattern);
+            final match = regex.firstMatch(s);
+            if (match == null) return <_FtlMatch>[]; // empty list → falsy
+            return [_FtlMatch(match)];               // non-empty → truthy
+          } catch (_) { return <_FtlMatch>[]; }
+        }
+        // ?groups on a match-result list: [matchResult]?groups[n]
+        if (builtin == 'groups' && val is List && val.isNotEmpty && val.first is _FtlMatch) {
+          final m = val.first as _FtlMatch;
+          return List.generate(m.match.groupCount + 1, (i) => m.match.group(i) ?? '');
         }
         if (builtin.startsWith('substring(')) {
           final parts = builtin.substring(10, builtin.length - 1).split(',');
@@ -837,6 +866,28 @@ class _Evaluator {
   }
 
   String _unquote(String s) => s.trim().replaceAll('"', '').replaceAll("'", '');
+
+  // Split comma-separated args respecting quoted strings.
+  List<String> _splitArgs(String s) {
+    final result = <String>[];
+    var buf = StringBuffer();
+    var inQ = false;
+    var qChar = '';
+    for (var i = 0; i < s.length; i++) {
+      final c = s[i];
+      if (inQ) {
+        if (c == qChar) inQ = false; else buf.write(c);
+      } else if (c == '"' || c == "'") {
+        inQ = true; qChar = c;
+      } else if (c == ',') {
+        result.add(buf.toString().trim()); buf.clear();
+      } else {
+        buf.write(c);
+      }
+    }
+    if (buf.isNotEmpty) result.add(buf.toString().trim());
+    return result;
+  }
 
   /// Expand ${varName} and ${expr} inside a string literal value.
   /// e.g. 'STAT.${stat}.NAME' with stat=2 → 'STAT.2.NAME'
@@ -954,4 +1005,10 @@ class _Evaluator {
     if (start < src.length) args.add(src.substring(start));
     return args.where((s) => s.trim().isNotEmpty).toList();
   }
+}
+
+/// Wraps a Dart RegExpMatch so ?matches() results support ?groups[n].
+class _FtlMatch {
+  final RegExpMatch match;
+  const _FtlMatch(this.match);
 }

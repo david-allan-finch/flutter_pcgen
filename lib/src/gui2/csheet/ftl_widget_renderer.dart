@@ -113,8 +113,24 @@ class FtlWidgetSink extends FtlSink {
     if (t.trim().isNotEmpty) _top.addText(_decodeEntities(t));
   }
 
-  static String _decodeEntities(String s) => s
-      .replaceAll('&nbsp;', ' ')
+  static String _decodeEntities(String s) {
+    var r = s.replaceAllMapped(RegExp(r'&#(\d+);'), (m) {
+      final cp = int.tryParse(m.group(1)!);
+      return cp != null ? String.fromCharCode(cp) : m.group(0)!;
+    });
+    r = r.replaceAllMapped(RegExp(r'&#x([0-9a-fA-F]+);', caseSensitive: false), (m) {
+      final cp = int.tryParse(m.group(1)!, radix: 16);
+      return cp != null ? String.fromCharCode(cp) : m.group(0)!;
+    });
+    return r
+        .replaceAll('&nbsp;', '\u00A0')
+        .replaceAll('&nl;',   '\n')
+        .replaceAll('&amp;',  '&')
+        .replaceAll('&lt;',   '<')
+        .replaceAll('&gt;',   '>')
+        .replaceAll('&quot;', '"')
+        .replaceAll("&apos;", "'");
+  }', ' ')
       .replaceAll('&#160;', ' ')
       .replaceAll('&nl;',   '\n')
       .replaceAll('&amp;',  '&')
