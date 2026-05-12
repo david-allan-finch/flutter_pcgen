@@ -151,6 +151,7 @@ class PcgenTokenContext extends FtlContext {
       case 'AC':          return _ac(parts);
       case 'INITIATIVEMOD':
       case 'INITIATIVE':  return _signed(_pc.getInitiative());
+      case 'INITIATIVEBONUS': return _signed(_pc.getInitiative() - _pc.getStatModByAbb('DEX'));
       case 'BAB':         return _pc.getBAB();
 
       case 'CLASS':       return _cls(parts);
@@ -170,13 +171,22 @@ class PcgenTokenContext extends FtlContext {
 
       case 'DOMAIN':      return _domain(parts);
       case 'TEMPLATE':    return _template(parts);
+      case 'TEMPLATELIST':return _pc.getAppliedTemplateKeys().join(', ');
 
-      case 'SPELLLISTCLASS': return _spellClass(parts);
-      case 'SPELLLISTCLASSTYPE': return _spellClassType(parts);
-      case 'SPELL':       return _spell(parts);
+      case 'SPELLLISTCLASS':    return _spellClass(parts);
+      case 'SPELLLISTCLASSTYPE':return _spellClassType(parts);
+      case 'SPELLLISTKNOWN':    return _spellListKnown(parts);
+      case 'SPELLLISTCAST':     return _spellListCast(parts);
+      case 'SPELLLISTMEMORIZE': return _spellListMemorize(parts);
+      case 'MAXSKILLLEVEL':     return _pc.getTotalCharacterLevel().toString();
+      case 'MAXCCSKILLLEVEL':   return (_pc.getTotalCharacterLevel() / 2).ceil().toString();
+      case 'MAXSPELLLEVEL':     return _maxSpellLevel(parts);
+      case 'SPELL':             return _spell(parts);
 
-      case 'EQUIP':
-      case 'ARMOR':       return _equip(parts);
+      case 'WEAPONH':     return _weaponH(parts);
+
+      case 'EQUIP':       return _equipItem(parts);
+      case 'ARMOR':       return _armorEquipped(parts);
 
       case 'FUNDS':
       case 'GOLD':        return _pc.getFunds().toStringAsFixed(2);
@@ -198,6 +208,8 @@ class PcgenTokenContext extends FtlContext {
   // ─── Stat tokens: STAT.N.SCORE / .MOD / .NAME / .BASEMOD / .MISC ──────────
 
   String _stat(List<String> parts) {
+    // STAT.N with no subtoken → return the score (same as STAT.N.SCORE)
+    if (parts.length == 2) return _stat([parts[0], parts[1], 'SCORE']);
     if (parts.length < 3) return '';
     final idx = int.tryParse(parts[1]);
     if (idx == null || idx >= _statOrder.length) return '';
@@ -284,18 +296,25 @@ class PcgenTokenContext extends FtlContext {
     if (parts.length < 3) return '';
     final idx = int.tryParse(parts[1]);
     if (idx == null || idx >= _saveNames.length) return '';
+    // Stat abbreviation for each save
+    const saveStats = ['CON', 'DEX', 'WIS'];
+    final saveName  = _saveNames[idx]; // Fortitude / Reflex / Will
+    final statAbb   = saveStats[idx];
+    final statMod   = _pc.getStatModByAbb(statAbb);
+    final total     = idx == 0 ? _pc.getFortSave()
+                    : idx == 1 ? _pc.getRefSave()
+                    :            _pc.getWillSave();
+    // Base = total − stat mod (approximation; magic items roll into total)
+    final base = total - statMod;
     switch (parts[2]) {
-      case 'NAME':  return _saveNames[idx];
-      case 'TOTAL':
-        switch (idx) {
-          case 0: return _signed(_pc.getFortSave());
-          case 1: return _signed(_pc.getRefSave());
-          case 2: return _signed(_pc.getWillSave());
-        }
-        return '0';
-      case 'BASE':  return '0'; // TODO: separate base from stat
-      case 'STAT':  return '0';
+      case 'NAME':  return saveName;
+      case 'TOTAL': return _signed(total);
+      case 'BASE':  return base.toString();
+      case 'STATMOD':
+      case 'STAT':  return _signed(statMod);
       case 'MAGIC': return '0';
+      case 'EPIC':  return '0';
+      case 'MISC.NOMAGIC.NOSTAT':
       case 'MISC':  return '0';
     }
     return '';
@@ -310,7 +329,7 @@ class PcgenTokenContext extends FtlContext {
       case 'FLATFOOTED':   return _pc.getFlatFootedAC().toString();
       case 'TOUCH':        return _pc.getTouchAC().toString();
       case 'BASE':         return '10';
-      case 'ARMOR':        return '0';
+      case 'ARMOR':        return _pc.getArmorBonus().toString();
       case 'SHIELD':       return '0';
       case 'ABILITY':
       case 'DEX':          return _signed(_pc.getStatModByAbb('DEX'));
@@ -717,23 +736,170 @@ class PcgenTokenContext extends FtlContext {
 
   // ─── Equipment tokens ─────────────────────────────────────────────────────
 
-  String _equip(List<String> parts) {
+  // ─── Equipment / armor / EQ tokens ───────────────────────────────────────
+
+  // EQ.Not.Coin.NOT.Gem.N.* — all non-coin non-gem gear
+  String _equipItem(List<String> parts) {
+    // Detect format: EQUIP.N.FIELD  or  EQ.Not.Coin.NOT.Gem.N.FIELD
+    // We normalise both to gear[idx].field
+    final gear = (_data('gear') as List? ?? []).whereType<Map>().toList();
+    int? idx;
+    String field = '';
+    if (parts.length >= 3 && int.tryParse(parts[1]) != null) {
+      idx   = int.tryParse(parts[1]);
+      field = parts.length > 2 ? parts[2] : 'NAME';
+    } else {
+      // EQ.Not.Coin.NOT.Gem.N.FIELD — find the numeric part
+      for (int i = 1; i < parts.length; i++) {
+        final n = int.tryParse(parts[i]);
+        if (n != null) {
+          idx   = n;
+          field = parts.length > i + 1 ? parts[i + 1] : 'NAME';
+          break;
+        }
+      }
+    }
+    if (idx == null || idx >= gear.length) return '';
+    final item = gear[idx];
+    return _gearField(item, field);
+  }
+
+  // ARMOR.N.* — all gear (compat) / ARMOR.EQUIPPED.N.* — equipped armor only
+  String _armorEquipped(List<String> parts) {
     if (parts.length < 3) return '';
+    // ARMOR.EQUIPPED.N.FIELD
+    if (parts[1].toUpperCase() == 'EQUIPPED') {
+      final idx = parts.length > 2 ? int.tryParse(parts[2]) : null;
+      if (idx == null) return '';
+      final field = parts.length > 3 ? parts[3] : 'NAME';
+      final equipped = _equippedArmor();
+      if (idx >= equipped.length) return '';
+      return _gearField(equipped[idx], field);
+    }
+    // ARMOR.N.* — flat gear list (backward compat)
     final idx = int.tryParse(parts[1]);
     if (idx == null) return '';
     final gear = (_data('gear') as List? ?? []).whereType<Map>().toList();
     if (idx >= gear.length) return '';
-    final item = gear[idx];
-    switch (parts[2]) {
-      case 'NAME':   return item['name'] as String? ?? '';
+    return _gearField(gear[idx], parts.length > 2 ? parts[2] : 'NAME');
+  }
+
+  List<Map> _equippedArmor() {
+    final equippedSlots = _data('equippedSlots') as Map? ?? {};
+    final armorSlot = equippedSlots['Armor'] as String?;
+    final shieldSlot = equippedSlots['Off Hand'] as String?;
+    final gear = (_data('gear') as List? ?? []).whereType<Map>().toList();
+    final result = <Map>[];
+    for (final item in gear) {
+      final key = item['key'] as String? ?? item['name'] as String? ?? '';
+      if (key == armorSlot || key == shieldSlot) result.add(item);
+    }
+    return result;
+  }
+
+  String _gearField(Map item, String field) {
+    switch (field.toUpperCase()) {
+      case 'NAME':      return item['name'] as String? ?? '';
       case 'WT':
-      case 'WEIGHT': return (item['weight'] as num?)?.toString() ?? '0';
-      case 'QTY':    return (item['qty'] as num?)?.toString() ?? '1';
-      case 'COST':   return (item['cost'] as num?)?.toString() ?? '0';
-      case 'QUALITY':return '';
-      case 'CARRIED':return '1';
+      case 'WEIGHT':    return (item['weight'] as num?)?.toString() ?? '0';
+      case 'QTY':       return (item['qty'] as num?)?.toString() ?? '1';
+      case 'COST':      return (item['cost'] as num?)?.toString() ?? '0';
+      case 'TOTALAC':   return '0';
+      case 'MAXDEX':    return '';
+      case 'ACCHECK':   return '0';
+      case 'SPELLFAIL': return '0';
+      case 'TYPE':      return '';
+      case 'SPROP':     return '';
+      case 'NOTE':      return '';
+      case 'QUALITY':   return '';
+      case 'CARRIED':   return '1';
+      case 'LOCATION':  return '';
     }
     return '';
+  }
+
+  // ─── Primary-hand weapon (WEAPONH) ───────────────────────────────────────
+
+  String _weaponH(List<String> parts) {
+    final field = parts.length > 1 ? parts[1].toUpperCase() : 'NAME';
+    final weapons = _equippedWeapons();
+    if (weapons.isEmpty) return '';
+    final w = weapons.first;
+    switch (field) {
+      case 'NAME':      return w['name'] as String? ?? '';
+      case 'TOTALHIT':
+      case 'BASEHIT':   return w['tohit'] as String? ?? '';
+      case 'BASICDAMAGE':
+      case 'DAMAGE':    return w['damage'] as String? ?? '';
+      case 'CRIT':      return w['crit'] as String? ?? '';
+      case 'MULT':      return '';
+      case 'TYPE':      return '';
+      case 'HAND':      return 'Primary';
+    }
+    return '';
+  }
+
+  // ─── Spell tokens ─────────────────────────────────────────────────────────
+
+  String _spell(List<String> parts) => '';
+
+  // MAXSPELLLEVEL.classIdx — max spell level for a given casting class
+  String _maxSpellLevel(List<String> parts) {
+    if (parts.length < 2) return '';
+    final idx = int.tryParse(parts[1]) ?? 0;
+    final classKey = _spellClassKey(idx);
+    if (classKey.isEmpty) return '';
+    // Look up the class's max spell level from the dataset
+    try {
+      final dataset = _dataset;
+      if (dataset == null) return '';
+      final classes = (dataset as dynamic).classes as List? ?? [];
+      for (final cls in classes) {
+        if ((cls as dynamic).getKeyName() == classKey) {
+          final maxLvl = (cls as dynamic).getMaxSpellLevel() as int? ?? 0;
+          return maxLvl.toString();
+        }
+      }
+    } catch (_) {}
+    return '0';
+  }
+
+  // SPELLLISTKNOWN.classIdx.level — spells known at level (spontaneous casters)
+  String _spellListKnown(List<String> parts) => '0';
+
+  // SPELLLISTCAST.classIdx.level — spell slots at level
+  String _spellListCast(List<String> parts) => '0';
+
+  // SPELLLISTMEMORIZE.classIdx — 1 if class prepares spells, 0 if spontaneous
+  String _spellListMemorize(List<String> parts) {
+    if (parts.length < 2) return '0';
+    final idx = int.tryParse(parts[1]) ?? 0;
+    final classKey = _spellClassKey(idx);
+    if (classKey.isEmpty) return '0';
+    try {
+      final dataset = _dataset;
+      if (dataset == null) return '0';
+      final classes = (dataset as dynamic).classes as List? ?? [];
+      for (final cls in classes) {
+        if ((cls as dynamic).getKeyName() == classKey) {
+          final mem = (cls as dynamic).memorizesSpells() as bool? ?? false;
+          return mem ? '1' : '0';
+        }
+      }
+    } catch (_) {}
+    return '0';
+  }
+
+  String _spellClassKey(int idx) {
+    final classLevels = _data('classLevels') as List? ?? [];
+    final seen = <String>[];
+    for (final l in classLevels) {
+      if (l is Map) {
+        final k = l['classKey'] as String? ?? '';
+        if (k.isNotEmpty && !seen.contains(k)) seen.add(k);
+      }
+    }
+    return idx < seen.length ? seen[idx] : '';
   }
 
   // ─── Color / length / move / pool tokens ─────────────────────────────────
@@ -835,9 +1001,20 @@ class PcgenTokenContext extends FtlContext {
     if (w == 'GEAR' || w == 'EQUIP') {
       return (_data('gear') as List? ?? []).length;
     }
+    if (w.startsWith('EQUIPMENT.')) return (_data('gear') as List? ?? []).length;
     if (w == 'WEAPONPROFS') return _pc.getWeaponProficiencies().length;
     if (w == 'SAVES') return _saveNames.length;
-    // COUNT[expr] arithmetic — e.g. COUNT[STATS]-1
+    if (w == 'SPELLBOOKS') return 0;
+    if (w == 'SPELLRACE')  return 0;
+    if (w.startsWith('SPELLSINBOOK.')) return 0;
+    if (w.startsWith('SPELLLISTCAST.')) return 0;
+    // COUNT[A]+COUNT[B] compound expressions
+    final plusIdx = what.indexOf('+');
+    if (plusIdx > 0) {
+      return _count(what.substring(0, plusIdx).trim()) +
+             _count(what.substring(plusIdx + 1).trim());
+    }
+    // COUNT[expr]-N arithmetic — e.g. COUNT[STATS]-1
     final dashIdx = what.indexOf('-');
     if (dashIdx > 0) {
       final base = _count(what.substring(0, dashIdx));

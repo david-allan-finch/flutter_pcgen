@@ -666,6 +666,9 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
     notifyListeners();
   }
 
+  /// Armor bonus to AC (ARMOR-typed bonus from equipped armor).
+  int getArmorBonus() => _bonusAcc.totalInt('COMBAT', 'AC');
+
   /// Total armor check penalty from all equipped armor and shields.
   int getArmorCheckPenalty() {
     int total = 0;
