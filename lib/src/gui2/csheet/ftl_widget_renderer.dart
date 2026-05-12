@@ -822,7 +822,9 @@ class _CellB extends _Builder {
         : Column(crossAxisAlignment: CrossAxisAlignment.start,
             children: styledChildren);
 
-    // Wrap in vertical alignment if specified
+    // Vertical-align: wrap in SizedBox.expand so content floats to
+    // top/center/bottom within the cell. Only meaningful when the row has
+    // taller neighbours; keep mainAxisSize.min to avoid unbounded height.
     if (va != CrossAxisAlignment.center && styledChildren.isNotEmpty) {
       content = Column(
         crossAxisAlignment: ta == TextAlign.center
@@ -831,7 +833,7 @@ class _CellB extends _Builder {
         mainAxisAlignment: va == CrossAxisAlignment.end
             ? MainAxisAlignment.end
             : MainAxisAlignment.start,
-        mainAxisSize: MainAxisSize.max,
+        mainAxisSize: MainAxisSize.min,
         children: [content],
       );
     }
