@@ -638,33 +638,31 @@ class _TableB extends _Builder {
     );
   }
 
-  // ── Flex Row table (has colspan) — each row is an IntrinsicHeight Row ─────
+  // ── Flex Row table (has colspan) ─────────────────────────────────────────
+  // CrossAxisAlignment.start avoids IntrinsicHeight, which overflows inside
+  // an unbounded SingleChildScrollView when paired with Flexible+stretch.
 
   Widget _buildFlexTable() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: _rows.map((row) {
         if (row.cells.isEmpty) return const SizedBox.shrink();
-        return IntrinsicHeight(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: row.cells.map((cell) {
-              final bordered = Container(
-                decoration: BoxDecoration(
-                    border: Border.all(color: _bc, width: 0.5)),
-                child: cell.widget,
-              );
-              // Flex is proportional to colspan; honour explicit widths via
-              // flex values scaled to 1000 so fractions stay integer-friendly.
-              final int flex;
-              if (cell.widthFraction != null) {
-                flex = (cell.widthFraction! * 1000).round().clamp(1, 1000);
-              } else {
-                flex = cell.colspan.clamp(1, 100);
-              }
-              return Flexible(flex: flex, child: bordered);
-            }).toList(),
-          ),
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: row.cells.map((cell) {
+            final bordered = Container(
+              decoration: BoxDecoration(
+                  border: Border.all(color: _bc, width: 0.5)),
+              child: cell.widget,
+            );
+            final int flex;
+            if (cell.widthFraction != null) {
+              flex = (cell.widthFraction! * 1000).round().clamp(1, 1000);
+            } else {
+              flex = cell.colspan.clamp(1, 100);
+            }
+            return Flexible(flex: flex, child: bordered);
+          }).toList(),
         );
       }).toList(),
     );
