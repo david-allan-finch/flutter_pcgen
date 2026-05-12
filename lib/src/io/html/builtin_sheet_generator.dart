@@ -1,6 +1,6 @@
 // Built-in HTML character sheet generator.
-// Produces a standalone HTML file styled like the PCGen standard 3.5e sheet.
-// Works with CharacterFacadeImpl; no external FTL templates required.
+// Produces HTML using only inline styles and <table> layouts so it renders
+// correctly inside flutter_html (which ignores <style> blocks and CSS grids).
 
 import 'package:flutter_pcgen/src/gui2/facade/character_facade_impl.dart';
 
@@ -10,14 +10,30 @@ class BuiltinSheetGenerator {
 
   static const _statOrder = ['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'];
   static const _saveNames  = ['Fortitude', 'Reflex', 'Will'];
+  static const _saveStats  = ['CON', 'DEX', 'WIS'];
 
   BuiltinSheetGenerator(this._pc, this._dataset);
 
+  // ─── Inline style constants ───────────────────────────────────────────────
+
+  static const _styleTable  = 'border-collapse:collapse;width:100%;margin-bottom:6px;';
+  static const _styleTd     = 'border:1px solid #aaa;padding:3px 6px;font-size:9pt;vertical-align:middle;';
+  static const _styleTh     = 'border:1px solid #888;padding:3px 6px;font-size:8pt;font-weight:bold;background:#ddd;text-align:center;';
+  static const _styleLabel  = 'border:1px solid #aaa;padding:3px 6px;font-size:9pt;font-weight:bold;background:#f0f0f0;width:140px;';
+  static const _styleVal    = 'border:1px solid #aaa;padding:3px 6px;font-size:9pt;text-align:center;';
+  static const _styleBigVal = 'border:1px solid #aaa;padding:3px 6px;font-size:12pt;font-weight:bold;text-align:center;';
+  static const _styleSecHdr = 'background:#333;color:#fff;font-size:10pt;font-weight:bold;'
+                               'padding:2px 8px;margin:10px 0 2px 0;';
+  static const _styleHdrCell = 'border:1px solid #aaa;padding:4px 8px;font-size:9pt;';
+  static const _styleHdrLabel = 'font-size:7pt;color:#777;';
+  static const _styleHdrVal  = 'font-size:11pt;font-weight:bold;';
+  static const _styleStatBox = 'border:2px solid #555;padding:4px;text-align:center;';
+
+  // ─── Public entry point ────────────────────────────────────────────────────
+
   String generate() {
     final buf = StringBuffer();
-    buf.write(_head());
-    buf.write('<body>\n');
-    buf.write('<div class="sheet">\n');
+    buf.writeln('<div style="font-family:sans-serif;font-size:10pt;padding:6px;">');
     buf.write(_headerSection());
     buf.write(_statsSection());
     buf.write(_combatSection());
@@ -26,13 +42,12 @@ class BuiltinSheetGenerator {
     buf.write(_weaponsSection());
     buf.write(_armorSection());
     buf.write(_gearSection());
-    buf.write(_spellsSection());
     buf.write(_bioSection());
-    buf.write('</div>\n</body>\n</html>');
+    buf.writeln('</div>');
     return buf.toString();
   }
 
-  // ─── Helpers ────────────────────────────────────────────────────────────────
+  // ─── Data helpers ──────────────────────────────────────────────────────────
 
   Map<String, dynamic> get _data => _pc.toJson();
 
@@ -52,20 +67,10 @@ class BuiltinSheetGenerator {
   }
 
   int _mod(String abb) => ((_score(abb) - 10) / 2).floor();
-
   String _signed(int n) => n >= 0 ? '+$n' : '$n';
-
-  String _h(String text) => '<h3 class="section-head">$text</h3>';
-
-  String _td(String text, {String cls = ''}) {
-    final c = cls.isNotEmpty ? ' class="$cls"' : '';
-    return '<td$c>$text</td>';
-  }
-
-  String _th(String text, {String cls = ''}) {
-    final c = cls.isNotEmpty ? ' class="$cls"' : '';
-    return '<th$c>$text</th>';
-  }
+  String _esc(String s) => s
+      .replaceAll('&', '&amp;').replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;').replaceAll('"', '&quot;');
 
   List<Map<String, dynamic>> _classBreakdown() {
     final classLevels = _data['classLevels'] as List? ?? [];
@@ -81,66 +86,21 @@ class BuiltinSheetGenerator {
     return seen.map((k) => {'name': k, 'level': counts[k] ?? 0}).toList();
   }
 
-  List<Map<String, dynamic>> _weapons() {
+  // equippedSlots is flat Map<slotName, itemKey> (fixed from equipSets bug)
+  List<Map<String, dynamic>> _equippedItems({required bool weapons}) {
     final gear = (_data['gear'] as List? ?? []).whereType<Map>().toList();
-    final equipSets = _data['equipSets'] as List? ?? [];
-    Map<String, dynamic>? activeSet;
-    for (final es in equipSets) {
-      if (es is Map && es['active'] == true) { activeSet = Map.from(es as Map); break; }
-    }
-    activeSet ??= equipSets.isNotEmpty ? Map.from(equipSets.first as Map) : {};
-    final slots = activeSet['slots'] as Map? ?? {};
-
-    final weaponSlots = {'primary', 'secondary', 'both', 'primarydouble',
-      'natural-primary', 'natural-secondary', 'naturalprimary', 'naturalsecondary'};
-
+    final slots = _data['equippedSlots'] as Map? ?? {};
     final result = <Map<String, dynamic>>[];
     for (final entry in slots.entries) {
-      if (!weaponSlots.contains(entry.key.toString().toLowerCase())) continue;
-      final gearKey = entry.value;
-      if (gearKey == null) continue;
-      final item = gear.where((g) => g['key'] == gearKey || g['name'] == gearKey).firstOrNull;
-      if (item == null) continue;
-      final isRanged = item['isRanged'] as bool? ?? false;
-      final bab = _pc.getBABAsInt();
-      final tohitBonus = isRanged ? _pc.getTohitBonusRanged() : _pc.getTohitBonusMelee();
-      // EQMOD bonuses from sheet data
-      final eqTohit = item['eqTohit'] as int? ?? 0;
-      final totalTohit = bab + tohitBonus + eqTohit;
-      final attacks = <String>[];
-      var cur = totalTohit;
-      while (attacks.isEmpty || (cur > 0 && totalTohit - cur < 20)) {
-        attacks.add(_signed(cur)); cur -= 5;
-      }
-      result.add({
-        'name': item['name'] ?? '',
-        'tohit': attacks.join('/'),
-        'damage': item['damage'] ?? '1d6',
-        'crit': item['crit'] ?? '20/×2',
-        'isRanged': isRanged,
-        'slot': entry.key,
-      });
-    }
-    return result;
-  }
-
-  List<Map<String, dynamic>> _armorItems() {
-    final gear = (_data['gear'] as List? ?? []).whereType<Map>().toList();
-    final equipSets = _data['equipSets'] as List? ?? [];
-    Map<String, dynamic>? activeSet;
-    for (final es in equipSets) {
-      if (es is Map && es['active'] == true) { activeSet = Map.from(es as Map); break; }
-    }
-    activeSet ??= equipSets.isNotEmpty ? Map.from(equipSets.first as Map) : {};
-    final slots = activeSet['slots'] as Map? ?? {};
-
-    final armorSlots = {'armor', 'shield'};
-    final result = <Map<String, dynamic>>[];
-    for (final entry in slots.entries) {
-      if (!armorSlots.contains(entry.key.toString().toLowerCase())) continue;
+      final sl = entry.key.toString().toLowerCase();
+      final isWeapon = sl.contains('primary') || sl.contains('secondary') ||
+          sl.contains('off hand') || sl.startsWith('both') || sl.startsWith('natural');
+      final isArmor  = sl == 'armor' || sl == 'shield';
+      if (weapons && !isWeapon) continue;
+      if (!weapons && !isArmor) continue;
       final gearKey = entry.value;
       final item = gear.where((g) => g['key'] == gearKey || g['name'] == gearKey).firstOrNull;
-      if (item != null) result.add(Map.from(item as Map));
+      if (item != null) result.add(Map<String, dynamic>.from(item as Map));
     }
     return result;
   }
@@ -149,9 +109,9 @@ class BuiltinSheetGenerator {
     if (_dataset == null) return [];
     try {
       return (_dataset.skills as List).map<Map<String, dynamic>>((s) {
-        final name = s.getDisplayName() ?? s.getKeyName();
-        final key  = s.getKeyName() as String;
-        final total = _pc.getSkillBonus(name as String, key);
+        final name  = (s.getDisplayName() ?? s.getKeyName()) as String;
+        final key   = s.getKeyName() as String;
+        final total = _pc.getSkillBonus(name, key);
         final ranks = _pc.getSkillRanks(s);
         return {'name': name, 'key': key, 'total': total, 'ranks': ranks};
       }).where((m) => (m['ranks'] as num? ?? 0) > 0).toList()
@@ -159,123 +119,118 @@ class BuiltinSheetGenerator {
     } catch (_) { return []; }
   }
 
-  // ─── HTML sections ──────────────────────────────────────────────────────────
+  // ─── HTML helpers ──────────────────────────────────────────────────────────
 
-  String _head() => '''<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>${_esc(_pc.getName())} — PCGen Character Sheet</title>
-<style>
-  body { font-family: 'Times New Roman', Times, serif; font-size: 10pt; margin: 0; padding: 0; background: #fff; color: #000; }
-  .sheet { max-width: 800px; margin: 0 auto; padding: 10px; }
-  h1.charname { font-size: 18pt; font-weight: bold; margin: 0; border-bottom: 2px solid #000; }
-  h3.section-head { font-size: 10pt; font-weight: bold; background: #333; color: #fff; padding: 2px 6px; margin: 8px 0 2px 0; }
-  table { border-collapse: collapse; width: 100%; margin-bottom: 4px; }
-  td, th { border: 1px solid #aaa; padding: 2px 5px; font-size: 9pt; vertical-align: middle; }
-  th { background: #ddd; font-weight: bold; text-align: center; }
-  .label { font-weight: bold; background: #eee; width: 120px; }
-  .val { text-align: center; }
-  .big { font-size: 13pt; font-weight: bold; text-align: center; }
-  .hdr-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-bottom: 6px; }
-  .hdr-cell { border: 1px solid #aaa; padding: 2px 6px; }
-  .hdr-label { font-size: 7pt; color: #666; }
-  .hdr-value { font-size: 11pt; font-weight: bold; }
-  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-  .stat-box { text-align: center; border: 2px solid #000; padding: 4px; }
-  .stat-name { font-size: 7pt; font-weight: bold; }
-  .stat-score { font-size: 18pt; font-weight: bold; line-height: 1; }
-  .stat-mod { font-size: 11pt; }
-  .stat-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; margin-bottom: 6px; }
-  .save-row td { text-align: center; }
-  @media print {
-    body { font-size: 9pt; }
-    .sheet { max-width: 100%; }
-    h3.section-head { background: #333 !important; -webkit-print-color-adjust: exact; }
-  }
-</style>
-</head>
-''';
+  String _sectionHeader(String text) =>
+      '<p style="$_styleSecHdr">${_esc(text)}</p>\n';
+
+  String _td(String text, {String style = _styleTd}) =>
+      '<td style="$style">$text</td>';
+
+  String _th(String text) => '<td style="$_styleTh">$text</td>';
+
+  String _tableOpen() => '<table style="$_styleTable">\n';
+  String get _tableClose => '</table>\n';
+
+  // ─── Sections ─────────────────────────────────────────────────────────────
 
   String _headerSection() {
     final classes = _classBreakdown();
-    final classStr = classes.map((c) => '${c['name']} ${c['level']}').join(' / ');
-    final level = _pc.getTotalCharacterLevel();
-    final align = _pc.getAlignmentKey();
-    final deity = _pc.getDeityKey();
-    final race  = _raceName();
-    final size  = _pc.getRaceSize();
-    final xp    = _pc.getXP();
-    final gender = _pc.getGender();
-    final age   = _pc.getAge();
+    final classStr = classes.map((c) => '${_esc(c['name'] as String)} ${c['level']}').join(' / ');
+    final maxHp = _pc.getMaxHP();
+    final hp    = _pc.getHP();
 
-    return '''
-<h1 class="charname">${_esc(_pc.getName())}</h1>
-<div class="hdr-grid">
-  <div class="hdr-cell"><div class="hdr-label">Player</div><div class="hdr-value">${_esc(_pc.getPlayersName())}</div></div>
-  <div class="hdr-cell"><div class="hdr-label">Race</div><div class="hdr-value">${_esc(race)}</div></div>
-  <div class="hdr-cell"><div class="hdr-label">Classes / Level</div><div class="hdr-value">${_esc(classStr)} (${level})</div></div>
-  <div class="hdr-cell"><div class="hdr-label">Alignment</div><div class="hdr-value">${_esc(align)}</div></div>
-  <div class="hdr-cell"><div class="hdr-label">Deity</div><div class="hdr-value">${_esc(deity)}</div></div>
-  <div class="hdr-cell"><div class="hdr-label">Size / Gender / Age</div><div class="hdr-value">${_esc(size)} / ${_esc(gender)} / $age</div></div>
-  <div class="hdr-cell"><div class="hdr-label">XP</div><div class="hdr-value">$xp</div></div>
-  <div class="hdr-cell"><div class="hdr-label">HP (current / max)</div><div class="hdr-value">${_pc.getHP()} / ${_pc.getMaxHP()}</div></div>
-</div>
-''';
+    // 4-column, 2-row info table
+    final cells = [
+      ['Player',          _esc(_pc.getPlayersName())],
+      ['Class / Level',   '$classStr (${_pc.getTotalCharacterLevel()})'],
+      ['Race',            _esc(_raceName())],
+      ['Alignment',       _esc(_pc.getAlignmentKey())],
+      ['Deity',           _esc(_pc.getDeityKey())],
+      ['Size',            _esc(_pc.getRaceSize())],
+      ['Gender / Age',    '${_esc(_pc.getGender())} / ${_pc.getAge()}'],
+      ['HP (cur / max)',  '$hp / $maxHp'],
+      ['XP',              '${_pc.getXP()}'],
+      ['Next Level',      '${_pc.getXPForNextLevel()}'],
+    ];
+
+    final buf = StringBuffer();
+    buf.writeln('<p style="font-size:16pt;font-weight:bold;border-bottom:2px solid #000;margin:0 0 6px 0;">'
+        '${_esc(_pc.getName())}</p>');
+    buf.writeln(_tableOpen());
+    for (var i = 0; i < cells.length; i += 2) {
+      buf.write('<tr>');
+      for (var j = i; j < i + 2 && j < cells.length; j++) {
+        buf.write('<td style="$_styleHdrCell">'
+            '<div style="$_styleHdrLabel">${cells[j][0]}</div>'
+            '<div style="$_styleHdrVal">${cells[j][1]}</div>'
+            '</td>');
+      }
+      buf.writeln('</tr>');
+    }
+    buf.writeln(_tableClose);
+    return buf.toString();
   }
 
   String _statsSection() {
     final buf = StringBuffer();
-    buf.write(_h('Ability Scores'));
-    buf.write('<div class="stat-grid">\n');
+    buf.writeln(_sectionHeader('Ability Scores'));
+
+    // Stats: one row, 6 columns
+    buf.writeln(_tableOpen());
+    buf.write('<tr>');
     for (final abb in _statOrder) {
-      final score = _score(abb);
-      final mod   = _mod(abb);
-      final modStr = mod >= 0 ? '+$mod' : '$mod';
-      buf.write('''<div class="stat-box">
-  <div class="stat-name">$abb</div>
-  <div class="stat-score">$score</div>
-  <div class="stat-mod">$modStr</div>
-</div>\n''');
+      buf.write(_th(abb));
     }
-    buf.write('</div>\n');
+    buf.writeln('</tr>');
+    // Score row
+    buf.write('<tr>');
+    for (final abb in _statOrder) {
+      buf.write(_td('${_score(abb)}', style: _styleBigVal));
+    }
+    buf.writeln('</tr>');
+    // Modifier row
+    buf.write('<tr>');
+    for (final abb in _statOrder) {
+      buf.write(_td(_signed(_mod(abb)), style: _styleVal));
+    }
+    buf.writeln('</tr>');
+    buf.writeln(_tableClose);
 
     // Saves
-    buf.write(_h('Saving Throws'));
-    buf.write('<table><tr>');
-    buf.write(_th('Save')); buf.write(_th('Total')); buf.write(_th('Base')); buf.write(_th('Ability'));
-    buf.write('</tr>\n');
+    buf.writeln(_sectionHeader('Saving Throws'));
+    buf.writeln(_tableOpen());
+    buf.write('<tr>${_th('Save')}${_th('Total')}${_th('Base')}${_th('Ability Mod')}</tr>\n');
     final saves = [_pc.getFortSave(), _pc.getRefSave(), _pc.getWillSave()];
-    final saveStats = ['CON', 'DEX', 'WIS'];
     for (var i = 0; i < 3; i++) {
       buf.write('<tr>');
-      buf.write(_td(_saveNames[i], cls: 'label'));
-      buf.write(_td(_signed(saves[i]), cls: 'val big'));
-      buf.write(_td('—', cls: 'val'));
-      buf.write(_td(_signed(_mod(saveStats[i])), cls: 'val'));
-      buf.write('</tr>\n');
+      buf.write(_td(_saveNames[i], style: _styleLabel));
+      buf.write(_td(_signed(saves[i]), style: _styleBigVal));
+      buf.write(_td('—', style: _styleVal));
+      buf.write(_td(_signed(_mod(_saveStats[i])), style: _styleVal));
+      buf.writeln('</tr>');
     }
-    buf.write('</table>\n');
-
+    buf.writeln(_tableClose);
     return buf.toString();
   }
 
   String _combatSection() {
     final buf = StringBuffer();
-    buf.write(_h('Combat'));
-    buf.write('<table><tr>');
-    buf.write(_th('BAB')); buf.write(_th('AC')); buf.write(_th('Touch AC'));
-    buf.write(_th('Flat-Footed')); buf.write(_th('Initiative'));
-    buf.write(_th('SR')); buf.write(_th('DR'));
-    buf.write('</tr><tr>');
-    buf.write(_td(_pc.getBAB(), cls: 'val big'));
-    buf.write(_td(_pc.getAC().toString(), cls: 'val big'));
-    buf.write(_td(_pc.getTouchAC().toString(), cls: 'val'));
-    buf.write(_td(_pc.getFlatFootedAC().toString(), cls: 'val'));
-    buf.write(_td(_signed(_pc.getInitiative()), cls: 'val'));
-    buf.write(_td(_pc.getSR().toString(), cls: 'val'));
-    buf.write(_td(_data['dr'] as String? ?? '—', cls: 'val'));
-    buf.write('</tr></table>\n');
+    buf.writeln(_sectionHeader('Combat'));
+    buf.writeln(_tableOpen());
+    buf.write('<tr>');
+    for (final h in ['BAB', 'AC', 'Touch AC', 'Flat-Footed', 'Initiative', 'HP Max']) {
+      buf.write(_th(h));
+    }
+    buf.writeln('</tr><tr>');
+    buf.write(_td(_pc.getBAB(), style: _styleVal));
+    buf.write(_td(_pc.getAC().toString(), style: _styleBigVal));
+    buf.write(_td(_pc.getTouchAC().toString(), style: _styleVal));
+    buf.write(_td(_pc.getFlatFootedAC().toString(), style: _styleVal));
+    buf.write(_td(_signed(_pc.getInitiative()), style: _styleVal));
+    buf.write(_td(_pc.getMaxHP().toString(), style: _styleBigVal));
+    buf.writeln('</tr>');
+    buf.writeln(_tableClose);
     return buf.toString();
   }
 
@@ -283,18 +238,35 @@ class BuiltinSheetGenerator {
     final skills = _skills();
     if (skills.isEmpty) return '';
     final buf = StringBuffer();
-    buf.write(_h('Skills (with ranks)'));
-    buf.write('<table><tr>');
-    buf.write(_th('Skill')); buf.write(_th('Total')); buf.write(_th('Ranks'));
-    buf.write('</tr>\n');
-    for (final sk in skills) {
+    buf.writeln(_sectionHeader('Skills (with ranks)'));
+
+    // Two-column table of skills (each column: name | total | ranks)
+    final mid = (skills.length / 2).ceil();
+    final left  = skills.sublist(0, mid);
+    final right = skills.sublist(mid);
+
+    buf.writeln(_tableOpen());
+    buf.write('<tr>');
+    buf.write(_th('Skill')); buf.write(_th('Tot')); buf.write(_th('Rnk'));
+    buf.write(_th('Skill')); buf.write(_th('Tot')); buf.write(_th('Rnk'));
+    buf.writeln('</tr>');
+    for (var i = 0; i < left.length; i++) {
+      final l = left[i];
+      final r = i < right.length ? right[i] : null;
       buf.write('<tr>');
-      buf.write(_td(_esc(sk['name'] as String), cls: 'label'));
-      buf.write(_td((sk['total'] as num? ?? 0).toString(), cls: 'val'));
-      buf.write(_td((sk['ranks'] as num? ?? 0).toString(), cls: 'val'));
-      buf.write('</tr>\n');
+      buf.write(_td(_esc(l['name'] as String), style: _styleLabel));
+      buf.write(_td((l['total'] as num? ?? 0).toString(), style: _styleVal));
+      buf.write(_td((l['ranks'] as num? ?? 0).toString(), style: _styleVal));
+      if (r != null) {
+        buf.write(_td(_esc(r['name'] as String), style: _styleLabel));
+        buf.write(_td((r['total'] as num? ?? 0).toString(), style: _styleVal));
+        buf.write(_td((r['ranks'] as num? ?? 0).toString(), style: _styleVal));
+      } else {
+        buf.write('<td style="$_styleTd" colspan="3"></td>');
+      }
+      buf.writeln('</tr>');
     }
-    buf.write('</table>\n');
+    buf.writeln(_tableClose);
     return buf.toString();
   }
 
@@ -303,66 +275,71 @@ class BuiltinSheetGenerator {
     final feats = (selected['FEAT'] as List?)?.cast<String>() ?? [];
     if (feats.isEmpty) return '';
     final buf = StringBuffer();
-    buf.write(_h('Feats &amp; Special Abilities'));
-    buf.write('<ul style="column-count:2; margin:0; padding-left:18px;">\n');
-    for (final f in feats) {
-      final sep = f.indexOf('|');
-      final name = sep >= 0 ? f.substring(0, sep) : f;
-      final sub  = sep >= 0 ? ' (${f.substring(sep + 1)})' : '';
-      buf.write('<li>${_esc(name)}${_esc(sub)}</li>\n');
+    buf.writeln(_sectionHeader('Feats &amp; Abilities'));
+    buf.writeln(_tableOpen());
+    final mid = (feats.length / 2).ceil();
+    for (var i = 0; i < mid; i++) {
+      final l = feats[i];
+      final lName = _esc(l.contains('|') ? l.substring(0, l.indexOf('|')) : l);
+      buf.write('<tr><td style="$_styleTd;width:50%">$lName</td>');
+      if (i + mid < feats.length) {
+        final r = feats[i + mid];
+        final rName = _esc(r.contains('|') ? r.substring(0, r.indexOf('|')) : r);
+        buf.write('<td style="$_styleTd">$rName</td>');
+      } else {
+        buf.write('<td style="$_styleTd"></td>');
+      }
+      buf.writeln('</tr>');
     }
-    // Other categories (traits, class features, etc.)
-    for (final entry in selected.entries) {
-      if (entry.key == 'FEAT') continue;
-      final items = (entry.value as List?)?.cast<String>() ?? [];
-      if (items.isEmpty) continue;
-      buf.write('<li><b>${_esc(entry.key.toString())}:</b> ${_esc(items.map((s) { final sep=s.indexOf('|'); return sep>=0?s.substring(0,sep):s; }).join(', '))}</li>\n');
-    }
-    buf.write('</ul>\n');
+    buf.writeln(_tableClose);
     return buf.toString();
   }
 
   String _weaponsSection() {
-    final ws = _weapons();
+    final ws = _equippedItems(weapons: true);
     if (ws.isEmpty) return '';
     final buf = StringBuffer();
-    buf.write(_h('Attacks'));
-    buf.write('<table><tr>');
-    buf.write(_th('Weapon')); buf.write(_th('Attack')); buf.write(_th('Damage'));
-    buf.write(_th('Crit')); buf.write(_th('Type'));
-    buf.write('</tr>\n');
-    for (final w in ws) {
+    buf.writeln(_sectionHeader('Weapons'));
+    buf.writeln(_tableOpen());
+    buf.write('<tr>${_th('Weapon')}${_th('Attack')}${_th('Damage')}${_th('Crit')}${_th('Type')}</tr>\n');
+    for (final item in ws) {
+      final isRanged = item['isRanged'] as bool? ?? false;
+      final bab = _pc.getBABAsInt();
+      final bonus = isRanged ? _pc.getTohitBonusRanged() : _pc.getTohitBonusMelee();
+      final eqTohit = item['eqTohit'] as int? ?? 0;
+      final total = bab + bonus + eqTohit;
+      final attacks = <String>[];
+      var cur = total;
+      do { attacks.add(_signed(cur)); cur -= 5; } while (cur > total - 20 && attacks.length < 5);
       buf.write('<tr>');
-      buf.write(_td(_esc(w['name'] as String), cls: 'label'));
-      buf.write(_td(_esc(w['tohit'] as String), cls: 'val'));
-      buf.write(_td(_esc(w['damage'] as String? ?? '—'), cls: 'val'));
-      buf.write(_td(_esc(w['crit'] as String? ?? '20/×2'), cls: 'val'));
-      buf.write(_td(w['isRanged'] == true ? 'R' : 'M', cls: 'val'));
-      buf.write('</tr>\n');
+      buf.write(_td(_esc(item['name'] as String? ?? ''), style: _styleLabel));
+      buf.write(_td(_esc(attacks.join('/')), style: _styleVal));
+      buf.write(_td(_esc(item['damage'] as String? ?? '1d6'), style: _styleVal));
+      buf.write(_td(_esc(item['crit'] as String? ?? '20/×2'), style: _styleVal));
+      buf.write(_td(isRanged ? 'Ranged' : 'Melee', style: _styleVal));
+      buf.writeln('</tr>');
     }
-    buf.write('</table>\n');
+    buf.writeln(_tableClose);
     return buf.toString();
   }
 
   String _armorSection() {
-    final armor = _armorItems();
+    final armor = _equippedItems(weapons: false);
     if (armor.isEmpty) return '';
     final buf = StringBuffer();
-    buf.write(_h('Armor &amp; Protective Equipment'));
-    buf.write('<table><tr>');
-    buf.write(_th('Item')); buf.write(_th('AC Bonus')); buf.write(_th('Max Dex'));
-    buf.write(_th('Check Penalty')); buf.write(_th('Spell Fail'));
-    buf.write('</tr>\n');
+    buf.writeln(_sectionHeader('Armor &amp; Shields'));
+    buf.writeln(_tableOpen());
+    buf.write('<tr>${_th('Item')}${_th('AC Bonus')}${_th('Max Dex')}${_th('Check Pen')}${_th('Spell Fail')}</tr>\n');
     for (final item in armor) {
       buf.write('<tr>');
-      buf.write(_td(_esc(item['name'] as String? ?? ''), cls: 'label'));
-      buf.write(_td((item['acBonus'] as num?)?.toString() ?? '—', cls: 'val'));
-      buf.write(_td((item['maxDex'] as num?)?.toString() ?? '—', cls: 'val'));
-      buf.write(_td((item['checkPenalty'] as num?)?.toString() ?? '—', cls: 'val'));
-      buf.write(_td((item['spellFail'] as num?)?.toString() ?? '—', cls: 'val'));
-      buf.write('</tr>\n');
+      buf.write(_td(_esc(item['name'] as String? ?? ''), style: _styleLabel));
+      buf.write(_td((item['acBonus'] as num?)?.toString() ?? '—', style: _styleVal));
+      buf.write(_td((item['maxDex'] as num?)?.toString() ?? '—', style: _styleVal));
+      buf.write(_td((item['checkPenalty'] as num?)?.toString() ?? '—', style: _styleVal));
+      buf.write(_td((item['spellFail'] as num?)?.toString() ?? '—', style: _styleVal));
+      buf.writeln('</tr>');
     }
-    buf.write('</table>\n');
+    buf.writeln(_tableClose);
     return buf.toString();
   }
 
@@ -370,47 +347,34 @@ class BuiltinSheetGenerator {
     final gear = (_data['gear'] as List? ?? []).whereType<Map>().toList();
     if (gear.isEmpty) return '';
     final buf = StringBuffer();
-    buf.write(_h('Gear &amp; Equipment'));
-    buf.write('<table><tr>');
-    buf.write(_th('Item')); buf.write(_th('Qty')); buf.write(_th('Weight'));
-    buf.write('</tr>\n');
+    buf.writeln(_sectionHeader('Gear'));
+    buf.writeln(_tableOpen());
+    buf.write('<tr>${_th('Item')}${_th('Qty')}${_th('Weight (lbs)')}</tr>\n');
     for (final item in gear) {
       buf.write('<tr>');
-      buf.write(_td(_esc(item['name'] as String? ?? ''), cls: 'label'));
-      buf.write(_td((item['qty'] as num?)?.toString() ?? '1', cls: 'val'));
-      buf.write(_td((item['weight'] as num?)?.toStringAsFixed(1) ?? '—', cls: 'val'));
-      buf.write('</tr>\n');
+      buf.write(_td(_esc(item['name'] as String? ?? ''), style: _styleLabel));
+      buf.write(_td((item['qty'] as num?)?.toString() ?? '1', style: _styleVal));
+      buf.write(_td((item['weight'] as num?)?.toStringAsFixed(1) ?? '—', style: _styleVal));
+      buf.writeln('</tr>');
     }
-    buf.write('</table>\n');
-    final funds = _pc.getFunds();
-    buf.write('<p style="margin:2px 0;"><b>Funds:</b> ${funds.toStringAsFixed(2)} gp</p>\n');
+    buf.writeln(_tableClose);
+    buf.writeln('<p style="font-size:9pt;margin:2px 0;"><b>Gold:</b> ${_pc.getFunds().toStringAsFixed(2)} gp</p>');
     return buf.toString();
   }
 
-  String _spellsSection() {
-    // Placeholder — spell data is not yet fully modelled
-    return '';
-  }
-
   String _bioSection() {
-    final bio = _pc.getBiography();
+    final bio   = _pc.getBiography();
     final notes = _pc.getNotes();
     if (bio.isEmpty && notes.isEmpty) return '';
     final buf = StringBuffer();
     if (bio.isNotEmpty) {
-      buf.write(_h('Biography'));
-      buf.write('<p style="margin:2px 0;">${_esc(bio).replaceAll('\n', '<br>')}</p>\n');
+      buf.writeln(_sectionHeader('Biography'));
+      buf.writeln('<p style="font-size:9pt;margin:2px 0;">${_esc(bio).replaceAll('\n', '<br>')}</p>');
     }
     if (notes.isNotEmpty) {
-      buf.write(_h('Notes'));
-      buf.write('<p style="margin:2px 0;">${_esc(notes).replaceAll('\n', '<br>')}</p>\n');
+      buf.writeln(_sectionHeader('Notes'));
+      buf.writeln('<p style="font-size:9pt;margin:2px 0;">${_esc(notes).replaceAll('\n', '<br>')}</p>');
     }
     return buf.toString();
   }
-
-  String _esc(String s) => s
-      .replaceAll('&', '&amp;')
-      .replaceAll('<', '&lt;')
-      .replaceAll('>', '&gt;')
-      .replaceAll('"', '&quot;');
 }
