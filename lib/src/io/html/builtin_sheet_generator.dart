@@ -22,12 +22,11 @@ class BuiltinSheetGenerator {
   static const _styleLabel  = 'border:1px solid #aaa;padding:3px 6px;font-size:9pt;font-weight:bold;background:#f0f0f0;width:140px;';
   static const _styleVal    = 'border:1px solid #aaa;padding:3px 6px;font-size:9pt;text-align:center;';
   static const _styleBigVal = 'border:1px solid #aaa;padding:3px 6px;font-size:12pt;font-weight:bold;text-align:center;';
-  static const _styleSecHdr = 'background:#333;color:#fff;font-size:10pt;font-weight:bold;'
-                               'padding:2px 8px;margin:10px 0 2px 0;';
-  static const _styleHdrCell = 'border:1px solid #aaa;padding:4px 8px;font-size:9pt;';
-  static const _styleHdrLabel = 'font-size:7pt;color:#777;';
-  static const _styleHdrVal  = 'font-size:11pt;font-weight:bold;';
-  static const _styleStatBox = 'border:2px solid #555;padding:4px;text-align:center;';
+  // Section header rendered as a full-width table row (td bg renders in flutter_html)
+  static const _styleSecHdrTd = 'background-color:#444;color:#fff;font-size:10pt;font-weight:bold;'
+                                 'padding:4px 8px;';
+  static const _styleHdrLabel = 'font-size:8pt;color:#555;padding:0;';
+  static const _styleHdrVal   = 'font-size:10pt;font-weight:bold;padding:0;';
 
   // ─── Public entry point ────────────────────────────────────────────────────
 
@@ -100,7 +99,7 @@ class BuiltinSheetGenerator {
       if (!weapons && !isArmor) continue;
       final gearKey = entry.value;
       final item = gear.where((g) => g['key'] == gearKey || g['name'] == gearKey).firstOrNull;
-      if (item != null) result.add(Map<String, dynamic>.from(item as Map));
+      if (item != null) result.add(Map<String, dynamic>.from(item));
     }
     return result;
   }
@@ -121,8 +120,11 @@ class BuiltinSheetGenerator {
 
   // ─── HTML helpers ──────────────────────────────────────────────────────────
 
+  // Renders as a 1-row table so background-color works in flutter_html
   String _sectionHeader(String text) =>
-      '<p style="$_styleSecHdr">${_esc(text)}</p>\n';
+      '<table style="width:100%;margin:8px 0 2px 0;border-collapse:collapse;">'
+      '<tr><td style="$_styleSecHdrTd">${_esc(text)}</td></tr>'
+      '</table>\n';
 
   String _td(String text, {String style = _styleTd}) =>
       '<td style="$style">$text</td>';
@@ -155,15 +157,14 @@ class BuiltinSheetGenerator {
     ];
 
     final buf = StringBuffer();
-    buf.writeln('<p style="font-size:16pt;font-weight:bold;border-bottom:2px solid #000;margin:0 0 6px 0;">'
-        '${_esc(_pc.getName())}</p>');
+    buf.writeln('<h2>${_esc(_pc.getName())}</h2>');
     buf.writeln(_tableOpen());
     for (var i = 0; i < cells.length; i += 2) {
       buf.write('<tr>');
       for (var j = i; j < i + 2 && j < cells.length; j++) {
-        buf.write('<td style="$_styleHdrCell">'
-            '<div style="$_styleHdrLabel">${cells[j][0]}</div>'
-            '<div style="$_styleHdrVal">${cells[j][1]}</div>'
+        buf.write('<td style="border:1px solid #aaa;padding:3px 6px;">'
+            '<span style="$_styleHdrLabel">${cells[j][0]}: </span>'
+            '<span style="$_styleHdrVal">${cells[j][1]}</span>'
             '</td>');
       }
       buf.writeln('</tr>');
