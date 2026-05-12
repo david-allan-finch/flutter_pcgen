@@ -671,24 +671,22 @@ class _TableB extends _Builder {
 
   static const _bc = Color(0xFFB0BEC5);
 
-  bool get _hasRowspan => _rows.any((r) => r.cells.any((c) => c.rowspan > 1));
-  bool get _hasColspan => _rows.any((r) => r.cells.any((c) => c.colspan > 1));
+  bool get _hasColspanOrRowspan =>
+      _rows.any((r) => r.cells.any((c) => c.colspan > 1 || c.rowspan > 1));
 
   @override Widget? build() {
     if (_rows.isEmpty) return null;
     return Padding(
       padding: const EdgeInsets.only(bottom: 6),
-      child: _hasRowspan
-          ? _buildGrid()        // LayoutGrid — only path that supports rowspan
-          : _hasColspan
-              ? _buildColspanRows()  // LayoutBuilder+Row — colspan, no rowspan
-              : _buildFlutterTable(), // Flutter Table — simple, IntrinsicColumnWidth
+      child: _hasColspanOrRowspan
+          ? _buildFlexRows()
+          : _buildFlutterTable(),
     );
   }
 
   // ── Path 1: Flutter Table (no colspan, no rowspan) ─────────────────────
-  // IntrinsicColumnWidth sizes each column to content; safe because no
-  // nested LayoutGrids participate in the measurement.
+  // IntrinsicColumnWidth sizes each column to content. Safe — no LayoutGrid
+  // ancestor measures intrinsic dimensions on this widget.
   Widget _buildFlutterTable() {
     final maxCols = _rows.fold(0, (m, r) => r.cells.length > m ? r.cells.length : m);
     if (maxCols == 0) return const SizedBox.shrink();
@@ -719,46 +717,15 @@ class _TableB extends _Builder {
     );
   }
 
-  // ── Path 2: LayoutBuilder + Row (colspan, no rowspan) ──────────────────
-  // Each row's cells get fixed pixel widths derived from explicit width=
-  // attrs (fraction of available) or colspan proportions. No intrinsic
-  // measurement — no recursion risk.
-  Widget _buildColspanRows() {
-    return LayoutBuilder(builder: (context, constraints) {
-      final available = constraints.maxWidth.isFinite ? constraints.maxWidth : 600.0;
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: _rows.map((row) {
-          if (row.cells.isEmpty) return const SizedBox.shrink();
-          // Determine flex units for each cell in this row
-          final flexes = row.cells.map((c) {
-            if (c.widthFraction != null) return (c.widthFraction! * 1000).round().clamp(1, 1000);
-            return c.colspan.clamp(1, 100);
-          }).toList();
-          final totalFlex = flexes.fold(0, (s, f) => s + f);
-          return Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: List.generate(row.cells.length, (i) {
-              final cellWidth = available * flexes[i] / totalFlex;
-              return SizedBox(
-                width: cellWidth,
-                child: Container(
-                  decoration: BoxDecoration(border: Border.all(color: _bc, width: 0.5)),
-                  child: row.cells[i].widget,
-                ),
-              );
-            }),
-          );
-        }).toList(),
-      );
-    });
-  }
-
-  // ── Path 3: LayoutGrid (rowspan present) ───────────────────────────────
-  // Full HTML cell-placement algorithm. Uses flex(1) for unspecified
-  // columns — avoids auto's recursive intrinsic measurement which
-  // stack-overflows when outer grid cells contain inner Flutter Tables.
-  Widget _buildGrid() {
+  // ── Path 2: Column of Rows with Expanded (colspan or rowspan present) ──
+  // Runs the HTML cell-placement algorithm then builds each visual row as a
+  // Row with Expanded(flex) children. Rowspan cells appear in their starting
+  // row; subsequent rows get transparent placeholders so columns align.
+  //
+  // Uses Expanded (not LayoutBuilder, not SizedBox) so no intrinsic-
+  // dimension calls are made — safe inside any parent widget.
+  Widget _buildFlexRows() {
+    // ── HTML cell-placement ────────────────────────────────────────────────
     final placed = <_PlacedCell>[];
     final occupied = <(int, int)>{};
 
@@ -786,37 +753,66 @@ class _TableB extends _Builder {
       return end > m ? end : m;
     });
 
-    final colFixed    = <int, double>{};
-    final colFraction = <int, double>{};
+    // ── Per-column default flex (from first row that specifies widths) ─────
+    // Used for placeholder cells inserted to fill rowspan gaps.
+    final colFlex = List<int>.filled(totalCols, 1);
     for (final p in placed) {
-      if (p.cell.colspan == 1) {
-        if (p.cell.widthFixed    != null) colFixed[p.col]    = p.cell.widthFixed!;
-        if (p.cell.widthFraction != null) colFraction[p.col] = p.cell.widthFraction!;
+      for (int c = p.col; c < p.col + p.cell.colspan; c++) {
+        if (c < totalCols) {
+          final perCol = _cellFlex(p.cell) ~/ p.cell.colspan;
+          colFlex[c] = perCol.clamp(1, 1000);
+        }
       }
     }
 
-    final columnSizes = List<TrackSize>.generate(totalCols, (i) {
-      if (colFixed.containsKey(i))    return fixed(colFixed[i]!);
-      if (colFraction.containsKey(i)) return flex(colFraction[i]! * 10);
-      return flex(1);
-    });
-    final rowSizes = List<TrackSize>.generate(totalRows, (_) => auto);
+    // ── Build visual rows ──────────────────────────────────────────────────
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: List.generate(totalRows, (ri) {
+        final rowCells = placed
+            .where((p) => p.row == ri)
+            .toList()..sort((a, b) => a.col.compareTo(b.col));
 
-    return LayoutGrid(
-      columnSizes: columnSizes,
-      rowSizes: rowSizes,
-      columnGap: 0,
-      rowGap: 0,
-      children: placed.map((p) =>
-        Container(
-          decoration: BoxDecoration(border: Border.all(color: _bc, width: 0.5)),
-          child: p.cell.widget,
-        ).withGridPlacement(
-          columnStart: p.col,  columnSpan: p.cell.colspan,
-          rowStart:    p.row,  rowSpan:    p.cell.rowspan,
-        ),
-      ).toList(),
+        final widgets = <Widget>[];
+        int col = 0;
+
+        for (final p in rowCells) {
+          // Placeholder for columns occupied by rowspanning cells above
+          while (col < p.col) {
+            widgets.add(Expanded(
+              flex: colFlex[col],
+              child: Container(
+                  decoration: BoxDecoration(border: Border.all(color: _bc, width: 0.5))),
+            ));
+            col++;
+          }
+          widgets.add(Expanded(
+            flex: _cellFlex(p.cell),
+            child: Container(
+              decoration: BoxDecoration(border: Border.all(color: _bc, width: 0.5)),
+              child: p.cell.widget,
+            ),
+          ));
+          col += p.cell.colspan;
+        }
+        // Fill trailing columns
+        while (col < totalCols) {
+          widgets.add(Expanded(
+            flex: colFlex[col],
+            child: Container(
+                decoration: BoxDecoration(border: Border.all(color: _bc, width: 0.5))),
+          ));
+          col++;
+        }
+
+        return Row(crossAxisAlignment: CrossAxisAlignment.start, children: widgets);
+      }),
     );
+  }
+
+  static int _cellFlex(_CellData c) {
+    if (c.widthFraction != null) return (c.widthFraction! * 1000).round().clamp(1, 1000);
+    return c.colspan.clamp(1, 100);
   }
 }
 
