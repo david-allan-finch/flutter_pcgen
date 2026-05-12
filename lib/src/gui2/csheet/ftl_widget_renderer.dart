@@ -64,7 +64,9 @@ class FtlWidgetSink extends FtlSink {
           _mode = _Mode.comment; _tagBuf.clear();
         } else if (c == '>') {
           _processTag(_tagBuf.toString().trim());
-          _tagBuf.clear(); _mode = _Mode.normal;
+          _tagBuf.clear();
+          // Only return to normal if _handleOpen didn't set a different mode
+          if (_mode == _Mode.tag) _mode = _Mode.normal;
         } else {
           _tagBuf.write(c);
         }
