@@ -122,6 +122,17 @@ class FtlWidgetSink extends FtlSink {
       .replaceAll('&quot;', '"')
       .replaceAll('&apos;', "'");
 
+  // Returns (widthFraction, widthFixed) — at most one is non-null.
+  static (double?, double?) _parseCellWidth(String? w) {
+    if (w == null || w.isEmpty) return (null, null);
+    if (w.endsWith('%')) {
+      final f = double.tryParse(w.substring(0, w.length - 1));
+      return (f != null ? f / 100.0 : null, null);
+    }
+    final px = double.tryParse(w);
+    return (null, px);
+  }
+
   // ─── CSS parsing ──────────────────────────────────────────────────────────
 
   void _parseCss(String css) {
@@ -226,8 +237,18 @@ class FtlWidgetSink extends FtlSink {
       case 'table': _stack.add(_TableB(css)); return;
       case 'thead': case 'tbody': case 'tfoot': return;
       case 'tr':  _stack.add(_RowB()); return;
-      case 'th':  _stack.add(_CellB(isHeader: true,  css: css)); return;
-      case 'td':  _stack.add(_CellB(isHeader: false, css: css)); return;
+      case 'th':
+        final csth = int.tryParse(_attrValue(attrs, 'colspan') ?? '') ?? 1;
+        final wth  = _parseCellWidth(_attrValue(attrs, 'width'));
+        _stack.add(_CellB(isHeader: true,  css: css, colspan: csth,
+                          widthFraction: wth.$1, widthFixed: wth.$2));
+        return;
+      case 'td':
+        final cstd = int.tryParse(_attrValue(attrs, 'colspan') ?? '') ?? 1;
+        final wtd  = _parseCellWidth(_attrValue(attrs, 'width'));
+        _stack.add(_CellB(isHeader: false, css: css, colspan: cstd,
+                          widthFraction: wtd.$1, widthFixed: wtd.$2));
+        return;
       case 'ul':  _stack.add(_ListB(ordered: false)); return;
       case 'ol':  _stack.add(_ListB(ordered: true));  return;
       case 'li':  _stack.add(_ListItemB()); return;
@@ -550,6 +571,16 @@ class _Div extends _Builder {
 
 // ─── Table ─────────────────────────────────────────────────────────────────────
 
+// Carries a rendered cell widget together with its layout hints.
+class _CellData {
+  final Widget widget;
+  final int colspan;
+  final double? widthFraction; // from width="XX%"  (0–1)
+  final double? widthFixed;    // from width="XX"    (logical px)
+  const _CellData(this.widget, {this.colspan = 1,
+                                 this.widthFraction, this.widthFixed});
+}
+
 class _TableB extends _Builder {
   final _CssStyle css;
   final _rows = <_RowB>[];
@@ -559,27 +590,83 @@ class _TableB extends _Builder {
     if (w is _RowWidget) _rows.add(w.row);
   }
 
+  bool get _anyColspan => _rows.any((r) => r.cells.any((c) => c.colspan > 1));
+
+  static const _bc = Color(0xFFB0BEC5);
+
   @override Widget? build() {
     if (_rows.isEmpty) return null;
-    final maxCols = _rows.fold(0, (m, r) => r.cells.length > m ? r.cells.length : m);
-    if (maxCols == 0) return null;
-
     return Padding(
       padding: const EdgeInsets.only(bottom: 6),
-      child: Table(
-        border: TableBorder.all(color: const Color(0xFFB0BEC5), width: 0.5),
-        defaultColumnWidth: const FlexColumnWidth(),
-        children: _rows.map((row) {
-          var cells = List<Widget>.from(row.cells);
-          while (cells.length < maxCols) {
-            cells.add(Container(
+      child: _anyColspan ? _buildFlexTable() : _buildFlutterTable(),
+    );
+  }
+
+  // ── Flutter Table (no colspan) — strict column alignment ──────────────────
+
+  Widget _buildFlutterTable() {
+    final maxCols = _rows.fold(0, (m, r) => r.cells.length > m ? r.cells.length : m);
+    if (maxCols == 0) return const SizedBox.shrink();
+
+    // Derive per-column widths from the first row that has any width data.
+    final colWidths = <int, TableColumnWidth>{};
+    for (final row in _rows) {
+      for (int i = 0; i < row.cells.length; i++) {
+        final c = row.cells[i];
+        if (c.widthFraction != null) {
+          colWidths[i] = FractionColumnWidth(c.widthFraction!);
+        } else if (c.widthFixed != null) {
+          colWidths[i] = FixedColumnWidth(c.widthFixed!);
+        }
+      }
+      if (colWidths.isNotEmpty) break;
+    }
+
+    return Table(
+      border: TableBorder.all(color: _bc, width: 0.5),
+      defaultColumnWidth: const FlexColumnWidth(),
+      columnWidths: colWidths.isEmpty ? const {} : colWidths,
+      children: _rows.map((row) {
+        var cells = row.cells.map((c) => c.widget).toList();
+        while (cells.length < maxCols) {
+          cells.add(Container(
               decoration: BoxDecoration(
-                  border: Border.all(color: const Color(0xFFB0BEC5), width: 0.5)),
-            ));
-          }
-          return TableRow(children: cells);
-        }).toList(),
-      ),
+                  border: Border.all(color: _bc, width: 0.5))));
+        }
+        return TableRow(children: cells);
+      }).toList(),
+    );
+  }
+
+  // ── Flex Row table (has colspan) — each row is an IntrinsicHeight Row ─────
+
+  Widget _buildFlexTable() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: _rows.map((row) {
+        if (row.cells.isEmpty) return const SizedBox.shrink();
+        return IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: row.cells.map((cell) {
+              final bordered = Container(
+                decoration: BoxDecoration(
+                    border: Border.all(color: _bc, width: 0.5)),
+                child: cell.widget,
+              );
+              // Flex is proportional to colspan; honour explicit widths via
+              // flex values scaled to 1000 so fractions stay integer-friendly.
+              final int flex;
+              if (cell.widthFraction != null) {
+                flex = (cell.widthFraction! * 1000).round().clamp(1, 1000);
+              } else {
+                flex = cell.colspan.clamp(1, 100);
+              }
+              return Flexible(flex: flex, child: bordered);
+            }).toList(),
+          ),
+        );
+      }).toList(),
     );
   }
 }
@@ -591,9 +678,9 @@ class _RowWidget extends StatelessWidget {
 }
 
 class _RowB extends _Builder {
-  final cells = <Widget>[];
+  final cells = <_CellData>[];
   @override void addWidget(Widget w) {
-    if (w is _CellWidget) cells.add(w.cell);
+    if (w is _CellWidget) cells.add(w.data);
   }
   @override Widget? build() {
     if (cells.isEmpty) return null;
@@ -602,29 +689,31 @@ class _RowB extends _Builder {
 }
 
 class _CellWidget extends StatelessWidget {
-  final Widget cell;
-  const _CellWidget(this.cell, {super.key});
+  final _CellData data;
+  const _CellWidget(this.data, {super.key});
   @override Widget build(BuildContext context) => const SizedBox.shrink();
 }
 
 class _CellB extends _Builder {
   final bool isHeader;
   final _CssStyle css;
-  _CellB({required this.isHeader, required this.css});
+  final int colspan;
+  final double? widthFraction;
+  final double? widthFixed;
+  _CellB({required this.isHeader, required this.css,
+          this.colspan = 1, this.widthFraction, this.widthFixed});
 
   @override void addWidget(Widget w) { _flushPending(); _children.add(w); }
 
   @override Widget? build() {
     _flushPending();
 
-    // Determine effective styles from CSS + header flag
     final bg  = css.bgColor ?? (isHeader ? const Color(0xFFD0D7DC) : null);
     final fg  = _autoFg(bg, css.textColor);
     final fs  = css.fontSize ?? 10.0;
     final fw  = css.fontWeight ?? (isHeader ? FontWeight.bold : FontWeight.normal);
     final ta  = css.textAlign ?? (isHeader ? TextAlign.center : TextAlign.start);
 
-    // Re-style any plain Text children with cell's colour/size
     final styledChildren = _children.map((child) {
       if (child is Text) {
         return Text(child.data ?? '',
@@ -643,13 +732,12 @@ class _CellB extends _Builder {
 
     final cell = Container(
       padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 3),
-      decoration: BoxDecoration(
-        color: bg,
-        border: css.border,
-      ),
+      decoration: BoxDecoration(color: bg, border: css.border),
       child: content,
     );
-    return _CellWidget(cell);
+    return _CellWidget(_CellData(cell, colspan: colspan,
+                                  widthFraction: widthFraction,
+                                  widthFixed: widthFixed));
   }
 }
 
