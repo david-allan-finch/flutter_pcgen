@@ -131,6 +131,10 @@ final class GameModeLoader {
         gm.setStatMin(int.tryParse(value) ?? gm.getStatMin());
       case 'TABNAME':
         gm.setTabName(value);
+      case 'PREVIEWDIR':
+        gm.setPreviewDir(value);
+      case 'PREVIEWSHEET':
+        gm.setPreviewSheet(value);
       case 'WEAPONREACHFORMULA':
         gm.setWeaponReachFormula(value);
       case 'XPENABLED':

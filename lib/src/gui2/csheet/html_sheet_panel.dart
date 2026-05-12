@@ -10,6 +10,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
 import 'package:webview_flutter/webview_flutter.dart' as wf;
+import 'package:flutter_pcgen/src/core/system_collections.dart';
 import 'package:flutter_pcgen/src/gui2/app_state.dart';
 import 'package:flutter_pcgen/src/gui2/csheet/ftl_widget_renderer.dart';
 import 'package:flutter_pcgen/src/gui2/facade/character_facade_impl.dart';
@@ -47,7 +48,7 @@ class _HtmlSheetPanelState extends State<HtmlSheetPanel> {
   void initState() {
     super.initState();
     _templates    = _discoverTemplates();
-    _selectedPath = _templates.isNotEmpty ? _templates.first.path : null;
+    _selectedPath = _defaultTemplatePath();
 
     currentCharacter.addListener(_onCharacterChanged);
     if (_isMobile && _selectedPath != null) {
@@ -72,21 +73,37 @@ class _HtmlSheetPanelState extends State<HtmlSheetPanel> {
 
   // ─── Template discovery ────────────────────────────────────────────────────
 
+  /// Returns the preview directory from the active game mode's PREVIEWDIR,
+  /// falling back to ConfigurationSettings if not set.
+  String _resolvePreviewDir() {
+    final ds = loadedDataSet.value;
+    if (ds != null) {
+      final gm = SystemCollections.getGameModeNamed(ds.gameModeStr);
+      final gmDir = gm?.getPreviewDir() ?? '';
+      if (gmDir.isNotEmpty) {
+        // gmDir is relative to the preview root, e.g. "d20/fantasy"
+        final base = ConfigurationSettings.getPreviewDir();
+        return p.join(base, gmDir);
+      }
+    }
+    return ConfigurationSettings.getPreviewDir();
+  }
+
+  /// Finds all .htm.ftl / .html.ftl files under the game mode's preview dir.
   List<_TemplateEntry> _discoverTemplates() {
-    final results = <_TemplateEntry>[];
-    final previewDir = ConfigurationSettings.getPreviewDir();
+    final results  = <_TemplateEntry>[];
+    final scanDir  = _resolvePreviewDir();
     try {
-      final dir = Directory(previewDir);
+      final dir = Directory(scanDir);
       if (!dir.existsSync()) return results;
       for (final entity in dir.listSync(recursive: true)) {
         if (entity is File) {
           final name = p.basename(entity.path);
           if (name.endsWith('.htm.ftl') || name.endsWith('.html.ftl')) {
-            // Build label: "Standard (d20/fantasy)" from relative path
-            final rel  = p.relative(entity.path, from: previewDir);
+            final rel  = p.relative(entity.path, from: scanDir);
             final stem = name.replaceAll('.htm.ftl', '').replaceAll('.html.ftl', '');
-            final dir2 = p.dirname(rel);
-            final label = (dir2 == '.' || dir2.isEmpty) ? stem : '$stem  ($dir2)';
+            final sub  = p.dirname(rel);
+            final label = (sub == '.' || sub.isEmpty) ? stem : '$stem  ($sub)';
             results.add(_TemplateEntry(path: entity.path, label: label));
           }
         }
@@ -94,6 +111,26 @@ class _HtmlSheetPanelState extends State<HtmlSheetPanel> {
     } catch (_) {}
     results.sort((a, b) => a.label.compareTo(b.label));
     return results;
+  }
+
+  /// Returns the path of the game mode's default PREVIEWSHEET, or the first
+  /// discovered template if PREVIEWSHEET is not set.
+  String? _defaultTemplatePath() {
+    if (_templates.isEmpty) return null;
+    final ds = loadedDataSet.value;
+    if (ds != null) {
+      final gm     = SystemCollections.getGameModeNamed(ds.gameModeStr);
+      final sheet  = gm?.getPreviewSheet() ?? '';
+      if (sheet.isNotEmpty) {
+        // sheet is a filename like "Standard.htm.ftl" — find matching entry
+        final match = _templates.firstWhere(
+          (t) => p.basename(t.path) == sheet,
+          orElse: () => _templates.first,
+        );
+        return match.path;
+      }
+    }
+    return _templates.first.path;
   }
 
   // ─── Rendering ────────────────────────────────────────────────────────────

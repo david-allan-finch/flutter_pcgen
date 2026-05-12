@@ -143,6 +143,8 @@ final class GameMode implements Comparable<Object> {
   String _rankModFormula = '';
   dynamic _featTemplate;
   int _displayOrder = 0x7fffffff; // Integer.MAX_VALUE default
+  String _previewDir   = '';
+  String _previewSheet = '';
 
   GameMode(String name) : _name = name, _folderName = name;
 
@@ -404,6 +406,10 @@ final class GameMode implements Comparable<Object> {
 
   void setDamageResistanceText(String s) { _damageResistanceText = s; }
   void setDefaultUnitSet(String s) { _defaultUnitSet = s; }
+  String getPreviewDir()   => _previewDir;
+  String getPreviewSheet() => _previewSheet;
+  void setPreviewDir(String s)   { _previewDir   = s; }
+  void setPreviewSheet(String s) { _previewSheet = s; }
   void setBonusFeatLevels(String s) { bonusFeatLevels.add(s); }
   void setBonusStatLevels(String s) { bonusStatLevels.add(s); }
   void setRankModFormula(String s) { _rankModFormula = s; }
