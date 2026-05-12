@@ -63,6 +63,7 @@ class _HtmlSheetPanelState extends State<HtmlSheetPanel> {
     try {
       // Generate off the UI thread so the app never locks
       final html = await Future(() => _generateHtml(pc));
+      debugPrint('SHEET_HTML length=${html.length} first200=${html.substring(0, html.length.clamp(0, 200))}');
       if (!mounted) return;
       if (_mobileCtrl != null) {
         _mobileCtrl!.loadHtmlString(html);

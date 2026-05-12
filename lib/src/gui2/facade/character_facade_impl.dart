@@ -1030,7 +1030,12 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
 
   // ---- Deity key ----------------------------------------------------------
 
-  String getDeityKey() => _str('deityKey');
+  String getDeityKey() {
+    final raw = _str('deityKey');
+    // PCG stores full deity LST record (name|DEITYDOMAINS:...) — return only the name part
+    final pipeIdx = raw.indexOf('|');
+    return pipeIdx > 0 ? raw.substring(0, pipeIdx) : raw;
+  }
   void setDeityKey(String key) => _set('deityKey', key);
 
   // ---- Domain keys --------------------------------------------------------

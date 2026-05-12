@@ -470,6 +470,7 @@ class PcgenTokenContext extends FtlContext {
     final weaponSlotKeys = ['primary', 'secondary', 'both', 'primarydouble',
       'naturalPrimary', 'naturalSecondary', 'Natural-Primary', 'Natural-Secondary'];
 
+    debugPrint('FTL_DBG _equippedWeapons slots=${slots.keys.toList()}');
     for (final slotKey in slots.keys) {
       final slotLower = slotKey.toString().toLowerCase();
       // Match "Primary Hand", "Both Hands", "Secondary Hand", "Natural-Primary", etc.
