@@ -657,25 +657,32 @@ class _TableB extends _Builder {
     });
     final rowSizes = List<TrackSize>.generate(totalRows, (_) => auto);
 
+    final grid = LayoutGrid(
+      columnSizes: columnSizes,
+      rowSizes: rowSizes,
+      columnGap: 0,
+      rowGap: 0,
+      children: placed.map((p) =>
+        Container(
+          decoration: BoxDecoration(
+              border: Border.all(color: _bc, width: 0.5)),
+          child: p.cell.widget,
+        ).withGridPlacement(
+          columnStart: p.col,
+          columnSpan: p.cell.colspan,
+          rowStart: p.row,
+          rowSpan: p.cell.rowspan,
+        ),
+      ).toList(),
+    );
+
+    // Wrap in horizontal scroll so wide tables (e.g. 23-column AC table)
+    // scroll rather than overflow the screen.
     return Padding(
       padding: const EdgeInsets.only(bottom: 6),
-      child: LayoutGrid(
-        columnSizes: columnSizes,
-        rowSizes: rowSizes,
-        columnGap: 0,
-        rowGap: 0,
-        children: placed.map((p) =>
-          Container(
-            decoration: BoxDecoration(
-                border: Border.all(color: _bc, width: 0.5)),
-            child: p.cell.widget,
-          ).withGridPlacement(
-            columnStart: p.col,
-            columnSpan: p.cell.colspan,
-            rowStart: p.row,
-            rowSpan: p.cell.rowspan,
-          ),
-        ).toList(),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: grid,
       ),
     );
   }
