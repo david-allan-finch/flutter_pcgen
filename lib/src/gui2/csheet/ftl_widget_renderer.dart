@@ -306,10 +306,24 @@ class FtlWidgetSink extends FtlSink {
       if (w != null) _top.addWidget(w);
     }
     final rootWidget = _root.build();
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(10),
-      child: rootWidget ?? const SizedBox.shrink(),
-    );
+    // Enforce a minimum content width so Expanded(flex) rows have enough room.
+    // Row(Expanded) needs a bounded parent width; SizedBox provides that.
+    // If the panel is narrower than minW, wrap in a horizontal scroll.
+    return LayoutBuilder(builder: (context, constraints) {
+      const minW = 900.0;
+      final panelW = constraints.maxWidth.isFinite ? constraints.maxWidth : minW;
+      final contentW = panelW < minW ? minW : panelW;
+      final inner = SizedBox(
+        width: contentW,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(10),
+          child: rootWidget ?? const SizedBox.shrink(),
+        ),
+      );
+      return contentW > panelW
+          ? SingleChildScrollView(scrollDirection: Axis.horizontal, child: inner)
+          : inner;
+    });
   }
 }
 
@@ -691,13 +705,16 @@ class _TableB extends _Builder {
     final maxCols = _rows.fold(0, (m, r) => r.cells.length > m ? r.cells.length : m);
     if (maxCols == 0) return const SizedBox.shrink();
 
+    // Only honour pixel widths (fixed(px)) — not percentage widths.
+    // FractionColumnWidth(0.2) inside a narrow parent cell (e.g. stats block
+    // at 25% of panel) would give 40px columns — too tight for headers.
+    // IntrinsicColumnWidth (the default) sizes to actual content instead.
     final colWidths = <int, TableColumnWidth>{};
     for (final row in _rows) {
       for (int i = 0; i < row.cells.length; i++) {
         final c = row.cells[i];
-        if (!colWidths.containsKey(i)) {
-          if (c.widthFraction != null) colWidths[i] = FractionColumnWidth(c.widthFraction!);
-          else if (c.widthFixed != null) colWidths[i] = FixedColumnWidth(c.widthFixed!);
+        if (!colWidths.containsKey(i) && c.widthFixed != null) {
+          colWidths[i] = FixedColumnWidth(c.widthFixed!);
         }
       }
     }
