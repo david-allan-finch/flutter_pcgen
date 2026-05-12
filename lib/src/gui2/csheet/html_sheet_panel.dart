@@ -80,10 +80,12 @@ class _HtmlSheetPanelState extends State<HtmlSheetPanel> {
         if (entity is File) {
           final name = p.basename(entity.path);
           if (name.endsWith('.htm.ftl') || name.endsWith('.html.ftl')) {
-            results.add(_TemplateEntry(
-              path: entity.path,
-              label: name.replaceAll('.htm.ftl', '').replaceAll('.html.ftl', ''),
-            ));
+            // Build label: "Standard (d20/fantasy)" from relative path
+            final rel  = p.relative(entity.path, from: previewDir);
+            final stem = name.replaceAll('.htm.ftl', '').replaceAll('.html.ftl', '');
+            final dir2 = p.dirname(rel);
+            final label = (dir2 == '.' || dir2.isEmpty) ? stem : '$stem  ($dir2)';
+            results.add(_TemplateEntry(path: entity.path, label: label));
           }
         }
       }
