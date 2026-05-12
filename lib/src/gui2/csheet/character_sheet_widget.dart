@@ -161,9 +161,14 @@ class CharacterSheetWidget extends StatelessWidget {
   }
 
   Widget _skillRow(Map<String, dynamic> sk) {
-    final total = (sk['total'] as num? ?? 0).toInt();
-    final ranks = (sk['ranks'] as num? ?? 0).toInt();
-    return _statRow(sk['name'] as String, '${_signed(total)}  ($ranks ranks)');
+    final total   = (sk['total']   as num? ?? 0).toInt();
+    final ranks   = (sk['ranks']   as num? ?? 0).toInt();
+    final statAbb = sk['statAbb']  as String? ?? '';
+    final statMod = (sk['statMod'] as num? ?? 0).toInt();
+    final detail  = statAbb.isNotEmpty
+        ? '${_signed(total)}  ($ranks rnk + ${_signed(statMod)} $statAbb)'
+        : '${_signed(total)}  ($ranks ranks)';
+    return _statRow(sk['name'] as String, detail);
   }
 
   // ─── Feats & Abilities ──────────────────────────────────────────────────────
@@ -470,11 +475,17 @@ class CharacterSheetWidget extends StatelessWidget {
     if (dataset == null) return [];
     try {
       return (dataset.skills as List).map<Map<String, dynamic>>((s) {
-        final name  = (s.getDisplayName() ?? s.getKeyName()) as String;
-        final key   = s.getKeyName() as String;
-        final total = pc.getSkillBonus(name, key);
-        final ranks = pc.getSkillRanks(s);
-        return {'name': name, 'key': key, 'total': total, 'ranks': ranks};
+        final name    = (s.getDisplayName() ?? s.getKeyName()) as String;
+        final key     = s.getKeyName() as String;
+        final ranks   = pc.getSkillRanks(s);
+        // Key stat abbreviation for this skill (STR, DEX, INT, etc.)
+        String statAbb = '';
+        try { statAbb = (s as dynamic).getKeyStatAbb() as String? ?? ''; } catch (_) {}
+        final statMod = statAbb.isNotEmpty ? _mod(statAbb) : 0;
+        final misc    = pc.getSkillBonus(name, key);
+        final total   = ranks + statMod + misc;
+        return {'name': name, 'key': key, 'total': total, 'ranks': ranks,
+                'statAbb': statAbb, 'statMod': statMod};
       }).where((m) => (m['ranks'] as num? ?? 0) > 0).toList()
         ..sort((a, b) => (a['name'] as String).compareTo(b['name'] as String));
     } catch (_) { return []; }
