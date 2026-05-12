@@ -394,14 +394,21 @@ class PcgenTokenContext extends FtlContext {
     final results = <Map<String, dynamic>>[];
     for (final s in dataset.skills) {
       try {
+        // getKeyName() is more reliable: PObject.setName() explicitly stores
+        // the name via putString(StringKey.keyName), whereas getDisplayName()
+        // reads _displayName which can be empty for some object subclasses.
+        final name = s.getKeyName();
+        if (name.isEmpty) continue;
         results.add({
-          'name':  s.getDisplayName(),
-          'key':   s.getKeyName(),
+          'name':  name,
+          'key':   name,
           'stat':  s.getKeyStatAbb(),
           'skill': s,
         });
       } catch (_) {}
     }
+    // Sort alphabetically for consistent display
+    results.sort((a, b) => (a['name'] as String).compareTo(b['name'] as String));
     return results;
   }
 
