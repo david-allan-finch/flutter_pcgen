@@ -712,10 +712,14 @@ class _TableB extends _Builder {
       }
     }
 
+    // Use flex(1) as the default instead of auto. auto causes recursive
+    // intrinsic-width measurement that stack-overflows on nested tables
+    // (outer grid measures inner grid cells, which measure their own cells…).
+    // flex(1) distributes available space without any intrinsic measurement.
     final columnSizes = List<TrackSize>.generate(totalCols, (i) {
       if (colFixed.containsKey(i))    return fixed(colFixed[i]!);
       if (colFraction.containsKey(i)) return flex(colFraction[i]! * 10);
-      return auto;
+      return flex(1);
     });
     // Total rows must account for cells that extend beyond _rows.length via rowspan.
     final totalRows = placed.fold(0, (m, p) {
