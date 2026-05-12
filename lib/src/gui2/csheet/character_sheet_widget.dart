@@ -314,20 +314,28 @@ class CharacterSheetWidget extends StatelessWidget {
   Widget _buildGear() {
     final gear = (pc.toJson()['gear'] as List? ?? []).whereType<Map>().toList();
     if (gear.isEmpty) return const SizedBox.shrink();
+
+    Widget gearRow(Map item) {
+      final name   = item['name'] as String? ?? '—';
+      final qty    = (item['qty'] as num?)?.toInt() ?? 1;
+      final weight = (item['weight'] as num?)?.toStringAsFixed(1);
+      final detail = [if (qty > 1) '×$qty', if (weight != null) '$weight lb'].join(' ');
+      return _statRow(name, detail);
+    }
+
+    final mid   = (gear.length / 2).ceil();
+    final left  = gear.sublist(0, mid);
+    final right = gear.sublist(mid);
+
     return _section('Gear', Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        ...gear.map((item) {
-          final name   = item['name'] as String? ?? '—';
-          final qty    = (item['qty'] as num?)?.toInt() ?? 1;
-          final weight = (item['weight'] as num?)?.toStringAsFixed(1);
-          final detail = [
-            if (qty > 1) '×$qty',
-            if (weight != null) '$weight lb',
-          ].join('   ');
-          return _statRow(name, detail.isEmpty ? '' : detail);
-        }),
-        const Divider(height: 8),
+        Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Expanded(child: Column(children: left.map(gearRow).toList())),
+          const SizedBox(width: 8),
+          Expanded(child: Column(children: right.map(gearRow).toList())),
+        ]),
+        const Divider(height: 10),
         _statRow('Gold', '${pc.getFunds().toStringAsFixed(2)} gp'),
       ],
     ));
