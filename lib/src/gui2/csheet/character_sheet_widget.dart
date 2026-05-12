@@ -40,6 +40,8 @@ class CharacterSheetWidget extends StatelessWidget {
             Expanded(child: _buildCombat()),
           ]),
           const SizedBox(height: 8),
+          _buildQualities(),
+          const SizedBox(height: 8),
           _buildSkills(),
           const SizedBox(height: 8),
           _buildFeats(),
@@ -49,6 +51,8 @@ class CharacterSheetWidget extends StatelessWidget {
           _buildArmor(),
           const SizedBox(height: 8),
           _buildGear(),
+          const SizedBox(height: 8),
+          _buildSpells(),
           const SizedBox(height: 8),
           _buildBio(),
         ].where((w) => w is! SizedBox || true).toList(),
@@ -132,14 +136,122 @@ class CharacterSheetWidget extends StatelessWidget {
   // ─── Combat ─────────────────────────────────────────────────────────────────
 
   Widget _buildCombat() {
+    final bab    = pc.getBABAsInt();
+    final strMod = _mod('STR');
+    final dexMod = _mod('DEX');
+    final sizeMod = _sizeModCombat(pc.getRaceSize());
+    final cmb = bab + strMod + sizeMod;
+    final cmd = 10 + bab + strMod + dexMod + sizeMod;
+
+    // Speed: base from race + any bonuses
+    final baseSpeeds = pc.toJson()['raceSpeeds'] as Map? ?? {};
+    final bonusSpeeds = pc.getMovementBonuses();
+    final allSpeeds = <String, int>{};
+    for (final e in baseSpeeds.entries) {
+      allSpeeds[e.key as String] = (e.value as num).toInt();
+    }
+    for (final e in bonusSpeeds.entries) {
+      allSpeeds[e.key] = (allSpeeds[e.key] ?? 0) + e.value;
+    }
+    final speedStr = allSpeeds.isEmpty ? '30 ft.'
+        : allSpeeds.entries.map((e) => '${e.key} ${e.value} ft.').join(', ');
+
+    final drList = pc.getDRList();
+    final sr     = pc.getSR();
+
     return _section('Combat', Column(children: [
-      _statRow('BAB',          pc.getBAB()),
-      _statRow('AC',           '${pc.getAC()}'),
-      _statRow('Touch AC',     '${pc.getTouchAC()}'),
-      _statRow('Flat-Footed',  '${pc.getFlatFootedAC()}'),
-      _statRow('Initiative',   _signed(pc.getInitiative())),
-      _statRow('Max HP',       '${pc.getMaxHP()}'),
+      _statRow('BAB',         pc.getBAB()),
+      _statRow('AC',          '${pc.getAC()}  (touch ${pc.getTouchAC()}  flat-footed ${pc.getFlatFootedAC()})'),
+      _statRow('Initiative',  _signed(pc.getInitiative())),
+      _statRow('Max HP',      '${pc.getMaxHP()}'),
+      _statRow('CMB / CMD',   '${_signed(cmb)} / ${cmd}'),
+      _statRow('Speed',       speedStr),
+      if (drList.isNotEmpty) _statRow('DR', drList.join('; ')),
+      if (sr > 0)            _statRow('SR', '$sr'),
     ]));
+  }
+
+  static int _sizeModCombat(String size) {
+    const mods = {'F': -8, 'D': -4, 'T': -2, 'S': -1, 'M': 0,
+                  'L': 1, 'H': 2, 'G': 4, 'C': 8};
+    return mods[size.toUpperCase()] ?? 0;
+  }
+
+  // ─── Qualities (vision, languages, proficiencies, domains, templates) ────────
+
+  Widget _buildQualities() {
+    final data      = pc.toJson();
+    final visions   = pc.getVisionTypes();
+    final languages = (data['languageKeys'] as List? ?? []).cast<String>();
+    final profs     = pc.getWeaponProficiencies().toList()..sort();
+    final domains   = pc.getSelectedDomainKeys();
+    final templates = pc.getAppliedTemplateKeys();
+
+    final rows = <Widget>[];
+    if (visions.isNotEmpty)   rows.add(_statRow('Vision',      visions.join(', ')));
+    if (languages.isNotEmpty) rows.add(_statRow('Languages',   languages.join(', ')));
+    if (domains.isNotEmpty)   rows.add(_statRow('Domains',     domains.join(', ')));
+    if (templates.isNotEmpty) rows.add(_statRow('Templates',   templates.join(', ')));
+    if (profs.isNotEmpty)     rows.add(_statRow('Weapon Profs', profs.join(', ')));
+
+    if (rows.isEmpty) return const SizedBox.shrink();
+    return _section('Character Qualities', Column(children: rows));
+  }
+
+  // ─── Spells ──────────────────────────────────────────────────────────────────
+
+  Widget _buildSpells() {
+    final data     = pc.toJson();
+    final prepared = (data['preparedSpells'] as List? ?? []).whereType<Map>().toList();
+    final known    = (data['knownSpells']    as List? ?? []).whereType<Map>().toList();
+    final slots    = (data['classSpellSlots'] as Map? ?? {});
+
+    if (prepared.isEmpty && known.isEmpty && slots.isEmpty) return const SizedBox.shrink();
+
+    final rows = <Widget>[];
+
+    // Spell slots per class
+    if (slots.isNotEmpty) {
+      for (final entry in slots.entries) {
+        final cls  = entry.key as String;
+        final slotList = (entry.value as List?)?.cast<int>() ?? [];
+        if (slotList.isEmpty) continue;
+        final slotStr = slotList
+            .asMap().entries.where((e) => e.value > 0)
+            .map((e) => 'L${e.key}:${e.value}').join('  ');
+        if (slotStr.isNotEmpty) rows.add(_statRow('$cls slots', slotStr));
+      }
+    }
+
+    // Prepared spells grouped by level
+    if (prepared.isNotEmpty) {
+      rows.add(_subHeader('Prepared Spells'));
+      final byLevel = <int, List<String>>{};
+      for (final s in prepared) {
+        final lvl  = (s['level'] as num?)?.toInt() ?? 0;
+        final name = s['name'] as String? ?? '?';
+        (byLevel[lvl] ??= []).add(name);
+      }
+      for (final lvl in byLevel.keys.toList()..sort()) {
+        rows.add(_statRow('Level $lvl', byLevel[lvl]!.join(', ')));
+      }
+    }
+
+    // Known spells grouped by level
+    if (known.isNotEmpty) {
+      rows.add(_subHeader('Known Spells'));
+      final byLevel = <int, List<String>>{};
+      for (final s in known) {
+        final lvl  = (s['level'] as num?)?.toInt() ?? 0;
+        final name = s['name'] as String? ?? '?';
+        (byLevel[lvl] ??= []).add(name);
+      }
+      for (final lvl in byLevel.keys.toList()..sort()) {
+        rows.add(_statRow('Level $lvl', byLevel[lvl]!.join(', ')));
+      }
+    }
+
+    return _section('Spells', Column(children: rows));
   }
 
   // ─── Skills ─────────────────────────────────────────────────────────────────
