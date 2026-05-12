@@ -166,22 +166,98 @@ class CharacterSheetWidget extends StatelessWidget {
     return _statRow(sk['name'] as String, '${_signed(total)}  ($ranks ranks)');
   }
 
-  // ─── Feats ──────────────────────────────────────────────────────────────────
+  // ─── Feats & Abilities ──────────────────────────────────────────────────────
+
+  // Category display order and labels
+  static const _catOrder = ['FEAT', 'Special Ability', 'Trait', 'TRAIT', 'Internal'];
+  static const _catLabels = {
+    'FEAT': 'Feats',
+    'Special Ability': 'Special Abilities',
+    'Trait': 'Traits',
+    'TRAIT': 'Traits',
+    'Internal': 'Class Features',
+  };
 
   Widget _buildFeats() {
-    final selected = (pc.toJson()['selectedAbilities'] as Map? ?? {});
-    final feats = (selected['FEAT'] as List?)?.cast<String>() ?? [];
-    if (feats.isEmpty) return const SizedBox.shrink();
-    final names = feats.map((f) => f.contains('|') ? f.substring(0, f.indexOf('|')) : f).toList()
-      ..sort();
-    return _section('Feats', Wrap(
-      spacing: 6, runSpacing: 4,
-      children: names.map((f) => Chip(
-        label: Text(f, style: const TextStyle(fontSize: 11)),
-        padding: EdgeInsets.zero,
-        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-      )).toList(),
+    final data     = pc.toJson();
+    final selected = (data['selectedAbilities'] as Map? ?? {});
+    final types    = (data['abilityTypes']       as Map? ?? {});
+    final descs    = (data['abilityDescs']        as Map? ?? {});
+
+    if (selected.isEmpty) return const SizedBox.shrink();
+
+    // Build ordered category list: known order first, then any extras
+    final allCats = [
+      ..._catOrder.where((c) => selected.containsKey(c)),
+      ...selected.keys.where((k) => !_catOrder.contains(k)).cast<String>(),
+    ];
+
+    final sections = <Widget>[];
+    final seenNames = <String>{}; // deduplicate across categories
+
+    for (final cat in allCats) {
+      final rawList = (selected[cat] as List?)?.cast<String>() ?? [];
+      if (rawList.isEmpty) continue;
+
+      // Strip APPLIEDTO suffix, deduplicate, sort
+      final entries = rawList
+          .map((s) {
+            final pipeIdx = s.indexOf('|');
+            final name    = pipeIdx >= 0 ? s.substring(0, pipeIdx) : s;
+            final applied = pipeIdx >= 0 ? s.substring(pipeIdx + 1) : '';
+            return (name: name, applied: applied);
+          })
+          .where((e) => seenNames.add(e.name))
+          .toList()
+        ..sort((a, b) => a.name.compareTo(b.name));
+
+      if (entries.isEmpty) continue;
+
+      final label = _catLabels[cat] ?? cat;
+      sections.add(_subHeader(label));
+
+      for (final e in entries) {
+        final type = types[e.name] as String? ?? '';
+        final desc = descs[e.name] as String? ?? '';
+        final sub  = [
+          if (e.applied.isNotEmpty) 'Applied to: ${e.applied}',
+          if (type.isNotEmpty) type,
+        ].join(' · ');
+        sections.add(_abilityRow(e.name, sub, desc));
+      }
+    }
+
+    if (sections.isEmpty) return const SizedBox.shrink();
+    return _section('Feats & Abilities', Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: sections,
     ));
+  }
+
+  Widget _subHeader(String text) => Padding(
+    padding: const EdgeInsets.only(top: 6, bottom: 2),
+    child: Text(text, style: TextStyle(
+        fontSize: 11, fontWeight: FontWeight.bold, color: _accentCol)),
+  );
+
+  Widget _abilityRow(String name, String sub, String desc) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Row(children: [
+          Expanded(child: Text(name,
+              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600))),
+          if (sub.isNotEmpty)
+            Text(sub, style: const TextStyle(fontSize: 10, color: Colors.grey)),
+        ]),
+        if (desc.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.only(left: 8, top: 1),
+            child: Text(desc, style: const TextStyle(fontSize: 10,
+                color: Color(0xFF546E7A))),
+          ),
+      ]),
+    );
   }
 
   // ─── Weapons ────────────────────────────────────────────────────────────────
