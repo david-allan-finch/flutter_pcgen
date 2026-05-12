@@ -10,6 +10,7 @@
 //   SKILL.0.TOTAL       → first skill total
 //   ABILITY.FEAT.0.NAME → first feat name
 
+import 'package:flutter_pcgen/src/core/skill.dart';
 import 'package:flutter_pcgen/src/io/freemarker/ftl_context.dart';
 import 'package:flutter_pcgen/src/gui2/facade/character_facade_impl.dart';
 
@@ -388,16 +389,20 @@ class PcgenTokenContext extends FtlContext {
   }
 
   List<Map<String, dynamic>> _allSkills() {
-    try {
-      final dataset = _dataset;
-      if (dataset == null) return [];
-      return (dataset.skills as List).map<Map<String, dynamic>>((s) => {
-        'name': s.getDisplayName() ?? s.getKeyName(),
-        'key': s.getKeyName(),
-        'stat': s.get(null)?.toString() ?? '',
-        'skill': s,
-      }).toList();
-    } catch (_) { return []; }
+    final dataset = _dataset;
+    if (dataset == null) return [];
+    final results = <Map<String, dynamic>>[];
+    for (final s in dataset.skills) {
+      try {
+        results.add({
+          'name':  s.getDisplayName(),
+          'key':   s.getKeyName(),
+          'stat':  s.getKeyStatAbb(),
+          'skill': s,
+        });
+      } catch (_) {}
+    }
+    return results;
   }
 
   // ─── Weapon tokens: WEAPON.N.TOHIT / .DAMAGE / .NAME / .CRIT / .RANGE ────
@@ -501,18 +506,21 @@ class PcgenTokenContext extends FtlContext {
     final skKey  = sk['key'] as String? ?? skName;
     // SKILLSIT.N with no sub-token → skill name (used in <#assign skillTemp>)
     if (parts.length == 2) return skName;
+    final ranks   = _pc.getSkillRanks(sk);
+    final statMod = _pc.getStatModByAbb(_skillAbility(sk));
+    final misc    = _pc.getSkillBonus(skName, skKey);
     switch (parts[2]) {
       case 'NAME':      return skName;
-      case 'TOTAL':     return _pc.getSkillBonus(skName, skKey).toString();
-      case 'RANK':      return _pc.getSkillRanks(sk).toString();
+      case 'TOTAL':     return (ranks + statMod + misc).toString();
+      case 'RANK':      return ranks.toString();
       case 'ABMOD':
-      case 'MOD':       return _signed(_pc.getStatModByAbb(_skillAbility(sk)));
-      case 'MISC':      return _pc.getSkillMiscBonus(skName).toString();
+      case 'MOD':       return _signed(statMod);
+      case 'MISC':      return misc != 0 ? misc.toString() : '0';
       case 'ABILITY':   return _skillAbility(sk);
       case 'UNTRAINED': return '1';
       case 'EXCLUSIVE': return '0';
       case 'CLASSSK':   return '0';
-      case 'ACPv':      return '';  // 'v' if armor-check-penalty applies
+      case 'ACPv':      return '';
     }
     return '';
   }
@@ -520,17 +528,13 @@ class PcgenTokenContext extends FtlContext {
   String _skillAbility(Map<String, dynamic> sk) {
     try {
       final s = sk['skill'];
-      if (s != null) return (s as dynamic).getKeyName() != null
-          ? _statAbbForSkill(s)
-          : 'DEX';
-    } catch (_) {}
-    return 'DEX';
-  }
-
-  String _statAbbForSkill(dynamic skill) {
-    try {
-      final statKey = (skill as dynamic).get(null)?.toString() ?? '';
-      if (statKey.isNotEmpty) return statKey.toUpperCase();
+      if (s is Skill) {
+        final abb = s.getKeyStatAbb();
+        if (abb.isNotEmpty) return abb.toUpperCase();
+      }
+      // fallback: stat stored during _allSkills build
+      final stat = sk['stat'] as String? ?? '';
+      if (stat.isNotEmpty) return stat.toUpperCase();
     } catch (_) {}
     return 'DEX';
   }
