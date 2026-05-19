@@ -290,7 +290,17 @@ class FtlWidgetSink extends FtlSink {
         _stack.add(_TableB(css, showBorder: borderVal > 0, cellSpacing: cs));
         return;
       case 'thead': case 'tbody': case 'tfoot': return;
-      case 'tr':  _stack.add(_RowB()); return;
+      case 'tr':
+        // Auto-close any open row before starting a new one.
+        // Browsers implicitly close a <tr> when a new <tr> starts;
+        // many PCGen templates (e.g. the feat table) rely on this.
+        while (_stack.length > 1 && _top is _RowB) {
+          final done = _stack.removeLast();
+          final w = done.build();
+          if (w != null) _top.addWidget(w);
+        }
+        _stack.add(_RowB());
+        return;
       case 'th':
         final csth = int.tryParse(_attrValue(attrs, 'colspan') ?? '') ?? 1;
         final rsth = int.tryParse(_attrValue(attrs, 'rowspan') ?? '') ?? 1;
@@ -400,6 +410,12 @@ class FtlWidgetSink extends FtlSink {
         }
         return;
       case 'table':
+        // Unwind any unclosed rows before building the table.
+        while (_stack.length > 1 && _top is _RowB) {
+          final done = _stack.removeLast();
+          final w = done.build();
+          if (w != null) _top.addWidget(w);
+        }
         if (_stack.length > 1) {
           final done = _stack.removeLast();
           final w = done.build();

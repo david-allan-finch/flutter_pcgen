@@ -71,21 +71,32 @@ class PcgenTokenContext extends FtlContext {
     // count(...) / countdistinct(...) function-call tokens used in pcvar()
     if (token.startsWith('count(') || token.startsWith('countdistinct(')) {
       final tl = token.toLowerCase();
+      // Find the closing ')' of the outermost call to extract any arithmetic suffix
+      // e.g. countdistinct("ABILITIES","CATEGORY=FEAT",...)-1 → subtract 1 from result.
+      int _applyCountSuffix(int base) {
+        final closeIdx = token.lastIndexOf(')');
+        if (closeIdx > 0 && closeIdx < token.length - 1) {
+          final suffix = token.substring(closeIdx + 1).trim();
+          if (suffix.startsWith('-')) base -= int.tryParse(suffix.substring(1).trim()) ?? 0;
+          else if (suffix.startsWith('+')) base += int.tryParse(suffix.substring(1).trim()) ?? 0;
+        }
+        return base;
+      }
       if (tl.contains('"skillsit"') || tl.contains("'skillsit'")) {
-        return _allSkills().length.toString();
+        return _applyCountSuffix(_allSkills().length).toString();
       }
       // Ability category patterns
       if (tl.contains('category=feat') || tl.contains('"feats"')) {
-        return _abilitiesForCat('FEAT').length.toString();
+        return _applyCountSuffix(_abilitiesForCat('FEAT').length).toString();
       }
       if (tl.contains('category=special ability') || tl.contains('"special ability"')) {
-        return _abilitiesForCat('Special Ability').length.toString();
+        return _applyCountSuffix(_abilitiesForCat('Special Ability').length).toString();
       }
       if (tl.contains('category=trait') || tl.contains('"trait"')) {
-        return _abilitiesForCat('TRAIT').length.toString();
+        return _applyCountSuffix(_abilitiesForCat('TRAIT').length).toString();
       }
       if (tl.contains('category=archetype')) {
-        return _abilitiesForCat('Archetype').length.toString();
+        return _applyCountSuffix(_abilitiesForCat('Archetype').length).toString();
       }
       if (tl.contains('"abilities"') || tl.contains("'abilities'")) {
         // Handle ASPECT= filter for countdistinct("ABILITIES","ASPECT=X")
@@ -99,7 +110,7 @@ class PcgenTokenContext extends FtlContext {
               final obj = _findAbilityInDataset(ab);
               if (obj != null && _getAspectValue(obj, aspectName).isNotEmpty) count++;
             }
-            return count.toString();
+            return _applyCountSuffix(count).toString();
           }
         }
         // General: count all abilities across all categories
@@ -108,7 +119,7 @@ class PcgenTokenContext extends FtlContext {
         for (final v in selected.values) {
           total += ((v as List?)?.length ?? 0);
         }
-        return total.toString();
+        return _applyCountSuffix(total).toString();
       }
       return '0';
     }
@@ -780,7 +791,8 @@ class PcgenTokenContext extends FtlContext {
             if (d != null && d.isNotEmpty) return d;
           } catch (_) {}
         }
-        return '';
+        // Fall back to DESC stored directly in the PCG ABILITY: line.
+        return (_data('abilityDescs') as Map?)?[_displayName(ab)] as String? ?? '';
       }
       case 'BENEFIT': {
         final obj = _findAbilityInDataset(ab);
@@ -873,7 +885,7 @@ class PcgenTokenContext extends FtlContext {
             if (d != null && d.isNotEmpty) return d;
           } catch (_) {}
         }
-        return '';
+        return (_data('abilityDescs') as Map?)?[_displayName(ab)] as String? ?? '';
       }
       case 'BENEFIT': {
         final obj = _findAbilityInDataset(ab);
