@@ -158,6 +158,7 @@ class _HtmlSheetPanelState extends State<HtmlSheetPanel> {
         // Desktop: FTL engine writes directly into FtlWidgetSink — no HTML string
         final widget = await Future(() {
           final ctx  = PcgenTokenContext(pc, loadedDataSet.value);
+          ctx.vars['gamemodename'] = pc.getGameMode();
           final sink = FtlWidgetSink();
           FtlEngine().renderFileToSink(template, ctx, sink);
           return sink.build();

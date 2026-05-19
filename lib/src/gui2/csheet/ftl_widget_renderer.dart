@@ -268,7 +268,7 @@ class FtlWidgetSink extends FtlSink {
       case 'hr':
         _top.addWidget(const Divider(height: 10, thickness: 1, color: _borderCol));
         return;
-      case 'br': _top.addText(' '); return;
+      case 'br': _top.addText('\n'); return;
 
       case 'b': case 'strong': _top.pushStyle(_Style.bold); return;
       case 'i': case 'em':     _top.pushStyle(_Style.italic); return;
@@ -571,9 +571,13 @@ abstract class _Builder {
   void popCssColor() { if (_cssColors.isNotEmpty) _cssColors.removeLast(); }
 
   void _flushPending() {
-    final t = _textBuf.toString().replaceAll(RegExp(r'[ \t\r\n]+'), ' ');
+    // Collapse horizontal whitespace but preserve \n from <br> tags.
+    final t = _textBuf.toString()
+        .replaceAll(RegExp(r'[ \t]+'), ' ')
+        .replaceAll(RegExp(r' *\n *'), '\n')
+        .trim();
     _textBuf.clear();
-    if (t.trim().isEmpty) return;
+    if (t.isEmpty) return;
     final bold   = _styles.contains(_Style.bold);
     final italic = _styles.contains(_Style.italic);
     final col    = _cssColors.isNotEmpty ? _cssColors.last : null;
@@ -778,15 +782,47 @@ class _TableB extends _Builder {
       return end > m ? end : m;
     });
 
-    // ── Per-column default flex (from first row that specifies widths) ─────
-    // Used for placeholder cells inserted to fill rowspan gaps.
-    final colFlex = List<int>.filled(totalCols, 1);
-    for (final p in placed) {
-      for (int c = p.col; c < p.col + p.cell.colspan; c++) {
-        if (c < totalCols) {
-          final perCol = _cellFlex(p.cell) ~/ p.cell.colspan;
-          colFlex[c] = perCol.clamp(1, 1000);
+    // ── Global per-column flex ─────────────────────────────────────────────
+    // Every row uses the SAME colFlex array so that column boundaries align
+    // horizontally across rows even when colspan/rowspan are present.
+    //
+    // Percentage mode (any cell has widthFraction): derive all columns from %
+    // widths; unset columns get an equal share of 1000 units.
+    // Pixel mode: use widthFixed values or fall back to 1 per column.
+    final hasPercent = placed.any((p) => p.cell.widthFraction != null);
+    final colFlex = List<int>.filled(totalCols, 0);
+    if (hasPercent) {
+      // Pass 1: single-column cells with explicit % widths.
+      for (final p in placed) {
+        if (p.cell.widthFraction != null && p.cell.colspan == 1) {
+          final f = (p.cell.widthFraction! * 1000).round().clamp(1, 1000);
+          if (colFlex[p.col] == 0) colFlex[p.col] = f;
         }
+      }
+      // Pass 2: multi-column cells with explicit % widths fill unset columns.
+      for (final p in placed) {
+        if (p.cell.widthFraction != null && p.cell.colspan > 1) {
+          final f = (p.cell.widthFraction! * 1000).round().clamp(1, 1000);
+          final perCol = (f ~/ p.cell.colspan).clamp(1, 1000);
+          for (int c = p.col; c < p.col + p.cell.colspan && c < totalCols; c++) {
+            if (colFlex[c] == 0) colFlex[c] = perCol;
+          }
+        }
+      }
+      // Pass 3: columns still unset get an equal share.
+      final share = (1000 ~/ totalCols).clamp(1, 1000);
+      for (int i = 0; i < totalCols; i++) {
+        if (colFlex[i] == 0) colFlex[i] = share;
+      }
+    } else {
+      for (final p in placed) {
+        if (p.cell.widthFixed != null && p.cell.colspan == 1) {
+          final f = p.cell.widthFixed!.round().clamp(1, 10000);
+          if (colFlex[p.col] == 0) colFlex[p.col] = f;
+        }
+      }
+      for (int i = 0; i < totalCols; i++) {
+        if (colFlex[i] == 0) colFlex[i] = 1;
       }
     }
 
@@ -811,8 +847,14 @@ class _TableB extends _Builder {
             ));
             col++;
           }
+          // Sum colFlex across all columns this cell spans so the proportions
+          // match the global colFlex array and align with adjacent rows.
+          var cellFlex = 0;
+          for (int c = p.col; c < p.col + p.cell.colspan && c < totalCols; c++) {
+            cellFlex += colFlex[c];
+          }
           widgets.add(Expanded(
-            flex: _cellFlex(p.cell),
+            flex: cellFlex.clamp(1, 100000),
             child: Container(
               decoration: BoxDecoration(border: Border.all(color: _bc, width: 0.5)),
               child: p.cell.widget,
@@ -833,11 +875,6 @@ class _TableB extends _Builder {
         return Row(crossAxisAlignment: CrossAxisAlignment.start, children: widgets);
       }),
     );
-  }
-
-  static int _cellFlex(_CellData c) {
-    if (c.widthFraction != null) return (c.widthFraction! * 1000).round().clamp(1, 1000);
-    return c.colspan.clamp(1, 100);
   }
 }
 

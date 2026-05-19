@@ -192,8 +192,11 @@ class PcgenTokenContext extends FtlContext {
       case 'GOLD':        return _pc.getFunds().toStringAsFixed(2);
       case 'TOTALVALUE':  return _pc.getFunds().toStringAsFixed(2);
 
-      case 'SR':          return _pc.getSR().toString();
-      case 'DR':          return _data('dr') ?? '';
+      case 'SR':           return _pc.getSR().toString();
+      case 'DR':           return _data('dr') ?? '';
+      case 'SPELLFAILURE': return '0';
+      case 'MAXDEX':       return '+99';
+      case 'ACCHECK':      return _pc.getArmorCheckPenalty().toString();
 
       case 'EXPORT':      return _export(parts);
       case 'PAPERINFO':   return _paperinfo(parts);
