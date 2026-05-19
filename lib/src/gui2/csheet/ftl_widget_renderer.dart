@@ -238,9 +238,9 @@ class FtlWidgetSink extends FtlSink {
         _styleBuf.clear(); _mode = _Mode.styleCapture; return;
       case 'script':
         _mode = _Mode.skip; _skipUntil = '</script>'; return;
-      case 'head':
-        _mode = _Mode.skip; _skipUntil = '</head>'; return;
-      case 'html': case 'body': case 'meta': case 'link': case 'doctype': return;
+      // Don't skip <head> — the <style> block lives inside it and must be
+      // captured so CSS class rules (.ab, .abb, .borderbottom8 etc.) apply.
+      case 'html': case 'head': case 'body': case 'meta': case 'link': case 'doctype': return;
       case 'title': _mode = _Mode.skip; _skipUntil = '</title>'; return;
 
       case 'h1': _stack.add(_Heading(1, css)); return;
