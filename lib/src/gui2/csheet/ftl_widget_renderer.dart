@@ -865,49 +865,104 @@ class _TableB extends _Builder {
       }
     }
 
-    // ── Build visual rows ──────────────────────────────────────────────────
+    // ── Special case: only col-0 has rowspan content cells ─────────────────
+    // When a single content cell in col 0 spans multiple rows (e.g. the stats
+    // column alongside HP+AC+initiative, or a weapon name alongside bonus rows)
+    // the sequential Column layout makes everything below the rowspan start
+    // only after the full height of the rowspan cell — wrong placement.
+    //
+    // Instead, render col-0 alongside a Column of the spanned right-side rows
+    // so initiative appears beside the BOTTOM of the stats column, not below.
+    final col0Spanners = placed
+        .where((p) => p.col == 0 && p.cell.colspan == 1 && p.cell.rowspan > 1 && p.cell.hasContent)
+        .toList();
+    final otherRowspanners = placed
+        .where((p) => p.col > 0 && p.cell.rowspan > 1 && p.cell.hasContent);
+    if (col0Spanners.length == 1 && otherRowspanners.isEmpty) {
+      return _buildWithLeftColRowspan(placed, totalCols, totalRows, colFlex, col0Spanners.first);
+    }
+
+    // ── General: Column of flex rows ──────────────────────────────────────
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: List.generate(totalRows, (ri) {
-        final rowCells = placed
-            .where((p) => p.row == ri)
-            .toList()..sort((a, b) => a.col.compareTo(b.col));
+      children: List.generate(totalRows, (ri) =>
+          _buildFlexRow(placed, totalCols, colFlex, ri)),
+    );
+  }
 
-        final widgets = <Widget>[];
-        int col = 0;
+  // Builds one horizontal Row for the given row index.
+  // colStart: first column to include (1 when building right-side-only rows).
+  Widget _buildFlexRow(List<_PlacedCell> placed, int totalCols,
+      List<int> colFlex, int ri, {int colStart = 0}) {
+    final cellBorder = showBorder
+        ? BoxDecoration(border: Border.all(color: _bc, width: 0.5))
+        : const BoxDecoration();
 
-        final cellBorder = showBorder
-            ? BoxDecoration(border: Border.all(color: _bc, width: 0.5))
-            : const BoxDecoration();
+    final rowCells = placed
+        .where((p) => p.row == ri && p.col >= colStart)
+        .toList()..sort((a, b) => a.col.compareTo(b.col));
 
-        for (final p in rowCells) {
-          // Placeholder for columns occupied by rowspanning cells above
-          while (col < p.col) {
-            widgets.add(Expanded(flex: colFlex[col],
-                child: Container(decoration: cellBorder)));
-            col++;
-          }
-          // Sum colFlex across all columns this cell spans so the proportions
-          // match the global colFlex array and align with adjacent rows.
-          var cellFlex = 0;
-          for (int c = p.col; c < p.col + p.cell.colspan && c < totalCols; c++) {
-            cellFlex += colFlex[c];
-          }
-          widgets.add(Expanded(
-            flex: cellFlex.clamp(1, 100000),
-            child: Container(decoration: cellBorder, child: p.cell.widget),
-          ));
-          col += p.cell.colspan;
-        }
-        // Fill trailing columns
-        while (col < totalCols) {
-          widgets.add(Expanded(flex: colFlex[col],
-              child: Container(decoration: cellBorder)));
-          col++;
-        }
+    final widgets = <Widget>[];
+    int col = colStart;
 
-        return Row(crossAxisAlignment: CrossAxisAlignment.start, children: widgets);
-      }),
+    for (final p in rowCells) {
+      while (col < p.col) {
+        widgets.add(Expanded(flex: colFlex[col],
+            child: Container(decoration: cellBorder)));
+        col++;
+      }
+      var cellFlex = 0;
+      for (int c = p.col; c < p.col + p.cell.colspan && c < totalCols; c++) {
+        cellFlex += colFlex[c];
+      }
+      widgets.add(Expanded(
+        flex: cellFlex.clamp(1, 100000),
+        child: Container(decoration: cellBorder, child: p.cell.widget),
+      ));
+      col += p.cell.colspan;
+    }
+    while (col < totalCols) {
+      widgets.add(Expanded(flex: colFlex[col],
+          child: Container(decoration: cellBorder)));
+      col++;
+    }
+
+    if (widgets.isEmpty) return const SizedBox.shrink();
+    return Row(crossAxisAlignment: CrossAxisAlignment.start, children: widgets);
+  }
+
+  // Renders col-0 rowspan cell alongside a Column of the right-side rows,
+  // then appends any rows that fall after the rowspan as full-width rows.
+  Widget _buildWithLeftColRowspan(List<_PlacedCell> placed, int totalCols,
+      int totalRows, List<int> colFlex, _PlacedCell spanner) {
+    final spanStart = spanner.row;
+    final spanEnd   = spanner.row + spanner.cell.rowspan;
+
+    // Right-side rows alongside the col-0 spanner
+    final rightFlex = colFlex.skip(1).fold(0, (a, b) => a + b).clamp(1, 100000);
+    final rightRows = Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: List.generate(spanEnd - spanStart, (i) =>
+          _buildFlexRow(placed, totalCols, colFlex, spanStart + i, colStart: 1)),
+    );
+
+    final spanRow = Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(flex: colFlex[0], child: spanner.cell.widget),
+        Expanded(flex: rightFlex, child: rightRows),
+      ],
+    );
+
+    // Rows beyond the rowspan (if any) are full-width
+    if (spanEnd >= totalRows) return spanRow;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        spanRow,
+        ...List.generate(totalRows - spanEnd, (i) =>
+            _buildFlexRow(placed, totalCols, colFlex, spanEnd + i)),
+      ],
     );
   }
 }
