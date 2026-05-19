@@ -57,18 +57,40 @@ class _HtmlSheetPanelState extends State<HtmlSheetPanel> {
         ..setBackgroundColor(Colors.white);
     }
     final char = currentCharacter.value;
-    if (char is CharacterFacadeImpl) _reload(char);
+    if (char is CharacterFacadeImpl) {
+      _lastCharacter = char;
+      char.addListener(_onCharacterModified);
+      _reload(char);
+    }
   }
 
   @override
   void dispose() {
     currentCharacter.removeListener(_onCharacterChanged);
+    _lastCharacter?.removeListener(_onCharacterModified);
     super.dispose();
   }
 
   void _onCharacterChanged() {
     final char = currentCharacter.value;
-    if (char is CharacterFacadeImpl) _reload(char);
+    // Switch the per-character ChangeNotifier listener.
+    _lastCharacter?.removeListener(_onCharacterModified);
+    if (char is CharacterFacadeImpl) {
+      _lastCharacter = char;
+      char.addListener(_onCharacterModified);
+      _lastRenderKey = null; // force re-render for newly loaded character
+      _reload(char);
+    } else {
+      _lastCharacter = null;
+    }
+  }
+
+  /// Called whenever the character's own state changes (equip, level, stats…).
+  void _onCharacterModified() {
+    final char = _lastCharacter;
+    if (char == null) return;
+    _lastRenderKey = null; // invalidate cache so _reload re-renders
+    _reload(char);
   }
 
   // ─── Template discovery ────────────────────────────────────────────────────
@@ -186,10 +208,6 @@ class _HtmlSheetPanelState extends State<HtmlSheetPanel> {
                 style: TextStyle(color: Colors.grey, fontStyle: FontStyle.italic)),
           );
         }
-        if (character is CharacterFacadeImpl && character != _lastCharacter) {
-          WidgetsBinding.instance.addPostFrameCallback((_) => _reload(character));
-        }
-
         if (_templates.isEmpty) {
           return const Center(
             child: Text('No .htm.ftl templates found in preview directory.',
