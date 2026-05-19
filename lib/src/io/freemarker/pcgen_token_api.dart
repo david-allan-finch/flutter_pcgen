@@ -242,12 +242,38 @@ class PcgenTokenContext extends FtlContext {
 
       case 'WEAPONH':     return _weaponH(parts);
 
+      case 'EQ':
       case 'EQUIP':       return _equipItem(parts);
       case 'ARMOR':       return _armorEquipped(parts);
 
       case 'FUNDS':
       case 'GOLD':        return _pc.getFunds().toStringAsFixed(2);
       case 'TOTALVALUE':  return _pc.getFunds().toStringAsFixed(2);
+      case 'TOTAL': {
+        // TOTAL.WEIGHT — sum of gear weight × qty
+        // TOTAL.VALUE  — sum of gear cost × qty
+        final sub = parts.length > 1 ? parts[1].toUpperCase() : '';
+        final gear = (_data('gear') as List? ?? []).whereType<Map>();
+        if (sub == 'WEIGHT') {
+          double total = 0;
+          for (final g in gear) {
+            final w = (g['weight'] as num?)?.toDouble() ?? 0;
+            final q = (g['qty'] as num?)?.toDouble() ?? 1;
+            total += w * q;
+          }
+          return total.toStringAsFixed(1);
+        }
+        if (sub == 'VALUE') {
+          double total = 0;
+          for (final g in gear) {
+            final c = (g['cost'] as num?)?.toDouble() ?? 0;
+            final q = (g['qty'] as num?)?.toDouble() ?? 1;
+            total += c * q;
+          }
+          return total.toStringAsFixed(2);
+        }
+        return '';
+      }
 
       case 'SR':           return _pc.getSR().toString();
       case 'DR':           return _data('dr') ?? '';
@@ -1287,7 +1313,18 @@ class PcgenTokenContext extends FtlContext {
       case 'QTY':       return (item['qty'] as num?)?.toString() ?? '1';
       case 'COST':      return (item['cost'] as num?)?.toString() ?? '0';
       case 'CARRIED':   return '1';
-      case 'LOCATION':  return '';
+      case 'LOCATION': {
+        final key = item['key'] as String? ?? '';
+        if (key.isNotEmpty) {
+          final slots = _data('equippedSlots') as Map? ?? {};
+          for (final entry in slots.entries) {
+            if (entry.value == key) return entry.key as String? ?? 'Equipped';
+          }
+        }
+        return 'Carried';
+      }
+      case 'CHARGES':    return (item['charges'] as num?)?.toString() ?? '0';
+      case 'CHECKBOXES': return '0';
       case 'NOTE':      return item['note'] as String? ?? '';
       case 'QUALITY':   return item['quality'] as String? ?? '';
       case 'SPROP':     return item['sprop'] as String? ?? '';

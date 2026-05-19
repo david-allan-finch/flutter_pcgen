@@ -302,6 +302,12 @@ class FtlWidgetSink extends FtlSink {
         _stack.add(_RowB());
         return;
       case 'th':
+        // Auto-close any open cell before starting a new one (browser behavior).
+        if (_stack.length > 1 && _top is _CellB) {
+          final done = _stack.removeLast();
+          final w = done.build();
+          if (w != null) _top.addWidget(w);
+        }
         final csth = int.tryParse(_attrValue(attrs, 'colspan') ?? '') ?? 1;
         final rsth = int.tryParse(_attrValue(attrs, 'rowspan') ?? '') ?? 1;
         final wth  = _parseCellWidth(_attrValue(attrs, 'width'));
@@ -310,6 +316,12 @@ class FtlWidgetSink extends FtlSink {
                           cellPad: _cellPadStack.last));
         return;
       case 'td':
+        // Auto-close any open cell before starting a new one (browser behavior).
+        if (_stack.length > 1 && _top is _CellB) {
+          final done = _stack.removeLast();
+          final w = done.build();
+          if (w != null) _top.addWidget(w);
+        }
         final cstd = int.tryParse(_attrValue(attrs, 'colspan') ?? '') ?? 1;
         final rstd = int.tryParse(_attrValue(attrs, 'rowspan') ?? '') ?? 1;
         final wtd  = _parseCellWidth(_attrValue(attrs, 'width'));
@@ -401,7 +413,20 @@ class FtlWidgetSink extends FtlSink {
 
       case 'h1': case 'h2': case 'h3': case 'h4': case 'h5': case 'h6':
       case 'p': case 'div': case 'center': case 'blockquote':
-      case 'tr': case 'th': case 'td':
+      case 'tr':
+        // Auto-close any open cell before closing the row.
+        if (_stack.length > 1 && _top is _CellB) {
+          final done = _stack.removeLast();
+          final w = done.build();
+          if (w != null) _top.addWidget(w);
+        }
+        if (_stack.length > 1) {
+          final done = _stack.removeLast();
+          final w = done.build();
+          if (w != null) _top.addWidget(w);
+        }
+        return;
+      case 'th': case 'td':
       case 'ul': case 'ol': case 'li':
         if (_stack.length > 1) {
           final done = _stack.removeLast();
