@@ -313,13 +313,10 @@ class FtlWidgetSink extends FtlSink {
         if (fontColorAttr != null && css.textColor == null) {
           css.textColor = _CssStyle._parseColor(fontColorAttr);
         }
-        _top.pushInline(_InlineStyle(
-            color: css.textColor, fontSize: css.fontSize, fontWeight: css.fontWeight));
+        _top.pushInline(_InlineStyle.fromCss(css));
         return;
       case 'span':
-        // Apply class and inline-style color/size/weight from <span class="..."> / <span style="...">
-        _top.pushInline(_InlineStyle(
-            color: css.textColor, fontSize: css.fontSize, fontWeight: css.fontWeight));
+        _top.pushInline(_InlineStyle.fromCss(css));
         return;
     }
   }
@@ -404,23 +401,49 @@ enum _Style { bold, italic }
 // ─── CSS style model ──────────────────────────────────────────────────────────
 
 class _CssStyle {
+  // ── Text / font ────────────────────────────────────────────────────────────
   Color?       textColor;
   Color?       bgColor;
-  double?      fontSize;    // logical pixels
+  double?      fontSize;        // logical pixels
   FontWeight?  fontWeight;
+  FontStyle?   fontStyle;       // italic / normal
+  TextDecoration? textDecoration; // underline, line-through, overline
   TextAlign?   textAlign;
+  String?      fontFamily;
+  bool         uppercase = false;
+  bool         smallCaps = false;
+  double?      lineHeight;      // multiplier of font size (TextStyle.height)
+  double?      letterSpacing;   // logical pixels between characters
+  double?      wordSpacing;     // logical pixels between words
+
+  // ── Box / border ──────────────────────────────────────────────────────────
   BoxBorder?   border;
-  // Individual side borders (border-top/bottom/left/right)
   BorderSide?  borderTop;
   BorderSide?  borderBottom;
   BorderSide?  borderLeft;
   BorderSide?  borderRight;
-  // Extra text properties
-  String?      fontFamily;  // e.g. 'Arial'
-  bool         uppercase = false;   // text-transform: uppercase
-  bool         smallCaps = false;   // font-variant: small-caps
+  double?      borderRadius;    // uniform border-radius in logical pixels
+
+  // ── Spacing ───────────────────────────────────────────────────────────────
+  // CSS padding/margin on block elements (div, p, li, heading).
+  // Cells use cellpadding from the table; CSS padding overrides it when set.
+  EdgeInsets?  padding;
+  EdgeInsets?  margin;
+
+  // ── Sizing ────────────────────────────────────────────────────────────────
+  double?      width;           // explicit width for block elements (px)
+  double?      height;          // explicit height for block elements (px)
+  double?      minWidth;
+  double?      maxWidth;
+  double?      minHeight;
+  double?      maxHeight;
+
+  // ── Visibility / behaviour ────────────────────────────────────────────────
   CrossAxisAlignment verticalAlign = CrossAxisAlignment.center;
-  bool         displayed = true;    // false when display:none
+  bool         displayed = true;   // false → display:none
+  bool         hidden    = false;  // true  → visibility:hidden (space kept)
+  bool         noWrap    = false;  // white-space:nowrap
+  double?      opacity;            // 0.0–1.0
 
   _CssStyle();
 
@@ -433,36 +456,71 @@ class _CssStyle {
       final prop = raw.substring(0, colonIdx).trim().toLowerCase();
       final val  = raw.substring(colonIdx + 1).trim().toLowerCase();
       switch (prop) {
+        // ── colour ─────────────────────────────────────────────────────────
         case 'color':            s.textColor  = _parseColor(val); break;
         case 'background':
         case 'background-color': s.bgColor    = _parseColor(val); break;
-        case 'font-size':        s.fontSize   = _parseFontSize(val); break;
+
+        // ── font ───────────────────────────────────────────────────────────
+        case 'font-size':  s.fontSize = _parseFontSize(val); break;
         case 'font-weight':
-          if (val.contains('bold')) s.fontWeight = FontWeight.bold; break;
+          final fw = int.tryParse(val);
+          if (fw != null) {
+            s.fontWeight = fw >= 600 ? FontWeight.bold : FontWeight.normal;
+          } else if (val.contains('bold')) {
+            s.fontWeight = FontWeight.bold;
+          } else if (val == 'normal' || val == 'lighter') {
+            s.fontWeight = FontWeight.normal;
+          }
+          break;
+        case 'font-style':
+          if (val.contains('italic') || val.contains('oblique'))
+            s.fontStyle = FontStyle.italic;
+          else if (val == 'normal')
+            s.fontStyle = FontStyle.normal;
+          break;
         case 'font-family':
-          // Take first named family, strip quotes
           s.fontFamily = val.split(',').first.trim()
               .replaceAll("'", '').replaceAll('"', ''); break;
         case 'font-variant':
           if (val.contains('small-caps')) s.smallCaps = true; break;
+        case 'font':
+          // shorthand: e.g. "bold 12px Arial" — extract what we can
+          final fparts = val.split(RegExp(r'\s+'));
+          for (final fp in fparts) {
+            final sz = _parseFontSize(fp);
+            if (sz != null) { s.fontSize = sz; continue; }
+            if (fp.contains('bold')) { s.fontWeight = FontWeight.bold; continue; }
+            if (fp == 'italic' || fp == 'oblique') s.fontStyle = FontStyle.italic;
+          }
+          break;
+        case 'line-height':
+          // store raw value; applied relative to font-size at render time
+          final lh = _parseLength(val) ?? (double.tryParse(val));
+          if (lh != null) s.lineHeight = lh; break;
+        case 'letter-spacing': s.letterSpacing = _parseLength(val); break;
+        case 'word-spacing':   s.wordSpacing   = _parseLength(val); break;
+
+        // ── text decoration ────────────────────────────────────────────────
+        case 'text-decoration':
+        case 'text-decoration-line':
+          if (val.contains('underline'))    s.textDecoration = TextDecoration.underline;
+          else if (val.contains('line-through')) s.textDecoration = TextDecoration.lineThrough;
+          else if (val.contains('overline'))  s.textDecoration = TextDecoration.overline;
+          else if (val == 'none')             s.textDecoration = TextDecoration.none;
+          break;
         case 'text-align':
-          switch (val) {
+          switch (val.trim()) {
             case 'center': s.textAlign = TextAlign.center; break;
             case 'right':  s.textAlign = TextAlign.right;  break;
             case 'left':   s.textAlign = TextAlign.left;   break;
+            case 'justify': s.textAlign = TextAlign.justify; break;
           }
           break;
         case 'text-transform':
           if (val.contains('uppercase')) s.uppercase = true; break;
-        case 'display':
-          if (val.trim() == 'none') s.displayed = false; break;
-        case 'vertical-align':
-          switch (val.trim()) {
-            case 'top':    s.verticalAlign = CrossAxisAlignment.start;  break;
-            case 'bottom': s.verticalAlign = CrossAxisAlignment.end;    break;
-            default:       s.verticalAlign = CrossAxisAlignment.center; break;
-          }
-          break;
+
+        // ── border ─────────────────────────────────────────────────────────
         case 'border':
           s.border = _parseBorder(val); break;
         case 'border-top':
@@ -473,12 +531,114 @@ class _CssStyle {
           s.borderLeft   = _parseBorderSide(val); break;
         case 'border-right':
           s.borderRight  = _parseBorderSide(val); break;
-        // border-X-width/style/color: width-only shortcut used alongside
-        // the full border-X: shorthand (which takes precedence in parse order).
-        case 'border-top-width':    s.borderTop    ??= _parseBorderSide('$val solid black'); break;
-        case 'border-bottom-width': s.borderBottom ??= _parseBorderSide('$val solid black'); break;
-        case 'border-left-width':   s.borderLeft   ??= _parseBorderSide('$val solid black'); break;
-        case 'border-right-width':  s.borderRight  ??= _parseBorderSide('$val solid black'); break;
+        case 'border-top-width':
+          s.borderTop    ??= _parseBorderSide('$val solid black'); break;
+        case 'border-bottom-width':
+          s.borderBottom ??= _parseBorderSide('$val solid black'); break;
+        case 'border-left-width':
+          s.borderLeft   ??= _parseBorderSide('$val solid black'); break;
+        case 'border-right-width':
+          s.borderRight  ??= _parseBorderSide('$val solid black'); break;
+        case 'border-radius':
+          s.borderRadius = _parseLength(val); break;
+        case 'border-top-left-radius':
+        case 'border-top-right-radius':
+        case 'border-bottom-left-radius':
+        case 'border-bottom-right-radius':
+          // individual corners: use the largest value as uniform radius
+          final cr = _parseLength(val);
+          if (cr != null && (s.borderRadius == null || cr > s.borderRadius!))
+            s.borderRadius = cr;
+          break;
+        case 'border-collapse':
+          // 'collapse' is the typical sheet default — no special action needed
+          // since we draw borders per-cell rather than via table spacing.
+          break;
+
+        // ── spacing (padding / margin) ─────────────────────────────────────
+        case 'padding':       s.padding = _parseSpacing(val); break;
+        case 'padding-top':
+          final pt = _parseLength(val);
+          if (pt != null) s.padding = (s.padding ?? EdgeInsets.zero).copyWith(top: pt);
+          break;
+        case 'padding-bottom':
+          final pb = _parseLength(val);
+          if (pb != null) s.padding = (s.padding ?? EdgeInsets.zero).copyWith(bottom: pb);
+          break;
+        case 'padding-left':
+          final pl = _parseLength(val);
+          if (pl != null) s.padding = (s.padding ?? EdgeInsets.zero).copyWith(left: pl);
+          break;
+        case 'padding-right':
+          final pr = _parseLength(val);
+          if (pr != null) s.padding = (s.padding ?? EdgeInsets.zero).copyWith(right: pr);
+          break;
+        case 'margin':        s.margin  = _parseSpacing(val); break;
+        case 'margin-top':
+          final mt = _parseLength(val);
+          if (mt != null) s.margin = (s.margin ?? EdgeInsets.zero).copyWith(top: mt);
+          break;
+        case 'margin-bottom':
+          final mb = _parseLength(val);
+          if (mb != null) s.margin = (s.margin ?? EdgeInsets.zero).copyWith(bottom: mb);
+          break;
+        case 'margin-left':
+          final ml = _parseLength(val);
+          if (ml != null) s.margin = (s.margin ?? EdgeInsets.zero).copyWith(left: ml);
+          break;
+        case 'margin-right':
+          final mr = _parseLength(val);
+          if (mr != null) s.margin = (s.margin ?? EdgeInsets.zero).copyWith(right: mr);
+          break;
+
+        // ── sizing ─────────────────────────────────────────────────────────
+        case 'width':      s.width     = _parseLength(val); break;
+        case 'height':     s.height    = _parseLength(val); break;
+        case 'min-width':  s.minWidth  = _parseLength(val); break;
+        case 'max-width':  s.maxWidth  = _parseLength(val); break;
+        case 'min-height': s.minHeight = _parseLength(val); break;
+        case 'max-height': s.maxHeight = _parseLength(val); break;
+
+        // ── visibility / layout ────────────────────────────────────────────
+        case 'display':
+          if (val.trim() == 'none') s.displayed = false; break;
+        case 'visibility':
+          if (val.trim() == 'hidden') s.hidden = true; break;
+        case 'opacity':
+          s.opacity = double.tryParse(val); break;
+        case 'white-space':
+          if (val.contains('nowrap')) s.noWrap = true; break;
+        case 'vertical-align':
+          switch (val.trim()) {
+            case 'top':    s.verticalAlign = CrossAxisAlignment.start;  break;
+            case 'bottom': s.verticalAlign = CrossAxisAlignment.end;    break;
+            default:       s.verticalAlign = CrossAxisAlignment.center; break;
+          }
+          break;
+
+        // ── box-shadow ─────────────────────────────────────────────────────
+        // Parsed but not rendered — stored as a no-op to avoid log noise.
+        case 'box-shadow':
+        case 'text-shadow':
+        case 'outline':
+        case 'cursor':
+        case 'list-style':
+        case 'list-style-type':
+        case 'float':
+        case 'clear':
+        case 'overflow':
+        case 'position':
+        case 'top': case 'left': case 'right': case 'bottom':
+        case 'z-index':
+        case 'background-image':
+        case 'background-repeat':
+        case 'background-position':
+        case 'background-size':
+        case 'transition':
+        case 'animation':
+        case 'transform':
+        case 'content':
+          break; // recognised but not implemented in Flutter layout
       }
     }
     return s;
@@ -498,25 +658,45 @@ class _CssStyle {
     );
   }
 
+  BorderRadius? get effectiveBorderRadius =>
+      borderRadius != null ? BorderRadius.circular(borderRadius!) : null;
+
   /// Merge [other] into this, with [other] taking precedence for non-null/set values.
   _CssStyle merge(_CssStyle other) {
     final m = _CssStyle();
-    m.textColor    = other.textColor    ?? textColor;
-    m.bgColor      = other.bgColor      ?? bgColor;
-    m.fontSize     = other.fontSize     ?? fontSize;
-    m.fontWeight   = other.fontWeight   ?? fontWeight;
-    m.textAlign    = other.textAlign    ?? textAlign;
-    m.border       = other.border       ?? border;
-    m.borderTop    = other.borderTop    ?? borderTop;
-    m.borderBottom = other.borderBottom ?? borderBottom;
-    m.borderLeft   = other.borderLeft   ?? borderLeft;
-    m.borderRight  = other.borderRight  ?? borderRight;
-    m.fontFamily   = other.fontFamily   ?? fontFamily;
-    m.uppercase    = other.uppercase    || uppercase;
-    m.smallCaps    = other.smallCaps    || smallCaps;
-    m.verticalAlign = other.verticalAlign != CrossAxisAlignment.center
+    m.textColor      = other.textColor      ?? textColor;
+    m.bgColor        = other.bgColor        ?? bgColor;
+    m.fontSize       = other.fontSize       ?? fontSize;
+    m.fontWeight     = other.fontWeight     ?? fontWeight;
+    m.fontStyle      = other.fontStyle      ?? fontStyle;
+    m.textDecoration = other.textDecoration ?? textDecoration;
+    m.textAlign      = other.textAlign      ?? textAlign;
+    m.fontFamily     = other.fontFamily     ?? fontFamily;
+    m.uppercase      = other.uppercase      || uppercase;
+    m.smallCaps      = other.smallCaps      || smallCaps;
+    m.lineHeight     = other.lineHeight     ?? lineHeight;
+    m.letterSpacing  = other.letterSpacing  ?? letterSpacing;
+    m.wordSpacing    = other.wordSpacing    ?? wordSpacing;
+    m.border         = other.border         ?? border;
+    m.borderTop      = other.borderTop      ?? borderTop;
+    m.borderBottom   = other.borderBottom   ?? borderBottom;
+    m.borderLeft     = other.borderLeft     ?? borderLeft;
+    m.borderRight    = other.borderRight    ?? borderRight;
+    m.borderRadius   = other.borderRadius   ?? borderRadius;
+    m.padding        = other.padding        ?? padding;
+    m.margin         = other.margin         ?? margin;
+    m.width          = other.width          ?? width;
+    m.height         = other.height         ?? height;
+    m.minWidth       = other.minWidth       ?? minWidth;
+    m.maxWidth       = other.maxWidth       ?? maxWidth;
+    m.minHeight      = other.minHeight      ?? minHeight;
+    m.maxHeight      = other.maxHeight      ?? maxHeight;
+    m.verticalAlign  = other.verticalAlign != CrossAxisAlignment.center
         ? other.verticalAlign : verticalAlign;
-    m.displayed    = other.displayed    && displayed;
+    m.displayed      = other.displayed      && displayed;
+    m.hidden         = other.hidden         || hidden;
+    m.noWrap         = other.noWrap         || noWrap;
+    m.opacity        = other.opacity        ?? opacity;
     return m;
   }
 
@@ -525,16 +705,55 @@ class _CssStyle {
       borderTop == null && borderBottom == null &&
       borderLeft == null && borderRight == null;
 
-  TextStyle? toTextStyle({Color? fallbackColor}) {
+  /// Build a Flutter TextStyle from this CSS style.
+  /// [fallbackColor] is used when no explicit text colour is set.
+  /// [baseFontSize] is the containing element's font size, used to resolve
+  /// line-height as a multiplier.
+  TextStyle? toTextStyle({Color? fallbackColor, double baseFontSize = 14.0}) {
     if (textColor == null && fontSize == null && fontWeight == null &&
-        fontFamily == null && !smallCaps) return null;
+        fontFamily == null && !smallCaps && fontStyle == null &&
+        textDecoration == null && lineHeight == null &&
+        letterSpacing == null && wordSpacing == null) return null;
+    double? height;
+    if (lineHeight != null) {
+      // Unitless line-height is already a multiplier; px/pt values need dividing.
+      height = lineHeight! > 10 ? lineHeight! / baseFontSize : lineHeight;
+    }
     return TextStyle(
-      color:      textColor ?? fallbackColor,
-      fontSize:   fontSize,
-      fontWeight: fontWeight,
-      fontFamily: fontFamily,
-      fontFeatures: smallCaps
-          ? [const FontFeature.enable('smcp')] : null,
+      color:         textColor ?? fallbackColor,
+      fontSize:      fontSize,
+      fontWeight:    fontWeight,
+      fontStyle:     fontStyle,
+      fontFamily:    fontFamily,
+      decoration:    textDecoration,
+      height:        height,
+      letterSpacing: letterSpacing,
+      wordSpacing:   wordSpacing,
+      fontFeatures:  smallCaps ? [const FontFeature.enable('smcp')] : null,
+    );
+  }
+
+  /// Wrap [child] with opacity/visibility constraints from this style.
+  Widget applyVisibility(Widget child) {
+    if (hidden) return Opacity(opacity: 0, child: child);
+    if (opacity != null && opacity! < 1.0) return Opacity(opacity: opacity!, child: child);
+    return child;
+  }
+
+  /// Wrap [child] with box constraints derived from width/height/min/max.
+  Widget applyConstraints(Widget child) {
+    final hasConstraints = width != null || height != null ||
+        minWidth != null || maxWidth != null ||
+        minHeight != null || maxHeight != null;
+    if (!hasConstraints) return child;
+    return ConstrainedBox(
+      constraints: BoxConstraints(
+        minWidth:  minWidth  ?? 0,
+        maxWidth:  maxWidth  ?? double.infinity,
+        minHeight: minHeight ?? (height ?? 0),
+        maxHeight: maxHeight ?? (height ?? double.infinity),
+      ),
+      child: width != null ? SizedBox(width: width, child: child) : child,
     );
   }
 
@@ -549,11 +768,47 @@ class _CssStyle {
       'green': Color(0xFF008000), 'gray':  Color(0xFF808080),
       'grey':  Color(0xFF808080), 'lightgray': Color(0xFFD3D3D3),
       'lightgrey': Color(0xFFD3D3D3), 'darkgray': Color(0xFFA9A9A9),
-      'silver': Color(0xFFC0C0C0), 'navy': Color(0xFF000080),
+      'darkgrey': Color(0xFFA9A9A9), 'silver': Color(0xFFC0C0C0),
+      'navy': Color(0xFF000080), 'maroon': Color(0xFF800000),
+      'purple': Color(0xFF800080), 'teal': Color(0xFF008080),
+      'olive': Color(0xFF808000), 'lime': Color(0xFF00FF00),
+      'aqua': Color(0xFF00FFFF), 'cyan': Color(0xFF00FFFF),
+      'fuchsia': Color(0xFFFF00FF), 'magenta': Color(0xFFFF00FF),
       'yellow': Color(0xFFFFFF00), 'orange': Color(0xFFFFA500),
+      'coral': Color(0xFFFF7F50), 'salmon': Color(0xFFFA8072),
+      'gold': Color(0xFFFFD700), 'khaki': Color(0xFFF0E68C),
+      'beige': Color(0xFFF5F5DC), 'ivory': Color(0xFFFFFFF0),
+      'lavender': Color(0xFFE6E6FA), 'pink': Color(0xFFFFC0CB),
+      'tan': Color(0xFFD2B48C), 'brown': Color(0xFFA52A2A),
+      'indigo': Color(0xFF4B0082), 'violet': Color(0xFFEE82EE),
+      'crimson': Color(0xFFDC143C), 'darkred': Color(0xFF8B0000),
+      'darkblue': Color(0xFF00008B), 'darkgreen': Color(0xFF006400),
+      'lightyellow': Color(0xFFFFFFE0), 'lightblue': Color(0xFFADD8E6),
+      'lightgreen': Color(0xFF90EE90), 'lightpink': Color(0xFFFFB6C1),
+      'whitesmoke': Color(0xFFF5F5F5), 'gainsboro': Color(0xFFDCDCDC),
       'transparent': Color(0x00000000),
     };
     if (named.containsKey(v)) return named[v];
+    // rgb(r, g, b)
+    final rgbMatch = RegExp(r'^rgb\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)$')
+        .firstMatch(v);
+    if (rgbMatch != null) {
+      final r = int.tryParse(rgbMatch.group(1)!) ?? 0;
+      final g = int.tryParse(rgbMatch.group(2)!) ?? 0;
+      final b = int.tryParse(rgbMatch.group(3)!) ?? 0;
+      return Color.fromARGB(255, r, g, b);
+    }
+    // rgba(r, g, b, a)
+    final rgbaMatch = RegExp(
+            r'^rgba\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*([\d.]+)\s*\)$')
+        .firstMatch(v);
+    if (rgbaMatch != null) {
+      final r = int.tryParse(rgbaMatch.group(1)!) ?? 0;
+      final g = int.tryParse(rgbaMatch.group(2)!) ?? 0;
+      final b = int.tryParse(rgbaMatch.group(3)!) ?? 0;
+      final a = (double.tryParse(rgbaMatch.group(4)!) ?? 1.0).clamp(0.0, 1.0);
+      return Color.fromARGB((a * 255).round(), r, g, b);
+    }
     // Hex
     if (v.startsWith('#')) {
       final hex = v.substring(1);
@@ -569,6 +824,13 @@ class _CssStyle {
         final b = int.tryParse(hex.substring(4, 6), radix: 16) ?? 0;
         return Color.fromARGB(255, r, g, b);
       }
+      if (hex.length == 8) {
+        final a = int.tryParse(hex.substring(0, 2), radix: 16) ?? 255;
+        final r = int.tryParse(hex.substring(2, 4), radix: 16) ?? 0;
+        final g = int.tryParse(hex.substring(4, 6), radix: 16) ?? 0;
+        final b = int.tryParse(hex.substring(6, 8), radix: 16) ?? 0;
+        return Color.fromARGB(a, r, g, b);
+      }
     }
     return null;
   }
@@ -577,17 +839,54 @@ class _CssStyle {
     const keywords = {
       'xx-small': 8.0, 'x-small': 10.0, 'small': 12.0,
       'medium': 14.0,  'large': 18.0,    'x-large': 22.0,
-      'xx-large': 26.0,
+      'xx-large': 26.0, 'smaller': 11.0, 'larger': 16.0,
     };
     final v = val.trim().toLowerCase();
     if (keywords.containsKey(v)) return keywords[v];
-    // pt values
+    return _parseLength(v);
+  }
+
+  /// Parse a CSS length value to logical pixels.
+  static double? _parseLength(String val) {
+    final v = val.trim().toLowerCase();
+    if (v == '0') return 0;
+    if (v == 'auto') return null;
     final ptMatch = RegExp(r'^([\d.]+)pt$').firstMatch(v);
-    if (ptMatch != null) return double.tryParse(ptMatch.group(1)!)! * 1.33;
-    // px values
+    if (ptMatch != null) return (double.tryParse(ptMatch.group(1)!) ?? 0) * 1.333;
     final pxMatch = RegExp(r'^([\d.]+)px$').firstMatch(v);
     if (pxMatch != null) return double.tryParse(pxMatch.group(1)!);
-    return null;
+    final emMatch = RegExp(r'^([\d.]+)em$').firstMatch(v);
+    if (emMatch != null) return (double.tryParse(emMatch.group(1)!) ?? 1) * 14.0;
+    final remMatch = RegExp(r'^([\d.]+)rem$').firstMatch(v);
+    if (remMatch != null) return (double.tryParse(remMatch.group(1)!) ?? 1) * 14.0;
+    // Unitless number (e.g. for line-height)
+    return double.tryParse(v);
+  }
+
+  /// Parse a CSS spacing shorthand (1–4 values) to EdgeInsets.
+  static EdgeInsets? _parseSpacing(String val) {
+    final v = val.trim().toLowerCase();
+    if (v == '0') return EdgeInsets.zero;
+    final parts = v.split(RegExp(r'\s+')).where((p) => p != 'auto').toList();
+    if (parts.isEmpty) return EdgeInsets.zero;
+    double? p(String s) => _parseLength(s);
+    if (parts.length == 1) {
+      final n = p(parts[0]); return n != null ? EdgeInsets.all(n) : null;
+    }
+    if (parts.length == 2) {
+      final v1 = p(parts[0]); final h1 = p(parts[1]);
+      return (v1 != null && h1 != null)
+          ? EdgeInsets.symmetric(vertical: v1, horizontal: h1) : null;
+    }
+    if (parts.length == 3) {
+      final t = p(parts[0]); final h1 = p(parts[1]); final b = p(parts[2]);
+      return (t != null && h1 != null && b != null)
+          ? EdgeInsets.only(top: t, left: h1, right: h1, bottom: b) : null;
+    }
+    final t = p(parts[0]); final r = p(parts[1]);
+    final b = p(parts[2]); final l = p(parts[3]);
+    return (t != null && r != null && b != null && l != null)
+        ? EdgeInsets.only(top: t, right: r, bottom: b, left: l) : null;
   }
 
   static BoxBorder? _parseBorder(String val) {
@@ -624,10 +923,23 @@ Color? _autoFg(Color? bg, Color? fg) {
 // ─── Inline style record (pushed by <font> and <span>) ───────────────────────
 
 class _InlineStyle {
-  final Color?      color;
-  final double?     fontSize;
-  final FontWeight? fontWeight;
-  const _InlineStyle({this.color, this.fontSize, this.fontWeight});
+  final Color?          color;
+  final double?         fontSize;
+  final FontWeight?     fontWeight;
+  final FontStyle?      fontStyle;
+  final TextDecoration? textDecoration;
+  final double?         letterSpacing;
+  const _InlineStyle({this.color, this.fontSize, this.fontWeight,
+      this.fontStyle, this.textDecoration, this.letterSpacing});
+
+  static _InlineStyle fromCss(_CssStyle css) => _InlineStyle(
+    color:         css.textColor,
+    fontSize:      css.fontSize,
+    fontWeight:    css.fontWeight,
+    fontStyle:     css.fontStyle,
+    textDecoration: css.textDecoration,
+    letterSpacing: css.letterSpacing,
+  );
 }
 
 // ─── Builder base ──────────────────────────────────────────────────────────────
@@ -653,10 +965,13 @@ abstract class _Builder {
   void pushInline(_InlineStyle s) => _inlineStack.add(s);
   void popInline() { if (_inlineStack.isNotEmpty) _inlineStack.removeLast(); }
 
-  // Resolve inline color/size/weight by scanning the stack top-to-bottom.
-  Color?      get _inlineColor      => _inlineStack.lastWhereOrNull((s) => s.color      != null)?.color;
-  double?     get _inlineFontSize   => _inlineStack.lastWhereOrNull((s) => s.fontSize   != null)?.fontSize;
-  FontWeight? get _inlineFontWeight => _inlineStack.lastWhereOrNull((s) => s.fontWeight != null)?.fontWeight;
+  // Resolve inline style properties by scanning the stack top-to-bottom.
+  Color?          get _inlineColor     => _inlineStack.lastWhereOrNull((s) => s.color     != null)?.color;
+  double?         get _inlineFontSize  => _inlineStack.lastWhereOrNull((s) => s.fontSize  != null)?.fontSize;
+  FontWeight?     get _inlineFontWt    => _inlineStack.lastWhereOrNull((s) => s.fontWeight != null)?.fontWeight;
+  FontStyle?      get _inlineFontStyle => _inlineStack.lastWhereOrNull((s) => s.fontStyle != null)?.fontStyle;
+  TextDecoration? get _inlineDecor     => _inlineStack.lastWhereOrNull((s) => s.textDecoration != null)?.textDecoration;
+  double?         get _inlineLetterSp  => _inlineStack.lastWhereOrNull((s) => s.letterSpacing != null)?.letterSpacing;
 
   void _flushPending() {
     // Collapse horizontal whitespace but preserve \n from <br> tags.
@@ -666,13 +981,15 @@ abstract class _Builder {
         .trim();
     _textBuf.clear();
     if (t.isEmpty) return;
-    final bold   = _styles.contains(_Style.bold) || _inlineFontWeight == FontWeight.bold;
-    final italic = _styles.contains(_Style.italic);
+    final bold   = _styles.contains(_Style.bold)   || _inlineFontWt    == FontWeight.bold;
+    final italic = _styles.contains(_Style.italic)  || _inlineFontStyle == FontStyle.italic;
     _children.add(Text(t, style: TextStyle(
-        fontSize:   _inlineFontSize,   // null → cell CSS size applied in _CellB
-        fontWeight: bold   ? FontWeight.bold   : null,
-        fontStyle:  italic ? FontStyle.italic  : null,
-        color: _inlineColor)));
+        fontSize:      _inlineFontSize,
+        fontWeight:    bold   ? FontWeight.bold   : _inlineFontWt,
+        fontStyle:     italic ? FontStyle.italic  : _inlineFontStyle,
+        decoration:    _inlineDecor,
+        letterSpacing: _inlineLetterSp,
+        color:         _inlineColor)));
   }
 
   Widget? build();
@@ -696,6 +1013,7 @@ class _Heading extends _Builder {
 
   @override Widget? build() {
     _flushPending();
+    if (!css.displayed) return null;
     final t = _children.whereType<Text>().map((w) => w.data ?? '').join(' ').trim();
     if (t.isEmpty) return null;
 
@@ -703,14 +1021,20 @@ class _Heading extends _Builder {
     final fg  = css.textColor ?? (bg != null ? Colors.white : null);
     final fs  = css.fontSize ?? (level == 1 ? 16.0 : level == 2 ? 13.0 : 11.0);
 
-    return Container(
-      margin:  const EdgeInsets.only(top: 8, bottom: 2),
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      color:   bg ?? (level <= 3 ? const Color(0xFF37474F) : null),
-      child:   Text(t, style: TextStyle(
+    Widget w = Container(
+      margin:  css.margin  ?? const EdgeInsets.only(top: 8, bottom: 2),
+      padding: css.padding ?? const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: bg ?? (level <= 3 ? const Color(0xFF37474F) : null),
+        borderRadius: css.effectiveBorderRadius,
+      ),
+      child: Text(t, style: TextStyle(
           fontSize: fs, fontWeight: FontWeight.bold,
+          fontStyle: css.fontStyle,
+          decoration: css.textDecoration,
           color: fg ?? Colors.white)),
     );
+    return css.applyVisibility(w);
   }
 }
 
@@ -727,11 +1051,17 @@ class _Para extends _Builder {
     Widget content = _children.length == 1
         ? _children.first
         : Column(crossAxisAlignment: CrossAxisAlignment.start, children: _children);
-    if (css.bgColor != null) {
-      content = Container(color: css.bgColor, padding: const EdgeInsets.all(2),
+    final innerPad = css.padding;
+    if (css.bgColor != null || innerPad != null) {
+      content = Container(
+          color: css.bgColor,
+          padding: innerPad ?? const EdgeInsets.all(2),
           child: content);
     }
-    return Padding(padding: const EdgeInsets.symmetric(vertical: 2), child: content);
+    content = css.applyVisibility(content);
+    content = css.applyConstraints(content);
+    final outerPad = css.margin ?? const EdgeInsets.symmetric(vertical: 2);
+    return Padding(padding: outerPad, child: content);
   }
 }
 
@@ -747,9 +1077,15 @@ class _Div extends _Builder {
         crossAxisAlignment:
             center ? CrossAxisAlignment.center : CrossAxisAlignment.stretch,
         children: _children);
-    if (css.bgColor != null) {
-      col = Container(color: css.bgColor, child: col);
+    if (css.bgColor != null || css.padding != null) {
+      col = Container(
+          color: css.bgColor,
+          padding: css.padding,
+          child: col);
     }
+    if (css.margin != null) col = Padding(padding: css.margin!, child: col);
+    col = css.applyVisibility(col);
+    col = css.applyConstraints(col);
     return center ? Center(child: col) : col;
   }
 }
@@ -1126,6 +1462,10 @@ class _CellB extends _Builder {
       _                => CrossAxisAlignment.start,
     };
 
+    final fsty = css.fontStyle;
+    final tdec = css.textDecoration;
+    final lsp  = css.letterSpacing;
+
     final styledChildren = _children.map((child) {
       if (child is Text) {
         var text = child.data ?? '';
@@ -1133,16 +1473,18 @@ class _CellB extends _Builder {
         if (css.smallCaps) text = text.toUpperCase(); // approximation
         return Text(text,
             textAlign: ta,
+            softWrap: !css.noWrap,
+            overflow: css.noWrap ? TextOverflow.ellipsis : null,
             style: (child.style ?? const TextStyle()).copyWith(
-                // Inline font size/weight (from <font>/<span>) takes priority
-                // over the cell-level defaults so e.g. <font style="font-size:9pt">
-                // produces the correct size even inside a plain-size cell.
-                fontSize:   child.style?.fontSize   ?? fs,
-                fontWeight: child.style?.fontWeight ?? fw,
-                // Inline colour (from <font color>/style="color:"> wins; otherwise
-                // use the cell-computed foreground colour.
-                color:      child.style?.color      ?? fg,
-                fontFamily: child.style?.fontFamily ?? ff));
+                // Inline properties (from <font>/<span>) take priority;
+                // cell CSS fills the gaps; then null keeps Flutter defaults.
+                fontSize:      child.style?.fontSize      ?? fs,
+                fontWeight:    child.style?.fontWeight    ?? fw,
+                fontStyle:     child.style?.fontStyle     ?? fsty,
+                decoration:    child.style?.decoration    ?? tdec,
+                letterSpacing: child.style?.letterSpacing ?? lsp,
+                color:         child.style?.color         ?? fg,
+                fontFamily:    child.style?.fontFamily    ?? ff));
       }
       return child;
     }).toList();
@@ -1166,17 +1508,20 @@ class _CellB extends _Builder {
       );
     }
 
-    // cellpadding: translate the HTML cellpadding value (logical px) to Flutter
-    // padding. Use cellPad directly as vertical pixels; double it horizontally
-    // since horizontal space reads tighter than vertical at the same px count.
-    final hp = cellPad * 2.0;
-    final vp = cellPad;
+    // Padding: CSS padding on the cell element takes priority over cellpadding.
+    // cellpadding is the HTML table-level default; CSS can override per-cell.
+    final EdgeInsets cellPadding = css.padding ??
+        EdgeInsets.symmetric(horizontal: cellPad * 2.0, vertical: cellPad);
 
-    final cell = Container(
-      padding: EdgeInsets.symmetric(horizontal: hp, vertical: vp),
-      decoration: BoxDecoration(color: bg, border: css.effectiveBorder),
+    Widget cell = Container(
+      padding: cellPadding,
+      decoration: BoxDecoration(
+          color: bg,
+          border: css.effectiveBorder,
+          borderRadius: css.effectiveBorderRadius),
       child: content,
     );
+    cell = css.applyVisibility(cell);
     return _CellWidget(_CellData(cell, colspan: colspan, rowspan: rowspan,
                                   widthFraction: widthFraction,
                                   widthFixed: widthFixed,
