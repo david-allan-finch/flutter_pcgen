@@ -413,9 +413,44 @@ class FtlWidgetSink extends FtlSink {
 
       case 'h1': case 'h2': case 'h3': case 'h4': case 'h5': case 'h6':
       case 'p': case 'div': case 'center': case 'blockquote':
+        // Simple block close — pop one element.
+        if (_stack.length > 1) {
+          final done = _stack.removeLast();
+          final w = done.build();
+          if (w != null) _top.addWidget(w);
+        }
+        return;
       case 'tr':
-        // Auto-close any open cell before closing the row.
+        // Unwind any open cell before closing the row.
         if (_stack.length > 1 && _top is _CellB) {
+          final done = _stack.removeLast();
+          final w = done.build();
+          if (w != null) _top.addWidget(w);
+        }
+        if (_stack.length > 1 && _top is _RowB) {
+          final done = _stack.removeLast();
+          final w = done.build();
+          if (w != null) _top.addWidget(w);
+        }
+        return;
+      case 'th': case 'td':
+        // Unwind any unclosed inner block elements before closing the cell,
+        // but don't cross row/table boundaries.
+        while (_stack.length > 1 &&
+               !(_top is _CellB) && !(_top is _RowB) && !(_top is _TableB)) {
+          final done = _stack.removeLast();
+          final w = done.build();
+          if (w != null) _top.addWidget(w);
+        }
+        if (_stack.length > 1 && _top is _CellB) {
+          final done = _stack.removeLast();
+          final w = done.build();
+          if (w != null) _top.addWidget(w);
+        }
+        return;
+      case 'ul': case 'ol':
+        // Unwind any open list item before closing the list.
+        if (_stack.length > 1 && _top is _ListItemB) {
           final done = _stack.removeLast();
           final w = done.build();
           if (w != null) _top.addWidget(w);
@@ -426,8 +461,7 @@ class FtlWidgetSink extends FtlSink {
           if (w != null) _top.addWidget(w);
         }
         return;
-      case 'th': case 'td':
-      case 'ul': case 'ol': case 'li':
+      case 'li':
         if (_stack.length > 1) {
           final done = _stack.removeLast();
           final w = done.build();
