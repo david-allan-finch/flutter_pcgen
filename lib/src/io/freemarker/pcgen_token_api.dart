@@ -555,7 +555,9 @@ class PcgenTokenContext extends FtlContext {
       case 'MOD':       return _signed(statMod);
       case 'MISC':      return misc != 0 ? misc.toString() : '0';
       case 'ABILITY':   return _skillAbility(sk);
-      case 'UNTRAINED': return '1';
+      case 'UNTRAINED':
+        final s = sk['skill'];
+        return (s is Skill && !s.isUntrained()) ? '0' : '1';
       case 'EXCLUSIVE': return '0';
       case 'CLASSSK':   return '0';
       case 'ACPv':      return '';

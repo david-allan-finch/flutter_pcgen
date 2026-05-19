@@ -344,6 +344,7 @@ class GenericLoader<T extends CDOMObject> extends LstObjectFileLoader<T> {
           } catch (_) {}
           return;
         case 'USE_UNTRAINED':
+        case 'USEUNTRAINED':   // LST files use this form (no underscore)
           try {
             obj.putObject(
               CDOMObjectKey.getConstant<bool>('USE_UNTRAINED', defaultValue: true),

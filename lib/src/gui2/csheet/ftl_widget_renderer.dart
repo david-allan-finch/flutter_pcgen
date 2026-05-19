@@ -790,16 +790,21 @@ class _TableB extends _Builder {
 
   static const _bc = Color(0xFFB0BEC5);
 
-  // Only use the flex-row path when a content-bearing cell spans multiple
-  // columns or rows. Spacer cells (hasContent=false) with rowspan/colspan are
-  // ignored — they never need true spanning behaviour.
+  // Use the flex-row path when a content-bearing cell spans multiple columns
+  // or rows, OR when cells carry percentage-width hints. Spacer cells
+  // (hasContent=false) are ignored for spanning — they never need true
+  // spanning behaviour, but percentage widths still matter for layout.
   bool get _hasColspanOrRowspan =>
       _rows.any((r) => r.cells.any((c) =>
           (c.colspan > 1 || c.rowspan > 1) && c.hasContent));
 
+  bool get _hasPercentWidths =>
+      _rows.any((r) => r.cells.any((c) => c.widthFraction != null));
+
   @override Widget? build() {
     if (_rows.isEmpty) return null;
-    Widget child = _hasColspanOrRowspan ? _buildFlexRows() : _buildFlutterTable();
+    Widget child = (_hasColspanOrRowspan || _hasPercentWidths)
+        ? _buildFlexRows() : _buildFlutterTable();
     // cellspacing: wrap each row in a small gap (approximated as padding on the table)
     if (cellSpacing > 0) {
       child = Padding(
@@ -918,6 +923,19 @@ class _TableB extends _Builder {
       }
     }
 
+    // ── Hidden columns: columns where every occupying cell is display:none ──
+    // These cells return SizedBox.shrink() spacers with hasContent=false.
+    // We skip them entirely from Row layout so they take zero width instead
+    // of stealing flex space from visible content (e.g. EPIC bonus columns).
+    final hiddenCols = <int>{};
+    for (int c = 0; c < totalCols; c++) {
+      final occupants = placed.where(
+          (p) => p.col <= c && c < p.col + p.cell.colspan);
+      if (occupants.isNotEmpty && occupants.every((p) => !p.cell.hasContent)) {
+        hiddenCols.add(c);
+      }
+    }
+
     // ── Special case: only col-0 has rowspan content cells ─────────────────
     // When a single content cell in col 0 spans multiple rows (e.g. the stats
     // column alongside HP+AC+initiative, or a weapon name alongside bonus rows)
@@ -932,21 +950,25 @@ class _TableB extends _Builder {
     final otherRowspanners = placed
         .where((p) => p.col > 0 && p.cell.rowspan > 1 && p.cell.hasContent);
     if (col0Spanners.length == 1 && otherRowspanners.isEmpty) {
-      return _buildWithLeftColRowspan(placed, totalCols, totalRows, colFlex, col0Spanners.first);
+      return _buildWithLeftColRowspan(
+          placed, totalCols, totalRows, colFlex, col0Spanners.first, hiddenCols);
     }
 
     // ── General: Column of flex rows ──────────────────────────────────────
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: List.generate(totalRows, (ri) =>
-          _buildFlexRow(placed, totalCols, colFlex, ri)),
+          _buildFlexRow(placed, totalCols, colFlex, ri, hiddenCols: hiddenCols)),
     );
   }
 
   // Builds one horizontal Row for the given row index.
-  // colStart: first column to include (1 when building right-side-only rows).
+  // colStart:   first column to include (1 when building right-side-only rows).
+  // hiddenCols: columns that are entirely display:none — omitted from the Row
+  //             so they take no width.
   Widget _buildFlexRow(List<_PlacedCell> placed, int totalCols,
-      List<int> colFlex, int ri, {int colStart = 0}) {
+      List<int> colFlex, int ri,
+      {int colStart = 0, Set<int> hiddenCols = const {}}) {
     final cellBorder = showBorder
         ? BoxDecoration(border: Border.all(color: _bc, width: 0.5))
         : const BoxDecoration();
@@ -960,26 +982,37 @@ class _TableB extends _Builder {
     // cellspacing gap between cells (each side of each cell gets half the gap)
     final gap = cellSpacing > 0 ? cellSpacing / 2 : 0.0;
 
+    void addCell(Widget w, int flex) {
+      Widget child = w;
+      if (gap > 0) child = Padding(padding: EdgeInsets.all(gap), child: child);
+      widgets.add(Expanded(flex: flex.clamp(1, 100000), child: child));
+    }
+
     for (final p in rowCells) {
+      // Gap-fill placeholder columns before this cell
       while (col < p.col) {
-        Widget empty = Container(decoration: cellBorder);
-        if (gap > 0) empty = Padding(padding: EdgeInsets.all(gap), child: empty);
-        widgets.add(Expanded(flex: colFlex[col], child: empty));
+        if (!hiddenCols.contains(col)) {
+          addCell(Container(decoration: cellBorder), colFlex[col]);
+        }
         col++;
       }
-      var cellFlex = 0;
-      for (int c = p.col; c < p.col + p.cell.colspan && c < totalCols; c++) {
-        cellFlex += colFlex[c];
+      // Skip cells fully inside hidden columns
+      final allHidden = Iterable.generate(p.cell.colspan)
+          .every((i) => hiddenCols.contains(p.col + i));
+      if (!allHidden) {
+        var cellFlex = 0;
+        for (int c = p.col; c < p.col + p.cell.colspan && c < totalCols; c++) {
+          if (!hiddenCols.contains(c)) cellFlex += colFlex[c];
+        }
+        addCell(Container(decoration: cellBorder, child: p.cell.widget), cellFlex);
       }
-      Widget cellW = Container(decoration: cellBorder, child: p.cell.widget);
-      if (gap > 0) cellW = Padding(padding: EdgeInsets.all(gap), child: cellW);
-      widgets.add(Expanded(flex: cellFlex.clamp(1, 100000), child: cellW));
       col += p.cell.colspan;
     }
+    // Trailing placeholder columns
     while (col < totalCols) {
-      Widget empty = Container(decoration: cellBorder);
-      if (gap > 0) empty = Padding(padding: EdgeInsets.all(gap), child: empty);
-      widgets.add(Expanded(flex: colFlex[col], child: empty));
+      if (!hiddenCols.contains(col)) {
+        addCell(Container(decoration: cellBorder), colFlex[col]);
+      }
       col++;
     }
 
@@ -990,16 +1023,23 @@ class _TableB extends _Builder {
   // Renders col-0 rowspan cell alongside a Column of the right-side rows,
   // then appends any rows that fall after the rowspan as full-width rows.
   Widget _buildWithLeftColRowspan(List<_PlacedCell> placed, int totalCols,
-      int totalRows, List<int> colFlex, _PlacedCell spanner) {
+      int totalRows, List<int> colFlex, _PlacedCell spanner,
+      Set<int> hiddenCols) {
     final spanStart = spanner.row;
     final spanEnd   = spanner.row + spanner.cell.rowspan;
 
-    // Right-side rows alongside the col-0 spanner
-    final rightFlex = colFlex.skip(1).fold(0, (a, b) => a + b).clamp(1, 100000);
+    // Right-side flex — exclude hidden columns from the total
+    var rightFlex = 0;
+    for (int i = 1; i < totalCols; i++) {
+      if (!hiddenCols.contains(i)) rightFlex += colFlex[i];
+    }
+    rightFlex = rightFlex.clamp(1, 100000);
+
     final rightRows = Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: List.generate(spanEnd - spanStart, (i) =>
-          _buildFlexRow(placed, totalCols, colFlex, spanStart + i, colStart: 1)),
+          _buildFlexRow(placed, totalCols, colFlex, spanStart + i,
+              colStart: 1, hiddenCols: hiddenCols)),
     );
 
     final spanRow = Row(
@@ -1017,7 +1057,8 @@ class _TableB extends _Builder {
       children: [
         spanRow,
         ...List.generate(totalRows - spanEnd, (i) =>
-            _buildFlexRow(placed, totalCols, colFlex, spanEnd + i)),
+            _buildFlexRow(placed, totalCols, colFlex, spanEnd + i,
+                hiddenCols: hiddenCols)),
       ],
     );
   }
