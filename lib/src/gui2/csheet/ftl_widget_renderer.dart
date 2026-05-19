@@ -161,12 +161,18 @@ class FtlWidgetSink extends FtlSink {
       final style = _CssStyle.parse(propStr);
       for (final sel in selectors) {
         final s = sel.trim();
-        // Only handle simple class selectors like .ab or compound like .sa-table th
-        // Extract all class names (start with .)
+        // Class selectors: .ab, .border9, compound .sa-table th → extract each class
         final classRe = RegExp(r'\.([a-zA-Z0-9_-]+)');
         for (final cm in classRe.allMatches(s)) {
           final cls = cm.group(1)!;
           _cssMap[cls] = (_cssMap[cls] ?? _CssStyle()).merge(style);
+        }
+        // ID selectors: #myid — stored with '#' prefix so class and id namespaces
+        // don't collide.  Elements with id="myid" are looked up via _resolveId().
+        final idRe = RegExp(r'#([a-zA-Z0-9_-]+)');
+        for (final im in idRe.allMatches(s)) {
+          final id = '#${im.group(1)!}';
+          _cssMap[id] = (_cssMap[id] ?? _CssStyle()).merge(style);
         }
       }
     }
@@ -194,6 +200,7 @@ class FtlWidgetSink extends FtlSink {
         : inner;
     final name = _tagName(body);
     final classAttr  = _attrValue(body, 'class');
+    final idAttr     = _attrValue(body, 'id');
     final bgAttr     = _attrValue(body, 'bgcolor');
     final alignAttr  = _attrValue(body, 'align');
     final valignAttr = _attrValue(body, 'valign');
@@ -201,7 +208,7 @@ class FtlWidgetSink extends FtlSink {
     if (closing) {
       _handleClose(name);
     } else {
-      _handleOpen(name, classAttr, bgAttr, alignAttr, valignAttr, body);
+      _handleOpen(name, classAttr, idAttr, bgAttr, alignAttr, valignAttr, body);
       if (selfClose) _handleClose(name);
     }
   }
@@ -218,9 +225,14 @@ class FtlWidgetSink extends FtlSink {
 
   // ─── Open tags ────────────────────────────────────────────────────────────
 
-  void _handleOpen(String name, String? classAttr, String? bgColor,
-      String? alignAttr, String? valignAttr, String attrs) {
+  void _handleOpen(String name, String? classAttr, String? idAttr,
+      String? bgColor, String? alignAttr, String? valignAttr, String attrs) {
+    // Resolve CSS: class selector first, then id selector (higher specificity).
     var css = _resolve(classAttr);
+    if (idAttr != null) {
+      final idStyle = _cssMap['#$idAttr'];
+      if (idStyle != null) css = css.merge(idStyle);
+    }
     // Inline style="..." attribute — higher priority than class styles.
     final styleAttr = _attrValue(attrs, 'style');
     if (styleAttr != null && styleAttr.isNotEmpty) {
@@ -299,6 +311,7 @@ class FtlWidgetSink extends FtlSink {
       case 'ol':  _stack.add(_ListB(ordered: true));  return;
       case 'li':  _stack.add(_ListItemB()); return;
       case 'center': _stack.add(_Div(_CssStyle(), center: true)); return;
+      case 'blockquote': _stack.add(_Blockquote(css)); return;
 
       case 'hr':
         _top.addWidget(const Divider(height: 10, thickness: 1, color: _borderCol));
@@ -307,11 +320,36 @@ class FtlWidgetSink extends FtlSink {
 
       case 'b': case 'strong': _top.pushStyle(_Style.bold); return;
       case 'i': case 'em':     _top.pushStyle(_Style.italic); return;
+      // <u> underline tag — push inline text-decoration
+      case 'u':
+        _top.pushInline(const _InlineStyle(textDecoration: TextDecoration.underline));
+        return;
+      // <sup> superscript — push smaller font size (no true baseline shift in Flutter)
+      case 'sup':
+        _top.pushInline(_InlineStyle(
+            fontSize: (_top._inlineFontSize ?? 11.0) * 0.75,
+            // Flutter doesn't support superscript baseline offset directly;
+            // the smaller size is the best approximation without a custom widget.
+        ));
+        return;
+      case 'sub':
+        _top.pushInline(_InlineStyle(fontSize: (_top._inlineFontSize ?? 11.0) * 0.75));
+        return;
       case 'font':
-        // Read color= attribute (e.g. <font color="white">); inline style= already merged above.
+        // Read color= and size= HTML attributes; inline style= already merged above.
         final fontColorAttr = _attrValue(attrs, 'color');
         if (fontColorAttr != null && css.textColor == null) {
           css.textColor = _CssStyle._parseColor(fontColorAttr);
+        }
+        // <font size="N"> uses an HTML 1-7 scale where 3 = normal (≈12px).
+        final fontSizeAttr = _attrValue(attrs, 'size');
+        if (fontSizeAttr != null && css.fontSize == null) {
+          const fontSizeScale = [8.0, 10.0, 12.0, 14.0, 18.0, 22.0, 26.0];
+          final n = int.tryParse(fontSizeAttr.replaceAll('+', '').replaceAll('-', ''));
+          if (n != null) {
+            final idx = (n - 1).clamp(0, fontSizeScale.length - 1);
+            css.fontSize = fontSizeScale[idx];
+          }
         }
         _top.pushInline(_InlineStyle.fromCss(css));
         return;
@@ -330,12 +368,12 @@ class FtlWidgetSink extends FtlSink {
         // Flush before the style is popped so the text is captured with the
         // correct bold/italic state rather than at build() time when it's gone.
         _top._flushPending(); _top.popStyle(); return;
-      case 'font': case 'span':
+      case 'font': case 'span': case 'u': case 'sup': case 'sub':
         // Flush before popping so inline colour/size/weight apply to the text.
         _top._flushPending(); _top.popInline(); return;
 
       case 'h1': case 'h2': case 'h3': case 'h4': case 'h5': case 'h6':
-      case 'p': case 'div': case 'center':
+      case 'p': case 'div': case 'center': case 'blockquote':
       case 'tr': case 'th': case 'td':
       case 'ul': case 'ol': case 'li':
         if (_stack.length > 1) {
@@ -410,8 +448,10 @@ class _CssStyle {
   TextDecoration? textDecoration; // underline, line-through, overline
   TextAlign?   textAlign;
   String?      fontFamily;
-  bool         uppercase = false;
-  bool         smallCaps = false;
+  bool         uppercase  = false;
+  bool         capitalize = false;
+  bool         smallCaps  = false;
+  double?      textIndent;   // first-line indent in logical pixels
   double?      lineHeight;      // multiplier of font size (TextStyle.height)
   double?      letterSpacing;   // logical pixels between characters
   double?      wordSpacing;     // logical pixels between words
@@ -518,7 +558,12 @@ class _CssStyle {
           }
           break;
         case 'text-transform':
-          if (val.contains('uppercase')) s.uppercase = true; break;
+          if (val.contains('uppercase')) s.uppercase = true;
+          else if (val.contains('capitalize')) s.capitalize = true; break;
+        case 'text-indent':
+          s.textIndent = _parseLength(val); break;
+        case 'page-break-after': case 'page-break-before': case 'page-break-inside':
+          break; // printing concept — no-op in Flutter
 
         // ── border ─────────────────────────────────────────────────────────
         case 'border':
@@ -532,13 +577,29 @@ class _CssStyle {
         case 'border-right':
           s.borderRight  = _parseBorderSide(val); break;
         case 'border-top-width':
-          s.borderTop    ??= _parseBorderSide('$val solid black'); break;
+          s.borderTop    = _updateSideWidth(s.borderTop,    _parseLength(val) ?? 1); break;
         case 'border-bottom-width':
-          s.borderBottom ??= _parseBorderSide('$val solid black'); break;
+          s.borderBottom = _updateSideWidth(s.borderBottom, _parseLength(val) ?? 1); break;
         case 'border-left-width':
-          s.borderLeft   ??= _parseBorderSide('$val solid black'); break;
+          s.borderLeft   = _updateSideWidth(s.borderLeft,   _parseLength(val) ?? 1); break;
         case 'border-right-width':
-          s.borderRight  ??= _parseBorderSide('$val solid black'); break;
+          s.borderRight  = _updateSideWidth(s.borderRight,  _parseLength(val) ?? 1); break;
+        case 'border-top-color':
+          s.borderTop    = _updateSideColor(s.borderTop,    _parseColor(val)); break;
+        case 'border-bottom-color':
+          s.borderBottom = _updateSideColor(s.borderBottom, _parseColor(val)); break;
+        case 'border-left-color':
+          s.borderLeft   = _updateSideColor(s.borderLeft,   _parseColor(val)); break;
+        case 'border-right-color':
+          s.borderRight  = _updateSideColor(s.borderRight,  _parseColor(val)); break;
+        case 'border-top-style':
+          s.borderTop    ??= const BorderSide(); break;
+        case 'border-bottom-style':
+          s.borderBottom ??= const BorderSide(); break;
+        case 'border-left-style':
+          s.borderLeft   ??= const BorderSide(); break;
+        case 'border-right-style':
+          s.borderRight  ??= const BorderSide(); break;
         case 'border-radius':
           s.borderRadius = _parseLength(val); break;
         case 'border-top-left-radius':
@@ -673,7 +734,9 @@ class _CssStyle {
     m.textAlign      = other.textAlign      ?? textAlign;
     m.fontFamily     = other.fontFamily     ?? fontFamily;
     m.uppercase      = other.uppercase      || uppercase;
+    m.capitalize     = other.capitalize     || capitalize;
     m.smallCaps      = other.smallCaps      || smallCaps;
+    m.textIndent     = other.textIndent     ?? textIndent;
     m.lineHeight     = other.lineHeight     ?? lineHeight;
     m.letterSpacing  = other.letterSpacing  ?? letterSpacing;
     m.wordSpacing    = other.wordSpacing    ?? wordSpacing;
@@ -889,6 +952,17 @@ class _CssStyle {
         ? EdgeInsets.only(top: t, right: r, bottom: b, left: l) : null;
   }
 
+  static BorderSide _updateSideWidth(BorderSide? existing, double width) {
+    if (existing == null || existing == BorderSide.none) return BorderSide(width: width);
+    return existing.copyWith(width: width);
+  }
+
+  static BorderSide _updateSideColor(BorderSide? existing, Color? color) {
+    if (color == null) return existing ?? const BorderSide();
+    if (existing == null || existing == BorderSide.none) return BorderSide(color: color);
+    return existing.copyWith(color: color);
+  }
+
   static BoxBorder? _parseBorder(String val) {
     final side = _parseBorderSide(val);
     if (side == null) return null;
@@ -1051,6 +1125,11 @@ class _Para extends _Builder {
     Widget content = _children.length == 1
         ? _children.first
         : Column(crossAxisAlignment: CrossAxisAlignment.start, children: _children);
+    // text-indent: indent only the first line by wrapping in a Padding
+    if (css.textIndent != null && css.textIndent! > 0) {
+      content = Padding(
+          padding: EdgeInsets.only(left: css.textIndent!), child: content);
+    }
     final innerPad = css.padding;
     if (css.bgColor != null || innerPad != null) {
       content = Container(
@@ -1087,6 +1166,34 @@ class _Div extends _Builder {
     col = css.applyVisibility(col);
     col = css.applyConstraints(col);
     return center ? Center(child: col) : col;
+  }
+}
+
+String _toTitleCase(String s) => s.replaceAllMapped(
+    RegExp(r'\b\w'), (m) => m.group(0)!.toUpperCase());
+
+class _Blockquote extends _Builder {
+  final _CssStyle css;
+  _Blockquote(this.css);
+  @override Widget? build() {
+    _flushPending();
+    if (!css.displayed) return null;
+    if (_children.isEmpty) return null;
+    Widget col = Column(crossAxisAlignment: CrossAxisAlignment.start,
+        children: _children);
+    if (css.bgColor != null) {
+      col = Container(color: css.bgColor, child: col);
+    }
+    col = css.applyVisibility(col);
+    return Container(
+      margin: css.margin ?? const EdgeInsets.symmetric(vertical: 4, horizontal: 0),
+      padding: css.padding ?? const EdgeInsets.only(left: 16),
+      decoration: BoxDecoration(
+        border: css.effectiveBorder ??
+            const Border(left: BorderSide(color: Color(0xFFB0BEC5), width: 3)),
+      ),
+      child: col,
+    );
   }
 }
 
@@ -1469,8 +1576,9 @@ class _CellB extends _Builder {
     final styledChildren = _children.map((child) {
       if (child is Text) {
         var text = child.data ?? '';
-        if (css.uppercase) text = text.toUpperCase();
-        if (css.smallCaps) text = text.toUpperCase(); // approximation
+        if (css.uppercase)  text = text.toUpperCase();
+        if (css.capitalize) text = _toTitleCase(text);
+        if (css.smallCaps)  text = text.toUpperCase(); // approximation
         return Text(text,
             textAlign: ta,
             softWrap: !css.noWrap,
