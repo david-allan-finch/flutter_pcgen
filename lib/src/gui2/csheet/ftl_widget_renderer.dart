@@ -213,7 +213,12 @@ class FtlWidgetSink extends FtlSink {
 
   void _handleOpen(String name, String? classAttr, String? bgColor,
       String? alignAttr, String attrs) {
-    final css = _resolve(classAttr);
+    var css = _resolve(classAttr);
+    // Inline style="..." attribute — higher priority than class styles.
+    final styleAttr = _attrValue(attrs, 'style');
+    if (styleAttr != null && styleAttr.isNotEmpty) {
+      css = css.merge(_CssStyle.parse(styleAttr));
+    }
     // Inline bgcolor attribute supplements CSS
     if (bgColor != null && css.bgColor == null) {
       css.bgColor = _CssStyle._parseColor(bgColor);
@@ -273,6 +278,15 @@ class FtlWidgetSink extends FtlSink {
       case 'b': case 'strong': _top.pushStyle(_Style.bold); return;
       case 'i': case 'em':     _top.pushStyle(_Style.italic); return;
       case 'font':
+        // Read color= attribute (e.g. <font color="white">); inline style= already merged above.
+        final fontColorAttr = _attrValue(attrs, 'color');
+        if (fontColorAttr != null && css.textColor == null) {
+          css.textColor = _CssStyle._parseColor(fontColorAttr);
+        }
+        if (css.textColor != null) _top.pushCssColor(css.textColor!);
+        return;
+      case 'span':
+        // Apply class and inline-style color from <span class="..."> / <span style="...">
         if (css.textColor != null) _top.pushCssColor(css.textColor!);
         return;
     }
@@ -285,7 +299,7 @@ class FtlWidgetSink extends FtlSink {
     switch (name) {
       case 'b': case 'strong': case 'i': case 'em':
         _top.popStyle(); return;
-      case 'font': _top.popCssColor(); return;
+      case 'font': case 'span': _top.popCssColor(); return;
 
       case 'h1': case 'h2': case 'h3': case 'h4': case 'h5': case 'h6':
       case 'p': case 'div': case 'center':
@@ -300,7 +314,7 @@ class FtlWidgetSink extends FtlSink {
       case 'html': case 'body': case 'head':
       case 'meta': case 'link': case 'title':
       case 'thead': case 'tbody': case 'tfoot':
-      case 'br': case 'hr': return;
+      case 'br': case 'hr': case 'a': case 'img': return;
     }
   }
 
