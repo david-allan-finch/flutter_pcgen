@@ -90,7 +90,7 @@ class PcgenTokenContext extends FtlContext {
       if (tl.contains('"abilities"') || tl.contains("'abilities'")) {
         // Handle ASPECT= filter for countdistinct("ABILITIES","ASPECT=X")
         if (tl.contains('aspect=')) {
-          final match = RegExp(r'aspect=([^,"\']+)').firstMatch(tl);
+          final match = RegExp(r'aspect=([^,"]+)').firstMatch(tl);
           if (match != null) {
             final aspectName = match.group(1)!.trim();
             final all = _abilitiesForCat(null);
