@@ -640,15 +640,16 @@ class _Evaluator {
              _isTruthy(_evalExpr(src.substring(andIdx + 2), vars));
     }
 
-    // Comparison operators — check multi-char ops before single-char to avoid
-    // partial matches (>= before >, <= before <, == before =).
-    // FreeMarker treats = and == as identical equality operators.
+    // Comparison operators — multi-char checked before single-char so >= is
+    // found before >, <= before <, == before =.  skipStrings matches
+    // arithmetic so top-level string literals with = or < inside don't
+    // produce false positives.  FreeMarker = and == are both equality.
     for (final op in ['==', '!=', '>=', '<=', '>', '<', '=']) {
-      final idx = _findTopLevel(src, op);
+      final idx = _findTopLevel(src, op, skipStrings: true);
       if (idx >= 0) {
         final left  = _evalExpr(src.substring(0, idx), vars);
         final right = _evalExpr(src.substring(idx + op.length), vars);
-        return _compare(left, right, op == '=' ? '==' : op);
+        return _compare(left, right, op);
       }
     }
 
@@ -902,6 +903,7 @@ class _Evaluator {
     final ln = num.tryParse(ls);
     final rn = num.tryParse(rs);
     switch (op) {
+      case '=':
       case '==': return ln != null && rn != null ? ln == rn : ls == rs;
       case '!=': return ln != null && rn != null ? ln != rn : ls != rs;
       case '>':  return ln != null && rn != null ? ln > rn : ls.compareTo(rs) > 0;
