@@ -301,8 +301,12 @@ class FtlWidgetSink extends FtlSink {
     _flushText();
     switch (name) {
       case 'b': case 'strong': case 'i': case 'em':
-        _top.popStyle(); return;
-      case 'font': case 'span': _top.popInline(); return;
+        // Flush before the style is popped so the text is captured with the
+        // correct bold/italic state rather than at build() time when it's gone.
+        _top._flushPending(); _top.popStyle(); return;
+      case 'font': case 'span':
+        // Flush before popping so inline colour/size/weight apply to the text.
+        _top._flushPending(); _top.popInline(); return;
 
       case 'h1': case 'h2': case 'h3': case 'h4': case 'h5': case 'h6':
       case 'p': case 'div': case 'center':

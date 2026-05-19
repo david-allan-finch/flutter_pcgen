@@ -410,28 +410,35 @@ class PcgenTokenContext extends FtlContext {
     return '';
   }
 
+  List<Map<String, dynamic>>? _skillCache;
+
+  // VIEW=VISIBLE_EXPORT: show skills the character has ranks in, plus all
+  // base (non-specialised) skills. Specialisations are identified by having
+  // parentheses in the name, e.g. "Craft (Alchemy)" — these only appear
+  // when the character has actually invested ranks in that specialisation.
   List<Map<String, dynamic>> _allSkills() {
+    if (_skillCache != null) return _skillCache!;
     final dataset = _dataset;
     if (dataset == null) return [];
     final results = <Map<String, dynamic>>[];
     for (final s in dataset.skills) {
       try {
-        // getKeyName() is more reliable: PObject.setName() explicitly stores
-        // the name via putString(StringKey.keyName), whereas getDisplayName()
-        // reads _displayName which can be empty for some object subclasses.
         final name = s.getKeyName();
         if (name.isEmpty) continue;
-        results.add({
+        final entry = <String, dynamic>{
           'name':  name,
           'key':   name,
           'stat':  s.getKeyStatAbb(),
           'skill': s,
-        });
+        };
+        final ranks = _pc.getSkillRanks(entry);
+        if (ranks > 0 || !name.contains('(')) {
+          results.add(entry);
+        }
       } catch (_) {}
     }
-    // Sort alphabetically for consistent display
     results.sort((a, b) => (a['name'] as String).compareTo(b['name'] as String));
-    return results;
+    return _skillCache = results;
   }
 
   // ─── Weapon tokens: WEAPON.N.TOHIT / .DAMAGE / .NAME / .CRIT / .RANGE ────

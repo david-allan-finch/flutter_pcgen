@@ -273,7 +273,7 @@ class _Parser {
   // Parse <#if cond>...</#if> with optional <#elseif> and <#else>
   _IfNode _parseIf() {
     _pos += 4; // skip <#if
-    final cond = _readUntil('>');
+    var cond = _readUntil('>');
     final branches = <({String condition, List<_Node> body})>[];
     List<_Node>? elseBranch;
 
@@ -287,8 +287,7 @@ class _Parser {
       } else if (chunk.tag == 'elseif') {
         branches.add((condition: cond.trim(), body: body));
         body = <_Node>[];
-        // read elseif condition
-        // already consumed by parseUntilBranch
+        cond = chunk.condExpr ?? ''; // advance to the elseif's own condition
       } else if (chunk.tag == 'else') {
         branches.add((condition: cond.trim(), body: body));
         final elseBody = <_Node>[];
