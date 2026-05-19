@@ -640,13 +640,15 @@ class _Evaluator {
              _isTruthy(_evalExpr(src.substring(andIdx + 2), vars));
     }
 
-    // Comparison operators
-    for (final op in ['==', '!=', '>=', '<=', '>', '<']) {
+    // Comparison operators — check multi-char ops before single-char to avoid
+    // partial matches (>= before >, <= before <, == before =).
+    // FreeMarker treats = and == as identical equality operators.
+    for (final op in ['==', '!=', '>=', '<=', '>', '<', '=']) {
       final idx = _findTopLevel(src, op);
       if (idx >= 0) {
-        final left = _evalExpr(src.substring(0, idx), vars);
+        final left  = _evalExpr(src.substring(0, idx), vars);
         final right = _evalExpr(src.substring(idx + op.length), vars);
-        return _compare(left, right, op);
+        return _compare(left, right, op == '=' ? '==' : op);
       }
     }
 
