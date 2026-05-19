@@ -10,6 +10,8 @@
 //   SKILL.0.TOTAL       → first skill total
 //   ABILITY.FEAT.0.NAME → first feat name
 
+import 'package:flutter_pcgen/src/cdom/enumeration/list_key.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/string_key.dart';
 import 'package:flutter_pcgen/src/core/skill.dart';
 import 'package:flutter_pcgen/src/io/freemarker/ftl_context.dart';
 import 'package:flutter_pcgen/src/gui2/facade/character_facade_impl.dart';
@@ -86,13 +88,21 @@ class PcgenTokenContext extends FtlContext {
         return _abilitiesForCat('Archetype').length.toString();
       }
       if (tl.contains('"abilities"') || tl.contains("'abilities'")) {
-        // Generic abilities count — aspect= or type= filter ignored for now
-        if (tl.contains('aspect=savebonus')) {
-          // Count abilities that have a SaveBonus aspect — approximation using
-          // selected conditional modifiers
-          return _pc.getSelectedDomainKeys().isNotEmpty ? '1' : '0';
+        // Handle ASPECT= filter for countdistinct("ABILITIES","ASPECT=X")
+        if (tl.contains('aspect=')) {
+          final match = RegExp(r'aspect=([^,"\']+)').firstMatch(tl);
+          if (match != null) {
+            final aspectName = match.group(1)!.trim();
+            final all = _abilitiesForCat(null);
+            var count = 0;
+            for (final ab in all) {
+              final obj = _findAbilityInDataset(ab);
+              if (obj != null && _getAspectValue(obj, aspectName).isNotEmpty) count++;
+            }
+            return count.toString();
+          }
         }
-        // General: count all abilities across categories
+        // General: count all abilities across all categories
         final selected = (_pc.toJson()['selectedAbilities'] as Map? ?? {});
         int total = 0;
         for (final v in selected.values) {
@@ -730,22 +740,59 @@ class PcgenTokenContext extends FtlContext {
 
     if (sub >= parts.length) return _displayName(ab);
     final field = parts[sub];
-    if (field.startsWith('ASPECT=') || field.startsWith('TYPE=')) {
-      // Check for HASASPECT sub-token — always return '' (ability type/aspect data
-      // not stored in detail; template will use fallback branch).
-      if (sub + 1 < parts.length && parts[sub + 1].toUpperCase() == 'HASASPECT') {
+    sub++;
+
+    if (field.startsWith('ASPECT=')) {
+      final aspectKey = field.substring(7);
+      if (sub < parts.length && parts[sub].toUpperCase() == 'ASPECT') {
+        // ASPECT=X.ASPECT.Y — return aspect Y's value from this ability object
+        final returnAspect = sub + 1 < parts.length ? parts[sub + 1] : aspectKey;
+        final obj = _findAbilityInDataset(ab);
+        if (obj != null) return _getAspectValue(obj, returnAspect);
         return '';
       }
-      // ABILITYALL.N.ASPECT=X or TYPE=X → return display name as best approximation
+      // ASPECT=X as filter — return the aspect X value
+      final obj = _findAbilityInDataset(ab);
+      if (obj != null) return _getAspectValue(obj, aspectKey);
       return _displayName(ab);
     }
+
+    if (field.startsWith('TYPE=')) {
+      if (sub < parts.length && parts[sub].toUpperCase() == 'HASASPECT') {
+        // TYPE=X.HASASPECT.Y — return 'Y' if ability has aspect Y
+        final aspectName = sub + 1 < parts.length ? parts[sub + 1] : '';
+        final obj = _findAbilityInDataset(ab);
+        if (obj != null && _getAspectValue(obj, aspectName).isNotEmpty) return 'Y';
+        return '';
+      }
+      return _displayName(ab);
+    }
+
     switch (field) {
       case 'NAME':    return _displayName(ab);
       case 'SOURCE':  return '';
-      case 'DESC':    return '';
-      case 'BENEFIT': return '';
       case 'TYPE':    return cat;
-      default:        return _displayName(ab);
+      case 'DESC': {
+        final obj = _findAbilityInDataset(ab);
+        if (obj != null) {
+          try {
+            final d = (obj as dynamic).getString(StringKey.description) as String?;
+            if (d != null && d.isNotEmpty) return d;
+          } catch (_) {}
+        }
+        return '';
+      }
+      case 'BENEFIT': {
+        final obj = _findAbilityInDataset(ab);
+        if (obj != null) {
+          try {
+            final b = (obj as dynamic).getString(StringKey.benefit) as String?;
+            if (b != null && b.isNotEmpty) return b;
+          } catch (_) {}
+        }
+        return '';
+      }
+      default: return _displayName(ab);
     }
   }
 
@@ -758,11 +805,55 @@ class PcgenTokenContext extends FtlContext {
   List<String> _abilitiesForCat(String? cat) {
     final selected = _data('selectedAbilities') as Map? ?? {};
     if (cat == null) {
-      // All categories
-      return selected.values.expand((v) => (v as List?)?.cast<String>() ?? <String>[]).toList();
+      return selected.values
+          .expand((v) => (v as List?)?.cast<String>() ?? <String>[])
+          .toList();
     }
-    final v = selected[cat] ?? selected[cat.toUpperCase()];
-    return (v as List?)?.cast<String>() ?? [];
+    // Case-insensitive key search — PCG files may use 'Feat', 'FEAT', etc.
+    final catUpper = cat.toUpperCase();
+    for (final key in selected.keys) {
+      if ((key as String).toUpperCase() == catUpper) {
+        return (selected[key] as List?)?.cast<String>() ?? [];
+      }
+    }
+    return [];
+  }
+
+  /// Find the dataset ability/feat object matching [nameKey] (display name or key).
+  dynamic _findAbilityInDataset(String nameKey) {
+    final displayName = _displayName(nameKey);
+    try {
+      final dataset = _dataset;
+      if (dataset == null) return null;
+      final allAbilities = (dataset as dynamic).getAllAbilities() as List? ?? [];
+      for (final ab in allAbilities) {
+        final k = (ab as dynamic).getKeyName() as String? ?? '';
+        final d = (ab as dynamic).getDisplayName() as String? ?? '';
+        if (k == nameKey || k == displayName || d == displayName || d == nameKey) {
+          return ab;
+        }
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  /// Return the value of the named ASPECT stored on [obj] ('ASPECT:Key|Value').
+  String _getAspectValue(dynamic obj, String aspectName) {
+    try {
+      final aspects = (obj as dynamic)
+          .getSafeListFor(ListKey.getConstant<String>('ASPECT_LIST')) as List?;
+      if (aspects == null) return '';
+      final upper = aspectName.toUpperCase();
+      for (final a in aspects) {
+        if (a is String) {
+          final idx = a.indexOf('|');
+          if (idx > 0 && a.substring(0, idx).toUpperCase() == upper) {
+            return a.substring(idx + 1);
+          }
+        }
+      }
+    } catch (_) {}
+    return '';
   }
 
   String _feat(List<String> parts) {
@@ -771,11 +862,31 @@ class PcgenTokenContext extends FtlContext {
     if (idx == null) return '';
     final feats = _abilitiesForCat('FEAT');
     if (idx >= feats.length) return '';
+    final ab = feats[idx];
     switch (parts[2]) {
-      case 'NAME': return _displayName(feats[idx]);
-      case 'DESC': return '';
+      case 'NAME': return _displayName(ab);
+      case 'DESC': {
+        final obj = _findAbilityInDataset(ab);
+        if (obj != null) {
+          try {
+            final d = (obj as dynamic).getString(StringKey.description) as String?;
+            if (d != null && d.isNotEmpty) return d;
+          } catch (_) {}
+        }
+        return '';
+      }
+      case 'BENEFIT': {
+        final obj = _findAbilityInDataset(ab);
+        if (obj != null) {
+          try {
+            final b = (obj as dynamic).getString(StringKey.benefit) as String?;
+            if (b != null && b.isNotEmpty) return b;
+          } catch (_) {}
+        }
+        return '';
+      }
     }
-    return _displayName(feats[idx]);
+    return _displayName(ab);
   }
 
   // ─── Domain / template tokens ──────────────────────────────────────────────
@@ -823,7 +934,10 @@ class PcgenTokenContext extends FtlContext {
           if ((cls as dynamic).getKeyName() != key) continue;
           final hasSpells = (cls as dynamic).hasSpells as bool? ?? false;
           if (!hasSpells) break;
-          final effLevel = _pc.getCasterLevel(key);
+          // Effective caster level = class's own levels + prestige-class CL grants.
+          // getCasterLevel() only returns prestige bonuses; add class's own count.
+          final ownLevel = counts[key] ?? 0;
+          final effLevel = ownLevel + _pc.getCasterLevel(key);
           if (effLevel <= 0) break;
           final stat = (cls as dynamic).getSpellStat() as String? ?? 'INT';
           final type = (cls as dynamic).getSpellType() as String? ?? '';
