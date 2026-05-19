@@ -249,7 +249,10 @@ class FtlWidgetSink extends FtlSink {
       case 'h4': case 'h5': case 'h6': _stack.add(_Heading(4, css)); return;
       case 'p':   _stack.add(_Para(css)); return;
       case 'div': _stack.add(_Div(css)); return;
-      case 'table': _stack.add(_TableB(css)); return;
+      case 'table':
+        // border="0" means a layout-only table — no visible cell borders.
+        final borderVal = int.tryParse(_attrValue(attrs, 'border') ?? '1') ?? 1;
+        _stack.add(_TableB(css, showBorder: borderVal > 0)); return;
       case 'thead': case 'tbody': case 'tfoot': return;
       case 'tr':  _stack.add(_RowB()); return;
       case 'th':
@@ -727,8 +730,9 @@ class _PlacedCell {
 
 class _TableB extends _Builder {
   final _CssStyle css;
+  final bool showBorder;
   final _rows = <_RowB>[];
-  _TableB(this.css);
+  _TableB(this.css, {this.showBorder = true});
 
   @override void addWidget(Widget w) {
     if (w is _RowWidget) _rows.add(w.row);
@@ -736,17 +740,20 @@ class _TableB extends _Builder {
 
   static const _bc = Color(0xFFB0BEC5);
 
+  // Only use the flex-row path when a content-bearing cell spans multiple
+  // columns or rows. Spacer cells (hasContent=false) with rowspan/colspan are
+  // ignored — they never need true spanning behaviour.
   bool get _hasColspanOrRowspan =>
-      _rows.any((r) => r.cells.any((c) => c.colspan > 1 || c.rowspan > 1));
+      _rows.any((r) => r.cells.any((c) =>
+          (c.colspan > 1 || c.rowspan > 1) && c.hasContent));
 
   @override Widget? build() {
     if (_rows.isEmpty) return null;
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
-      child: _hasColspanOrRowspan
-          ? _buildFlexRows()
-          : _buildFlutterTable(),
-    );
+    final child = _hasColspanOrRowspan ? _buildFlexRows() : _buildFlutterTable();
+    // Layout tables (border="0") get no padding or bottom margin.
+    return showBorder
+        ? Padding(padding: const EdgeInsets.only(bottom: 6), child: child)
+        : child;
   }
 
   // ── Path 1: Flutter Table (no colspan, no rowspan) ─────────────────────
@@ -759,7 +766,7 @@ class _TableB extends _Builder {
     if (maxCols == 0) return const SizedBox.shrink();
 
     return Table(
-      border: TableBorder.all(color: _bc, width: 0.5),
+      border: showBorder ? TableBorder.all(color: _bc, width: 0.5) : null,
       defaultColumnWidth: const IntrinsicColumnWidth(),
       children: _rows.map((row) {
         var cells = row.cells.map((c) => c.widget).toList();
@@ -866,14 +873,15 @@ class _TableB extends _Builder {
         final widgets = <Widget>[];
         int col = 0;
 
+        final cellBorder = showBorder
+            ? BoxDecoration(border: Border.all(color: _bc, width: 0.5))
+            : const BoxDecoration();
+
         for (final p in rowCells) {
           // Placeholder for columns occupied by rowspanning cells above
           while (col < p.col) {
-            widgets.add(Expanded(
-              flex: colFlex[col],
-              child: Container(
-                  decoration: BoxDecoration(border: Border.all(color: _bc, width: 0.5))),
-            ));
+            widgets.add(Expanded(flex: colFlex[col],
+                child: Container(decoration: cellBorder)));
             col++;
           }
           // Sum colFlex across all columns this cell spans so the proportions
@@ -884,20 +892,14 @@ class _TableB extends _Builder {
           }
           widgets.add(Expanded(
             flex: cellFlex.clamp(1, 100000),
-            child: Container(
-              decoration: BoxDecoration(border: Border.all(color: _bc, width: 0.5)),
-              child: p.cell.widget,
-            ),
+            child: Container(decoration: cellBorder, child: p.cell.widget),
           ));
           col += p.cell.colspan;
         }
         // Fill trailing columns
         while (col < totalCols) {
-          widgets.add(Expanded(
-            flex: colFlex[col],
-            child: Container(
-                decoration: BoxDecoration(border: Border.all(color: _bc, width: 0.5))),
-          ));
+          widgets.add(Expanded(flex: colFlex[col],
+              child: Container(decoration: cellBorder)));
           col++;
         }
 
