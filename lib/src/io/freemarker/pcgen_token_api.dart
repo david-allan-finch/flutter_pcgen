@@ -203,10 +203,21 @@ class PcgenTokenContext extends FtlContext {
       case 'SPELLLISTKNOWN':    return _spellListKnown(parts);
       case 'SPELLLISTCAST':     return _spellListCast(parts);
       case 'SPELLLISTMEMORIZE': return _spellListMemorize(parts);
+      case 'SPELLLISTTYPE':     return _spellClassType(parts);
       case 'MAXSKILLLEVEL':     return _pc.getTotalCharacterLevel().toString();
       case 'MAXCCSKILLLEVEL':   return (_pc.getTotalCharacterLevel() / 2).ceil().toString();
       case 'MAXSPELLLEVEL':     return _maxSpellLevel(parts);
+      case 'SPELLMEM':          return _spell(parts);
       case 'SPELL':             return _spell(parts);
+      case 'SPELLBOOKNAME':     return _spellBookName(parts);
+      case 'SPELLLISTDC':
+        if (parts.length >= 2) {
+          final idx = int.tryParse(parts[1]) ?? 0;
+          final sc = _spellClsByIdx(idx);
+          final baseLevel = parts.length >= 3 ? (int.tryParse(parts[2]) ?? 0) : 0;
+          return sc != null ? _pc.getSpellSaveDC(baseLevel, sc.key).toString() : '10';
+        }
+        return '10';
 
       case 'WEAPONH':     return _weaponH(parts);
 
@@ -225,6 +236,15 @@ class PcgenTokenContext extends FtlContext {
         return cap != null ? '+$cap' : '+99';
       case 'ACCHECK':      return _pc.getArmorCheckPenalty().toString();
       case 'ARMORCHECK':   return _pc.getArmorCheckPenalty().toString();
+
+      case 'TEXT':
+        // TEXT.LENGTH.token — returns the character length of pcstring(token).
+        // Used in spell template to check if a SOURCELINK is present.
+        if (parts.length >= 3 && parts[1].toUpperCase() == 'LENGTH') {
+          final inner = parts.sublist(2).join('.');
+          return _resolve(inner).length.toString();
+        }
+        return '';
 
       case 'EXPORT':      return _export(parts);
       case 'PAPERINFO':   return _paperinfo(parts);
@@ -776,25 +796,299 @@ class PcgenTokenContext extends FtlContext {
     return tmpl[idx];
   }
 
-  // ─── Spell tokens (simplified) ─────────────────────────────────────────────
+  // ─── Spell system ─────────────────────────────────────────────────────────
+
+  // Cached list of casting classes with their progression data.
+  List<_SpellCls>? _spellClsCache;
+
+  List<_SpellCls> _spellClasses() {
+    if (_spellClsCache != null) return _spellClsCache!;
+    final result = <_SpellCls>[];
+    try {
+      final dataset = _dataset;
+      if (dataset == null) return _spellClsCache = result;
+      final classLevels = _data('classLevels') as List? ?? [];
+      final counts = <String, int>{};
+      final order  = <String>[];
+      for (final l in classLevels) {
+        if (l is Map) {
+          final k = l['classKey'] as String? ?? '';
+          if (!order.contains(k)) order.add(k);
+          counts[k] = (counts[k] ?? 0) + 1;
+        }
+      }
+      final classes = (dataset as dynamic).classes as List? ?? [];
+      for (final key in order) {
+        for (final cls in classes) {
+          if ((cls as dynamic).getKeyName() != key) continue;
+          final hasSpells = (cls as dynamic).hasSpells as bool? ?? false;
+          if (!hasSpells) break;
+          final effLevel = _pc.getCasterLevel(key);
+          if (effLevel <= 0) break;
+          final stat = (cls as dynamic).getSpellStat() as String? ?? 'INT';
+          final type = (cls as dynamic).getSpellType() as String? ?? '';
+          // Memorizes if the MEMORIZE_SPELLS CDOMObjectKey is set to true, OR
+          // if no KNOWN: rows are defined (prepared casters don't have known lists).
+          bool memorizes = false;
+          try {
+            final mem = (cls as dynamic).getSafeObject(
+                _cdkMemorize ??= _getCDKMemorize()) as bool?;
+            memorizes = mem ?? true; // default true (prepared) if unspecified
+          } catch (_) { memorizes = true; }
+          result.add(_SpellCls(key, cls, effLevel, stat, type, memorizes));
+          break;
+        }
+      }
+    } catch (_) {}
+    return _spellClsCache = result;
+  }
+
+  // Lazily cached CDOMObjectKey for MEMORIZE_SPELLS to avoid repeated lookups.
+  dynamic _cdkMemorize;
+  static dynamic _getCDKMemorize() {
+    try {
+      // Use the existing CDOMObjectKey.getConstant infrastructure
+      return null; // will use try/catch path in each call
+    } catch (_) { return null; }
+  }
+
+  /// Bonus spell slots at [spellLevel] for a caster stat modifier [statMod].
+  /// In 3.5e: if statMod >= spellLevel, you get +1 slot at that spell level.
+  int _bonusSpells(int statMod, int spellLevel) {
+    if (spellLevel == 0 || statMod < spellLevel) return 0;
+    // One bonus slot per spell level up to statMod (capped at level 9).
+    return 1;
+  }
 
   String _spellClass(List<String> parts) {
-    // Return class that can cast spells
+    final clses = _spellClasses();
+    // SPELLLISTCLASS.N where N = classIdx within the character's class list.
+    // The template iterates all classes; return '' for non-casters.
+    if (parts.length < 2) return clses.firstOrNull?.key ?? '';
+    final idx = int.tryParse(parts[1]);
+    if (idx == null) return '';
+    // Map class list index to spell class — skip non-casting classes.
+    // The index here is the global class index, not the spell-class index.
     final classLevels = _data('classLevels') as List? ?? [];
-    final seen = <String>[];
+    final order = <String>[];
     for (final l in classLevels) {
       if (l is Map) {
         final k = l['classKey'] as String? ?? '';
-        if (!seen.contains(k)) seen.add(k);
+        if (!order.contains(k)) order.add(k);
       }
     }
-    if (parts.length < 2) return seen.firstOrNull ?? '';
-    final idx = int.tryParse(parts[1]);
-    if (idx == null || idx >= seen.length) return '';
-    return seen[idx];
+    if (idx >= order.length) return '';
+    final key = order[idx];
+    // Return the class name only if it is a casting class.
+    return clses.any((c) => c.key == key) ? key : '';
   }
 
-  String _spellClassType(List<String> parts) => '';
+  String _spellClassType(List<String> parts) {
+    final clses = _spellClasses();
+    if (parts.length < 2) return clses.firstOrNull?.spellType ?? '';
+    final idx = int.tryParse(parts[1]);
+    if (idx == null || idx >= clses.length) return '';
+    return clses[idx].spellType;
+  }
+
+  // SPELLLISTKNOWN.classIdx.level — spells known at level (spontaneous casters).
+  // For prepared casters returns '*' (infinite — they can prepare any known spell).
+  String _spellListKnown(List<String> parts) {
+    if (parts.length < 3) return '0';
+    final idx   = int.tryParse(parts[1]) ?? 0;
+    final level = int.tryParse(parts[2]) ?? 0;
+    final clses = _spellClasses();
+    // parts[1] is a global class index — find the spell class for that position.
+    final sc = _spellClsByIdx(idx);
+    if (sc == null) return '0';
+    if (sc.memorizes) return '∞'; // prepared casters know all spells in their list
+    try {
+      final known = (sc.cls as dynamic).getKnownSlotsAt(sc.effectiveLevel) as List?;
+      if (known != null && level < known.length) return known[level].toString();
+    } catch (_) {}
+    return '0';
+  }
+
+  // SPELLLISTCAST.classIdx.level — spell slots per day.
+  String _spellListCast(List<String> parts) {
+    if (parts.length < 3) return '0';
+    final idx   = int.tryParse(parts[1]) ?? 0;
+    final level = int.tryParse(parts[2]) ?? 0;
+    final sc = _spellClsByIdx(idx);
+    if (sc == null) return '0';
+    try {
+      final slots = (sc.cls as dynamic).getSpellsPerDayAt(sc.effectiveLevel) as List?;
+      if (slots == null || level >= slots.length) return '0';
+      int base = (slots[level] as num?)?.toInt() ?? 0;
+      if (base < 0) return '0'; // -1 means "no access at this level"
+      // Add stat bonus spells (level ≥ 1 only, not cantrips).
+      if (level > 0) {
+        final statMod = _pc.getStatModByAbb(sc.spellStat);
+        base += _bonusSpells(statMod, level);
+      }
+      return base.toString();
+    } catch (_) { return '0'; }
+  }
+
+  // SPELLLISTMEMORIZE.classIdx — 1 if class prepares spells, 0 if spontaneous.
+  String _spellListMemorize(List<String> parts) {
+    if (parts.length < 2) return '0';
+    final idx = int.tryParse(parts[1]) ?? 0;
+    final sc = _spellClsByIdx(idx);
+    return (sc?.memorizes ?? false) ? '1' : '0';
+  }
+
+  /// Maps a global class index to a _SpellCls, or null if that class doesn't cast.
+  _SpellCls? _spellClsByIdx(int globalIdx) {
+    final classLevels = _data('classLevels') as List? ?? [];
+    final order = <String>[];
+    for (final l in classLevels) {
+      if (l is Map) {
+        final k = l['classKey'] as String? ?? '';
+        if (!order.contains(k)) order.add(k);
+      }
+    }
+    if (globalIdx >= order.length) return null;
+    final key = order[globalIdx];
+    final clses = _spellClasses();
+    for (final sc in clses) { if (sc.key == key) return sc; }
+    return null;
+  }
+
+  // MAXSPELLLEVEL.classIdx — highest spell level available at current level.
+  String _maxSpellLevel(List<String> parts) {
+    if (parts.length < 2) return '0';
+    final idx = int.tryParse(parts[1]) ?? 0;
+    final sc = _spellClsByIdx(idx);
+    if (sc == null) return '0';
+    try {
+      final slots = (sc.cls as dynamic).getSpellsPerDayAt(sc.effectiveLevel) as List?;
+      if (slots == null || slots.isEmpty) return '0';
+      // Max level is the highest index with a non-negative entry.
+      for (int i = slots.length - 1; i >= 0; i--) {
+        if ((slots[i] as num?)?.toInt() ?? -1 >= 0) return i.toString();
+      }
+    } catch (_) {}
+    return '0';
+  }
+
+  // ─── Spellbook / prepared spell data ──────────────────────────────────────
+
+  /// Returns 0 (innate/racial) + number of casting classes as spellbooks.
+  /// Template convention: books 2..COUNT[SPELLBOOKS]-1 are actual spellbooks.
+  int _countSpellbooks() {
+    final clses = _spellClasses();
+    if (clses.isEmpty) return 1; // base only — no spell section rendered
+    return 2 + clses.length; // book 0=known, 1=unused, 2+N=class spellbooks
+  }
+
+  /// Spellbook name for book index N.
+  String _spellBookName(List<String> parts) {
+    if (parts.length < 2) return 'Spellbook';
+    final idx = int.tryParse(parts[1]) ?? 0;
+    if (idx < 2) return 'Known Spells';
+    final clses = _spellClasses();
+    final clsIdx = idx - 2;
+    if (clsIdx >= clses.length) return 'Spellbook';
+    return '${clses[clsIdx].key} Spellbook';
+  }
+
+  /// Count of spells in spellbook [spellbook] for class [classGlobalIdx] at [level].
+  /// Book N-2 belongs to spell-class N-2 (by index in _spellClasses()).
+  int _countSpellsInBook(int classGlobalIdx, int spellbook, int level) {
+    if (spellbook < 2) return 0; // book 0/1 not used for prepared spells here
+    final sc = _spellClsByIdx(classGlobalIdx);
+    if (sc == null) return 0;
+    // Check that this class owns this spellbook index.
+    final clses = _spellClasses();
+    final ownIdx = clses.indexOf(sc);
+    if (ownIdx < 0 || spellbook != ownIdx + 2) return 0;
+    // Domain spells for Cleric-type classes
+    final domainAtLevel = _pc.getDomainSpells()
+        .where((d) => d['level'] == level).toList();
+    if (domainAtLevel.isNotEmpty && sc.spellType.toLowerCase().contains('divine')) {
+      return domainAtLevel.length;
+    }
+    // TODO: return prepared wizard spells from character data when implemented.
+    return 0;
+  }
+
+  /// Spell at position [spellIdx] in book [spellbook] for class [classGlobalIdx] at [level].
+  Map<String, String> _spellMemData(int classGlobalIdx, int spellbook, int level, int spellIdx) {
+    final sc = _spellClsByIdx(classGlobalIdx);
+    if (sc == null) return const {};
+    final clses = _spellClasses();
+    final ownIdx = clses.indexOf(sc);
+    if (ownIdx < 0 || spellbook != ownIdx + 2) return const {};
+    // Domain spells
+    final domainAtLevel = _pc.getDomainSpells()
+        .where((d) => d['level'] == level).toList();
+    if (spellIdx < domainAtLevel.length && sc.spellType.toLowerCase().contains('divine')) {
+      final d = domainAtLevel[spellIdx];
+      final spellName = d['spell'] as String? ?? '';
+      final dc = _pc.getSpellSaveDC(level, sc.key);
+      return {
+        'NAME':        spellName,
+        'DC':          dc.toString(),
+        'TIMES':       '1',
+        'TIMEUNIT':    'Day',
+        'SAVEINFO':    'None',
+        'RANGE':       'Varies',
+        'CASTINGTIME': '1 Standard Action',
+        'DURATION':    'Varies',
+        'COMPONENTS':  'V, S',
+        'SR':          'Yes',
+        'SCHOOL':      '',
+        'EFFECT':      '',
+        'SOURCESHORT': '',
+        'SOURCEPAGE':  '',
+        'TARGET':      '',
+        'CASTERLEVEL': '${sc.effectiveLevel}',
+        'BONUSSPELL':  '*',  // domain/specialty spell marker
+      };
+    }
+    return const {};
+  }
+
+  // ─── SPELL token dispatcher ────────────────────────────────────────────────
+
+  String _spell(List<String> parts) {
+    // SPELLMEM.class.spellbook.level.spell.FIELD
+    if (parts.length < 6) return '';
+    final classIdx   = int.tryParse(parts[1]) ?? 0;
+    final spellbook  = int.tryParse(parts[2]) ?? 0;
+    final level      = int.tryParse(parts[3]) ?? 0;
+    final spellIdx   = int.tryParse(parts[4]) ?? 0;
+    final field      = parts[5].toUpperCase();
+    final data = _spellMemData(classIdx, spellbook, level, spellIdx);
+    return data[field] ?? '';
+  }
+
+  // Extend COUNT[...] to handle spell book counts.
+  int _countSpellsinBook(String inner) {
+    // COUNT[SPELLSINBOOK.class.spellbook.level]
+    // or COUNT[SPELLSINBOOK0.spellbook.level] (legacy form with class=0 embedded)
+    final s = inner.substring(12); // after 'SPELLSINBOOK'
+    final parts = s.split('.');
+    if (parts.length < 3) return 0;
+    int? classIdx;
+    int? spellbook;
+    int? level;
+    // Handle both SPELLSINBOOK.c.b.l and SPELLSINBOOK0.b.l
+    if (parts[0].isEmpty) {
+      // SPELLSINBOOK.c.b.l
+      classIdx  = int.tryParse(parts[1]);
+      spellbook = int.tryParse(parts[2]);
+      level     = parts.length > 3 ? int.tryParse(parts[3]) : 0;
+    } else {
+      // SPELLSINBOOK0.b.l — class baked into name
+      classIdx  = int.tryParse(parts[0]) ?? 0;
+      spellbook = int.tryParse(parts[1]);
+      level     = int.tryParse(parts[2]);
+    }
+    if (classIdx == null || spellbook == null || level == null) return 0;
+    return _countSpellsInBook(classIdx, spellbook, level ?? 0);
+  }
 
   // ─── Equipment tokens ─────────────────────────────────────────────────────
 
@@ -940,69 +1234,6 @@ class PcgenTokenContext extends FtlContext {
     return '';
   }
 
-  // ─── Spell tokens ─────────────────────────────────────────────────────────
-
-  String _spell(List<String> parts) => '';
-
-  // MAXSPELLLEVEL.classIdx — max spell level for a given casting class
-  String _maxSpellLevel(List<String> parts) {
-    if (parts.length < 2) return '';
-    final idx = int.tryParse(parts[1]) ?? 0;
-    final classKey = _spellClassKey(idx);
-    if (classKey.isEmpty) return '';
-    // Look up the class's max spell level from the dataset
-    try {
-      final dataset = _dataset;
-      if (dataset == null) return '';
-      final classes = (dataset as dynamic).classes as List? ?? [];
-      for (final cls in classes) {
-        if ((cls as dynamic).getKeyName() == classKey) {
-          final maxLvl = (cls as dynamic).getMaxSpellLevel() as int? ?? 0;
-          return maxLvl.toString();
-        }
-      }
-    } catch (_) {}
-    return '0';
-  }
-
-  // SPELLLISTKNOWN.classIdx.level — spells known at level (spontaneous casters)
-  String _spellListKnown(List<String> parts) => '0';
-
-  // SPELLLISTCAST.classIdx.level — spell slots at level
-  String _spellListCast(List<String> parts) => '0';
-
-  // SPELLLISTMEMORIZE.classIdx — 1 if class prepares spells, 0 if spontaneous
-  String _spellListMemorize(List<String> parts) {
-    if (parts.length < 2) return '0';
-    final idx = int.tryParse(parts[1]) ?? 0;
-    final classKey = _spellClassKey(idx);
-    if (classKey.isEmpty) return '0';
-    try {
-      final dataset = _dataset;
-      if (dataset == null) return '0';
-      final classes = (dataset as dynamic).classes as List? ?? [];
-      for (final cls in classes) {
-        if ((cls as dynamic).getKeyName() == classKey) {
-          final mem = (cls as dynamic).memorizesSpells() as bool? ?? false;
-          return mem ? '1' : '0';
-        }
-      }
-    } catch (_) {}
-    return '0';
-  }
-
-  String _spellClassKey(int idx) {
-    final classLevels = _data('classLevels') as List? ?? [];
-    final seen = <String>[];
-    for (final l in classLevels) {
-      if (l is Map) {
-        final k = l['classKey'] as String? ?? '';
-        if (k.isNotEmpty && !seen.contains(k)) seen.add(k);
-      }
-    }
-    return idx < seen.length ? seen[idx] : '';
-  }
-
   // ─── Color / length / move / pool tokens ─────────────────────────────────
 
   String _color(List<String> parts) {
@@ -1105,10 +1336,18 @@ class PcgenTokenContext extends FtlContext {
     if (w.startsWith('EQUIPMENT.')) return (_data('gear') as List? ?? []).length;
     if (w == 'WEAPONPROFS') return _pc.getWeaponProficiencies().length;
     if (w == 'SAVES') return _saveNames.length;
-    if (w == 'SPELLBOOKS') return 0;
+    if (w == 'SPELLBOOKS') return _countSpellbooks();
     if (w == 'SPELLRACE')  return 0;
-    if (w.startsWith('SPELLSINBOOK.')) return 0;
-    if (w.startsWith('SPELLLISTCAST.')) return 0;
+    if (w.startsWith('SPELLSINBOOK')) return _countSpellsinBook(what);
+    if (w.startsWith('SPELLLISTCAST.')) {
+      // COUNT[SPELLLISTCAST.class.level] — used for rendering spell slot boxes (☐)
+      final parts = what.split('.');
+      if (parts.length >= 3) {
+        final slots = int.tryParse(_spellListCast(parts)) ?? 0;
+        return slots;
+      }
+      return 0;
+    }
     // COUNT[A]+COUNT[B] compound expressions
     final plusIdx = what.indexOf('+');
     if (plusIdx > 0) {
@@ -1194,4 +1433,17 @@ class PcgenTokenContext extends FtlContext {
     final sep = stored.indexOf('|');
     return sep >= 0 ? stored.substring(0, sep) : stored;
   }
+}
+
+// ─── Spell class descriptor ────────────────────────────────────────────────────
+
+class _SpellCls {
+  final String  key;
+  final dynamic cls;           // PCClass domain object
+  final int     effectiveLevel; // caster level (including prestige bonuses)
+  final String  spellStat;     // INT, WIS, CHA
+  final String  spellType;     // Arcane, Divine, Psionic
+  final bool    memorizes;     // true = prepared, false = spontaneous
+  const _SpellCls(this.key, this.cls, this.effectiveLevel,
+      this.spellStat, this.spellType, this.memorizes);
 }

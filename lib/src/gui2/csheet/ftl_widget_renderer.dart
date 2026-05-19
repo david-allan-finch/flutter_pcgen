@@ -335,6 +335,23 @@ class FtlWidgetSink extends FtlSink {
       case 'sub':
         _top.pushInline(_InlineStyle(fontSize: (_top._inlineFontSize ?? 11.0) * 0.75));
         return;
+      // <input> cannot be interactive in Flutter (no JS). Render a placeholder
+      // that takes up space so surrounding layout is preserved.
+      case 'input': {
+        final type = (_attrValue(attrs, 'type') ?? 'text').toLowerCase();
+        if (type == 'checkbox') {
+          _top.addText('☐'); // ☐
+        } else {
+          // text / number input — visible empty box
+          _top.addWidget(Container(
+            width: 60, height: 18,
+            decoration: BoxDecoration(
+              border: Border.all(color: const Color(0xFF888888), width: 1),
+            ),
+          ));
+        }
+        return;
+      }
       case 'font':
         // Read color= and size= HTML attributes; inline style= already merged above.
         final fontColorAttr = _attrValue(attrs, 'color');
@@ -393,7 +410,7 @@ class FtlWidgetSink extends FtlSink {
       case 'html': case 'body': case 'head':
       case 'meta': case 'link': case 'title':
       case 'thead': case 'tbody': case 'tfoot':
-      case 'br': case 'hr': case 'a': case 'img': return;
+      case 'br': case 'hr': case 'a': case 'img': case 'input': return;
     }
   }
 

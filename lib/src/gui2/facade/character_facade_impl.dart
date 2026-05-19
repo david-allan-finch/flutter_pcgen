@@ -1856,6 +1856,30 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
             }
           }
         } catch (_) {}
+        // PLUS:N enhancement bonus — synthesise BONUS entries so the +N
+        // is included in the character's attack, damage, or AC totals.
+        try {
+          final plus = (item as dynamic).getPlus() as int? ?? 0;
+          if (plus > 0) {
+            final isWeapon = (item as dynamic).isWeapon() as bool? ?? false;
+            final isArmor  = (item as dynamic).isArmor()  as bool? ?? false;
+            final isShield = (item as dynamic).isShield()  as bool? ?? false;
+            if (isWeapon) {
+              final b1 = ParsedBonus.parse('COMBAT|TOHIT|$plus|TYPE=ENHANCEMENT');
+              final b2 = ParsedBonus.parse('COMBAT|DAMAGE|$plus|TYPE=ENHANCEMENT');
+              if (b1 != null) allBonuses.add(b1);
+              if (b2 != null) allBonuses.add(b2);
+            }
+            if (isArmor) {
+              final b = ParsedBonus.parse('COMBAT|AC|$plus|TYPE=ARMORENHANCEMENT');
+              if (b != null) allBonuses.add(b);
+            }
+            if (isShield) {
+              final b = ParsedBonus.parse('COMBAT|AC|$plus|TYPE=SHIELDENHANCEMENT');
+              if (b != null) allBonuses.add(b);
+            }
+          }
+        } catch (_) {}
       }
     } catch (_) {}
 

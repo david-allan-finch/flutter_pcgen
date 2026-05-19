@@ -508,6 +508,46 @@ class GenericLoader<T extends CDOMObject> extends LstObjectFileLoader<T> {
         case 'SLOTS':
           try { obj.putObject(CDOMObjectKey.getConstant<int>('EQUIP_SLOTS'), int.tryParse(value.trim()) ?? 1); } catch (_) {}
           return;
+        case 'PLUS':
+          // PLUS:N — enhancement bonus (magic weapon/armor). Stored on the
+          // equipment object; applied as BONUS:COMBAT|TOHIT/DAMAGE|N or
+          // BONUS:COMBAT|AC|N (with type ENHANCEMENT/ARMORENHANCEMENT) when
+          // the item is equipped in CharacterFacadeImpl._buildEquipBonuses().
+          try { obj.putObject(CDOMObjectKey.getConstant<int>('PLUS'), int.tryParse(value.trim()) ?? 0); } catch (_) {}
+          return;
+        case 'ARMORTYPE':
+          // ARMORTYPE:LIGHT/MEDIUM/HEAVY — armour category for proficiency checks.
+          try { obj.putObject(CDOMObjectKey.getConstant<dynamic>('ARMOR_TYPE'), value.trim().toUpperCase()); } catch (_) {}
+          return;
+        case 'QUALITY':
+          // QUALITY:Name|description — item quality tag
+          try { obj.putString(StringKey.nameText, value.split('|').first.trim()); } catch (_) {}
+          return;
+        case 'CHARGES':
+          // CHARGES:min|max — item charge limits (e.g. a wand)
+          {
+            final parts2 = value.split('|');
+            final max = int.tryParse(parts2.last.trim()) ?? 0;
+            try { obj.putObject(CDOMObjectKey.getConstant<int>('CHARGES'), max); } catch (_) {}
+          }
+          return;
+        case 'ITYPE':
+          // ITYPE:TYPE1.TYPE2 — additional item types
+          for (final t in value.split('.')) {
+            final tp = t.trim();
+            if (tp.isNotEmpty) {
+              try { obj.addToListFor(ListKey.getConstant<String>('ITYPE_LIST'), tp.toUpperCase()); } catch (_) {}
+            }
+          }
+          return;
+        case 'MODS':
+          // MODS:YES/NO — whether equipment mods can be applied
+          return; // metadata only
+        case 'VARIANTS':
+          // VARIANTS:name1|name2 — alternate equipment names (cosmetic)
+          return;
+        case 'QUALITY':
+          return;
         // ---- Special ability text ----
         case 'SAB':
           for (final s in value.split('|')) {
@@ -560,6 +600,46 @@ class GenericLoader<T extends CDOMObject> extends LstObjectFileLoader<T> {
           return;
 
         // ---- Class / creature stats ----
+        case 'HD':
+          // HD:N — hit dice sides (e.g. HD:8 on a monster race means d8 HD)
+          try { obj.putObject(CDOMObjectKey.getConstant<int>('HIT_DIE'), int.tryParse(value.trim()) ?? 8); } catch (_) {}
+          return;
+        case 'FAVOREDCLASS':
+          // FAVOREDCLASS:Wizard|Any — favoured class(es) for this race
+          try { obj.putString(StringKey.abbreviation, value.split('|').first.trim()); } catch (_) {}
+          return;
+        case 'WEAPONBONUS':
+          // WEAPONBONUS:TOHIT|N — bonus to attack with a specific weapon type
+          // Store as a BONUS entry for weapon type
+          try {
+            final wp = value.split('|');
+            if (wp.length >= 2) {
+              obj.addToListFor(ListKey.getConstant<String>('WEAPON_BONUS_LIST'), value);
+            }
+          } catch (_) {}
+          return;
+        case 'SPELLKNOWN':
+          // SPELLKNOWN:CLASS.ClassName|0=4|1=2 — spells known per level
+          // These supplement spontaneous caster tables already set by the class loader.
+          return; // handled by class loader; ignore extra entries
+        case 'SPELLLIST':
+          // SPELLLIST:1|CLASS.ClassName — extra spell lists
+          return; // class-level handling; ignore in generic loader
+        case 'ADDSPELLLEVEL':
+          // ADDSPELLLEVEL:N — adds N levels to effective spell casting level
+          // (used by some prestige class abilities)
+          return; // complex prerequisite handling; ignore for now
+        case 'SITUATION':
+          // SITUATION:Name|Formula — situational bonus (not always applied)
+          try { obj.addToListFor(ListKey.getConstant<String>('SITUATION_LIST'), value); } catch (_) {}
+          return;
+        case 'TEMPDESC':
+          // TEMPDESC:Description — description for a temporary bonus
+          try { obj.putString(StringKey.tempvalue, value.trim()); } catch (_) {}
+          return;
+        case 'TEMPVALUE':
+          // TEMPVALUE:N — default value for a temporary bonus
+          return; // stored on TEMPBONUS
         case 'HITDIE':
           try { obj.putString(StringKey.hdFormula, value.trim()); } catch (_) {}
           return;
