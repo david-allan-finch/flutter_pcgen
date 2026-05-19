@@ -8,6 +8,7 @@
 // colours, text colours, font sizes, weights, and borders from the template
 // CSS are applied directly to Flutter widget properties.
 
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_layout_grid/flutter_layout_grid.dart';
 import 'package:flutter_pcgen/src/io/freemarker/ftl_engine.dart';
@@ -283,11 +284,13 @@ class FtlWidgetSink extends FtlSink {
         if (fontColorAttr != null && css.textColor == null) {
           css.textColor = _CssStyle._parseColor(fontColorAttr);
         }
-        if (css.textColor != null) _top.pushCssColor(css.textColor!);
+        _top.pushInline(_InlineStyle(
+            color: css.textColor, fontSize: css.fontSize, fontWeight: css.fontWeight));
         return;
       case 'span':
-        // Apply class and inline-style color from <span class="..."> / <span style="...">
-        if (css.textColor != null) _top.pushCssColor(css.textColor!);
+        // Apply class and inline-style color/size/weight from <span class="..."> / <span style="...">
+        _top.pushInline(_InlineStyle(
+            color: css.textColor, fontSize: css.fontSize, fontWeight: css.fontWeight));
         return;
     }
   }
@@ -299,7 +302,7 @@ class FtlWidgetSink extends FtlSink {
     switch (name) {
       case 'b': case 'strong': case 'i': case 'em':
         _top.popStyle(); return;
-      case 'font': case 'span': _top.popCssColor(); return;
+      case 'font': case 'span': _top.popInline(); return;
 
       case 'h1': case 'h2': case 'h3': case 'h4': case 'h5': case 'h6':
       case 'p': case 'div': case 'center':
@@ -564,13 +567,24 @@ Color? _autoFg(Color? bg, Color? fg) {
   return bg.computeLuminance() < 0.35 ? Colors.white : Colors.black;
 }
 
+// ─── Inline style record (pushed by <font> and <span>) ───────────────────────
+
+class _InlineStyle {
+  final Color?      color;
+  final double?     fontSize;
+  final FontWeight? fontWeight;
+  const _InlineStyle({this.color, this.fontSize, this.fontWeight});
+}
+
 // ─── Builder base ──────────────────────────────────────────────────────────────
 
 abstract class _Builder {
-  final _textBuf   = StringBuffer();
-  final _children  = <Widget>[];
-  final _styles    = <_Style>[];
-  final _cssColors = <Color>[]; // color stack for <font color=...>
+  final _textBuf     = StringBuffer();
+  final _children    = <Widget>[];
+  final _styles      = <_Style>[];
+  // Always paired: every pushInline has a corresponding popInline so stacks
+  // stay in sync even when individual fields are null.
+  final _inlineStack = <_InlineStyle>[];
 
   void addText(String t) => _textBuf.write(t);
 
@@ -581,8 +595,14 @@ abstract class _Builder {
 
   void pushStyle(_Style s) => _styles.add(s);
   void popStyle()  { if (_styles.isNotEmpty) _styles.removeLast(); }
-  void pushCssColor(Color c) => _cssColors.add(c);
-  void popCssColor() { if (_cssColors.isNotEmpty) _cssColors.removeLast(); }
+
+  void pushInline(_InlineStyle s) => _inlineStack.add(s);
+  void popInline() { if (_inlineStack.isNotEmpty) _inlineStack.removeLast(); }
+
+  // Resolve inline color/size/weight by scanning the stack top-to-bottom.
+  Color?      get _inlineColor      => _inlineStack.lastWhereOrNull((s) => s.color      != null)?.color;
+  double?     get _inlineFontSize   => _inlineStack.lastWhereOrNull((s) => s.fontSize   != null)?.fontSize;
+  FontWeight? get _inlineFontWeight => _inlineStack.lastWhereOrNull((s) => s.fontWeight != null)?.fontWeight;
 
   void _flushPending() {
     // Collapse horizontal whitespace but preserve \n from <br> tags.
@@ -592,14 +612,13 @@ abstract class _Builder {
         .trim();
     _textBuf.clear();
     if (t.isEmpty) return;
-    final bold   = _styles.contains(_Style.bold);
+    final bold   = _styles.contains(_Style.bold) || _inlineFontWeight == FontWeight.bold;
     final italic = _styles.contains(_Style.italic);
-    final col    = _cssColors.isNotEmpty ? _cssColors.last : null;
     _children.add(Text(t, style: TextStyle(
-        fontSize:   11,
-        fontWeight: bold   ? FontWeight.bold   : FontWeight.normal,
-        fontStyle:  italic ? FontStyle.italic  : FontStyle.normal,
-        color: col)));
+        fontSize:   _inlineFontSize,   // null → cell CSS size applied in _CellB
+        fontWeight: bold   ? FontWeight.bold   : null,
+        fontStyle:  italic ? FontStyle.italic  : null,
+        color: _inlineColor)));
   }
 
   Widget? build();
@@ -939,7 +958,12 @@ class _CellB extends _Builder {
         return Text(text,
             textAlign: ta,
             style: (child.style ?? const TextStyle()).copyWith(
-                fontSize: fs, fontWeight: fw, color: fg,
+                // Inline font size/weight (from <font>/<span>) takes priority
+                // over the cell-level defaults so e.g. <font style="font-size:9pt">
+                // produces the correct size even inside a plain-size cell.
+                fontSize:   child.style?.fontSize   ?? fs,
+                fontWeight: child.style?.fontWeight ?? fw,
+                color: fg,
                 fontFamily: ff));
       }
       return child;
