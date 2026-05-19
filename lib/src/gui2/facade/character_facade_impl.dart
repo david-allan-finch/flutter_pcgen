@@ -75,6 +75,9 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
   bool _bonusDirty = true; // rebuild on next access
   dynamic _dataset; // cached dataset reference for incremental rebuilds
 
+  /// Class skill names for this character (populated during rebuildBonuses).
+  List<String> classSkillNames = const [];
+
   // Reference facades
   late final DefaultReferenceFacade<Object> _raceRef;
   late final DefaultReferenceFacade<Object> _alignmentRef;
@@ -668,6 +671,65 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
 
   /// Armor bonus to AC (ARMOR-typed bonus from equipped armor).
   int getArmorBonus() => _bonusAcc.totalInt('COMBAT', 'AC');
+
+  int getNaturalArmorBonus() => _bonusAcc.totalIntOfType('COMBAT', 'AC', 'NATURALARMOR');
+  int getShieldBonus()       => _bonusAcc.totalIntOfType('COMBAT', 'AC', 'SHIELD') +
+                                _bonusAcc.totalIntOfType('COMBAT', 'AC', 'SHIELDENHANCEMENT');
+  int getDeflectionBonus()   => _bonusAcc.totalIntOfType('COMBAT', 'AC', 'DEFLECTION');
+  int getDodgeBonus()        => _bonusAcc.totalIntOfType('COMBAT', 'AC', 'DODGE');
+  int getSacredBonus()       => _bonusAcc.totalIntOfType('COMBAT', 'AC', 'SACRED') +
+                                _bonusAcc.totalIntOfType('COMBAT', 'AC', 'PROFANE');
+
+  /// Size modifier to AC: Fine +8 … Colossal −8.
+  int getSizeACModifier() {
+    const mods = {'F': 8, 'D': 4, 'T': 2, 'S': 1, 'M': 0, 'L': -1, 'H': -2, 'G': -4, 'C': -8};
+    return mods[getRaceSize().toUpperCase()] ?? 0;
+  }
+
+  /// Lowest MAXDEX cap from all equipped armor/shield items.
+  /// Returns null if no cap applies (no armor, or armor has no MAXDEX entry).
+  int? getMaxDexCapFromArmor() {
+    try {
+      final dataset = _dataset;
+      if (dataset == null) return null;
+      final equippedSlots = _data['equippedSlots'] as Map? ?? {};
+      final equippedKeys = equippedSlots.values.toSet();
+      final equipment = (dataset as dynamic).equipment as List? ?? [];
+      int? cap;
+      for (final item in equipment) {
+        final key = (item as dynamic).getKeyName() as String? ?? '';
+        if (!equippedKeys.contains(key)) continue;
+        final md = (item as dynamic).getMaxDex() as int?;
+        if (md != null) cap = cap == null ? md : (md < cap ? md : cap);
+      }
+      return cap;
+    } catch (_) { return null; }
+  }
+
+  /// Sum of spell failure percentages from all equipped armor/shield items.
+  int getSpellFailureTotal() {
+    try {
+      final dataset = _dataset;
+      if (dataset == null) return 0;
+      final equippedSlots = _data['equippedSlots'] as Map? ?? {};
+      final equippedKeys = equippedSlots.values.toSet();
+      final equipment = (dataset as dynamic).equipment as List? ?? [];
+      int total = 0;
+      for (final item in equipment) {
+        final key = (item as dynamic).getKeyName() as String? ?? '';
+        if (!equippedKeys.contains(key)) continue;
+        final sf = (item as dynamic).getSpellFailure() as int? ?? 0;
+        total += sf;
+      }
+      return total;
+    } catch (_) { return 0; }
+  }
+
+  /// Returns true if [skillName] is a class skill for this character.
+  bool isClassSkill(String skillName) {
+    final lower = skillName.toLowerCase();
+    return classSkillNames.any((s) => s.toLowerCase() == lower);
+  }
 
   /// Total armor check penalty from all equipped armor and shields.
   int getArmorCheckPenalty() {
@@ -1962,6 +2024,9 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
         }
       }
     } catch (_) {}
+
+    // Store for isClassSkill() lookups
+    classSkillNames = classSkillSet.toList();
 
     final state = CharacterBonusState(
       statMods: statMods,

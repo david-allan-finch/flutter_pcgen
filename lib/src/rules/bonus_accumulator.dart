@@ -148,6 +148,30 @@ class BonusAccumulator {
       totalWithAll(category, target).truncate();
   int totalIntExcluding(String category, String target, Set<String> excludeTypes) =>
       totalExcluding(category, target, excludeTypes).truncate();
+
+  /// Total for bonuses of exactly [bonusType] only (case-insensitive).
+  /// Used to retrieve individual AC components (ARMOR, NATURALARMOR, SHIELD,
+  /// DEFLECTION) which are stored as typed bonuses under COMBAT/AC.
+  double totalOfType(String category, String target, String bonusType) {
+    final cat = category.toUpperCase();
+    final tgt = target.toUpperCase();
+    final typ = bonusType.toUpperCase();
+    double sum = 0;
+    final typed = _values[cat]?[tgt];
+    if (typed == null) return 0;
+    for (final entry in typed.entries) {
+      // Strip optional source suffix (e.g. "ARMOR.Shield+1") before matching.
+      final baseType = entry.key.split('.').first;
+      if (baseType != typ) continue;
+      final vals = entry.value;
+      if (vals.isEmpty) continue;
+      sum += vals.reduce((a, b) => a > b ? a : b);
+    }
+    return sum;
+  }
+
+  int totalIntOfType(String category, String target, String bonusType) =>
+      totalOfType(category, target, bonusType).truncate();
 }
 
 // ---------------------------------------------------------------------------

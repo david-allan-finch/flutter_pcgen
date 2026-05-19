@@ -72,14 +72,33 @@ class PcgenTokenContext extends FtlContext {
       if (tl.contains('"skillsit"') || tl.contains("'skillsit'")) {
         return _allSkills().length.toString();
       }
-      if (tl.contains('category=feat') || tl.contains("category=feat")) {
+      // Ability category patterns
+      if (tl.contains('category=feat') || tl.contains('"feats"')) {
         return _abilitiesForCat('FEAT').length.toString();
       }
-      if (tl.contains('category=special ability')) {
+      if (tl.contains('category=special ability') || tl.contains('"special ability"')) {
         return _abilitiesForCat('Special Ability').length.toString();
       }
-      if (tl.contains('category=trait')) {
+      if (tl.contains('category=trait') || tl.contains('"trait"')) {
         return _abilitiesForCat('TRAIT').length.toString();
+      }
+      if (tl.contains('category=archetype')) {
+        return _abilitiesForCat('Archetype').length.toString();
+      }
+      if (tl.contains('"abilities"') || tl.contains("'abilities'")) {
+        // Generic abilities count — aspect= or type= filter ignored for now
+        if (tl.contains('aspect=savebonus')) {
+          // Count abilities that have a SaveBonus aspect — approximation using
+          // selected conditional modifiers
+          return _pc.getSelectedDomainKeys().isNotEmpty ? '1' : '0';
+        }
+        // General: count all abilities across categories
+        final selected = (_pc.toJson()['selectedAbilities'] as Map? ?? {});
+        int total = 0;
+        for (final v in selected.values) {
+          total += ((v as List?)?.length ?? 0);
+        }
+        return total.toString();
       }
       return '0';
     }
@@ -92,6 +111,12 @@ class PcgenTokenContext extends FtlContext {
       final val = _pc.getVariable(varName);
       if (fmt == 'INTVAL') return val.toInt().toString();
       return val.toString();
+    }
+
+    // HASVAR.name — true if the named variable is defined (non-zero)
+    if (token.startsWith('HASVAR.')) {
+      final varName = token.substring(7);
+      return _pc.getVariable(varName) != 0 ? '1' : '0';
     }
 
     final parts = token.split('.');
@@ -194,9 +219,12 @@ class PcgenTokenContext extends FtlContext {
 
       case 'SR':           return _pc.getSR().toString();
       case 'DR':           return _data('dr') ?? '';
-      case 'SPELLFAILURE': return '0';
-      case 'MAXDEX':       return '+99';
+      case 'SPELLFAILURE': return _pc.getSpellFailureTotal().toString();
+      case 'MAXDEX':
+        final cap = _pc.getMaxDexCapFromArmor();
+        return cap != null ? '+$cap' : '+99';
       case 'ACCHECK':      return _pc.getArmorCheckPenalty().toString();
+      case 'ARMORCHECK':   return _pc.getArmorCheckPenalty().toString();
 
       case 'EXPORT':      return _export(parts);
       case 'PAPERINFO':   return _paperinfo(parts);
@@ -333,15 +361,24 @@ class PcgenTokenContext extends FtlContext {
       case 'TOUCH':        return _pc.getTouchAC().toString();
       case 'BASE':         return '10';
       case 'ARMOR':        return _pc.getArmorBonus().toString();
-      case 'SHIELD':       return '0';
+      case 'ARMORENHANCEMENT':
+      case 'ENHANCEMENT':  return '0'; // enhancement to armor
+      case 'SHIELD':       return _pc.getShieldBonus().toString();
+      case 'SHIELDENHANCEMENT': return '0';
       case 'ABILITY':
       case 'DEX':          return _signed(_pc.getStatModByAbb('DEX'));
-      case 'DEFLECTION':   return '0';
-      case 'DODGE':        return '0';
+      case 'DEFLECTION':   return _pc.getDeflectionBonus().toString();
+      case 'DODGE':        return _pc.getDodgeBonus().toString();
       case 'NATURALARMOR':
-      case 'NATURAL':      return '0';
-      case 'SIZE':         return '0';
-      case 'MISC':         return '0';
+      case 'NATURAL':      return _pc.getNaturalArmorBonus().toString();
+      case 'SIZE':         return _pc.getSizeACModifier().toString();
+      case 'MISC':
+        // MISC = total AC − sum of all known components
+        final computed = 10 + _pc.getStatModByAbb('DEX') +
+            _pc.getArmorBonus() + _pc.getShieldBonus() +
+            _pc.getNaturalArmorBonus() + _pc.getDeflectionBonus() +
+            _pc.getDodgeBonus() + _pc.getSizeACModifier();
+        return (_pc.getAC() - computed).toString();
     }
     return _pc.getAC().toString();
   }
@@ -405,7 +442,7 @@ class PcgenTokenContext extends FtlContext {
       case 'MISC':       return _pc.getSkillMiscBonus(skName).toString();
       case 'UNTRAINED':  return '1';
       case 'EXCLUSIVE':  return '0';
-      case 'CLASSSK':    return '0';
+      case 'CLASSSK':    return _pc.isClassSkill(skName) ? '1' : '0';
     }
     return '';
   }
@@ -559,8 +596,14 @@ class PcgenTokenContext extends FtlContext {
         final s = sk['skill'];
         return (s is Skill && !s.isUntrained()) ? '0' : '1';
       case 'EXCLUSIVE': return '0';
-      case 'CLASSSK':   return '0';
-      case 'ACPv':      return '';
+      case 'CLASSSK':   return _pc.isClassSkill(skName) ? '1' : '0';
+      case 'ACPv':
+        // Armor check penalty applies flag (from ACHECK:YES on the skill LST)
+        final sk2 = sk['skill'];
+        if (sk2 is Skill && sk2.hasArmorCheckPenalty()) {
+          return _pc.getArmorCheckPenalty().toString();
+        }
+        return '0';
     }
     return '';
   }
@@ -667,8 +710,15 @@ class PcgenTokenContext extends FtlContext {
 
     if (sub >= parts.length) return _displayName(ab);
     final field = parts[sub];
-    // Ignore ASPECT=xxx / TYPE=xxx filter qualifiers — just return the name
-    if (field.startsWith('ASPECT=') || field.startsWith('TYPE=')) return _displayName(ab);
+    if (field.startsWith('ASPECT=') || field.startsWith('TYPE=')) {
+      // Check for HASASPECT sub-token — always return '' (ability type/aspect data
+      // not stored in detail; template will use fallback branch).
+      if (sub + 1 < parts.length && parts[sub + 1].toUpperCase() == 'HASASPECT') {
+        return '';
+      }
+      // ABILITYALL.N.ASPECT=X or TYPE=X → return display name as best approximation
+      return _displayName(ab);
+    }
     switch (field) {
       case 'NAME':    return _displayName(ab);
       case 'SOURCE':  return '';
@@ -816,16 +866,55 @@ class PcgenTokenContext extends FtlContext {
       case 'WEIGHT':    return (item['weight'] as num?)?.toString() ?? '0';
       case 'QTY':       return (item['qty'] as num?)?.toString() ?? '1';
       case 'COST':      return (item['cost'] as num?)?.toString() ?? '0';
-      case 'TOTALAC':   return '0';
-      case 'MAXDEX':    return '';
-      case 'ACCHECK':   return '0';
-      case 'SPELLFAIL': return '0';
-      case 'TYPE':      return '';
-      case 'SPROP':     return '';
-      case 'NOTE':      return '';
-      case 'QUALITY':   return '';
       case 'CARRIED':   return '1';
       case 'LOCATION':  return '';
+      case 'NOTE':      return item['note'] as String? ?? '';
+      case 'QUALITY':   return item['quality'] as String? ?? '';
+      case 'SPROP':     return item['sprop'] as String? ?? '';
+      // Armor-specific fields — look up Equipment domain object for accurate values
+      case 'TOTALAC': {
+        final eq = _findEquipmentObj(item);
+        if (eq != null) {
+          try {
+            final stored = item['acBonus'] as num?;
+            if (stored != null) return stored.toString();
+          } catch (_) {}
+        }
+        return _pc.getArmorBonus().toString();
+      }
+      case 'MAXDEX': {
+        final eq = _findEquipmentObj(item);
+        if (eq != null) {
+          try {
+            final md = (eq as dynamic).getMaxDex() as int?;
+            if (md != null) return '+$md';
+          } catch (_) {}
+        }
+        return '';
+      }
+      case 'ACCHECK': {
+        final eq = _findEquipmentObj(item);
+        if (eq != null) {
+          try { return ((eq as dynamic).getAcCheck() as int? ?? 0).toString(); } catch (_) {}
+        }
+        return '0';
+      }
+      case 'SPELLFAIL':
+      case 'SPELLFAILURE':
+      case 'ARCANE': {
+        final eq = _findEquipmentObj(item);
+        if (eq != null) {
+          try { return ((eq as dynamic).getSpellFailure() as int? ?? 0).toString(); } catch (_) {}
+        }
+        return '0';
+      }
+      case 'TYPE': {
+        final eq = _findEquipmentObj(item);
+        if (eq != null) {
+          try { return (eq as dynamic).getArmorType() as String? ?? ''; } catch (_) {}
+        }
+        return item['type'] as String? ?? '';
+      }
     }
     return '';
   }
@@ -1071,6 +1160,21 @@ class PcgenTokenContext extends FtlContext {
       case 'WEIGHTUNIT':   return 'lbs';
     }
     return '';
+  }
+
+  /// Looks up the Equipment domain object for a gear Map entry.
+  /// Returns null if the dataset or item can't be found.
+  dynamic _findEquipmentObj(Map item) {
+    try {
+      final dataset = _dataset;
+      if (dataset == null) return null;
+      final equipment = (dataset as dynamic).equipment as List? ?? [];
+      final key = item['key'] as String? ?? item['name'] as String? ?? '';
+      for (final eq in equipment) {
+        if ((eq as dynamic).getKeyName() == key) return eq;
+      }
+    } catch (_) {}
+    return null;
   }
 
   // ─── Helpers ───────────────────────────────────────────────────────────────
