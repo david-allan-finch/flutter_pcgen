@@ -369,7 +369,9 @@ class _Parser {
 
   _AssignNode _parseAssign(bool isLocal) {
     _pos += isLocal ? 7 : 8; // <#local or <#assign
-    final header = _readUntil('>').trim();
+    // Strip trailing / so that <#assign x = expr /> works identically to <#assign x = expr>
+    var header = _readUntil('>').trim();
+    if (header.endsWith('/')) header = header.substring(0, header.length - 1).trim();
     // Could be: name=expr  or just: name (block assign via <#assign name>...</#assign>)
     final eq = header.indexOf('=');
     if (eq >= 0) {
