@@ -966,7 +966,7 @@ class PcgenTokenContext extends FtlContext {
       if (slots == null || slots.isEmpty) return '0';
       // Max level is the highest index with a non-negative entry.
       for (int i = slots.length - 1; i >= 0; i--) {
-        if ((slots[i] as num?)?.toInt() ?? -1 >= 0) return i.toString();
+        if (((slots[i] as num?)?.toInt() ?? -1) >= 0) return i.toString();
       }
     } catch (_) {}
     return '0';
