@@ -33,6 +33,11 @@ class FtlWidgetSink extends FtlSink {
 
   final _cssMap = <String, _CssStyle>{};
 
+  // ─── Table cellpadding stack ──────────────────────────────────────────────
+  // Each <table> pushes its cellpadding (in logical px); </table> pops.
+  // Browser default cellpadding is 1px.
+  final _cellPadStack = <double>[1.0];
+
   // ─── Widget stack ─────────────────────────────────────────────────────────
 
   final _root  = _Column();
@@ -191,11 +196,12 @@ class FtlWidgetSink extends FtlSink {
     final classAttr  = _attrValue(body, 'class');
     final bgAttr     = _attrValue(body, 'bgcolor');
     final alignAttr  = _attrValue(body, 'align');
+    final valignAttr = _attrValue(body, 'valign');
 
     if (closing) {
       _handleClose(name);
     } else {
-      _handleOpen(name, classAttr, bgAttr, alignAttr, body);
+      _handleOpen(name, classAttr, bgAttr, alignAttr, valignAttr, body);
       if (selfClose) _handleClose(name);
     }
   }
@@ -213,7 +219,7 @@ class FtlWidgetSink extends FtlSink {
   // ─── Open tags ────────────────────────────────────────────────────────────
 
   void _handleOpen(String name, String? classAttr, String? bgColor,
-      String? alignAttr, String attrs) {
+      String? alignAttr, String? valignAttr, String attrs) {
     var css = _resolve(classAttr);
     // Inline style="..." attribute — higher priority than class styles.
     final styleAttr = _attrValue(attrs, 'style');
@@ -224,12 +230,21 @@ class FtlWidgetSink extends FtlSink {
     if (bgColor != null && css.bgColor == null) {
       css.bgColor = _CssStyle._parseColor(bgColor);
     }
-    // Inline align attribute supplements CSS
+    // Inline align attribute supplements CSS (HTML align attr = lower priority
+    // than an explicit CSS text-align, so only apply when CSS didn't set one).
     if (alignAttr != null && css.textAlign == null) {
       switch (alignAttr.toLowerCase()) {
         case 'center': css.textAlign = TextAlign.center; break;
         case 'right':  css.textAlign = TextAlign.right;  break;
         case 'left':   css.textAlign = TextAlign.left;   break;
+      }
+    }
+    // Inline valign attribute — vertical alignment for cells.
+    if (valignAttr != null) {
+      switch (valignAttr.toLowerCase()) {
+        case 'top':    css.verticalAlign = CrossAxisAlignment.start;  break;
+        case 'bottom': css.verticalAlign = CrossAxisAlignment.end;    break;
+        case 'middle': css.verticalAlign = CrossAxisAlignment.center; break;
       }
     }
 
@@ -255,7 +270,13 @@ class FtlWidgetSink extends FtlSink {
         // table-level borders when explicitly requested via border="1" etc.
         // Cell-level borders come from CSS classes (.abb, .abt, .border9…).
         final borderVal = int.tryParse(_attrValue(attrs, 'border') ?? '0') ?? 0;
-        _stack.add(_TableB(css, showBorder: borderVal > 0)); return;
+        final cpAttr   = _attrValue(attrs, 'cellpadding');
+        final cp = cpAttr != null ? (double.tryParse(cpAttr) ?? 1.0) : 1.0;
+        final csAttr   = _attrValue(attrs, 'cellspacing');
+        final cs = csAttr != null ? (double.tryParse(csAttr) ?? 0.0) : 0.0;
+        _cellPadStack.add(cp);
+        _stack.add(_TableB(css, showBorder: borderVal > 0, cellSpacing: cs));
+        return;
       case 'thead': case 'tbody': case 'tfoot': return;
       case 'tr':  _stack.add(_RowB()); return;
       case 'th':
@@ -263,14 +284,16 @@ class FtlWidgetSink extends FtlSink {
         final rsth = int.tryParse(_attrValue(attrs, 'rowspan') ?? '') ?? 1;
         final wth  = _parseCellWidth(_attrValue(attrs, 'width'));
         _stack.add(_CellB(isHeader: true,  css: css, colspan: csth, rowspan: rsth,
-                          widthFraction: wth.$1, widthFixed: wth.$2));
+                          widthFraction: wth.$1, widthFixed: wth.$2,
+                          cellPad: _cellPadStack.last));
         return;
       case 'td':
         final cstd = int.tryParse(_attrValue(attrs, 'colspan') ?? '') ?? 1;
         final rstd = int.tryParse(_attrValue(attrs, 'rowspan') ?? '') ?? 1;
         final wtd  = _parseCellWidth(_attrValue(attrs, 'width'));
         _stack.add(_CellB(isHeader: false, css: css, colspan: cstd, rowspan: rstd,
-                          widthFraction: wtd.$1, widthFixed: wtd.$2));
+                          widthFraction: wtd.$1, widthFixed: wtd.$2,
+                          cellPad: _cellPadStack.last));
         return;
       case 'ul':  _stack.add(_ListB(ordered: false)); return;
       case 'ol':  _stack.add(_ListB(ordered: true));  return;
@@ -316,13 +339,21 @@ class FtlWidgetSink extends FtlSink {
 
       case 'h1': case 'h2': case 'h3': case 'h4': case 'h5': case 'h6':
       case 'p': case 'div': case 'center':
-      case 'table': case 'tr': case 'th': case 'td':
+      case 'tr': case 'th': case 'td':
       case 'ul': case 'ol': case 'li':
         if (_stack.length > 1) {
           final done = _stack.removeLast();
           final w = done.build();
           if (w != null) _top.addWidget(w);
         }
+        return;
+      case 'table':
+        if (_stack.length > 1) {
+          final done = _stack.removeLast();
+          final w = done.build();
+          if (w != null) _top.addWidget(w);
+        }
+        if (_cellPadStack.length > 1) _cellPadStack.removeLast();
         return;
       case 'html': case 'body': case 'head':
       case 'meta': case 'link': case 'title':
@@ -389,6 +420,7 @@ class _CssStyle {
   bool         uppercase = false;   // text-transform: uppercase
   bool         smallCaps = false;   // font-variant: small-caps
   CrossAxisAlignment verticalAlign = CrossAxisAlignment.center;
+  bool         displayed = true;    // false when display:none
 
   _CssStyle();
 
@@ -422,6 +454,8 @@ class _CssStyle {
           break;
         case 'text-transform':
           if (val.contains('uppercase')) s.uppercase = true; break;
+        case 'display':
+          if (val.trim() == 'none') s.displayed = false; break;
         case 'vertical-align':
           switch (val.trim()) {
             case 'top':    s.verticalAlign = CrossAxisAlignment.start;  break;
@@ -439,6 +473,12 @@ class _CssStyle {
           s.borderLeft   = _parseBorderSide(val); break;
         case 'border-right':
           s.borderRight  = _parseBorderSide(val); break;
+        // border-X-width/style/color: width-only shortcut used alongside
+        // the full border-X: shorthand (which takes precedence in parse order).
+        case 'border-top-width':    s.borderTop    ??= _parseBorderSide('$val solid black'); break;
+        case 'border-bottom-width': s.borderBottom ??= _parseBorderSide('$val solid black'); break;
+        case 'border-left-width':   s.borderLeft   ??= _parseBorderSide('$val solid black'); break;
+        case 'border-right-width':  s.borderRight  ??= _parseBorderSide('$val solid black'); break;
       }
     }
     return s;
@@ -476,6 +516,7 @@ class _CssStyle {
     m.smallCaps    = other.smallCaps    || smallCaps;
     m.verticalAlign = other.verticalAlign != CrossAxisAlignment.center
         ? other.verticalAlign : verticalAlign;
+    m.displayed    = other.displayed    && displayed;
     return m;
   }
 
@@ -678,6 +719,7 @@ class _Para extends _Builder {
   _Para(this.css);
   @override Widget? build() {
     _flushPending();
+    if (!css.displayed) return null;
     if (_children.isEmpty) return null;
     final single = _children.length == 1 && _children.first is Text
         ? (_children.first as Text).data?.trim() ?? '' : '';
@@ -699,6 +741,7 @@ class _Div extends _Builder {
   _Div(this.css, {this.center = false});
   @override Widget? build() {
     _flushPending();
+    if (!css.displayed) return null;
     if (_children.isEmpty) return null;
     Widget col = Column(
         crossAxisAlignment:
@@ -737,8 +780,9 @@ class _PlacedCell {
 class _TableB extends _Builder {
   final _CssStyle css;
   final bool showBorder;
+  final double cellSpacing;
   final _rows = <_RowB>[];
-  _TableB(this.css, {this.showBorder = true});
+  _TableB(this.css, {this.showBorder = true, this.cellSpacing = 0.0});
 
   @override void addWidget(Widget w) {
     if (w is _RowWidget) _rows.add(w.row);
@@ -755,7 +799,13 @@ class _TableB extends _Builder {
 
   @override Widget? build() {
     if (_rows.isEmpty) return null;
-    final child = _hasColspanOrRowspan ? _buildFlexRows() : _buildFlutterTable();
+    Widget child = _hasColspanOrRowspan ? _buildFlexRows() : _buildFlutterTable();
+    // cellspacing: wrap each row in a small gap (approximated as padding on the table)
+    if (cellSpacing > 0) {
+      child = Padding(
+          padding: EdgeInsets.all(cellSpacing / 2),
+          child: child);
+    }
     // Layout tables (border="0") get no padding or bottom margin.
     return showBorder
         ? Padding(padding: const EdgeInsets.only(bottom: 6), child: child)
@@ -907,26 +957,29 @@ class _TableB extends _Builder {
 
     final widgets = <Widget>[];
     int col = colStart;
+    // cellspacing gap between cells (each side of each cell gets half the gap)
+    final gap = cellSpacing > 0 ? cellSpacing / 2 : 0.0;
 
     for (final p in rowCells) {
       while (col < p.col) {
-        widgets.add(Expanded(flex: colFlex[col],
-            child: Container(decoration: cellBorder)));
+        Widget empty = Container(decoration: cellBorder);
+        if (gap > 0) empty = Padding(padding: EdgeInsets.all(gap), child: empty);
+        widgets.add(Expanded(flex: colFlex[col], child: empty));
         col++;
       }
       var cellFlex = 0;
       for (int c = p.col; c < p.col + p.cell.colspan && c < totalCols; c++) {
         cellFlex += colFlex[c];
       }
-      widgets.add(Expanded(
-        flex: cellFlex.clamp(1, 100000),
-        child: Container(decoration: cellBorder, child: p.cell.widget),
-      ));
+      Widget cellW = Container(decoration: cellBorder, child: p.cell.widget);
+      if (gap > 0) cellW = Padding(padding: EdgeInsets.all(gap), child: cellW);
+      widgets.add(Expanded(flex: cellFlex.clamp(1, 100000), child: cellW));
       col += p.cell.colspan;
     }
     while (col < totalCols) {
-      widgets.add(Expanded(flex: colFlex[col],
-          child: Container(decoration: cellBorder)));
+      Widget empty = Container(decoration: cellBorder);
+      if (gap > 0) empty = Padding(padding: EdgeInsets.all(gap), child: empty);
+      widgets.add(Expanded(flex: colFlex[col], child: empty));
       col++;
     }
 
@@ -1000,14 +1053,22 @@ class _CellB extends _Builder {
   final int rowspan;
   final double? widthFraction;
   final double? widthFixed;
+  final double cellPad;
   _CellB({required this.isHeader, required this.css,
           this.colspan = 1, this.rowspan = 1,
-          this.widthFraction, this.widthFixed});
+          this.widthFraction, this.widthFixed,
+          this.cellPad = 1.0});
 
   @override void addWidget(Widget w) { _flushPending(); _children.add(w); }
 
   @override Widget? build() {
     _flushPending();
+
+    // display:none — return an invisible spacer that preserves table structure.
+    if (!css.displayed) {
+      return _CellWidget(_CellData(const SizedBox.shrink(),
+          colspan: colspan, rowspan: rowspan, hasContent: false));
+    }
 
     final bg  = css.bgColor ?? (isHeader ? const Color(0xFFD0D7DC) : null);
     final fg  = _autoFg(bg, css.textColor);
@@ -1016,6 +1077,13 @@ class _CellB extends _Builder {
     final ta  = css.textAlign ?? (isHeader ? TextAlign.center : TextAlign.start);
     final ff  = css.fontFamily;
     final va  = css.verticalAlign;
+
+    // Map text-align to cross-axis alignment for multi-child columns.
+    final caa = switch (ta) {
+      TextAlign.center => CrossAxisAlignment.center,
+      TextAlign.right  => CrossAxisAlignment.end,
+      _                => CrossAxisAlignment.start,
+    };
 
     final styledChildren = _children.map((child) {
       if (child is Text) {
@@ -1030,8 +1098,10 @@ class _CellB extends _Builder {
                 // produces the correct size even inside a plain-size cell.
                 fontSize:   child.style?.fontSize   ?? fs,
                 fontWeight: child.style?.fontWeight ?? fw,
-                color: fg,
-                fontFamily: ff));
+                // Inline colour (from <font color>/style="color:"> wins; otherwise
+                // use the cell-computed foreground colour.
+                color:      child.style?.color      ?? fg,
+                fontFamily: child.style?.fontFamily ?? ff));
       }
       return child;
     }).toList();
@@ -1039,27 +1109,30 @@ class _CellB extends _Builder {
     Widget content = styledChildren.isEmpty
         ? const SizedBox.shrink()
         : styledChildren.length == 1 ? styledChildren.first
-        : Column(crossAxisAlignment: CrossAxisAlignment.start,
-            children: styledChildren);
+        : Column(crossAxisAlignment: caa, children: styledChildren);
 
-    // Vertical-align: wrap in SizedBox.expand so content floats to
-    // top/center/bottom within the cell. Only meaningful when the row has
-    // taller neighbours; keep mainAxisSize.min to avoid unbounded height.
-    if (va != CrossAxisAlignment.center && styledChildren.isNotEmpty) {
+    // Vertical-align: only wrap when not the default (top-start).
+    // We use mainAxisSize.min so the cell doesn't inflate vertically beyond
+    // its content — the Row itself aligns cells via CrossAxisAlignment.start.
+    if (va != CrossAxisAlignment.start && styledChildren.isNotEmpty) {
       content = Column(
-        crossAxisAlignment: ta == TextAlign.center
-            ? CrossAxisAlignment.center
-            : CrossAxisAlignment.start,
+        crossAxisAlignment: caa,
         mainAxisAlignment: va == CrossAxisAlignment.end
             ? MainAxisAlignment.end
-            : MainAxisAlignment.start,
+            : MainAxisAlignment.center,
         mainAxisSize: MainAxisSize.min,
         children: [content],
       );
     }
 
+    // cellpadding: translate the HTML cellpadding value (logical px) to Flutter
+    // padding. Use cellPad directly as vertical pixels; double it horizontally
+    // since horizontal space reads tighter than vertical at the same px count.
+    final hp = cellPad * 2.0;
+    final vp = cellPad;
+
     final cell = Container(
-      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 3),
+      padding: EdgeInsets.symmetric(horizontal: hp, vertical: vp),
       decoration: BoxDecoration(color: bg, border: css.effectiveBorder),
       child: content,
     );
