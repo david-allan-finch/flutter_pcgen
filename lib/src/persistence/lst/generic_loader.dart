@@ -298,8 +298,9 @@ class GenericLoader<T extends CDOMObject> extends LstObjectFileLoader<T> {
         case 'MAXLEVEL':
         case 'MAXHD':
           return;
+        case 'KEYSTAT':
         case 'KEY_STAT':
-          // Skill key ability stat abbreviation (e.g. KEY_STAT:STR).
+          // Skill key ability stat abbreviation (e.g. KEYSTAT:INT).
           try {
             obj.putObject(
               CDOMObjectKey.getConstant<dynamic>('KEY_STAT'),

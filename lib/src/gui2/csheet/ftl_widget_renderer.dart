@@ -688,8 +688,10 @@ class _CellData {
   final int rowspan;
   final double? widthFraction; // from width="XX%"  (0–1)
   final double? widthFixed;    // from width="XX"    (logical px)
+  final bool hasContent;       // false for spacer cells (only <br> or empty)
   const _CellData(this.widget, {this.colspan = 1, this.rowspan = 1,
-                                 this.widthFraction, this.widthFixed});
+                                 this.widthFraction, this.widthFixed,
+                                 this.hasContent = true});
 }
 
 // A cell after the HTML placement algorithm has been run.
@@ -725,30 +727,17 @@ class _TableB extends _Builder {
   }
 
   // ── Path 1: Flutter Table (no colspan, no rowspan) ─────────────────────
-  // IntrinsicColumnWidth sizes each column to content. Safe — no LayoutGrid
-  // ancestor measures intrinsic dimensions on this widget.
+  // IntrinsicColumnWidth sizes every column to its widest content.
+  // We intentionally ignore pixel width hints from the template — values
+  // like width="25" are browser rendering hints that are too narrow for
+  // Flutter's layout model and cause character-by-character wrapping.
   Widget _buildFlutterTable() {
     final maxCols = _rows.fold(0, (m, r) => r.cells.length > m ? r.cells.length : m);
     if (maxCols == 0) return const SizedBox.shrink();
 
-    // Only honour pixel widths (fixed(px)) — not percentage widths.
-    // FractionColumnWidth(0.2) inside a narrow parent cell (e.g. stats block
-    // at 25% of panel) would give 40px columns — too tight for headers.
-    // IntrinsicColumnWidth (the default) sizes to actual content instead.
-    final colWidths = <int, TableColumnWidth>{};
-    for (final row in _rows) {
-      for (int i = 0; i < row.cells.length; i++) {
-        final c = row.cells[i];
-        if (!colWidths.containsKey(i) && c.widthFixed != null) {
-          colWidths[i] = FixedColumnWidth(c.widthFixed!);
-        }
-      }
-    }
-
     return Table(
       border: TableBorder.all(color: _bc, width: 0.5),
       defaultColumnWidth: const IntrinsicColumnWidth(),
-      columnWidths: colWidths.isEmpty ? const {} : colWidths,
       children: _rows.map((row) {
         var cells = row.cells.map((c) => c.widget).toList();
         while (cells.length < maxCols) {
@@ -806,16 +795,19 @@ class _TableB extends _Builder {
     final hasPercent = placed.any((p) => p.cell.widthFraction != null);
     final colFlex = List<int>.filled(totalCols, 0);
     if (hasPercent) {
-      // Pass 1: single-column cells with explicit % widths.
+      // Pass 1: single-column cells with explicit % widths AND actual content.
+      // Spacer cells (hasContent=false) are skipped — their large % widths
+      // (e.g. width="50%" on an empty <br>-only cell) would otherwise crush
+      // adjacent content columns (e.g. the INITIATIVE label).
       for (final p in placed) {
-        if (p.cell.widthFraction != null && p.cell.colspan == 1) {
+        if (p.cell.widthFraction != null && p.cell.colspan == 1 && p.cell.hasContent) {
           final f = (p.cell.widthFraction! * 1000).round().clamp(1, 1000);
           if (colFlex[p.col] == 0) colFlex[p.col] = f;
         }
       }
       // Pass 2: multi-column cells with explicit % widths fill unset columns.
       for (final p in placed) {
-        if (p.cell.widthFraction != null && p.cell.colspan > 1) {
+        if (p.cell.widthFraction != null && p.cell.colspan > 1 && p.cell.hasContent) {
           final f = (p.cell.widthFraction! * 1000).round().clamp(1, 1000);
           final perCol = (f ~/ p.cell.colspan).clamp(1, 1000);
           for (int c = p.col; c < p.col + p.cell.colspan && c < totalCols; c++) {
@@ -982,7 +974,8 @@ class _CellB extends _Builder {
     );
     return _CellWidget(_CellData(cell, colspan: colspan, rowspan: rowspan,
                                   widthFraction: widthFraction,
-                                  widthFixed: widthFixed));
+                                  widthFixed: widthFixed,
+                                  hasContent: styledChildren.isNotEmpty));
   }
 }
 
