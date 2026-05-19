@@ -431,6 +431,8 @@ class PcgenTokenContext extends FtlContext {
           'stat':  s.getKeyStatAbb(),
           'skill': s,
         };
+        // Skip placeholder / artifact skill names
+        if (name.toLowerCase() == 'not used' || name.toLowerCase() == 'untrained') continue;
         final ranks = _pc.getSkillRanks(entry);
         if (ranks > 0 || !name.contains('(')) {
           results.add(entry);
@@ -772,24 +774,24 @@ class PcgenTokenContext extends FtlContext {
     return _gearField(item, field);
   }
 
-  // ARMOR.N.* — all gear (compat) / ARMOR.EQUIPPED.N.* — equipped armor only
+  // ARMOR.N.* and ARMOR.EQUIPPED.N.* both use the equipped armor list.
+  // The template checks ARMOR.N.NAME to see if slot N is filled, then
+  // reads ARMOR.EQUIPPED.N.* for the actual values — both must use the
+  // same list or empty slots appear incorrectly as filled.
   String _armorEquipped(List<String> parts) {
-    if (parts.length < 3) return '';
-    // ARMOR.EQUIPPED.N.FIELD
+    if (parts.length < 2) return '';
+    final equipped = _equippedArmor();
+    int? idx;
+    String field = 'NAME';
     if (parts[1].toUpperCase() == 'EQUIPPED') {
-      final idx = parts.length > 2 ? int.tryParse(parts[2]) : null;
-      if (idx == null) return '';
-      final field = parts.length > 3 ? parts[3] : 'NAME';
-      final equipped = _equippedArmor();
-      if (idx >= equipped.length) return '';
-      return _gearField(equipped[idx], field);
+      idx   = parts.length > 2 ? int.tryParse(parts[2]) : null;
+      field = parts.length > 3 ? parts[3] : 'NAME';
+    } else {
+      idx   = int.tryParse(parts[1]);
+      field = parts.length > 2 ? parts[2] : 'NAME';
     }
-    // ARMOR.N.* — flat gear list (backward compat)
-    final idx = int.tryParse(parts[1]);
-    if (idx == null) return '';
-    final gear = (_data('gear') as List? ?? []).whereType<Map>().toList();
-    if (idx >= gear.length) return '';
-    return _gearField(gear[idx], parts.length > 2 ? parts[2] : 'NAME');
+    if (idx == null || idx >= equipped.length) return '';
+    return _gearField(equipped[idx], field);
   }
 
   List<Map> _equippedArmor() {
