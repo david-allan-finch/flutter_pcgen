@@ -1294,6 +1294,9 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
   String getAppearance() => _str('appearance');
   void setAppearance(String text) => _set('appearance', text);
 
+  String getPersonalityTrait(int n) =>
+      _str(n == 1 ? 'personalityTrait1' : 'personalityTrait2');
+
   // ---- Serialise / deserialise to Map (for save / load) -------------------
 
   /// Returns the live data map directly so callers can mutate lists in-place.

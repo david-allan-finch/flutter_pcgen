@@ -85,41 +85,52 @@ class PcgenTokenContext extends FtlContext {
       if (tl.contains('"skillsit"') || tl.contains("'skillsit'")) {
         return _applyCountSuffix(_allSkills().length).toString();
       }
-      // Ability category patterns
-      if (tl.contains('category=feat') || tl.contains('"feats"')) {
+      // Legacy shorthand: "FEATS" or "SKILLS"
+      if (tl.contains('"feats"')) {
         return _applyCountSuffix(_abilitiesForCat('FEAT').length).toString();
       }
-      if (tl.contains('category=special ability') || tl.contains('"special ability"')) {
-        return _applyCountSuffix(_abilitiesForCat('Special Ability').length).toString();
-      }
-      if (tl.contains('category=trait') || tl.contains('"trait"')) {
-        return _applyCountSuffix(_abilitiesForCat('TRAIT').length).toString();
-      }
-      if (tl.contains('category=archetype')) {
-        return _applyCountSuffix(_abilitiesForCat('Archetype').length).toString();
-      }
-      if (tl.contains('"abilities"') || tl.contains("'abilities'")) {
-        // Handle ASPECT= filter for countdistinct("ABILITIES","ASPECT=X")
+      // General abilities counting: count("ABILITIES","CATEGORY=X","TYPE=Y","ASPECT=Z",...)
+      if (tl.contains('"abilities"') || tl.contains("'abilities'") ||
+          tl.contains('category=')) {
+        // Extract CATEGORY= filter
+        final catMatch = RegExp(r'category=([^,"]+)').firstMatch(tl);
+        List<String> abilities;
+        if (catMatch != null) {
+          abilities = _abilitiesForCat(catMatch.group(1)!.trim());
+        } else {
+          // No category — count all
+          abilities = _abilitiesForCat(null);
+        }
+        // Optional TYPE= filter
+        if (tl.contains('type=')) {
+          final typeMatch = RegExp(r'type=([^,"]+)').firstMatch(tl);
+          if (typeMatch != null) {
+            final typeFilter = typeMatch.group(1)!.trim();
+            abilities = abilities.where((ab) {
+              final obj = _findAbilityInDataset(ab);
+              if (obj == null) return false;
+              try {
+                final types = (obj as dynamic).getTypes() as List? ?? [];
+                return types.any((t) =>
+                    (t as String).toLowerCase() == typeFilter.toLowerCase());
+              } catch (_) { return false; }
+            }).toList();
+          }
+        }
+        // Optional ASPECT= filter
         if (tl.contains('aspect=')) {
           final match = RegExp(r'aspect=([^,"]+)').firstMatch(tl);
           if (match != null) {
             final aspectName = match.group(1)!.trim();
-            final all = _abilitiesForCat(null);
             var count = 0;
-            for (final ab in all) {
+            for (final ab in abilities) {
               final obj = _findAbilityInDataset(ab);
               if (obj != null && _getAspectValue(obj, aspectName).isNotEmpty) count++;
             }
             return _applyCountSuffix(count).toString();
           }
         }
-        // General: count all abilities across all categories
-        final selected = (_pc.toJson()['selectedAbilities'] as Map? ?? {});
-        int total = 0;
-        for (final v in selected.values) {
-          total += ((v as List?)?.length ?? 0);
-        }
-        return _applyCountSuffix(total).toString();
+        return _applyCountSuffix(abilities.length).toString();
       }
       return '0';
     }
@@ -153,7 +164,7 @@ class PcgenTokenContext extends FtlContext {
       case 'GENDER':      return _pc.getGender();
       case 'AGE':         return _pc.getAge().toString();
       case 'HEIGHT':      return _pc.getHeight().toString();
-      case 'WEIGHT':      return _pc.getWeight().toString();
+      case 'WEIGHT':      return parts.length == 1 ? _pc.getWeight().toString() : _weightToken(parts);
       case 'EYES':
       case 'EYE':         return _pc.getEyeColor();
       case 'HAIR':        return _pc.getHairColor();
@@ -246,8 +257,8 @@ class PcgenTokenContext extends FtlContext {
       case 'EQUIP':       return _equipItem(parts);
       case 'ARMOR':       return _armorEquipped(parts);
 
-      case 'FUNDS':
-      case 'GOLD':        return _pc.getFunds().toStringAsFixed(2);
+      case 'FUNDS':       return _pc.getFunds().toStringAsFixed(2);
+      case 'GOLD':        return parts.length == 1 ? _pc.getFunds().toStringAsFixed(2) : _goldToken(parts);
       case 'TOTALVALUE':  return _pc.getFunds().toStringAsFixed(2);
       case 'TOTAL': {
         // TOTAL.WEIGHT — sum of gear weight × qty
@@ -298,6 +309,40 @@ class PcgenTokenContext extends FtlContext {
       case 'UNITSET':     return _unitset(parts);
       case 'INVALIDTEXT': return '';
       case 'DIR':         return '';
+
+      // ── Biographical fields ──────────────────────────────────────────────
+      case 'DESC':            return _pc.getBiography();
+      case 'PORTRAIT':        return '';
+      case 'REGION':          return _data('region') as String? ?? '';
+      case 'LOCATION':        return _data('location') as String? ?? '';
+      case 'RESIDENCE':       return _data('residence') as String? ?? '';
+      case 'INTERESTS':       return _data('interests') as String? ?? '';
+      case 'PHOBIAS':         return _data('phobias') as String? ?? '';
+      case 'CATCHPHRASE':     return _data('catchPhrase') as String? ?? '';
+      case 'SPEECHTENDENCY':  return _data('speechTendency') as String? ?? '';
+      case 'PERSONALITY1':    return _pc.getPersonalityTrait(1);
+      case 'PERSONALITY2':    return _pc.getPersonalityTrait(2);
+
+
+      // ── Notes ────────────────────────────────────────────────────────────
+      case 'NOTE':      return _note(parts);
+
+      // ── Temp bonuses ─────────────────────────────────────────────────────
+      case 'TEMPBONUS': return _tempBonus(parts);
+
+      // ── Special abilities ────────────────────────────────────────────────
+      case 'SPECIALABILITY': return _specialAbility(parts);
+      case 'SPECIALLIST':    return _specialList();
+      case 'PROHIBITEDLIST': return _prohibitedList();
+
+      // ── Ability lists (comma-separated) ──────────────────────────────────
+      case 'ABILITYLIST': return _abilityList(parts);
+
+      // ── Followers / companions ───────────────────────────────────────────
+      case 'FOLLOWERTYPE': return _followerType(parts);
+
+      // ── Equipment by type ────────────────────────────────────────────────
+      case 'EQTYPE': return _eqType(parts);
 
       default:            return '';
     }
@@ -1485,11 +1530,20 @@ class PcgenTokenContext extends FtlContext {
       return _abilitiesForCat(cat).length;
     }
     if (w == 'CHECKS' || w == 'SAVES') return _saveNames.length;
+    if (w == 'SA') return _abilitiesForCat('Special Ability').length;
+    if (w == 'TEMPBONUSNAMES' || w == 'TEMPBONUS') {
+      return (_data('tempBonuses') as List? ?? []).length;
+    }
+    if (w == 'NOTES') return (_pc.getNotes().isNotEmpty) ? 1 : 0;
+    if (w == 'FOLLOWERS' || w.startsWith('FOLLOWERTYPE.')) return 0;
     if (w == 'WEAPONS') return _equippedWeapons().length;
     if (w.startsWith('EQTYPE.')) {
       final type = what.substring(7).toLowerCase();
       if (type == 'weapon') return _equippedWeapons().length;
-      return 0;
+      // For other types: count gear matching the type
+      final gear = (_data('gear') as List? ?? []).whereType<Map>();
+      return gear.where((g) =>
+          (g['type'] as String? ?? '').toLowerCase().contains(type)).length;
     }
     if (w == 'DOMAINS') return _pc.getSelectedDomainKeys().length;
     if (w == 'TEMPLATES') return _pc.getAppliedTemplateKeys().length;
@@ -1562,6 +1616,165 @@ class PcgenTokenContext extends FtlContext {
       case 'WEIGHTUNIT':   return 'lbs';
     }
     return '';
+  }
+
+  // ─── Biographical / misc tokens ───────────────────────────────────────────
+
+  String _weightToken(List<String> parts) {
+    final sub = parts.length > 1 ? parts[1].toUpperCase() : '';
+    // Encumbrance limits: approximate from STR score (d20 table: STR×3.33/6.67/10 lbs)
+    final strScore = _pc.getStatModByAbb('STR') * 2 + 10;
+    if (sub == 'LIGHT')  return (strScore * 3.33).floor().toString();
+    if (sub == 'MEDIUM') return (strScore * 6.67).floor().toString();
+    if (sub == 'HEAVY')  return (strScore * 10).toString();
+    return _pc.getWeight().toString();
+  }
+
+  String _goldToken(List<String> parts) {
+    final sub = parts.length > 1 ? parts[1].toUpperCase() : '';
+    if (sub == 'TRUNC') return _pc.getFunds().floor().toString();
+    return _pc.getFunds().toStringAsFixed(2);
+  }
+
+  String _note(List<String> parts) {
+    // NOTE.N.NAME or NOTE.N.VALUE — character notes stored in _data['notes']
+    // We store one blob of notes text; expose it as a single entry.
+    if (parts.length < 3) return '';
+    final idx = int.tryParse(parts[1]) ?? 0;
+    if (idx != 0) return '';
+    switch (parts[2].toUpperCase()) {
+      case 'NAME':  return 'Notes';
+      case 'VALUE': return _pc.getNotes();
+    }
+    return '';
+  }
+
+  String _tempBonus(List<String> parts) {
+    // TEMPBONUS.N — name of the Nth active temp bonus
+    if (parts.length < 2) return '';
+    final idx = int.tryParse(parts[1]) ?? -1;
+    final bonuses = _data('tempBonuses') as List? ?? [];
+    if (idx < 0 || idx >= bonuses.length) return '';
+    final b = bonuses[idx];
+    if (b is Map) return b['source'] as String? ?? '';
+    return '';
+  }
+
+  String _specialAbility(List<String> parts) {
+    // SPECIALABILITY.N — Nth special ability name from selectedAbilities['Special Ability']
+    if (parts.length < 2) return '';
+    final idx = int.tryParse(parts[1]) ?? -1;
+    final sas = _abilitiesForCat('Special Ability');
+    if (idx < 0 || idx >= sas.length) return '';
+    return _displayName(sas[idx]);
+  }
+
+  String _specialList() {
+    // SPECIALLIST — comma-separated list of all special abilities
+    final sas = _abilitiesForCat('Special Ability');
+    return sas.map(_displayName).join(', ');
+  }
+
+  String _prohibitedList() {
+    // PROHIBITEDLIST — comma-separated list of prohibited spell schools from classes
+    final classLevels = _data('classLevels') as List? ?? [];
+    final prohibited = <String>{};
+    final dataset = _dataset;
+    if (dataset != null) {
+      try {
+        final counts = <String>{};
+        for (final l in classLevels) {
+          if (l is Map) {
+            final k = l['classKey'] as String? ?? '';
+            if (k.isNotEmpty) counts.add(k);
+          }
+        }
+        for (final cls in (dataset as dynamic).classes as List) {
+          final key = (cls as dynamic).getKeyName() as String? ?? '';
+          if (!counts.contains(key)) continue;
+          final proList = (cls as dynamic).getSafeListFor(
+              ListKey.getConstant<String>('PROHIBITED_SPELLS')) as List?;
+          if (proList != null) {
+            for (final p in proList) { if (p is String) prohibited.add(p); }
+          }
+        }
+      } catch (_) {}
+    }
+    return prohibited.join(', ');
+  }
+
+  String _abilityList(List<String> parts) {
+    // ABILITYLIST.CategoryName — comma-separated list of abilities in that category
+    if (parts.length < 2) return '';
+    final cat = parts.sublist(1).join('.');
+    final abilities = _abilitiesForCat(cat);
+    return abilities.map(_displayName).join(', ');
+  }
+
+  String _followerType(List<String> parts) {
+    // FOLLOWERTYPE.TYPE.N.FIELD — stats for companion of TYPE at index N
+    // e.g. FOLLOWERTYPE.ANIMAL COMPANION.0.NAME
+    // We serve from _data('companions') list filtered by type.
+    if (parts.length < 4) return '';
+    // parts[1..N-2] are the type words, then idx, then field
+    // Find the numeric index
+    int? idx;
+    int fieldStart = parts.length - 1;
+    for (int i = 2; i < parts.length; i++) {
+      if (int.tryParse(parts[i]) != null) {
+        idx = int.tryParse(parts[i]);
+        fieldStart = i + 1;
+        break;
+      }
+    }
+    if (idx == null) return '';
+    final typeName = parts.sublist(1, fieldStart - 1).join(' ').toUpperCase();
+    final field = parts.sublist(fieldStart).join('.').toUpperCase();
+    final companions = (_data('companions') as List? ?? [])
+        .whereType<Map>()
+        .where((c) => (c['type'] as String? ?? '').toUpperCase() == typeName)
+        .toList();
+    if (idx >= companions.length) return '';
+    final c = companions[idx];
+    switch (field) {
+      case 'NAME':         return c['name'] as String? ?? '';
+      case 'RACE':         return c['race'] as String? ?? '';
+      case 'HP':           return (c['hp'] as num?)?.toString() ?? '0';
+      case 'INITIATIVEMOD':return (c['initiative'] as num?)?.toString() ?? '+0';
+      case 'SPECIALLIST':  return c['specialList'] as String? ?? '';
+      case 'CHECK.2.TOTAL':
+      case 'CHECK.FORTITUDE.TOTAL': return (c['fortSave'] as num?)?.toString() ?? '+0';
+      case 'CHECK.REFLEX.TOTAL':    return (c['refSave'] as num?)?.toString() ?? '+0';
+      default: return '';
+    }
+  }
+
+  String _eqType(List<String> parts) {
+    // EQTYPE.TypeName.N.FIELD — gear filtered by type
+    // e.g. EQTYPE.LightSource.ADD.Light Source.0.NAME
+    //      EQTYPE.Gem.%.QTY
+    if (parts.length < 2) return '';
+    final typeName = parts[1].toLowerCase();
+    final gear = (_data('gear') as List? ?? []).whereType<Map>().toList();
+    // Filter gear by type matching
+    final filtered = gear.where((g) {
+      final t = (g['type'] as String? ?? '').toLowerCase();
+      return t.contains(typeName);
+    }).toList();
+    // Find numeric index
+    int? idx;
+    int fieldStart = parts.length - 1;
+    for (int i = 2; i < parts.length; i++) {
+      if (int.tryParse(parts[i]) != null) {
+        idx = int.tryParse(parts[i]);
+        fieldStart = i + 1;
+        break;
+      }
+    }
+    if (idx == null || idx >= filtered.length) return '';
+    final item = filtered[idx];
+    final field = parts.sublist(fieldStart).join('.').toUpperCase();
+    return _gearField(item, field);
   }
 
   /// Looks up the Equipment domain object for a gear Map entry.

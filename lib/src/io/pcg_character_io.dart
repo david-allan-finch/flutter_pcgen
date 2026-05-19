@@ -545,12 +545,12 @@ class PCGCharacterIO {
         case 'CITY':
         case 'BIRTHDAY':
         case 'BIRTHPLACE':
-        case 'PERSONALITYTRAIT1':
-        case 'PERSONALITYTRAIT2':
-        case 'SPEECHPATTERN':
-        case 'PHOBIAS':
-        case 'INTERESTS':
-        case 'CATCHPHRASE':
+        case 'PERSONALITYTRAIT1': data['personalityTrait1'] = value.trim(); break;
+        case 'PERSONALITYTRAIT2': data['personalityTrait2'] = value.trim(); break;
+        case 'SPEECHPATTERN':     data['speechTendency']   = value.trim(); break;
+        case 'PHOBIAS':           data['phobias']          = value.trim(); break;
+        case 'INTERESTS':         data['interests']        = value.trim(); break;
+        case 'CATCHPHRASE':       data['catchPhrase']      = value.trim(); break;
         case 'PORTRAIT':
         case 'SPELLBOOK':
           break; // explicitly ignored
