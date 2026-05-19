@@ -602,13 +602,16 @@ class PcgenTokenContext extends FtlContext {
         return '';
     }
 
+    // 3.5e iterative attacks: count is determined by BASE attack bonus,
+    // not total (BAB 1-5→1 atk, 6-10→2, 11-15→3, 16+→4).
     String _atkString(int base) {
+      final count = bab <= 5 ? 1 : bab <= 10 ? 2 : bab <= 15 ? 3 : 4;
       final attacks = <String>[];
       var cur = base;
-      do {
+      for (var i = 0; i < count; i++) {
         attacks.add(_signed(cur));
         cur -= 5;
-      } while (cur > base - 20 && attacks.length < 5);
+      }
       return attacks.join('/');
     }
 

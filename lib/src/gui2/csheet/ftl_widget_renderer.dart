@@ -251,7 +251,10 @@ class FtlWidgetSink extends FtlSink {
       case 'div': _stack.add(_Div(css)); return;
       case 'table':
         // border="0" means a layout-only table — no visible cell borders.
-        final borderVal = int.tryParse(_attrValue(attrs, 'border') ?? '1') ?? 1;
+        // HTML default for border attribute is 0 (no border). Only apply
+        // table-level borders when explicitly requested via border="1" etc.
+        // Cell-level borders come from CSS classes (.abb, .abt, .border9…).
+        final borderVal = int.tryParse(_attrValue(attrs, 'border') ?? '0') ?? 0;
         _stack.add(_TableB(css, showBorder: borderVal > 0)); return;
       case 'thead': case 'tbody': case 'tfoot': return;
       case 'tr':  _stack.add(_RowB()); return;
