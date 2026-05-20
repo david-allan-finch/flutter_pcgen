@@ -12,9 +12,7 @@ import 'package:flutter_pcgen/src/gui2/facade/character_facade_impl.dart';
 import 'package:flutter_pcgen/src/io/pcg_character_io.dart';
 
 class CharacterFileIO {
-  static Future<Directory> _getCharDir() => getCharDir();
-
-  static Future<Directory> getCharDir() async {
+  static Future<Directory> _getCharDir() async {
     final docs = await getApplicationDocumentsDirectory();
     final dir = Directory(p.join(docs.path, 'PCGen', 'characters'));
     if (!dir.existsSync()) dir.createSync(recursive: true);

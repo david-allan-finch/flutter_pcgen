@@ -67,7 +67,7 @@ class _BuildHistoryTabState extends State<BuildHistoryTab> {
 
     if (uuid.isNotEmpty) {
       try {
-        final dir = await CharacterFileIO.getCharDir();
+        final dir = Directory(await CharacterFileIO.getCharDir());
         if (dir.existsSync()) {
           final candidates = dir
               .listSync()
