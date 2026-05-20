@@ -540,11 +540,11 @@ class PCGCharacterIO {
         case 'USERPOOL':
         case 'FEATPOOL':
         case 'AGESET':
-        case 'HAIRSTYLE':
         case 'LOCATION':
         case 'CITY':
         case 'BIRTHDAY':
         case 'BIRTHPLACE':
+        case 'HAIRSTYLE':         data['hairStyle']        = value.trim(); break;
         case 'PERSONALITYTRAIT1': data['personalityTrait1'] = value.trim(); break;
         case 'PERSONALITYTRAIT2': data['personalityTrait2'] = value.trim(); break;
         case 'SPEECHPATTERN':     data['speechTendency']   = value.trim(); break;

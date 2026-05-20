@@ -780,7 +780,14 @@ class _Evaluator {
     final evaled = rawArgs.map((a) => _evalExpr(a.trim(), vars)).toList();
 
     switch (name.toLowerCase()) {
-      case 'pcstring': return _ctx.pcstring(_toStr(evaled.isEmpty ? '' : evaled.first));
+      case 'pcstring': {
+        final arg = _toStr(evaled.isEmpty ? '' : evaled.first);
+        if (arg.isEmpty && rawArgs.isNotEmpty) {
+          // ignore: avoid_print
+          print('PCGen STUB: pcstring() called with empty arg — raw: "${rawArgs.first.trim()}"');
+        }
+        return _ctx.pcstring(arg);
+      }
       case 'pcvar':    return _ctx.pcvar(_toStr(evaled.isEmpty ? '' : evaled.first));
       case 'pcboolean':return _ctx.pcboolean(_toStr(evaled.isEmpty ? '' : evaled.first));
       case 'pclabel': return _ctx.pcstring(_toStr(evaled.isEmpty ? '' : evaled.first));

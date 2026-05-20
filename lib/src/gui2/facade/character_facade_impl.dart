@@ -674,6 +674,19 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
   int getBonusTo(String category, String target) =>
       _bonusAcc.totalInt(category, target);
 
+  /// Total point-buy cost for the character's ability scores.
+  /// Uses standard 3.5e/Pathfinder purchase costs where score 10 = 0 pts.
+  int getStatBuyCost() {
+    const costs = {7: -4, 8: -2, 9: -1, 10: 0, 11: 1, 12: 2, 13: 3, 14: 5, 15: 7, 16: 10, 17: 13, 18: 17};
+    final scores = _data['statScores'] as Map? ?? {};
+    var total = 0;
+    for (final v in scores.values) {
+      final score = (v as num?)?.toInt() ?? 10;
+      total += costs[score] ?? (score < 7 ? -4 : 17);
+    }
+    return total;
+  }
+
   int getNaturalArmorBonus() => _bonusAcc.totalIntOfType('COMBAT', 'AC', 'NATURALARMOR');
   int getShieldBonus()       => _bonusAcc.totalIntOfType('COMBAT', 'AC', 'SHIELD') +
                                 _bonusAcc.totalIntOfType('COMBAT', 'AC', 'SHIELDENHANCEMENT');
@@ -681,6 +694,20 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
   int getDodgeBonus()        => _bonusAcc.totalIntOfType('COMBAT', 'AC', 'DODGE');
   int getSacredBonus()       => _bonusAcc.totalIntOfType('COMBAT', 'AC', 'SACRED') +
                                 _bonusAcc.totalIntOfType('COMBAT', 'AC', 'PROFANE');
+
+  /// Magic (Resistance-typed) bonus to a named save.
+  /// PCGen stores these as BONUS:CHECKS|<saveName>|N|TYPE=Resistance.
+  int getSaveMagicBonus(String saveName) =>
+      _bonusAcc.totalIntOfType('CHECKS', saveName, 'Resistance') +
+      _bonusAcc.totalIntOfType('SAVE',   saveName, 'Resistance') +
+      _bonusAcc.totalIntOfType('CHECKS', 'ALL',    'Resistance') +
+      _bonusAcc.totalIntOfType('SAVE',   'ALL',    'Resistance');
+
+  /// Miscellaneous save bonus = total − base − stat modifier − magic bonus.
+  int getSaveMiscBonus(String saveName, int total, int base, int statMod) {
+    final magic = getSaveMagicBonus(saveName);
+    return total - base - statMod - magic;
+  }
 
   /// Size modifier to AC: Fine +8 … Colossal −8.
   int getSizeACModifier() {
@@ -2152,7 +2179,100 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
     // Apply size modifiers (standard 3.5e/PF table).
     _applySizeModifiers();
 
+    // ---- ADD:SPELLCASTER advancement (prestige classes) ----------------------
+    // For each class with ADD:SPELLCASTER level entries, accumulate the count
+    // of advancements per type up to the character's level in that class, then
+    // find the best matching spellcasting class and add CASTERLEVEL bonuses.
+    _applySpellcasterAdvancements(dataset, counts);
+
     _bonusDirty = false;
+  }
+
+  void _applySpellcasterAdvancements(dynamic dataset, Map<String, int> counts) {
+    try {
+      final classes = (dataset as dynamic).classes as List? ?? [];
+      // Build lookup: classKey → PCClass object
+      final classByKey = <String, dynamic>{};
+      for (final cls in classes) {
+        final key = (cls as dynamic).getKeyName() as String? ?? '';
+        if (key.isNotEmpty) classByKey[key] = cls;
+      }
+
+      // Determine each class's spellcasting type (Arcane / Divine / None)
+      String _classSpellType(dynamic cls) {
+        try {
+          final st = (cls as dynamic).getSpellType() as String? ?? '';
+          if (st.isEmpty) return '';
+          final types = (cls as dynamic)
+              .getSafeListFor(ListKey.getConstant<String>('TYPE')) as List?;
+          if (types != null) {
+            final tUpper = types.map((t) => t.toString().toUpperCase()).toSet();
+            if (tUpper.contains('ARCANE')) return 'Arcane';
+            if (tUpper.contains('DIVINE')) return 'Divine';
+          }
+          // Fall back to SPELLTYPE value
+          final upper = st.toUpperCase();
+          if (upper.contains('ARCANE')) return 'Arcane';
+          if (upper.contains('DIVINE')) return 'Divine';
+          return st;
+        } catch (_) { return ''; }
+      }
+
+      for (final entry in classByKey.entries) {
+        final clsKey = entry.key;
+        final cls    = entry.value;
+        final charLvl = counts[clsKey] ?? 0;
+        if (charLvl == 0) continue;
+        if (!(cls as dynamic).hasSpellcasterAdvancements) continue;
+
+        // Tally advancements for levels 1..charLvl
+        final totals = (cls as dynamic).spellcasterAdvancementTotals(charLvl) as Map<String, int>;
+        if (totals.isEmpty) continue;
+
+        for (final advEntry in totals.entries) {
+          final advType = advEntry.key.toUpperCase(); // ANY, ARCANE, DIVINE, BARD, WIZARD…
+          final advCount = advEntry.value;
+          if (advCount == 0) continue;
+
+          // Find the best matching spellcasting class (most levels, of the right type)
+          String? bestKey;
+          int bestLvl = 0;
+          for (final kv in classByKey.entries) {
+            final k = kv.key;
+            if (k == clsKey) continue; // don't advance yourself
+            final lvl = counts[k] ?? 0;
+            if (lvl == 0) continue;
+            final c = kv.value;
+            final hasSpells = (c as dynamic).hasSpells as bool? ?? false;
+            if (!hasSpells) continue;
+            // Check type match
+            final spellType = _classSpellType(c);
+            final matchesType = advType == 'ANY' ||
+                spellType.toUpperCase() == advType ||
+                (c as dynamic).getDisplayName().toString().toUpperCase() == advType ||
+                (c as dynamic).getKeyName().toString().toUpperCase() == advType;
+            if (!matchesType) continue;
+            if (lvl > bestLvl) { bestLvl = lvl; bestKey = k; }
+          }
+
+          if (bestKey == null) continue;
+          // Add CASTERLEVEL bonus to the best matching class
+          final b = ParsedBonus.parse('CASTERLEVEL|$bestKey|$advCount');
+          if (b != null) {
+            final charVars = _data['charVariables'] as Map? ?? {};
+            final ctx = FormulaContext(
+              statMods: const {}, statScores: const {},
+              totalLevel: counts.values.fold(0, (s, v) => s + v),
+              variables: Map<String, double>.from(charVars),
+            );
+            _bonusAcc.add(b, b.evaluate(ctx), sourceKey: clsKey);
+          }
+        }
+      }
+    } catch (e) {
+      // ignore: avoid_print
+      print('PCGen STUB: _applySpellcasterAdvancements error: $e');
+    }
   }
 
   // Standard 3.5e size modifier table: size abbreviation → (AC/Attack bonus, Grapple bonus)

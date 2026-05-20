@@ -164,6 +164,22 @@ class PCClassLoader extends GenericLoader<PCClass> {
             }
           }
           break;
+        case 'ADD':
+          // ADD=SPELLCASTER|TYPE — prestige class advances spellcasting of TYPE
+          if (value.toUpperCase().startsWith('SPELLCASTER|') ||
+              value.toUpperCase() == 'SPELLCASTER') {
+            final pipeIdx = value.indexOf('|');
+            final type = pipeIdx >= 0 ? value.substring(pipeIdx + 1).trim() : 'ANY';
+            pcClass.addSpellcasterAdvancement(level, type);
+          } else if (value.toUpperCase().startsWith('CLASSSKILLS|')) {
+            // ADD=CLASSSKILLS|N|CROSSCLASSSKILLS — grants bonus skill points; ignore for now
+          } else if (value.toUpperCase().startsWith('LANGUAGE|')) {
+            // ADD=LANGUAGE|TYPE — grants language choice; ignore for now
+          } else {
+            // ignore: avoid_print
+            print('PCGen STUB: ClassLevel ADD: $value');
+          }
+          break;
         case 'BONUS':
           final parsed = ParsedBonus.parse(value);
           if (parsed != null) {
@@ -178,6 +194,23 @@ class PCClassLoader extends GenericLoader<PCClass> {
                   '${value.substring(0, pipeIdx)}=${value.substring(pipeIdx + 1)}');
             } catch (_) {}
           }
+          break;
+        case 'DONOTADD':
+          // DONOTADD=HITDIE|SKILLPOINTS — monster classes that don't add HD/skills
+          break; // silently acknowledged — no hit dice or skill point changes needed
+        case 'SPECIALTYKNOWN':
+        case 'DOMAIN':
+        case 'SPELLLIST':
+        case 'SPELLKNOWN':
+        case 'PREPCLEVEL':
+        case 'PRECAMPAIGN':
+        case 'PROHIBITSPELL':
+        case 'UDAM':
+        case 'UMULT':
+        case 'VISION':
+        case 'TEMPLATE':
+          // ignore: avoid_print
+          print('PCGen STUB: ClassLevel token: $tag=$value');
           break;
         default:
           // ignore: avoid_print
@@ -368,6 +401,16 @@ class PCClassLoader extends GenericLoader<PCClass> {
         // Store as "CASTERLEVEL:ClassName" for use in getCasterLevel().
         try { pcClass.addToListFor(ListKey.getConstant<String>('CASTERLEVEL_GRANTS'), value); } catch (_) {}
         return true;
+      case 'ADD':
+        // ADD:SPELLCASTER|TYPE at the class header — marks this class as a spellcaster
+        // of TYPE for prestige class qualification; store as class type annotation.
+        if (value.toUpperCase().startsWith('SPELLCASTER')) {
+          final pipeIdx = value.indexOf('|');
+          final type = pipeIdx >= 0 ? value.substring(pipeIdx + 1).trim() : 'ANY';
+          try { pcClass.addToListFor(ListKey.getConstant<String>('SPELLCASTER_TYPE'), type); } catch (_) {}
+          return true;
+        }
+        return false; // other ADD types go to GenericLoader
       case 'EXCLASS':
       case 'INTMOD':
       case 'SUBCLASS':

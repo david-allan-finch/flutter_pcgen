@@ -74,6 +74,9 @@ class PCClass extends PObject {
   final Map<int, List<int>> _knownSlots = {};
   // Abilities granted at each class level: level → [abilityName, ...]
   final Map<int, List<String>> _levelAbilities = {};
+  // ADD:SPELLCASTER advancements: level → [spellcasterType, ...]
+  // e.g. {1: ['Arcane', 'Divine'], 2: ['Arcane', 'Divine']}
+  final Map<int, List<String>> _spellcasterAdvancements = {};
 
   void setCastSlots(int level, List<int> slots) => _castSlots[level] = slots;
   void setKnownSlots(int level, List<int> slots) => _knownSlots[level] = slots;
@@ -101,6 +104,24 @@ class PCClass extends PObject {
     }
     return key != null ? _castSlots[key]! : const [];
   }
+
+  /// Record that this prestige class advances spellcasting of [type] at [level].
+  void addSpellcasterAdvancement(int level, String type) =>
+      _spellcasterAdvancements.putIfAbsent(level, () => []).add(type);
+
+  /// Sum of ADD:SPELLCASTER|[type] tokens across levels 1..[atLevel].
+  /// Returns count of advancements of each type up to (and including) [atLevel].
+  Map<String, int> spellcasterAdvancementTotals(int atLevel) {
+    final totals = <String, int>{};
+    for (var lvl = 1; lvl <= atLevel; lvl++) {
+      for (final type in (_spellcasterAdvancements[lvl] ?? const [])) {
+        totals[type] = (totals[type] ?? 0) + 1;
+      }
+    }
+    return totals;
+  }
+
+  bool get hasSpellcasterAdvancements => _spellcasterAdvancements.isNotEmpty;
 
   /// Add an ability name granted at [level].
   void addLevelAbility(int level, String abilityName) =>

@@ -393,6 +393,9 @@ class PcgenTokenContext extends FtlContext {
         if (cVars.containsKey(varKey)) {
           return (cVars[varKey] as double? ?? 0.0).toInt().toString();
         }
+        // Game-mode boolean flags defined in miscinfo.lst — silently return '0'
+        // (false) if not defined. These control which optional rules are active.
+        if (varKey.startsWith('Use') || varKey.startsWith('use')) return '0';
         return _stub('top-level: $token');
       }
     }
@@ -498,17 +501,19 @@ class PcgenTokenContext extends FtlContext {
                     : idx == 1 ? _pc.getRefSave()
                     :            _pc.getWillSave();
     // Base = total − stat mod (approximation; magic items roll into total)
-    final base = total - statMod;
+    final base  = total - statMod;
+    final magic = _pc.getSaveMagicBonus(saveName);
+    final misc  = _pc.getSaveMiscBonus(saveName, total, base, statMod);
     switch (parts[2]) {
       case 'NAME':  return saveName;
       case 'TOTAL': return _signed(total);
       case 'BASE':  return base.toString();
       case 'STATMOD':
       case 'STAT':  return _signed(statMod);
-      case 'MAGIC': return '0'; // magic save bonus not broken out from total yet
+      case 'MAGIC': return _signed(magic);
       case 'EPIC':  return '0';
       case 'MISC.NOMAGIC.NOSTAT':
-      case 'MISC':  return '0'; // misc save bonus not broken out from total yet
+      case 'MISC':  return _signed(misc);
     }
     return _stub('SAVE field: ${parts.join(".")}');
   }
@@ -878,9 +883,16 @@ class PcgenTokenContext extends FtlContext {
       case 'TOTAL':    return _atkString(totalHit);
       case 'BASE':     return _atkString(bab);
       case 'STAT':     return _signed(statMod);
-      case 'SIZE':     return _stub('ATTACK.${parts[1]}.SIZE');
+      case 'SIZE':     return _signed(_pc.getSizeACModifier());
       case 'EPIC':     return '+0';
-      case 'MISC':     return _stub('ATTACK.${parts[1]}.MISC');
+      // MISC attack bonus: feats like Weapon Focus. Route through accumulator.
+      case 'MISC': {
+        final miscMelee  = _pc.getBonusTo('COMBAT', 'TOHIT');
+        final miscRanged = _pc.getBonusTo('COMBAT', 'TOHIT');
+        // Subtract stat+BAB from total to get misc-only component
+        final miscOnly = totalHit - bab - statMod;
+        return miscOnly != 0 ? _signed(miscOnly) : '+0';
+      }
       case 'NOMAGIC.NOSTAT': return _signed(bab);
     }
     return _stub('ATTACK field: ${parts.join(".")}');
@@ -1561,7 +1573,7 @@ class PcgenTokenContext extends FtlContext {
   String _length(List<String> parts) {
     if (parts.length < 2) return '';
     switch (parts[1]) {
-      case 'HAIR': return _stub('LENGTH.HAIR');
+      case 'HAIR': return _data('hairStyle') as String? ?? '';
     }
     return _stub('LENGTH field: ${parts.join(".")}');
   }
@@ -1584,7 +1596,7 @@ class PcgenTokenContext extends FtlContext {
   String _pool(List<String> parts) {
     if (parts.length < 2) return '';
     switch (parts[1]) {
-      case 'COST': return _stub('POOL.COST');
+      case 'COST': return _pc.getStatBuyCost().toString();
     }
     return _stub('POOL field: ${parts.join(".")}');
   }
