@@ -36,8 +36,20 @@ class PCGCharacterIO {
 
     buf.writeln('PCGVERSION:2.0');
     buf.writeln('# System Information');
-    final campaignName = data['campaignName'] as String? ?? '';
-    if (campaignName.isNotEmpty) buf.writeln('CAMPAIGN:$campaignName');
+    // Write all active campaign names — one CAMPAIGN: line each.
+    // Prefer the override list (from currently loaded dataset), then fall back
+    // to names recorded when this character was originally loaded from file.
+    final campaignNames = (character.getActiveCampaignNames().isNotEmpty
+        ? character.getActiveCampaignNames()
+        : (data['campaignNames'] as List?)?.cast<String>() ?? []);
+    for (final name in campaignNames) {
+      if (name.isNotEmpty) buf.writeln('CAMPAIGN:$name');
+    }
+    // Legacy fallback: if neither source produced names, write the single stored name.
+    if (campaignNames.isEmpty) {
+      final campaignName = data['campaignName'] as String? ?? '';
+      if (campaignName.isNotEmpty) buf.writeln('CAMPAIGN:$campaignName');
+    }
     buf.writeln('VERSION:$_appVersion');
     buf.writeln('ROLLMETHOD:3|EXPRESSION:roll(4,6,top(3))');
     buf.writeln('PURCHASEPOINTS:N');
@@ -441,7 +453,7 @@ class PCGCharacterIO {
       'xp': 0, 'hp': 0, 'funds': 0.0,
       'biography': '', 'appearance': '', 'notes': '',
       'raceKey': '', 'alignmentKey': '', 'deityKey': '',
-      'gameMode': '35e', 'campaignName': '',
+      'gameMode': '35e', 'campaignName': '', 'campaignNames': <String>[],
       'statScores': <String, dynamic>{},
       'classLevels': <dynamic>[],
       'classSpellBase': <String, String>{},
@@ -625,7 +637,12 @@ class PCGCharacterIO {
           _readSkill(data, value);
           break;
         case 'CAMPAIGN':
-          if ((data['campaignName'] as String).isEmpty) data['campaignName'] = value.trim();
+          // Collect all CAMPAIGN: lines — Java PCGen writes one per source book.
+          final cName = value.trim();
+          if (cName.isNotEmpty) {
+            (data['campaignNames'] as List<String>).add(cName);
+            if ((data['campaignName'] as String).isEmpty) data['campaignName'] = cName;
+          }
           break;
         case 'EXPERIENCETABLE':
           final et = value.trim();

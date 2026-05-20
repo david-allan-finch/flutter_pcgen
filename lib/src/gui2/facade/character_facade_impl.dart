@@ -1124,6 +1124,14 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
   String getGameMode() => _str('gameMode');
   void setGameMode(String mode) => _set('gameMode', mode);
 
+  /// Names of all campaigns active when this character was loaded / created.
+  /// Used by write() to reproduce the full CAMPAIGN: header section on save.
+  List<String> getActiveCampaignNames() =>
+      (_data['campaignNames'] as List?)?.cast<String>() ?? [];
+
+  void setActiveCampaignNames(List<String> names) =>
+      _data['campaignNames'] = List<String>.from(names);
+
   // ---- Alignment string ---------------------------------------------------
 
   String getAlignmentKey() => _str('alignmentKey');

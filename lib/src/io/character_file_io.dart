@@ -49,10 +49,23 @@ class CharacterFileIO {
         return null; // drop non-serialisable items
       }).where((e) => e != null).toList();
 
+  /// Sync the currently loaded dataset's campaign names onto [character] so
+  /// that write() can reproduce the full CAMPAIGN: header section.
+  static void _syncCampaignNames(CharacterFacadeImpl character) {
+    final dataset = loadedDataSet.value;
+    if (dataset == null) return;
+    final names = dataset.campaigns
+        .map((c) => c.getDisplayName() as String? ?? c.getKeyName() as String? ?? '')
+        .where((n) => n.isNotEmpty)
+        .toList();
+    if (names.isNotEmpty) character.setActiveCampaignNames(names);
+  }
+
   /// Save [character] to disk in PCG v2 format.
   /// Filename derives from the character name. Returns the path, or null on error.
   static Future<String?> save(CharacterFacadeImpl character) async {
     try {
+      _syncCampaignNames(character);
       final dir = await _getCharDir();
       final name =
           character.getName().trim().isEmpty ? 'unnamed' : character.getName().trim();
@@ -70,6 +83,7 @@ class CharacterFileIO {
   /// Save [character] to an explicit [path] in PCG v2 format.
   static Future<bool> saveAs(CharacterFacadeImpl character, String path) async {
     try {
+      _syncCampaignNames(character);
       final file = File(path);
       await file.parent.create(recursive: true);
       await file.writeAsString(PCGCharacterIO.write(character), flush: true);
