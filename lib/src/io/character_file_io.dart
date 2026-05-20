@@ -166,4 +166,39 @@ class CharacterFileIO {
 
   static Future<String> getCharDir() async =>
       (await _getCharDir()).path;
+
+  /// Re-save all .pcg character files whose game mode matches the current
+  /// loaded dataset, updating their CAMPAIGN: headers to include all active
+  /// source books. Returns counts of (migrated, skipped, failed).
+  ///
+  /// Call this once after loading the correct sources to fix character files
+  /// that were saved before build-103 (which only wrote one CAMPAIGN: line).
+  static Future<({int migrated, int skipped, int failed})> migrateAllCharacters() async {
+    final dataset = loadedDataSet.value;
+    if (dataset == null) return (migrated: 0, skipped: 0, failed: 0);
+    final currentMode = dataset.gameModeStr.toLowerCase();
+
+    int migrated = 0, skipped = 0, failed = 0;
+    final files = await listSaved();
+    for (final file in files.where((f) => f.path.endsWith('.pcg'))) {
+      try {
+        final content = await file.readAsString();
+        final header = PCGCharacterIO.peekHeader(content);
+        final fileMode = (header['gameMode'] ?? '').toLowerCase();
+        // Only migrate files whose game mode matches the current dataset.
+        if (fileMode.isNotEmpty && fileMode != currentMode) {
+          skipped++;
+          continue;
+        }
+        final character = await load(file.path);
+        if (character == null) { failed++; continue; }
+        _syncCampaignNames(character);
+        final ok = await saveAs(character, file.path);
+        if (ok) migrated++; else failed++;
+      } catch (_) {
+        failed++;
+      }
+    }
+    return (migrated: migrated, skipped: skipped, failed: failed);
+  }
 }

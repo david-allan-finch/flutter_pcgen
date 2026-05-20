@@ -130,12 +130,14 @@ class PCGenFrameState extends State<PCGenFrame> {
       if (found != null) matched.add(found);
     }
 
-    // Show loading indicator
-    if (!mounted) return;
-    final loadCtx = context;
+    // If the correct game mode is already loaded, use the existing full dataset
+    // rather than reloading from a potentially incomplete campaign list. This
+    // handles characters saved before build-103 which only stored one CAMPAIGN: line.
+    final currentMode = loadedDataSet.value?.gameModeStr ?? '';
+    final correctModeLoaded = currentMode.toLowerCase() == gameModeName.toLowerCase()
+        && loadedDataSet.value != null;
 
-    // Load sources if any campaigns were matched.
-    if (matched.isNotEmpty) {
+    if (!correctModeLoaded && matched.isNotEmpty) {
       await _loadSources(matched, gameModeName);
     }
 
@@ -240,6 +242,27 @@ class PCGenFrameState extends State<PCGenFrame> {
       saveCharacter(chars.getElementAt(i));
     }
     return true;
+  }
+
+  /// Re-save all character files on disk to update their CAMPAIGN: headers.
+  /// Use this once after loading the correct sources to fix pre-build-103 saves.
+  void migrateCharacterFiles() {
+    if (!mounted) return;
+    final dataset = loadedDataSet.value;
+    if (dataset == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Load sources first before migrating character files.')));
+      return;
+    }
+    CharacterFileIO.migrateAllCharacters().then((result) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Migration complete: ${result.migrated} updated, '
+            '${result.skipped} skipped (wrong game mode), '
+            '${result.failed} failed.'),
+        duration: const Duration(seconds: 5),
+      ));
+    });
   }
 
   void revertCharacter(CharacterFacade? character) {

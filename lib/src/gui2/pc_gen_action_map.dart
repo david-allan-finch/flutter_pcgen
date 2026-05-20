@@ -179,6 +179,8 @@ class PCGenActionMap {
         handler: () => frame.reloadSources());
     _put(sourcesUnloadCommand, 'Unload Sources', accelerator: 'Ctrl+U',
         handler: () => frame.unloadSources());
+    _put('migrateCharactersCommand', 'Update Character Files',
+        handler: () => frame.migrateCharacterFiles());
     _put(helpCommand, 'Help');
     _put(helpDocsCommand, 'Documentation', accelerator: 'F1', iconKey: 'Help16',
         handler: () => frame.showHelpDocs());
