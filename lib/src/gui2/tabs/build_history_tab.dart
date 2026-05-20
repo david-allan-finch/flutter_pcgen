@@ -149,21 +149,35 @@ class _BuildHistoryTabState extends State<BuildHistoryTab> {
   // ─── History reconstruction ────────────────────────────────────────────────
 
   List<_SaveBlock> _buildBlocks(List<Map<String, dynamic>> saves) {
-    // Use the latest save for the authoritative full level list.
-    final latest     = saves.last;
-    final allLevels  = (latest['classLevels'] as List? ?? []).whereType<Map>().toList();
-    final allFeats   = ((latest['selectedAbilities'] as Map?)?['FEAT'] as List?)
+    // Use the save with the most levels as the authoritative source — the sort
+    // order (by version/date) does not guarantee the last file has the most
+    // levels (e.g. two v0 files in arbitrary mtime order).
+    final authoritative = saves.reduce((a, b) {
+      final aLen = (a['classLevels'] as List? ?? []).length;
+      final bLen = (b['classLevels'] as List? ?? []).length;
+      return bLen >= aLen ? b : a;
+    });
+    final allLevels = (authoritative['classLevels'] as List? ?? []).whereType<Map>().toList();
+    final allFeats  = ((authoritative['selectedAbilities'] as Map?)?['FEAT'] as List?)
         ?.cast<String>() ?? [];
 
-    // Build the complete ordered entry list with correct charLevel / classLevel
-    // numbers and feat assignments.
     final allEntries = _buildAllEntries(allLevels, allFeats);
-
     if (allEntries.isEmpty) return [];
 
-    // Determine how many levels existed at each save checkpoint.
-    final checkpoints = saves.map((s) =>
-        (s['classLevels'] as List? ?? []).length).toList();
+    // Checkpoints: how many levels each save had. Clamp so they never exceed
+    // allEntries.length and never go below the previous checkpoint (a later save
+    // can't have fewer levels than an earlier one in the block sequence).
+    final rawCheckpoints = saves
+        .map((s) => (s['classLevels'] as List? ?? []).length)
+        .toList();
+
+    final checkpoints = <int>[];
+    int floor = 0;
+    for (final c in rawCheckpoints) {
+      final clamped = c.clamp(floor, allEntries.length);
+      checkpoints.add(clamped);
+      floor = clamped;
+    }
 
     final blocks = <_SaveBlock>[];
     int prevLevelCount = 0;
@@ -171,7 +185,7 @@ class _BuildHistoryTabState extends State<BuildHistoryTab> {
 
     for (int si = 0; si < saves.length; si++) {
       final data         = saves[si];
-      final currCount    = checkpoints[si].clamp(0, allEntries.length);
+      final currCount    = checkpoints[si];
       final blockEntries = allEntries.sublist(prevLevelCount, currCount);
 
       final currFeatCount = ((data['selectedAbilities'] as Map?)?['FEAT'] as List?)
