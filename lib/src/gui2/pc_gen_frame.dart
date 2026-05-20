@@ -115,35 +115,31 @@ class PCGenFrameState extends State<PCGenFrame> {
   /// Load sources matching the PCG file's CAMPAIGN header then load the character.
   Future<void> _loadCharacterWithSources(String path, Map<String, String> header) async {
     if (!mounted) return;
-    final gameModeName = header['gameMode'] ?? '35e';
+    final gameModeName  = header['gameMode'] ?? '35e';
+    final gameModeKey   = gameModeName.toLowerCase();
     final campaignNames = (header['campaigns'] ?? '').split('|')
         .map((s) => s.trim()).where((s) => s.isNotEmpty).toList();
 
-    // Match campaign names against all discovered Campaign objects.
-    final allCampaigns = Globals.getCampaignList();
-    final matched = <Campaign>[];
-    for (final name in campaignNames) {
-      final nameLower = name.toLowerCase();
-      final found = allCampaigns.where((c) =>
-          c.getDisplayName().toLowerCase() == nameLower ||
-          c.getKeyName().toLowerCase() == nameLower).firstOrNull;
-      if (found != null) matched.add(found);
-    }
+    // 1. Already have this game mode in the registry — reuse it instantly.
+    if (datasetRegistry.containsKey(gameModeKey)) {
+      loadedDataSet.value = datasetRegistry[gameModeKey];
+    } else {
+      // 2. Need to load sources for this game mode.
+      final allCampaigns = Globals.getCampaignList();
+      final matched = <Campaign>[];
+      for (final name in campaignNames) {
+        final nameLower = name.toLowerCase();
+        final found = allCampaigns.where((c) =>
+            c.getDisplayName().toLowerCase() == nameLower ||
+            c.getKeyName().toLowerCase() == nameLower).firstOrNull;
+        if (found != null) matched.add(found);
+      }
 
-    // If the correct game mode is already loaded, use the existing full dataset.
-    final currentMode = loadedDataSet.value?.gameModeStr ?? '';
-    final correctModeLoaded = currentMode.toLowerCase() == gameModeName.toLowerCase()
-        && loadedDataSet.value != null;
-
-    if (!correctModeLoaded) {
       if (matched.isNotEmpty) {
-        // Auto-load: campaigns are discoverable — switch mode and load sources.
-        // Show a loading overlay so the user knows something is happening.
-        _closeAllCharactersForModeSwitch();
         await _loadSourcesWithOverlay(matched, gameModeName);
+        // _loadSources stores the result in the registry and updates loadedDataSet.
       } else if (campaignNames.isNotEmpty) {
-        // Campaigns listed in the file but none found locally — warn and continue
-        // with whatever is loaded (character will have reduced resolution).
+        // Campaigns listed but not found locally — best-effort with whatever is loaded.
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text(
@@ -175,7 +171,6 @@ class PCGenFrameState extends State<PCGenFrame> {
   Future<void> _loadSourcesWithOverlay(
       List<Campaign> campaigns, String gameModeName) async {
     if (!mounted) return;
-    // Show non-dismissable loading dialog
     showDialog<void>(
       context: context,
       barrierDismissible: false,
@@ -194,20 +189,6 @@ class PCGenFrameState extends State<PCGenFrame> {
     if (mounted) Navigator.of(context, rootNavigator: true).pop();
   }
 
-  /// Close all open characters without prompting — called before a game mode
-  /// switch so no character retains stale dataset references.
-  void _closeAllCharactersForModeSwitch() {
-    setCharacter(null);
-    final chars = CharacterManager.getCharacters();
-    // Collect keys first to avoid mutating while iterating.
-    final toClose = <CharacterFacade>[];
-    for (int i = 0; i < chars.getSize(); i++) {
-      toClose.add(chars.getElementAt(i));
-    }
-    for (final c in toClose) {
-      CharacterManager.removeCharacter(c);
-    }
-  }
 
   DefaultReferenceFacade<CharacterFacade> getSelectedCharacterRef() =>
       _currentCharacterRef;
@@ -220,6 +201,14 @@ class PCGenFrameState extends State<PCGenFrame> {
   void setCharacter(CharacterFacade? character) {
     _currentCharacterRef.set(character);
     currentCharacter.value = character;
+    // Switch loadedDataSet to this character's game mode dataset so all UI
+    // tabs show data relevant to the character currently being viewed/edited.
+    if (character is CharacterFacadeImpl) {
+      final key = character.getGameMode().toLowerCase();
+      if (datasetRegistry.containsKey(key)) {
+        loadedDataSet.value = datasetRegistry[key];
+      }
+    }
     _updateTitle();
   }
 
@@ -520,6 +509,8 @@ class PCGenFrameState extends State<PCGenFrame> {
     await loader.run();
     final dataset = loader.getDataSetFacade();
     if (dataset != null) {
+      // Cache in registry so other characters with the same game mode reuse it.
+      datasetRegistry[gameModeName.toLowerCase()] = dataset;
       loadedDataSet.value = dataset;
       GenericLoader.flushUnknownTagReport();
     }

@@ -54,19 +54,19 @@ class PCGCharacterIO {
     buf.writeln('$_tagSaved:$savedAt');
 
     buf.writeln('# System Information');
-    // Write all active campaign names — one CAMPAIGN: line each.
-    // Prefer the override list (from currently loaded dataset), then fall back
-    // to names recorded when this character was originally loaded from file.
+    // Write campaigns as a single pipe-separated CAMPAIGN: line matching Java PCGen format:
+    //   CAMPAIGN:Book1|CAMPAIGN:Book2|CAMPAIGN:Book3
+    // Prefer the active dataset's campaign list; fall back to names stored on load.
     final campaignNames = (character.getActiveCampaignNames().isNotEmpty
         ? character.getActiveCampaignNames()
         : (data['campaignNames'] as List?)?.cast<String>() ?? []);
-    for (final name in campaignNames) {
-      if (name.isNotEmpty) buf.writeln('CAMPAIGN:$name');
-    }
-    // Legacy fallback: if neither source produced names, write the single stored name.
-    if (campaignNames.isEmpty) {
-      final campaignName = data['campaignName'] as String? ?? '';
-      if (campaignName.isNotEmpty) buf.writeln('CAMPAIGN:$campaignName');
+    final nonEmpty = campaignNames.where((n) => n.isNotEmpty).toList();
+    if (nonEmpty.isNotEmpty) {
+      // First segment has no prefix; subsequent segments use |CAMPAIGN: prefix.
+      buf.writeln('CAMPAIGN:${nonEmpty.join('|CAMPAIGN:')}');
+    } else {
+      final single = data['campaignName'] as String? ?? '';
+      if (single.isNotEmpty) buf.writeln('CAMPAIGN:$single');
     }
     buf.writeln('VERSION:$_appVersion');
     buf.writeln('ROLLMETHOD:3|EXPRESSION:roll(4,6,top(3))');
