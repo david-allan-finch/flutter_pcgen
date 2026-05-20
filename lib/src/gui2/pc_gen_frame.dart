@@ -862,8 +862,10 @@ class _LoadCharacterDialog extends StatefulWidget {
 
 class _LoadCharacterDialogState extends State<_LoadCharacterDialog> {
   List<File> _allFiles = [];
-  // Cache of file path → {name, gameMode}
+  // Cache of file path → {name, gameMode, race, primaryClass, totalLevel}
   final Map<String, Map<String, String>> _headerCache = {};
+  // Groups expanded by character name
+  final Set<String> _expanded = {};
   bool _loading = false;
   bool _scanning = true;
   String _dir = '';
@@ -924,18 +926,28 @@ class _LoadCharacterDialogState extends State<_LoadCharacterDialog> {
     if (mounted) setState(() => _scanning = false);
   }
 
-  List<File> get _filtered {
+  // Group files by character name. Files with the same NAME in their PCG header
+  // are considered saves of the same character (different levels, backups, etc.).
+  Map<String, List<File>> get _groups {
     final q = _search.text.trim().toLowerCase();
-    if (q.isEmpty) return _allFiles;
-    return _allFiles
-        .where((f) => p.basenameWithoutExtension(f.path).toLowerCase().contains(q))
-        .toList();
+    final result = <String, List<File>>{};
+    for (final file in _allFiles) {
+      final header = _headerCache[file.path];
+      final name = header?['name']?.isNotEmpty == true
+          ? header!['name']!
+          : p.basenameWithoutExtension(file.path);
+      if (q.isNotEmpty && !name.toLowerCase().contains(q)) continue;
+      result.putIfAbsent(name, () => []).add(file);
+    }
+    // Sort each group newest-first (by file modification time)
+    for (final files in result.values) {
+      files.sort((a, b) => b.lastModifiedSync().compareTo(a.lastModifiedSync()));
+    }
+    return result;
   }
 
   @override
   Widget build(BuildContext context) {
-    final filtered = _filtered;
-
     return Dialog(
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 520, maxHeight: 560),
@@ -993,19 +1005,24 @@ class _LoadCharacterDialogState extends State<_LoadCharacterDialog> {
               const SizedBox(height: 6),
 
               // Count label
-              Text(
-                _scanning
-                    ? 'Scanning…'
-                    : '${filtered.length} character${filtered.length == 1 ? '' : 's'}',
-                style: const TextStyle(fontSize: 11, color: Colors.grey),
-              ),
+              Builder(builder: (context) {
+                final g = _groups;
+                final total = g.values.fold(0, (s, v) => s + v.length);
+                return Text(
+                  _scanning
+                      ? 'Scanning…'
+                      : '${g.length} character${g.length == 1 ? '' : 's'}'
+                        '${total != g.length ? ' · $total files' : ''}',
+                  style: const TextStyle(fontSize: 11, color: Colors.grey),
+                );
+              }),
               const SizedBox(height: 4),
 
-              // File list
+              // Character tree
               Expanded(
                 child: _scanning
                     ? const Center(child: CircularProgressIndicator())
-                    : filtered.isEmpty
+                    : _groups.isEmpty
                         ? Center(
                             child: Text(
                               _allFiles.isEmpty
@@ -1015,172 +1032,9 @@ class _LoadCharacterDialogState extends State<_LoadCharacterDialog> {
                               textAlign: TextAlign.center,
                             ),
                           )
-                        : ListView.builder(
-                            itemCount: filtered.length,
-                            itemBuilder: (context, i) {
-                              final file = filtered[i];
-                              final header = _headerCache[file.path];
-                              final charName = header?['name']?.isNotEmpty == true
-                                  ? header!['name']!
-                                  : p.basenameWithoutExtension(file.path);
-                              final fileName   = p.basename(file.path);
-                              final gameMode     = header?['gameMode'] ?? '';
-                              final race         = header?['race'] ?? '';
-                              final primaryClass = header?['primaryClass'] ?? '';
-                              final totalLevel   = header?['totalLevel'] ?? '';
-                              final ext = p.extension(file.path);
-
-                              // Match against loaded dataset
-                              final loadedMode =
-                                  loadedDataSet.value?.gameModeStr ?? '';
-                              final matched = gameMode.isNotEmpty &&
-                                  loadedMode.isNotEmpty &&
-                                  gameMode.toLowerCase() ==
-                                      loadedMode.toLowerCase();
-                              final mismatched = gameMode.isNotEmpty &&
-                                  loadedMode.isNotEmpty && !matched;
-                              final noSources = gameMode.isNotEmpty &&
-                                  loadedMode.isEmpty;
-
-                              // Character summary: Race · Class Level
-                              final summaryParts = <String>[
-                                if (race.isNotEmpty) race,
-                                if (primaryClass.isNotEmpty && totalLevel.isNotEmpty)
-                                  '$primaryClass $totalLevel'
-                                else if (primaryClass.isNotEmpty)
-                                  primaryClass,
-                              ];
-                              final summary = summaryParts.join(' · ');
-
-                              // Tap handler — prompt on mismatch/no sources
-                              Future<void> doLoad() async {
-                                setState(() => _loading = true);
-                                final header = _headerCache[file.path] ?? {};
-                                await widget.onLoad(file.path, header);
-                                if (mounted) Navigator.pop(context);
-                              }
-
-                              Future<void> handleTap() async {
-                                if (mismatched || noSources) {
-                                  final action = await showDialog<String>(
-                                    context: context,
-                                    builder: (_) => AlertDialog(
-                                      title: Row(children: [
-                                        Icon(Icons.warning_amber_rounded,
-                                            color: Colors.orange.shade700, size: 20),
-                                        const SizedBox(width: 8),
-                                        const Text('Sources Not Loaded'),
-                                      ]),
-                                      content: Text(
-                                        mismatched
-                                            ? 'This character requires the "$gameMode" '
-                                              'game mode, but "$loadedMode" is currently '
-                                              'loaded.\n\nWould you like to load sources '
-                                              'for "$gameMode" first?'
-                                            : 'This character requires the "$gameMode" '
-                                              'game mode but no sources are loaded.\n\n'
-                                              'Would you like to load sources first?',
-                                      ),
-                                      actions: [
-                                        TextButton(
-                                          onPressed: () =>
-                                              Navigator.pop(context, 'cancel'),
-                                          child: const Text('Cancel'),
-                                        ),
-                                        TextButton(
-                                          onPressed: () =>
-                                              Navigator.pop(context, 'open'),
-                                          child: const Text('Open Anyway'),
-                                        ),
-                                        FilledButton(
-                                          onPressed: () =>
-                                              Navigator.pop(context, 'sources'),
-                                          child: const Text('Load Sources First'),
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                  if (action == 'sources') {
-                                    if (mounted) Navigator.pop(context);
-                                    widget.onLoadSources?.call();
-                                    return;
-                                  }
-                                  if (action != 'open') return;
-                                }
-                                await doLoad();
-                              }
-
-                              return ListTile(
-                                dense: false,
-                                leading: Icon(
-                                  ext == '.json'
-                                      ? Icons.data_object
-                                      : Icons.person,
-                                  size: 22,
-                                  color: mismatched
-                                      ? Colors.orange.shade400
-                                      : null,
-                                ),
-                                title: Text(charName,
-                                    style: const TextStyle(fontSize: 13,
-                                        fontWeight: FontWeight.w600)),
-                                subtitle: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    // Race · Class Level
-                                    if (summary.isNotEmpty)
-                                      Text(summary,
-                                          style: const TextStyle(
-                                              fontSize: 11,
-                                              fontStyle: FontStyle.italic)),
-                                    // Filename
-                                    Text(fileName,
-                                        style: TextStyle(
-                                            fontSize: 10,
-                                            color: Colors.grey.shade500)),
-                                    // Gamemode + match indicator
-                                    if (gameMode.isNotEmpty)
-                                      Row(children: [
-                                        Icon(
-                                          mismatched || noSources
-                                              ? Icons.warning_amber_rounded
-                                              : matched
-                                                  ? Icons.check_circle
-                                                  : Icons.circle_outlined,
-                                          size: 10,
-                                          color: mismatched || noSources
-                                              ? Colors.orange.shade600
-                                              : matched
-                                                  ? Colors.green.shade600
-                                                  : Colors.grey.shade500,
-                                        ),
-                                        const SizedBox(width: 3),
-                                        Text(
-                                          mismatched
-                                              ? '$gameMode  ⚠ loaded: $loadedMode'
-                                              : gameMode,
-                                          style: TextStyle(
-                                            fontSize: 10,
-                                            color: mismatched || noSources
-                                                ? Colors.orange.shade700
-                                                : matched
-                                                    ? Colors.green.shade700
-                                                    : Colors.grey.shade600,
-                                          ),
-                                        ),
-                                      ]),
-                                  ],
-                                ),
-                                isThreeLine: true,
-                                trailing: _loading
-                                    ? const SizedBox(
-                                        width: 16, height: 16,
-                                        child: CircularProgressIndicator(strokeWidth: 2))
-                                    : null,
-                                onTap: _loading ? null : handleTap,
-                              );
-                            },
+                        : ListView(
+                            children: _groups.entries.map((entry) =>
+                                _buildGroup(entry.key, entry.value)).toList(),
                           ),
               ),
 
@@ -1197,6 +1051,225 @@ class _LoadCharacterDialogState extends State<_LoadCharacterDialog> {
         ),
       ),
     );
+  }
+
+  // ─── Tree helpers ────────────────────────────────────────────────────────
+
+  Widget _buildGroup(String charName, List<File> files) {
+    if (files.length == 1) {
+      return _buildFileTile(files.first, charName: charName);
+    }
+    // Primary: most recently modified (already sorted newest-first)
+    final primary = files.first;
+    final header  = _headerCache[primary.path];
+    final race         = header?['race'] ?? '';
+    final primaryClass = header?['primaryClass'] ?? '';
+    final totalLevel   = header?['totalLevel'] ?? '';
+    final summaryParts = <String>[
+      if (race.isNotEmpty) race,
+      if (primaryClass.isNotEmpty && totalLevel.isNotEmpty) '$primaryClass $totalLevel'
+      else if (primaryClass.isNotEmpty) primaryClass,
+    ];
+    final summary   = summaryParts.join(' · ');
+    final isOpen    = _expanded.contains(charName);
+
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 2),
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(6),
+        side: BorderSide(color: Colors.grey.shade300),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Group header — tap to expand/collapse
+          InkWell(
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(6)),
+            onTap: () => setState(() {
+              if (isOpen) _expanded.remove(charName); else _expanded.add(charName);
+            }),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              child: Row(
+                children: [
+                  Icon(Icons.people, size: 20, color: Theme.of(context).colorScheme.primary),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(charName,
+                            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+                        if (summary.isNotEmpty)
+                          Text(summary,
+                              style: const TextStyle(fontSize: 11, fontStyle: FontStyle.italic)),
+                      ],
+                    ),
+                  ),
+                  Text('${files.length} saves',
+                      style: TextStyle(fontSize: 10, color: Colors.grey.shade600)),
+                  const SizedBox(width: 4),
+                  Icon(isOpen ? Icons.expand_less : Icons.expand_more,
+                      size: 18, color: Colors.grey.shade600),
+                ],
+              ),
+            ),
+          ),
+          // Children — shown when expanded
+          if (isOpen)
+            Column(
+              children: files.map((f) => _buildFileTile(f, indented: true)).toList(),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFileTile(File file, {String? charName, bool indented = false}) {
+    final header       = _headerCache[file.path];
+    final name         = charName ?? (header?['name']?.isNotEmpty == true
+        ? header!['name']! : p.basenameWithoutExtension(file.path));
+    final fileName     = p.basename(file.path);
+    final gameMode     = header?['gameMode'] ?? '';
+    final race         = header?['race'] ?? '';
+    final primaryClass = header?['primaryClass'] ?? '';
+    final totalLevel   = header?['totalLevel'] ?? '';
+    final ext          = p.extension(file.path);
+    final modified     = file.lastModifiedSync();
+
+    final loadedMode   = loadedDataSet.value?.gameModeStr ?? '';
+    final modeMatch    = gameMode.isNotEmpty && loadedMode.isNotEmpty &&
+        gameMode.toLowerCase() == loadedMode.toLowerCase();
+    final mismatched   = gameMode.isNotEmpty && loadedMode.isNotEmpty && !modeMatch;
+    final noSources    = gameMode.isNotEmpty && loadedMode.isEmpty;
+
+    final summaryParts = <String>[
+      if (!indented && race.isNotEmpty) race,
+      if (primaryClass.isNotEmpty && totalLevel.isNotEmpty) '$primaryClass $totalLevel'
+      else if (primaryClass.isNotEmpty) primaryClass,
+    ];
+    final summary = summaryParts.join(' · ');
+
+    final modLabel = _fmtDate(modified);
+
+    Future<void> doLoad() async {
+      setState(() => _loading = true);
+      await widget.onLoad(file.path, header ?? {});
+      if (mounted) Navigator.pop(context);
+    }
+
+    Future<void> handleTap() async {
+      if (mismatched || noSources) {
+        final action = await showDialog<String>(
+          context: context,
+          builder: (_) => AlertDialog(
+            title: Row(children: [
+              Icon(Icons.warning_amber_rounded,
+                  color: Colors.orange.shade700, size: 20),
+              const SizedBox(width: 8),
+              const Text('Sources Not Loaded'),
+            ]),
+            content: Text(
+              mismatched
+                  ? 'This character requires the "$gameMode" game mode, but '
+                    '"$loadedMode" is currently loaded.\n\nLoad sources for '
+                    '"$gameMode" first?'
+                  : 'This character requires the "$gameMode" game mode but no '
+                    'sources are loaded.\n\nLoad sources first?',
+            ),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(context, 'cancel'),
+                  child: const Text('Cancel')),
+              TextButton(onPressed: () => Navigator.pop(context, 'open'),
+                  child: const Text('Open Anyway')),
+              FilledButton(onPressed: () => Navigator.pop(context, 'sources'),
+                  child: const Text('Load Sources First')),
+            ],
+          ),
+        );
+        if (action == 'sources') {
+          if (mounted) Navigator.pop(context);
+          widget.onLoadSources?.call();
+          return;
+        }
+        if (action != 'open') return;
+      }
+      await doLoad();
+    }
+
+    final tile = ListTile(
+      dense: true,
+      contentPadding: EdgeInsets.only(
+          left: indented ? 36 : 12, right: 12, top: 2, bottom: 2),
+      leading: Icon(
+        ext == '.json' ? Icons.data_object : Icons.description,
+        size: indented ? 18 : 22,
+        color: mismatched ? Colors.orange.shade400
+            : indented ? Colors.grey.shade500 : null,
+      ),
+      title: Text(indented ? fileName : name,
+          style: TextStyle(
+              fontSize: indented ? 12 : 13,
+              fontWeight: indented ? FontWeight.normal : FontWeight.w600)),
+      subtitle: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (summary.isNotEmpty)
+            Text(summary,
+                style: const TextStyle(fontSize: 11, fontStyle: FontStyle.italic)),
+          Row(children: [
+            if (gameMode.isNotEmpty) ...[
+              Icon(
+                mismatched || noSources ? Icons.warning_amber_rounded
+                    : modeMatch ? Icons.check_circle : Icons.circle_outlined,
+                size: 10,
+                color: mismatched || noSources ? Colors.orange.shade600
+                    : modeMatch ? Colors.green.shade600 : Colors.grey.shade500,
+              ),
+              const SizedBox(width: 3),
+              Text(
+                mismatched ? '$gameMode  ⚠ loaded: $loadedMode' : gameMode,
+                style: TextStyle(
+                  fontSize: 10,
+                  color: mismatched || noSources ? Colors.orange.shade700
+                      : modeMatch ? Colors.green.shade700 : Colors.grey.shade600,
+                ),
+              ),
+              const SizedBox(width: 8),
+            ],
+            Text(modLabel,
+                style: TextStyle(fontSize: 10, color: Colors.grey.shade500)),
+          ]),
+        ],
+      ),
+      trailing: _loading
+          ? const SizedBox(width: 16, height: 16,
+              child: CircularProgressIndicator(strokeWidth: 2))
+          : null,
+      onTap: _loading ? null : handleTap,
+    );
+
+    if (indented) return tile;
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 2),
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(6),
+        side: BorderSide(color: Colors.grey.shade300),
+      ),
+      child: tile,
+    );
+  }
+
+  String _fmtDate(DateTime dt) {
+    final now = DateTime.now();
+    final diff = now.difference(dt);
+    if (diff.inDays == 0) return 'Today ${dt.hour.toString().padLeft(2,'0')}:${dt.minute.toString().padLeft(2,'0')}';
+    if (diff.inDays == 1) return 'Yesterday';
+    if (diff.inDays < 7)  return '${diff.inDays} days ago';
+    return '${dt.year}-${dt.month.toString().padLeft(2,'0')}-${dt.day.toString().padLeft(2,'0')}';
   }
 }
 
