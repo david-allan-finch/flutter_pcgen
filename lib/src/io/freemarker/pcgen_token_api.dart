@@ -382,7 +382,8 @@ class PcgenTokenContext extends FtlContext {
         if (sub == 'FUNDS' || sub == 'MAGIC' || sub == 'COMPANIONS' || sub == 'TOTAL') {
           return _pc.getFunds().toStringAsFixed(2);
         }
-        return _stub('MISC: $token');
+        // Other MISC subtokens (CASH, GEAR value etc.) — stub with context
+        return _stub('MISC subtoken: $token');
       }
 
       default: {
@@ -461,7 +462,7 @@ class PcgenTokenContext extends FtlContext {
         }
         return '0';
       case 'MISC':
-        return _stub('STAT.${parts[1]}.MISC');
+        return _pc.getStatMiscBonus(abb).toString();
       case 'LONGNAME':
         // Full stat name e.g. "Strength"
         const longNames = {
@@ -480,6 +481,19 @@ class PcgenTokenContext extends FtlContext {
           } catch (_) {}
         }
         return '+0';
+      case 'BASE': {
+        // STAT.N.BASE — base score without item/temp bonuses
+        if (dataset != null) {
+          try {
+            final stat = (dataset.stats as List).firstWhere((s) => s.getKeyName() == abb);
+            return _pc.getScoreBase(stat).toString();
+          } catch (_) {}
+        }
+        // Approximate base = total score minus item/temp bonuses
+        final scores = _data('statScores') as Map? ?? {};
+        return ((scores[abb] as num?)?.toInt() ?? 10).toString();
+      }
+      case 'PENALTY': return '0'; // stat damage penalty not tracked
     }
     // Multi-part: STAT.N.MOD.NOTEMP etc — try first sub-token
     if (parts.length > 3) return _stat(parts.sublist(0, 3));
@@ -514,6 +528,14 @@ class PcgenTokenContext extends FtlContext {
       case 'EPIC':  return '0';
       case 'MISC.NOMAGIC.NOSTAT':
       case 'MISC':  return _signed(misc);
+      // Compound sub-token: parts[2] is e.g. "MISC" but parts contains more
+      // (e.g. SAVE.0.MISC.NOMAGIC.NOSTAT parsed as parts[2]="MISC")
+      // Already handled above via join(".") matching.
+    }
+    // Try joining remaining parts in case the dot split separated compound tokens
+    if (parts.length > 3) {
+      final compound = parts.sublist(2).join('.');
+      if (compound == 'MISC.NOMAGIC.NOSTAT') return _signed(misc);
     }
     return _stub('SAVE field: ${parts.join(".")}');
   }
@@ -529,9 +551,9 @@ class PcgenTokenContext extends FtlContext {
       case 'BASE':         return '10';
       case 'ARMOR':        return _pc.getArmorBonus().toString();
       case 'ARMORENHANCEMENT':
-      case 'ENHANCEMENT':  return _stub('AC.ARMORENHANCEMENT');
+      case 'ENHANCEMENT':  return _pc.getArmorEnhancementBonus().toString();
       case 'SHIELD':       return _pc.getShieldBonus().toString();
-      case 'SHIELDENHANCEMENT': return _stub('AC.SHIELDENHANCEMENT');
+      case 'SHIELDENHANCEMENT': return _pc.getShieldEnhancementBonus().toString();
       case 'ABILITY':
       case 'DEX':          return _signed(_pc.getStatModByAbb('DEX'));
       case 'DEFLECTION':   return _pc.getDeflectionBonus().toString();
@@ -571,14 +593,62 @@ class PcgenTokenContext extends FtlContext {
     if (idx >= seen.length) return '';
     final key = seen[idx];
 
+    final clsObj = _classObj(key);
+    final clsLvl = counts[key] ?? 0;
+
     switch (parts[2]) {
-      case 'NAME':  return key;
-      case 'ABB':   return key.length > 3 ? key.substring(0, 3) : key;
-      case 'LEVEL': return (counts[key] ?? 0).toString();
-      case 'TYPE':  return _classType(key);
-      case 'BAB':   return _pc.getBABAsInt().toString();
+      case 'NAME':      return key;
+      case 'ABB':       return key.length > 3 ? key.substring(0, 3) : key;
+      case 'LEVEL':     return clsLvl.toString();
+      case 'TYPE':      return _classType(key);
+      case 'BAB':       return _pc.getBABAsInt().toString();
+      case 'SPELLSTAT': {
+        try { return (clsObj as dynamic).getSpellStat() as String? ?? ''; } catch (_) {}
+        return '';
+      }
+      case 'SPELLTYPE': {
+        try { return (clsObj as dynamic).getSpellType() as String? ?? ''; } catch (_) {}
+        return '';
+      }
+      case 'MEMORIZE': {
+        try {
+          final mem = (clsObj as dynamic).getSafeObject('MEMORIZE') as bool? ?? false;
+          return mem ? 'Y' : 'N';
+        } catch (_) {}
+        return 'N';
+      }
+      case 'CAST': {
+        // CLASS.N.CAST.M — spells per day at spell level M for this class
+        if (parts.length > 3 && clsObj != null) {
+          final slotIdx = int.tryParse(parts[3]) ?? 0;
+          try {
+            final slots = (clsObj as dynamic).getCastSlotsAt(clsLvl) as List?;
+            if (slots != null && slotIdx < slots.length) return slots[slotIdx].toString();
+          } catch (_) {}
+        }
+        return '0';
+      }
+      case 'KNOWN': {
+        // CLASS.N.KNOWN.M — spells known at spell level M for this class
+        if (parts.length > 3 && clsObj != null) {
+          final slotIdx = int.tryParse(parts[3]) ?? 0;
+          try {
+            final known = (clsObj as dynamic).getKnownSlotsAt(clsLvl) as List?;
+            if (known != null && slotIdx < known.length) return known[slotIdx].toString();
+          } catch (_) {}
+        }
+        return '0';
+      }
     }
     return _stub('CLASS field: ${parts.join(".")}');
+  }
+
+  dynamic _classObj(String key) {
+    try {
+      final dataset = _dataset;
+      if (dataset == null) return null;
+      return (dataset.classes as List).firstWhere((c) => c.getKeyName() == key);
+    } catch (_) { return null; }
   }
 
   String _classType(String key) {
@@ -608,8 +678,19 @@ class PcgenTokenContext extends FtlContext {
       case 'MOD':        return _pc.getSkillBonus(skName, skKey).toString();
       case 'MISC':       return _pc.getSkillMiscBonus(skName).toString();
       case 'UNTRAINED':  return '1';
-      case 'EXCLUSIVE':  return '0'; // intentional: exclusive skills not tracked
+      case 'EXCLUSIVE':  return '0'; // exclusive skills not tracked
       case 'CLASSSK':    return _pc.isClassSkill(skName) ? '1' : '0';
+      case 'ABILITY':    return _skillAbility(sk);
+      case 'ABMOD':      return _signed(_pc.getStatModByAbb(_skillAbility(sk)));
+      case 'ACHECK': {
+        final s = sk['skill'];
+        try {
+          if (s != null && ((s as dynamic).hasArmorCheckPenalty() as bool? ?? false)) {
+            return _pc.getArmorCheckPenalty().toString();
+          }
+        } catch (_) {}
+        return '0';
+      }
     }
     return _stub('SKILL field: ${parts.join(".")}');
   }
@@ -699,24 +780,49 @@ class PcgenTokenContext extends FtlContext {
         final typeList = (w['typeList'] as List?)?.cast<String>() ?? [];
         return typeList.any((t) => t.toLowerCase() == typeQuery) ? '1' : '0';
       }
+      case 'REACH': {
+        // Weapon reach — melee weapons are 5 ft. by default; reach weapons 10 ft.
+        final types = (w['typeList'] as List?)?.cast<String>() ?? [];
+        return types.any((t) => t.toLowerCase() == 'reach') ? '10' : '5';
+      }
       case 'RANGELIST': {
-        // WEAPON.N.RANGELIST.M.* — range increment M details
-        // Return basic info for range increment 0 (point-blank/short range)
+        // WEAPON.N.RANGELIST.M — range at increment M (0-based).
+        // WEAPON.N.RANGELIST.M.TOTALHIT — to-hit with -2 per increment.
+        // WEAPON.N.RANGELIST.M.DAMAGE — damage (no penalty).
+        final rangeStr = w['range'] as String? ?? '0';
+        final rangeIncFt = int.tryParse(rangeStr.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
         if (parts.length >= 4) {
-          final sub = parts.length > 4 ? parts[4].toUpperCase() : 'NAME';
-          switch (sub) {
-            case 'NAME':     return 'Point Blank';
-            case 'TOTALHIT': return w['tohit'] as String? ?? '+0';
+          final increment = int.tryParse(parts[3]) ?? 0;
+          final sub = parts.length > 4 ? parts[4].toUpperCase() : '';
+          if (sub.isEmpty) {
+            // Return the range distance at this increment
+            return rangeIncFt > 0 ? '${(increment + 1) * rangeIncFt}' : '—';
+          }
+          // Handle RANGELIST.M.CONTENTS.N.TOTALHIT / .DAMAGE (ammo variant)
+          final isContents = sub == 'CONTENTS' && parts.length > 6;
+          final finalSub = isContents ? (parts.length > 6 ? parts[6].toUpperCase() : '') : sub;
+          switch (finalSub) {
+            case 'TOTALHIT': {
+              final base = w['tohit'] as String? ?? '+0';
+              // Apply -2 per range increment beyond first
+              if (increment == 0) return base;
+              final firstHit = int.tryParse(base.replaceAll('+', '')) ?? 0;
+              return _signed(firstHit - increment * 2);
+            }
             case 'DAMAGE':   return w['damage'] as String? ?? '1d4';
           }
         }
         return _stub('WEAPON.RANGELIST: ${parts.join(".")}');
       }
       case 'CONTENTS': {
-        // WEAPON.N.CONTENTS.M.* — ammunition loaded
-        return _stub('WEAPON.CONTENTS: ${parts.join(".")}');
+        // WEAPON.N.CONTENTS — count of ammo types (0 = no ammo)
+        // WEAPON.N.CONTENTS.M — name of ammo at index M
+        // WEAPON.N.CONTENTS.M.SPROP — special property of ammo
+        if (parts.length == 3) return '0'; // no ammo count
+        if (parts.length >= 4) return '';  // no ammo name/sprop
+        return '0';
       }
-      case 'CONTENTS-1': return '0';
+      case 'CONTENTS-1': return '0'; // loop bound for ammo
     }
     return _stub('WEAPON field: ${parts.join(".")}');
   }
@@ -860,6 +966,15 @@ class PcgenTokenContext extends FtlContext {
       case 'GRAPPLE':
         statMod  = _pc.getStatModByAbb('STR');
         totalHit = bab + statMod;
+        break;
+      case 'TOUCH':
+        // Touch attacks use BAB + DEX mod, ignoring armor
+        statMod  = _pc.getStatModByAbb('DEX');
+        totalHit = bab + statMod;
+        break;
+      case 'RANGEDTOUCH':
+        statMod  = _pc.getStatModByAbb('DEX');
+        totalHit = bab + statMod + _pc.getTohitBonusRanged();
         break;
       default:
         return _stub('ATTACK type: ${parts.join(".")}');
@@ -1528,6 +1643,16 @@ class PcgenTokenContext extends FtlContext {
         }
         return item['type'] as String? ?? '';
       }
+      case 'PLUS':
+      case 'ENHANCEMENT': return (item['plus'] as num?)?.toString() ?? '0';
+      case 'MAGIC':       return ((item['plus'] as num?)?.toInt() ?? 0) > 0 ? '1' : '0';
+      case 'CONTENTS':    return '0'; // no container contents tracking yet
+      case 'CANEQUIP':    return '1';
+      case 'EQMOD':       return item['eqmod'] as String? ?? '';
+      case 'REACH':       return '5';
+      case 'RANGE':       return item['range'] as String? ?? '0';
+      case 'SIZE':        return item['size'] as String? ?? 'M';
+      case 'LONGNAME':    return item['name'] as String? ?? '';
     }
     return _stub('GEAR field: $field');
   }
@@ -1552,8 +1677,15 @@ class PcgenTokenContext extends FtlContext {
         final slash = crit.lastIndexOf('/');
         return slash >= 0 ? crit.substring(slash + 1) : '×2';
       }
-      case 'TYPE':      return _stub('WEAPONH.TYPE');
+      case 'TYPE':      return w['type'] as String? ?? '';
       case 'HAND':      return 'Primary';
+      case 'REACH': {
+        final types = (w['typeList'] as List?)?.cast<String>() ?? [];
+        return types.any((t) => t.toLowerCase() == 'reach') ? '10' : '5';
+      }
+      case 'SPROP':     return w['sprop'] as String? ?? '';
+      case 'ISRANGED':  return (w['isRanged'] as bool? ?? false) ? '1' : '0';
+      case 'CATEGORY':  return (w['isRanged'] as bool? ?? false) ? 'Ranged' : 'Melee';
     }
     return _stub('WEAPONH field: ${parts.join(".")}');
   }

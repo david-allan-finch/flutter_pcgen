@@ -687,13 +687,20 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
     return total;
   }
 
-  int getNaturalArmorBonus() => _bonusAcc.totalIntOfType('COMBAT', 'AC', 'NATURALARMOR');
-  int getShieldBonus()       => _bonusAcc.totalIntOfType('COMBAT', 'AC', 'SHIELD') +
-                                _bonusAcc.totalIntOfType('COMBAT', 'AC', 'SHIELDENHANCEMENT');
-  int getDeflectionBonus()   => _bonusAcc.totalIntOfType('COMBAT', 'AC', 'DEFLECTION');
-  int getDodgeBonus()        => _bonusAcc.totalIntOfType('COMBAT', 'AC', 'DODGE');
-  int getSacredBonus()       => _bonusAcc.totalIntOfType('COMBAT', 'AC', 'SACRED') +
-                                _bonusAcc.totalIntOfType('COMBAT', 'AC', 'PROFANE');
+  int getNaturalArmorBonus()        => _bonusAcc.totalIntOfType('COMBAT', 'AC', 'NATURALARMOR');
+  int getShieldBonus()              => _bonusAcc.totalIntOfType('COMBAT', 'AC', 'SHIELD') +
+                                       _bonusAcc.totalIntOfType('COMBAT', 'AC', 'SHIELDENHANCEMENT');
+  int getShieldBaseBonus()          => _bonusAcc.totalIntOfType('COMBAT', 'AC', 'SHIELD');
+  int getShieldEnhancementBonus()   => _bonusAcc.totalIntOfType('COMBAT', 'AC', 'SHIELDENHANCEMENT');
+  int getArmorBaseBonus()           => _bonusAcc.totalIntOfType('COMBAT', 'AC', 'ARMOR');
+  int getArmorEnhancementBonus()    => _bonusAcc.totalIntOfType('COMBAT', 'AC', 'ARMORENHANCEMENT');
+  int getDeflectionBonus()          => _bonusAcc.totalIntOfType('COMBAT', 'AC', 'DEFLECTION');
+  int getDodgeBonus()               => _bonusAcc.totalIntOfType('COMBAT', 'AC', 'DODGE');
+  int getSacredBonus()              => _bonusAcc.totalIntOfType('COMBAT', 'AC', 'SACRED') +
+                                       _bonusAcc.totalIntOfType('COMBAT', 'AC', 'PROFANE');
+
+  /// Miscellaneous stat bonus (magic items, temp bonuses — not base score).
+  int getStatMiscBonus(String abb) => _bonusAcc.totalIntWithAll('STAT', abb.toUpperCase());
 
   /// Magic (Resistance-typed) bonus to a named save.
   /// PCGen stores these as BONUS:CHECKS|<saveName>|N|TYPE=Resistance.
