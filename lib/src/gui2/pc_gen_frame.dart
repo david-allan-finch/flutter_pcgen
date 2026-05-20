@@ -1036,14 +1036,20 @@ class _LoadCharacterDialogState extends State<_LoadCharacterDialog> {
     // group always shows the character's most recent name (e.g. if renamed).
     final result = <String, List<File>>{};
     for (final entry in byId.entries) {
-      final files   = entry.value; // already sorted newest-first
-      final newest  = _headerCache[files.first.path];
+      final files    = entry.value; // already sorted newest-first
+      final newest   = _headerCache[files.first.path];
       final dispName = newest?['name']?.isNotEmpty == true
           ? newest!['name']!
           : names[entry.key]!;
       result[dispName] = files;
     }
-    return result;
+
+    // Sort groups alphabetically by character name (case-insensitive).
+    final sorted = Map.fromEntries(
+      result.entries.toList()
+        ..sort((a, b) => a.key.toLowerCase().compareTo(b.key.toLowerCase())),
+    );
+    return sorted;
   }
 
   @override
