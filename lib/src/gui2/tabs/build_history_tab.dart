@@ -177,6 +177,9 @@ class _BuildHistoryTabState extends State<BuildHistoryTab> {
     var prevSkills = <String, double>{};
     var prevEquip  = <String, String>{};  // name → slot
     var prevFeats  = <String>{};
+    // Running stat totals: initialised from first save's STAT: scores.
+    var runningStats = Map<String, int>.from(
+        (saves.first['baseStats'] as Map? ?? {}).cast<String, int>());
 
     final blocks = <_SaveBlock>[];
     int prevLevelCount = 0;
@@ -247,10 +250,19 @@ class _BuildHistoryTabState extends State<BuildHistoryTab> {
       }
       prevFeats = currFeats;
 
+      // ── Accumulate running stat totals per level entry ────────────────────
+      for (final entry in blockEntries) {
+        for (final e in entry.statBumps.entries) {
+          runningStats[e.key] = (runningStats[e.key] ?? 0) + e.value;
+        }
+        entry.statTotals = Map.of(runningStats);
+      }
+
       // ── Apply all diffs to the last level of this block ───────────────────
       if (blockEntries.isNotEmpty) {
         blockEntries.last.skillGains  = skillGains;
         blockEntries.last.skillLosses = skillLosses;
+        blockEntries.last.skillTotals = currSkills;
         blockEntries.last.itemChanges = itemChanges;
         blockEntries.last.removedFeats = removedFeats;
         blockEntries.last.changedFeats = changedFeats;
@@ -425,9 +437,12 @@ class _LevelEntry {
   final int skillsGained;
   final Map<String, int> statBumps;
   final List<String> feats;
+  // Stat totals after this level's bumps (for all levels):
+  Map<String, int> statTotals = {};
   // Populated only for the last entry of each save block:
   Map<String, double> skillGains  = {};
   Map<String, double> skillLosses = {};
+  Map<String, double> skillTotals = {}; // total ranks at end of save
   // Item changes: (name, prevSlot, currSlot)
   //   prevSlot null  → item is new this save
   //   currSlot null  → item was removed this save
@@ -707,18 +722,30 @@ class _LevelRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final isAltRow = entry.charLevel % 2 == 0;
 
-    // Abilities column: stat bumps only
+    // Abilities column: stat bumps with running total in brackets
     final abilityLines = <(String text, Color color)>[
       for (final e in entry.statBumps.entries)
-        ('${e.key} +${e.value}', Colors.green.shade700),
+        (() {
+          final total = entry.statTotals[e.key];
+          final suffix = total != null ? ' ($total)' : '';
+          return ('${e.key} +${e.value}$suffix', Colors.green.shade700);
+        })(),
     ];
 
-    // Skill Ranks column: gains and losses since previous save
+    // Skill Ranks column: gains/losses with total ranks in brackets
     final skillRankLines = <(String text, Color color)>[
       for (final e in entry.skillGains.entries)
-        ('${e.key} +${_fmtRank(e.value)}', Colors.teal.shade700),
+        (() {
+          final total = entry.skillTotals[e.key];
+          final suffix = total != null ? ' (${_fmtRank(total)})' : '';
+          return ('${e.key} +${_fmtRank(e.value)}$suffix', Colors.teal.shade700);
+        })(),
       for (final e in entry.skillLosses.entries)
-        ('${e.key} −${_fmtRank(e.value)}', Colors.orange.shade700),
+        (() {
+          final total = entry.skillTotals[e.key];
+          final suffix = total != null ? ' (${_fmtRank(total)})' : '';
+          return ('${e.key} −${_fmtRank(e.value)}$suffix', Colors.orange.shade700);
+        })(),
     ];
 
     // Feats column: feats taken, removed feats, changed feats
