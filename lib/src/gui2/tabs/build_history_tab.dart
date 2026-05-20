@@ -590,7 +590,8 @@ class _HeaderRow extends StatelessWidget {
         SizedBox(width: 28, child: Text('Cl', style: s, textAlign: TextAlign.center)),
         SizedBox(width: 36, child: Text('HP', style: s, textAlign: TextAlign.center)),
         SizedBox(width: 40, child: Text('Skills', style: s, textAlign: TextAlign.center)),
-        Expanded(flex: 3, child: Text('Abilities', style: s)),
+        Expanded(flex: 2, child: Text('Abilities', style: s)),
+        Expanded(flex: 3, child: Text('Skill Ranks', style: s)),
         Expanded(flex: 4, child: Text('Feats', style: s)),
         Expanded(flex: 3, child: Text('Items', style: s)),
       ]),
@@ -606,10 +607,14 @@ class _LevelRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final isAltRow = entry.charLevel % 2 == 0;
 
-    // Abilities column: stat bumps + skill gains + skill losses
+    // Abilities column: stat bumps only
     final abilityLines = <(String text, Color color)>[
       for (final e in entry.statBumps.entries)
         ('${e.key} +${e.value}', Colors.green.shade700),
+    ];
+
+    // Skill Ranks column: gains and losses since previous save
+    final skillRankLines = <(String text, Color color)>[
       for (final e in entry.skillGains.entries)
         ('${e.key} +${_fmtRank(e.value)}', Colors.teal.shade700),
       for (final e in entry.skillLosses.entries)
@@ -724,8 +729,10 @@ class _LevelRow extends StatelessWidget {
                 style: TextStyle(fontSize: 12, color: Colors.blue.shade700)),
           ),
         ),
-        // Abilities: stat bumps + skill rank spends/losses
-        Expanded(flex: 3, child: noteCol(abilityLines)),
+        // Abilities: stat bumps
+        Expanded(flex: 2, child: noteCol(abilityLines)),
+        // Skill Ranks: gains and losses
+        Expanded(flex: 3, child: noteCol(skillRankLines)),
         // Feats: taken, removed, changed
         Expanded(flex: 4, child: noteCol(featLines)),
         // Items: added and removed
