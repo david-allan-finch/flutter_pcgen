@@ -1357,7 +1357,7 @@ class PCGCharacterIO {
       'abilityTypes':      <String, dynamic>{},
       'abilityDescs':      <String, dynamic>{},
       'skillRanks':        <String, double>{},   // skill name → total ranks
-      'equipment':         <String>[],            // item names present at save time
+      'equipment':         <String, String>{},    // item name → equipped slot ('' = inventory)
       'saveVersion': 0,
       'savedAt': '',
     };
@@ -1396,11 +1396,28 @@ class PCGCharacterIO {
           }
         }
       } else if (line.startsWith('EQUIPNAME:')) {
-        // EQUIPNAME:Longsword +1|OUTPUTORDER:2|COST:5015.0|QUANTITY:1.0|LOCATION:...|...
+        // EQUIPNAME:Longsword +1|OUTPUTORDER:2|COST:5015.0|QUANTITY:1.0|LOCATION:Primary Hand|...
         final rest    = line.substring(10);
         final nameEnd = rest.indexOf('|');
         final name    = nameEnd > 0 ? rest.substring(0, nameEnd).trim() : rest.trim();
-        if (name.isNotEmpty) (data['equipment'] as List<String>).add(name);
+        if (name.isNotEmpty) {
+          String slot = '';
+          for (final part in rest.split('|').skip(1)) {
+            if (part.toUpperCase().startsWith('LOCATION:')) {
+              final loc = part.substring(9).trim();
+              // 'Carried' / 'Equipped' / empty → treat as inventory (no slot)
+              if (loc.isNotEmpty &&
+                  loc.toLowerCase() != 'carried' &&
+                  loc.toLowerCase() != 'equipped') {
+                slot = loc;
+              }
+              break;
+            }
+          }
+          // If the same item name is already tracked, prefer the equipped entry.
+          final eq = data['equipment'] as Map<String, String>;
+          if (!eq.containsKey(name) || slot.isNotEmpty) eq[name] = slot;
+        }
       }
     }
     return data;

@@ -175,7 +175,7 @@ class _BuildHistoryTabState extends State<BuildHistoryTab> {
 
     // Baselines for diff computation.
     var prevSkills = <String, double>{};
-    var prevEquip  = <String>{};
+    var prevEquip  = <String, String>{};  // name → slot
     var prevFeats  = <String>{};
 
     final blocks = <_SaveBlock>[];
@@ -203,9 +203,26 @@ class _BuildHistoryTabState extends State<BuildHistoryTab> {
       prevSkills = currSkills;
 
       // ── Equipment diffs ───────────────────────────────────────────────────
-      final currEquip    = Set<String>.from((data['equipment'] as List? ?? []).cast<String>());
-      final addedItems   = currEquip.difference(prevEquip).toList()..sort();
-      final removedItems = prevEquip.difference(currEquip).toList()..sort();
+      final currEquip = Map<String, String>.from(
+          (data['equipment'] as Map? ?? {}).cast<String, String>());
+
+      final itemChanges = <(String, String?, String?)>[];
+      // Items added or slot changed.
+      for (final e in currEquip.entries) {
+        final prev = prevEquip[e.key];
+        if (prev == null) {
+          itemChanges.add((e.key, null, e.value));          // new item
+        } else if (prev != e.value) {
+          itemChanges.add((e.key, prev, e.value));          // slot changed
+        }
+      }
+      // Items removed entirely.
+      for (final e in prevEquip.entries) {
+        if (!currEquip.containsKey(e.key)) {
+          itemChanges.add((e.key, e.value, null));          // removed
+        }
+      }
+      itemChanges.sort((a, b) => a.$1.compareTo(b.$1));
       prevEquip = currEquip;
 
       // ── Feat diffs ────────────────────────────────────────────────────────
@@ -232,10 +249,9 @@ class _BuildHistoryTabState extends State<BuildHistoryTab> {
 
       // ── Apply all diffs to the last level of this block ───────────────────
       if (blockEntries.isNotEmpty) {
-        blockEntries.last.skillGains   = skillGains;
-        blockEntries.last.skillLosses  = skillLosses;
-        blockEntries.last.addedItems   = addedItems;
-        blockEntries.last.removedItems = removedItems;
+        blockEntries.last.skillGains  = skillGains;
+        blockEntries.last.skillLosses = skillLosses;
+        blockEntries.last.itemChanges = itemChanges;
         blockEntries.last.removedFeats = removedFeats;
         blockEntries.last.changedFeats = changedFeats;
       }
@@ -400,10 +416,14 @@ class _LevelEntry {
   final Map<String, int> statBumps;
   final List<String> feats;
   // Populated only for the last entry of each save block:
-  Map<String, double> skillGains   = {};
-  Map<String, double> skillLosses  = {};
-  List<String> addedItems   = [];
-  List<String> removedItems = [];
+  Map<String, double> skillGains  = {};
+  Map<String, double> skillLosses = {};
+  // Item changes: (name, prevSlot, currSlot)
+  //   prevSlot null  → item is new this save
+  //   currSlot null  → item was removed this save
+  //   ''             → in inventory (not equipped to a body slot)
+  //   'Primary Hand' → equipped to that slot
+  List<(String, String?, String?)> itemChanges = [];
   List<String> removedFeats = [];
   List<String> changedFeats = [];
 
@@ -612,13 +632,31 @@ class _LevelRow extends StatelessWidget {
         ('~ $f', Colors.orange.shade700),
     ];
 
-    // Items column: items added and removed
-    final itemLines = <(String text, Color color)>[
-      for (final item in entry.addedItems)
-        ('+ $item', Colors.indigo.shade400),
-      for (final item in entry.removedItems)
-        ('− $item', Colors.red.shade400),
-    ];
+    // Items column: structured changes with slot information
+    final itemLines = <(String text, Color color)>[];
+    for (final (name, prev, curr) in entry.itemChanges) {
+      if (prev == null) {
+        // Newly added
+        if (curr != null && curr.isNotEmpty) {
+          itemLines.add(('+ $name [$curr]', Colors.indigo.shade500));  // added & equipped
+        } else {
+          itemLines.add(('+ $name', Colors.indigo.shade400));           // added to inventory
+        }
+      } else if (curr == null) {
+        // Removed
+        if (prev.isNotEmpty) {
+          itemLines.add(('− $name [$prev]', Colors.red.shade500));      // removed while equipped
+        } else {
+          itemLines.add(('− $name', Colors.red.shade400));               // removed from inventory
+        }
+      } else if (prev.isEmpty && curr.isNotEmpty) {
+        itemLines.add(('⚔ $name → $curr', Colors.blue.shade600));       // equipped from inventory
+      } else if (prev.isNotEmpty && curr.isEmpty) {
+        itemLines.add(('○ $name ← $prev', Colors.grey.shade600));       // unequipped to inventory
+      } else if (prev != curr) {
+        itemLines.add(('~ $name: $prev → $curr', Colors.orange.shade700)); // moved slot
+      }
+    }
 
     Widget noteCol(List<(String, Color)> items) {
       if (items.isEmpty) return const SizedBox.shrink();
