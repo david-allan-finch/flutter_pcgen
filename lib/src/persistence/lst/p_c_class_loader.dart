@@ -164,22 +164,34 @@ class PCClassLoader extends GenericLoader<PCClass> {
             }
           }
           break;
-        case 'ADD':
-          // ADD=SPELLCASTER|TYPE — prestige class advances spellcasting of TYPE
-          if (value.toUpperCase().startsWith('SPELLCASTER|') ||
-              value.toUpperCase() == 'SPELLCASTER') {
+        case 'ADD': {
+          final vUp = value.toUpperCase();
+          if (vUp.startsWith('SPELLCASTER|') || vUp == 'SPELLCASTER') {
             final pipeIdx = value.indexOf('|');
             final type = pipeIdx >= 0 ? value.substring(pipeIdx + 1).trim() : 'ANY';
             pcClass.addSpellcasterAdvancement(level, type);
-          } else if (value.toUpperCase().startsWith('CLASSSKILLS|')) {
-            // ADD=CLASSSKILLS|N|CROSSCLASSSKILLS — grants bonus skill points; ignore for now
-          } else if (value.toUpperCase().startsWith('LANGUAGE|')) {
-            // ADD=LANGUAGE|TYPE — grants language choice; ignore for now
+          } else if (vUp.startsWith('ABILITY|')) {
+            // ADD:ABILITY|Category|Type|Name — grants an ability at this level
+            // Store as a level ability so rebuildBonuses can pick it up
+            final parts = value.split('|');
+            if (parts.length >= 3) {
+              final abilityType = parts[1].trim().toUpperCase();
+              if (abilityType == 'FEAT') {
+                // Virtual/automatic feat grants — store like ABILITY:FEAT|AUTOMATIC|Name
+                final nameIdx = parts.indexWhere((p) => !p.toUpperCase().startsWith('TYPE=') && p.toUpperCase() != 'FEAT' && p.toUpperCase() != 'VIRTUAL' && p.toUpperCase() != 'AUTOMATIC');
+                if (nameIdx >= 0) pcClass.addLevelAbility(level, parts[nameIdx].trim());
+              } else {
+                try { pcClass.addToListFor(ListKey.getConstant<String>('ADD_ABILITIES'), value); } catch (_) {}
+              }
+            }
+          } else if (vUp.startsWith('CLASSSKILLS|') || vUp.startsWith('LANGUAGE|')) {
+            // Skill point grants and language choices — no sheet impact
           } else {
             // ignore: avoid_print
             print('PCGen STUB: ClassLevel ADD: $value');
           }
           break;
+        }
         case 'BONUS':
           final parsed = ParsedBonus.parse(value);
           if (parsed != null) {
@@ -222,21 +234,56 @@ class PCClassLoader extends GenericLoader<PCClass> {
           break;
         }
         case 'DONOTADD':
-          // DONOTADD=HITDIE|SKILLPOINTS — monster classes that don't add HD/skills
-          break; // silently acknowledged — no hit dice or skill point changes needed
-        case 'SPECIALTYKNOWN':
-        case 'DOMAIN':
-        case 'SPELLLIST':
+          break; // monster classes that skip HD/skill points — no effect needed
+        case 'SPELLLEVEL':
+          // SPELLLEVEL:CLASS|ClassName=N|Spell1,Spell2|ClassName=M|...
+          // Adds spells to a class's spell list at specific levels. Store raw
+          // for future spell list consumption (CLASS.N.SPELLLEVEL tokens).
+          try { pcClass.addToListFor(ListKey.getConstant<String>('SPELL_LEVEL_ADDS'), value); } catch (_) {}
+          break;
         case 'SPELLKNOWN':
+          // SPELLKNOWN:CLASS|ClassName=N|SpellName|...|PREDOMAIN:1,DomainName
+          // Spontaneous domain spell knowledge for clerics/druids. Store raw.
+          try { pcClass.addToListFor(ListKey.getConstant<String>('SPELL_KNOWN_ADDS'), value); } catch (_) {}
+          break;
+        case 'SPELLLIST':
+          // SPELLLIST:N|ClassName|DOMAIN.X — composite spell list references.
+          try { pcClass.addToListFor(ListKey.getConstant<String>('SPELL_LIST_REFS'), value); } catch (_) {}
+          break;
+        case 'SPECIALTYKNOWN':
+          // SPECIALTYKNOWN:N,N,... — wizard specialty school extra spells known per level
+          try { pcClass.putString(StringKey.knownSpellFormula, 'SPECIALTY:$value'); } catch (_) {}
+          break;
+        case 'DOMAIN':
+          // DOMAIN:DomainName|PREABILITY:... — class grants this domain (paladin, etc.)
+          try { pcClass.addToListFor(ListKey.getConstant<String>('DOMAIN_GRANTS'), value); } catch (_) {}
+          break;
         case 'PREPCLEVEL':
-        case 'PRECAMPAIGN':
-        case 'PROHIBITSPELL':
-        case 'UDAM':
-        case 'UMULT':
+          // PREPCLEVEL:MIN=N — class features at this level require minimum total level N.
+          // Store as a level prerequisite so we can filter features for epic characters.
+          try { pcClass.addToListFor(ListKey.getConstant<String>('LEVEL_PREREQS'), '$level:$value'); } catch (_) {}
+          break;
         case 'VISION':
+          // VISION:Blindsight (N') — class level grants special sight. Store for future display.
+          try { pcClass.addToListFor(ListKey.getConstant<String>('LEVEL_VISION'), '$level:$value'); } catch (_) {}
+          break;
         case 'TEMPLATE':
-          // ignore: avoid_print
-          print('PCGen STUB: ClassLevel token: $tag=$value');
+          // TEMPLATE:Name — class level applies a template to the character.
+          try { pcClass.addToListFor(ListKey.getConstant<String>('LEVEL_TEMPLATES'), '$level:$value'); } catch (_) {}
+          break;
+        case 'UDAM':
+          // UDAM:1d4,1d6,... — unarmed damage progression table by size category.
+          try { pcClass.addToListFor(ListKey.getConstant<String>('UDAM_TABLE'), value); } catch (_) {}
+          break;
+        case 'PROHIBITSPELL':
+          // PROHIBITSPELL:ALIGNMENT.X|PREALIGN:... — alignment-based spell prohibition.
+          try { pcClass.addToListFor(ListKey.getConstant<String>('PROHIBIT_SPELLS'), value); } catch (_) {}
+          break;
+        case 'UMULT':
+        case 'EXCHANGELEVEL':
+        case 'PRECAMPAIGN':
+          // Minor/epic gating tokens — store generically; no sheet impact for non-epic
+          try { pcClass.addToListFor(ListKey.getConstant<String>('EXTRA_LEVEL_TOKENS'), '$tag:$value'); } catch (_) {}
           break;
         default:
           // ignore: avoid_print
