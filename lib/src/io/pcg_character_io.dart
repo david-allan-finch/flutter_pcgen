@@ -34,6 +34,7 @@ class PCGCharacterIO {
     final buf = StringBuffer();
     final data = character.toJson();
 
+    buf.writeln('PCGVERSION:2.0');
     buf.writeln('# System Information');
     final campaignName = data['campaignName'] as String? ?? '';
     if (campaignName.isNotEmpty) buf.writeln('CAMPAIGN:$campaignName');
@@ -544,6 +545,7 @@ class PCGCharacterIO {
         case 'CITY':
         case 'BIRTHDAY':
         case 'BIRTHPLACE':
+          break; // biographical fields not needed for character sheet rendering
         case 'HAIRSTYLE':         data['hairStyle']        = value.trim(); break;
         case 'PERSONALITYTRAIT1': data['personalityTrait1'] = value.trim(); break;
         case 'PERSONALITYTRAIT2': data['personalityTrait2'] = value.trim(); break;
@@ -1295,9 +1297,14 @@ class PCGCharacterIO {
 
   static String _unesc(String s) => s.replaceAll('\\n', '\n');
 
-  /// Returns true if content is a PCGen PCG file (starts with PCGVERSION:).
-  static bool isPCGFormat(String content) =>
-      content.trimLeft().startsWith('PCGVERSION:');
+  /// Returns true if content is a PCGen PCG file.
+  /// Accepts Java PCGen format (PCGVERSION: first) and our own format
+  /// (# System Information first, written by older builds before build-097).
+  static bool isPCGFormat(String content) {
+    final trimmed = content.trimLeft();
+    return trimmed.startsWith('PCGVERSION:') ||
+        trimmed.startsWith('# System Information');
+  }
 
   /// Quickly peek key fields from the first ~80 lines of a PCG or JSON file.
   /// Returns a map with keys: name, gameMode, race, primaryClass, totalLevel, campaigns.

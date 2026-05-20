@@ -195,6 +195,32 @@ class PCClassLoader extends GenericLoader<PCClass> {
             } catch (_) {}
           }
           break;
+        case 'AUTO': {
+          // AUTO:ARMORPROF|... / AUTO:WEAPONPROF|... / AUTO:SHIELDPROF|... at level lines
+          final pipeIdx = value.indexOf('|');
+          final autoType = pipeIdx > 0 ? value.substring(0, pipeIdx).toUpperCase() : value.toUpperCase();
+          final autoVal  = pipeIdx > 0 ? value.substring(pipeIdx + 1) : '';
+          final listKeyName = switch (autoType) {
+            'ARMORPROF'  => 'AUTO_ARMORPROF',
+            'WEAPONPROF' => 'AUTO_WEAPONPROF',
+            'SHIELDPROF' => 'AUTO_SHIELDPROF',
+            'EQUIP'      => 'AUTO_EQUIP',
+            'LANG'       => 'AUTO_LANG',
+            _            => null,
+          };
+          if (listKeyName != null) {
+            for (final item in autoVal.split('|')) {
+              final i = item.trim();
+              if (i.isNotEmpty && !i.startsWith('%')) {
+                try { pcClass.addToListFor(ListKey.getConstant<String>(listKeyName), i); } catch (_) {}
+              }
+            }
+          } else {
+            // ignore: avoid_print
+            print('PCGen STUB: ClassLevel AUTO type: $autoType');
+          }
+          break;
+        }
         case 'DONOTADD':
           // DONOTADD=HITDIE|SKILLPOINTS — monster classes that don't add HD/skills
           break; // silently acknowledged — no hit dice or skill point changes needed

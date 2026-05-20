@@ -860,6 +860,16 @@ class GenericLoader<T extends CDOMObject> extends LstObjectFileLoader<T> {
           }
         }
         break;
+      case 'EQUIP':
+        // AUTO:EQUIP|ItemName|ItemName2 — race/class auto-equips these items.
+        // Store item names so rebuildBonuses() can include their bonuses.
+        for (final item in autoValue.split('|')) {
+          final i = item.trim();
+          if (i.isNotEmpty && !i.startsWith('%')) {
+            try { obj.addToListFor(ListKey.getConstant<String>('AUTO_EQUIP'), i); } catch (_) {}
+          }
+        }
+        break;
       default:
         // ignore: avoid_print
         print('PCGen STUB: AUTO token type: $autoType');
@@ -899,6 +909,13 @@ class GenericLoader<T extends CDOMObject> extends LstObjectFileLoader<T> {
           if (l.isNotEmpty) {
             try { obj.addToListFor(ListKey.getConstant<String>('LANG_BONUS'), l); } catch (_) {}
           }
+        }
+        break;
+      case 'SPELLCASTER':
+        // ADD:SPELLCASTER|TYPE on a feat/ability marks it as granting a spellcaster
+        // type qualification (or advancing spellcasting). Store the type for future use.
+        if (addValue.isNotEmpty) {
+          try { obj.addToListFor(ListKey.getConstant<String>('SPELLCASTER_TYPE'), addValue); } catch (_) {}
         }
         break;
       default:
