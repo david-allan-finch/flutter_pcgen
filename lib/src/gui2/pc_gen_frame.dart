@@ -268,57 +268,62 @@ class PCGenFrameState extends State<PCGenFrame> {
     final nextVer   = impl.getSaveVersion() + 1;
     final suggested = level > 0 ? '${charName}_L$level' : '${charName}_v$nextVer';
 
-    final controller = TextEditingController(text: suggested);
-    showDialog<void>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Save New Version'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Creates a new save file for this character.\n'
-              'The original file is kept unchanged.',
-              style: TextStyle(fontSize: 13),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: controller,
-              autofocus: true,
-              decoration: const InputDecoration(
-                labelText: 'Filename (without .pcg)',
-                border: OutlineInputBorder(),
-                isDense: true,
+    // Use a post-frame callback so the popup menu has fully closed before the
+    // dialog is pushed — calling showDialog inside onSelected can otherwise
+    // race with the menu's navigator pop on some platforms.
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
+      final controller = TextEditingController(text: suggested);
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Save New Version'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Creates a new save file for this character.\n'
+                'The original file is kept unchanged.',
+                style: TextStyle(fontSize: 13),
               ),
-              onSubmitted: (_) => Navigator.pop(ctx, true),
+              const SizedBox(height: 12),
+              TextField(
+                controller: controller,
+                autofocus: true,
+                decoration: const InputDecoration(
+                  labelText: 'Filename (without .pcg)',
+                  border: OutlineInputBorder(),
+                  isDense: true,
+                ),
+                onSubmitted: (_) => Navigator.pop(ctx, true),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: const Text('Save'),
             ),
           ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Save'),
-          ),
-        ],
-      ),
-    ).then((_) {
+      );
       final name = controller.text.trim();
       controller.dispose();
-      if (name.isEmpty) return;
-      CharacterFileIO.saveNewVersion(impl, name).then((path) {
-        if (!mounted) return;
-        if (path != null) {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text('Saved new version: ${path.split(r'\').last.split('/').last}'),
-            duration: const Duration(seconds: 3),
-          ));
-        }
-      });
+      if (confirmed != true || name.isEmpty) return;
+      if (!mounted) return;
+      final path = await CharacterFileIO.saveNewVersion(impl, name);
+      if (!mounted) return;
+      if (path != null) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Saved: ${path.split(r'\').last.split('/').last}'),
+          duration: const Duration(seconds: 3),
+        ));
+      }
     });
   }
 
