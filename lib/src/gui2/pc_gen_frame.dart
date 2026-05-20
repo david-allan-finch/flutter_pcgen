@@ -192,15 +192,8 @@ class PCGenFrameState extends State<PCGenFrame> {
     showDialog(
       context: context,
       builder: (_) => _LoadCharacterDialog(
-        onLoad: (path) async {
-          final character = await CharacterFileIO.load(path);
-          if (character != null) {
-            CharacterManager.getCharacters().addElement(character);
-            setCharacter(character);
-          }
-        },
+        onLoad: (path, header) => _loadCharacterWithSources(path, header),
         onLoadSources: () {
-          // Called when user wants to load sources before opening a character.
           showSourceSelectionDialog();
         },
       ),
@@ -816,7 +809,7 @@ class _ExportDialogState extends State<_ExportDialog> {
 // ---------------------------------------------------------------------------
 
 class _LoadCharacterDialog extends StatefulWidget {
-  final Future<void> Function(String path) onLoad;
+  final Future<void> Function(String path, Map<String, String> header) onLoad;
   final VoidCallback? onLoadSources;
   const _LoadCharacterDialog({required this.onLoad, this.onLoadSources});
 
@@ -1019,7 +1012,8 @@ class _LoadCharacterDialogState extends State<_LoadCharacterDialog> {
                               // Tap handler — prompt on mismatch/no sources
                               Future<void> doLoad() async {
                                 setState(() => _loading = true);
-                                await widget.onLoad(file.path);
+                                final header = _headerCache[file.path] ?? {};
+                                await widget.onLoad(file.path, header);
                                 if (mounted) Navigator.pop(context);
                               }
 
