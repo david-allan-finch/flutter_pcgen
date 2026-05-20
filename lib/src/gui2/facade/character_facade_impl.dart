@@ -671,6 +671,8 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
 
   /// Armor bonus to AC (ARMOR-typed bonus from equipped armor).
   int getArmorBonus() => _bonusAcc.totalInt('COMBAT', 'AC');
+  int getBonusTo(String category, String target) =>
+      _bonusAcc.totalInt(category, target);
 
   int getNaturalArmorBonus() => _bonusAcc.totalIntOfType('COMBAT', 'AC', 'NATURALARMOR');
   int getShieldBonus()       => _bonusAcc.totalIntOfType('COMBAT', 'AC', 'SHIELD') +
@@ -2009,6 +2011,31 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
         }
       }
     } catch (_) {}
+
+    // Compute CMB / CMD from BAB + stat mods + size
+    // Size combat modifier: Fine=-8 Dim=-4 Tiny=-2 Small=-1 Med=0 Large=+1 Huge=+2 Garg=+4 Col=+8
+    const _sizeCombatMods = {
+      'F': -8, 'D': -4, 'T': -2, 'S': -1, 'M': 0,
+      'L': 1, 'H': 2, 'G': 4, 'C': 8,
+    };
+    final sizeMod = _sizeCombatMods[_data['raceSize'] ?? 'M'] ?? 0;
+    final strMod = statMods['STR'] ?? 0;
+    final dexMod = statMods['DEX'] ?? 0;
+    final babInt = int.tryParse(getBAB().split('/').first.replaceAll('+', '')) ?? 0;
+    final cmb = babInt + strMod + sizeMod;
+    final cmd = 10 + babInt + strMod + dexMod + sizeMod;
+    charVars['CMB']        = cmb.toDouble();
+    charVars['CMB_STAT']   = strMod.toDouble(); // for CMB_STAT.INTVAL.SIGN
+    charVars['CM_SizeMod'] = sizeMod.toDouble();
+    charVars['CMD']        = cmd.toDouble();
+    // Combat maneuver sub-types — per-maneuver bonuses are feats/abilities,
+    // stub to base CMB/CMD until ability bonuses are read.
+    for (final m in ['Bull', 'BullRush', 'DirtyTrick', 'Disarm', 'Drag',
+                     'Grapple', 'Overrun', 'Reposition', 'Steal', 'Sunder', 'Trip']) {
+      charVars['CMB_$m'] = cmb.toDouble();
+      charVars['CMB_${m}_DEF'] = cmd.toDouble();
+      charVars['CMD_$m'] = cmd.toDouble();
+    }
 
     // Store resolved variables for getVariable() access
     _data['charVariables'] = Map<String, double>.from(charVars);

@@ -135,14 +135,32 @@ class PcgenTokenContext extends FtlContext {
       return '0';
     }
 
-    // VAR.name tokens
+    // VAR.name tokens — VAR.Name / VAR.Name.INTVAL / VAR.Name.INTVAL.SIGN / .NOZERO
+    // Also handles VAR.HASFEAT:FeatName — feat presence check.
     if (token.startsWith('VAR.')) {
       final parts = token.split('.');
+      // VAR.HASFEAT:FeatName — check if feat is selected
+      if (parts[1].startsWith('HASFEAT:')) {
+        final featName = parts[1].substring(8);
+        final feats = _abilitiesForCat('FEAT');
+        final has = feats.any((f) => _displayName(f).toLowerCase() == featName.toLowerCase());
+        return has ? '1' : '0';
+      }
+      // VAR.charbonusto("CAT","TARGET") — bonus total from accumulator
+      if (parts[1].startsWith('charbonusto(')) {
+        try {
+          final inner = token.substring(token.indexOf('(') + 1, token.lastIndexOf(')'));
+          final args = inner.split(',').map((s) => s.trim().replaceAll('"', '')).toList();
+          if (args.length >= 2) {
+            final val = _pc.getBonusTo(args[0], args[1]);
+            return _applyVarSuffixes(parts, 2, val.toDouble());
+          }
+        } catch (_) {}
+        return '0';
+      }
       final varName = parts[1];
-      final fmt = parts.length > 2 ? parts[2] : '';
       final val = _pc.getVariable(varName);
-      if (fmt == 'INTVAL') return val.toInt().toString();
-      return val.toString();
+      return _applyVarSuffixes(parts, 2, val);
     }
 
     // HASVAR.name — true if the named variable is defined (non-zero)
@@ -344,7 +362,7 @@ class PcgenTokenContext extends FtlContext {
       // ── Equipment by type ────────────────────────────────────────────────
       case 'EQTYPE': return _eqType(parts);
 
-      default:            return '';
+      default:            return _stub('top-level: $token');
     }
   }
 
@@ -455,10 +473,10 @@ class PcgenTokenContext extends FtlContext {
       case 'BASE':  return base.toString();
       case 'STATMOD':
       case 'STAT':  return _signed(statMod);
-      case 'MAGIC': return '0';
+      case 'MAGIC': return _stub('SAVE.${parts[1]}.MAGIC');
       case 'EPIC':  return '0';
       case 'MISC.NOMAGIC.NOSTAT':
-      case 'MISC':  return '0';
+      case 'MISC':  return _stub('SAVE.${parts[1]}.MISC');
     }
     return '';
   }
@@ -523,7 +541,7 @@ class PcgenTokenContext extends FtlContext {
       case 'TYPE':  return _classType(key);
       case 'BAB':   return _pc.getBABAsInt().toString();
     }
-    return '';
+    return _stub('CLASS field: ${parts.join(".")}');
   }
 
   String _classType(String key) {
@@ -630,8 +648,34 @@ class PcgenTokenContext extends FtlContext {
       case 'CATEGORY':    return (w['isRanged'] as bool? ?? false) ? 'Ranged' : 'Melee';
       case 'LONGNAME':    return w['name'] as String? ?? '';
       case 'PROFICIENCY': return w['name'] as String? ?? '';
+      case 'REACHUNIT':   return 'ft.';
+      case 'ISTYPE': {
+        // WEAPON.N.ISTYPE.TypeName
+        if (parts.length < 4) return '0';
+        final typeQuery = parts[3].toLowerCase();
+        final typeList = (w['typeList'] as List?)?.cast<String>() ?? [];
+        return typeList.any((t) => t.toLowerCase() == typeQuery) ? '1' : '0';
+      }
+      case 'RANGELIST': {
+        // WEAPON.N.RANGELIST.M.* — range increment M details
+        // Return basic info for range increment 0 (point-blank/short range)
+        if (parts.length >= 4) {
+          final sub = parts.length > 4 ? parts[4].toUpperCase() : 'NAME';
+          switch (sub) {
+            case 'NAME':     return 'Point Blank';
+            case 'TOTALHIT': return w['tohit'] as String? ?? '+0';
+            case 'DAMAGE':   return w['damage'] as String? ?? '1d4';
+          }
+        }
+        return _stub('WEAPON.RANGELIST: ${parts.join(".")}');
+      }
+      case 'CONTENTS': {
+        // WEAPON.N.CONTENTS.M.* — ammunition loaded
+        return _stub('WEAPON.CONTENTS: ${parts.join(".")}');
+      }
+      case 'CONTENTS-1': return '0';
     }
-    return '';
+    return _stub('WEAPON field: ${parts.join(".")}');
   }
 
   List<Map<String, dynamic>>? _weaponCache;
@@ -669,6 +713,22 @@ class PcgenTokenContext extends FtlContext {
     final attacks = <String>[];
     var cur = tohit;
     while (cur > 0 || attacks.isEmpty) { attacks.add(_signed(cur)); cur -= 5; if (cur <= tohit - 20) break; }
+    // Collect type list from dataset for ISTYPE queries
+    List<String> typeList = [];
+    try {
+      final dataset = _dataset;
+      if (dataset != null) {
+        final dsKey = item['dsKey'] as String? ?? item['key'] as String? ?? name;
+        for (final eq in (dataset as dynamic).equipment as List) {
+          if ((eq as dynamic).getKeyName() == dsKey) {
+            typeList = ((eq as dynamic).getSafeListFor(
+                ListKey.getConstant<String>('TYPE')) as List?)
+                ?.cast<String>() ?? [];
+            break;
+          }
+        }
+      }
+    } catch (_) {}
     return {
       'name': name,
       'tohit': attacks.join('/'),
@@ -676,7 +736,8 @@ class PcgenTokenContext extends FtlContext {
       'crit': item['crit'] as String? ?? '20/×2',
       'isRanged': isRanged,
       'range': isRanged ? '60 ft.' : 'melee',
-      'type': '',
+      'type': typeList.join('.'),
+      'typeList': typeList,
     };
   }
 
@@ -758,7 +819,7 @@ class PcgenTokenContext extends FtlContext {
         totalHit = bab + statMod;
         break;
       default:
-        return '';
+        return _stub('ATTACK type: ${parts.join(".")}');
     }
 
     // 3.5e iterative attacks: count is determined by BASE attack bonus,
@@ -1808,6 +1869,33 @@ class PcgenTokenContext extends FtlContext {
   String _displayName(String stored) {
     final sep = stored.indexOf('|');
     return sep >= 0 ? stored.substring(0, sep) : stored;
+  }
+
+  /// Log a stub call and return ''. Use for tokens that should eventually
+  /// produce real output so we can see which ones fire at runtime.
+  String _stub(String context) {
+    // ignore: avoid_print
+    print('PCGen STUB: $context');
+    return '';
+  }
+
+  /// Apply VAR format suffixes starting at [suffixIdx] in [parts].
+  /// Handles: INTVAL (truncate), SIGN (prefix +), NOZERO (hide zero).
+  String _applyVarSuffixes(List<String> parts, int suffixIdx, double val) {
+    // Collect all suffix words
+    final suffixes = parts.length > suffixIdx
+        ? parts.sublist(suffixIdx).map((s) => s.toUpperCase()).toSet()
+        : const <String>{};
+    if (suffixes.contains('NOZERO') && val == 0) return '';
+    final intVal = val.toInt();
+    final numStr = suffixes.contains('INTVAL') ? '$intVal' : val.toString();
+    if (suffixes.contains('SIGN')) {
+      final n = suffixes.contains('INTVAL') ? intVal : val.round();
+      return n >= 0 ? '+$n' : '$n';
+    }
+    // Plain INTVAL without SIGN
+    if (suffixes.contains('INTVAL')) return '$intVal';
+    return numStr;
   }
 }
 
