@@ -1218,11 +1218,11 @@ class _LoadCharacterDialogState extends State<_LoadCharacterDialog> {
     final primaryClass = header?['primaryClass'] ?? '';
     final totalLevel   = header?['totalLevel'] ?? '';
     final gameMode     = header?['gameMode'] ?? '';
-    final loadedMode   = loadedDataSet.value?.gameModeStr ?? '';
-    final modeMatch    = gameMode.isNotEmpty && loadedMode.isNotEmpty &&
-        gameMode.toLowerCase() == loadedMode.toLowerCase();
-    final mismatched   = gameMode.isNotEmpty && loadedMode.isNotEmpty && !modeMatch;
-    final noSources    = gameMode.isNotEmpty && loadedMode.isEmpty;
+    // Check the registry — any loaded game mode shows green, not just the active one.
+    final modeMatch  = gameMode.isNotEmpty &&
+        datasetRegistry.containsKey(gameMode.toLowerCase());
+    final noSources  = gameMode.isNotEmpty && datasetRegistry.isEmpty;
+    final mismatched = gameMode.isNotEmpty && !modeMatch && !noSources;
     final summaryParts = <String>[
       if (race.isNotEmpty) race,
       if (primaryClass.isNotEmpty && totalLevel.isNotEmpty) '$primaryClass $totalLevel'
@@ -1284,7 +1284,7 @@ class _LoadCharacterDialogState extends State<_LoadCharacterDialog> {
                             ),
                             const SizedBox(width: 3),
                             Text(
-                              mismatched ? '$gameMode  ⚠ loaded: $loadedMode' : gameMode,
+                              mismatched ? '$gameMode  ⚠ not loaded' : gameMode,
                               style: TextStyle(
                                 fontSize: 10,
                                 color: mismatched || noSources ? Colors.orange.shade700
@@ -1349,11 +1349,11 @@ class _LoadCharacterDialogState extends State<_LoadCharacterDialog> {
     final ext          = p.extension(file.path);
     final modified     = file.lastModifiedSync();
 
-    final loadedMode   = loadedDataSet.value?.gameModeStr ?? '';
-    final modeMatch    = gameMode.isNotEmpty && loadedMode.isNotEmpty &&
-        gameMode.toLowerCase() == loadedMode.toLowerCase();
-    final mismatched   = gameMode.isNotEmpty && loadedMode.isNotEmpty && !modeMatch;
-    final noSources    = gameMode.isNotEmpty && loadedMode.isEmpty;
+    // Check the registry — any loaded game mode shows green, not just the active one.
+    final modeMatch  = gameMode.isNotEmpty &&
+        datasetRegistry.containsKey(gameMode.toLowerCase());
+    final noSources  = gameMode.isNotEmpty && datasetRegistry.isEmpty;
+    final mismatched = gameMode.isNotEmpty && !modeMatch && !noSources;
 
     final summaryParts = <String>[
       if (!indented && race.isNotEmpty) race,
@@ -1401,7 +1401,7 @@ class _LoadCharacterDialogState extends State<_LoadCharacterDialog> {
               ),
               const SizedBox(width: 3),
               Text(
-                mismatched ? '$gameMode  ⚠ loaded: $loadedMode' : gameMode,
+                mismatched ? '$gameMode  ⚠ not loaded' : gameMode,
                 style: TextStyle(
                   fontSize: 10,
                   color: mismatched || noSources ? Colors.orange.shade700
