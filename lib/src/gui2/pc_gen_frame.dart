@@ -1490,6 +1490,7 @@ class _CharacterLauncherDialogState extends State<_CharacterLauncherDialog> {
   bool _loading  = false;
   String _loadingMsg = '';
   final _search = TextEditingController();
+  final Set<String> _expanded = {};
 
   @override
   void initState() {
@@ -1526,14 +1527,59 @@ class _CharacterLauncherDialogState extends State<_CharacterLauncherDialog> {
     if (mounted) setState(() => _scanning = false);
   }
 
-  List<File> get _filtered {
+  Map<String, List<File>> get _groups {
     final q = _search.text.trim().toLowerCase();
-    if (q.isEmpty) return _files;
-    return _files.where((f) {
-      final h = _headers[f.path];
-      final name = (h?['name'] ?? p.basenameWithoutExtension(f.path)).toLowerCase();
-      return name.contains(q);
-    }).toList();
+    final byId  = <String, List<File>>{};
+    final names = <String, String>{};
+
+    for (final file in _files) {
+      final header = _headers[file.path];
+      final name   = header?['name']?.isNotEmpty == true
+          ? header!['name']! : p.basenameWithoutExtension(file.path);
+      if (q.isNotEmpty && !name.toLowerCase().contains(q)) continue;
+
+      final uuid       = header?['charUuid'] ?? '';
+      final race       = header?['race'] ?? '';
+      final firstClass = header?['firstClass'] ?? '';
+      final String key;
+      if (uuid.isNotEmpty) {
+        key = uuid;
+      } else if (race.isNotEmpty || firstClass.isNotEmpty) {
+        key = '${name.toLowerCase()}|${race.toLowerCase()}|${firstClass.toLowerCase()}';
+      } else {
+        key = name;
+      }
+      byId.putIfAbsent(key, () => []).add(file);
+      names[key] = name;
+    }
+
+    for (final files in byId.values) {
+      files.sort((a, b) {
+        final ha = _headers[a.path];
+        final hb = _headers[b.path];
+        final va = int.tryParse(ha?['saveVersion'] ?? '') ?? -1;
+        final vb = int.tryParse(hb?['saveVersion'] ?? '') ?? -1;
+        if (va != vb) return vb.compareTo(va);
+        final ta = ha?['savedAt'] ?? '';
+        final tb = hb?['savedAt'] ?? '';
+        if (ta.isNotEmpty && tb.isNotEmpty) return tb.compareTo(ta);
+        return b.lastModifiedSync().compareTo(a.lastModifiedSync());
+      });
+    }
+
+    final result = <String, List<File>>{};
+    for (final entry in byId.entries) {
+      final files    = entry.value;
+      final newest   = _headers[files.first.path];
+      final dispName = newest?['name']?.isNotEmpty == true
+          ? newest!['name']! : names[entry.key]!;
+      result[dispName] = files;
+    }
+
+    return Map.fromEntries(
+      result.entries.toList()
+        ..sort((a, b) => a.key.toLowerCase().compareTo(b.key.toLowerCase())),
+    );
   }
 
   Future<void> _select(File file) async {
@@ -1552,7 +1598,6 @@ class _CharacterLauncherDialogState extends State<_CharacterLauncherDialog> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final filtered = _filtered;
 
     return Dialog(
       child: ConstrainedBox(
@@ -1626,52 +1671,22 @@ class _CharacterLauncherDialogState extends State<_CharacterLauncherDialog> {
 
             // Character list
             Expanded(
-              child: _scanning
-                  ? const Center(child: CircularProgressIndicator())
-                  : filtered.isEmpty
-                      ? Center(
-                          child: Text(
-                            _files.isEmpty ? 'No saved characters found.' : 'No matches.',
-                            style: const TextStyle(color: Colors.grey),
-                          ),
-                        )
-                      : ListView.builder(
-                          padding: const EdgeInsets.symmetric(horizontal: 8),
-                          itemCount: filtered.length,
-                          itemBuilder: (_, i) {
-                            final file = filtered[i];
-                            final header = _headers[file.path];
-                            final charName = header?['name'] ??
-                                p.basenameWithoutExtension(file.path);
-                            final cls      = header?['primaryClass'] ?? '';
-                            final level    = header?['totalLevel']  ?? '';
-                            final race     = header?['race']        ?? '';
-                            final mode     = header?['gameMode']    ?? '';
-                            final subtitle = [
-                              if (race.isNotEmpty) race,
-                              if (cls.isNotEmpty && level.isNotEmpty)
-                                '$cls $level'
-                              else if (cls.isNotEmpty)
-                                cls,
-                              if (mode.isNotEmpty) '($mode)',
-                            ].join(' · ');
-                            return ListTile(
-                              leading: const Icon(Icons.person, size: 22),
-                              title: Text(charName,
-                                  style: const TextStyle(fontWeight: FontWeight.w600)),
-                              subtitle: subtitle.isNotEmpty
-                                  ? Text(subtitle,
-                                      style: const TextStyle(fontSize: 11))
-                                  : null,
-                              trailing: header == null
-                                  ? const SizedBox(
-                                      width: 16, height: 16,
-                                      child: CircularProgressIndicator(strokeWidth: 2))
-                                  : const Icon(Icons.chevron_right, size: 18),
-                              onTap: header == null ? null : () => _select(file),
-                            );
-                          },
-                        ),
+              child: Builder(builder: (context) {
+                if (_scanning) return const Center(child: CircularProgressIndicator());
+                final g = _groups;
+                if (g.isEmpty) {
+                  return Center(
+                    child: Text(
+                      _files.isEmpty ? 'No saved characters found.' : 'No matches.',
+                      style: const TextStyle(color: Colors.grey),
+                    ),
+                  );
+                }
+                return ListView(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  children: g.entries.map((e) => _buildGroup(e.key, e.value)).toList(),
+                );
+              }),
             ),
 
             // Footer
@@ -1691,5 +1706,233 @@ class _CharacterLauncherDialogState extends State<_CharacterLauncherDialog> {
         ),
       ),
     );
+  }
+
+  Widget _buildGroup(String charName, List<File> files) {
+    if (files.length == 1) {
+      return _buildFileTile(files.first, charName: charName);
+    }
+    final primary      = files.first;
+    final header       = _headers[primary.path];
+    final race         = header?['race'] ?? '';
+    final primaryClass = header?['primaryClass'] ?? '';
+    final totalLevel   = header?['totalLevel'] ?? '';
+    final gameMode     = header?['gameMode'] ?? '';
+    final modeMatch    = gameMode.isNotEmpty &&
+        datasetRegistry.containsKey(gameMode.toLowerCase());
+    final noSources    = gameMode.isNotEmpty && datasetRegistry.isEmpty;
+    final mismatched   = gameMode.isNotEmpty && !modeMatch && !noSources;
+    final summaryParts = <String>[
+      if (race.isNotEmpty) race,
+      if (primaryClass.isNotEmpty && totalLevel.isNotEmpty) '$primaryClass $totalLevel'
+      else if (primaryClass.isNotEmpty) primaryClass,
+    ];
+    final summary  = summaryParts.join(' · ');
+    final isOpen   = _expanded.contains(charName);
+    final modLabel = _fmtDate(primary.lastModifiedSync());
+
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 2),
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(6),
+        side: BorderSide(color: mismatched || noSources
+            ? Colors.orange.shade300 : Colors.grey.shade300),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          InkWell(
+            borderRadius: BorderRadius.vertical(
+                top: const Radius.circular(6),
+                bottom: isOpen ? Radius.zero : const Radius.circular(6)),
+            onTap: _loading ? null : () => _select(primary),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(12, 8, 4, 8),
+              child: Row(
+                children: [
+                  Icon(Icons.people,
+                      size: 20,
+                      color: mismatched || noSources
+                          ? Colors.orange.shade400
+                          : Theme.of(context).colorScheme.primary),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(charName,
+                            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+                        if (summary.isNotEmpty)
+                          Text(summary,
+                              style: const TextStyle(fontSize: 11, fontStyle: FontStyle.italic)),
+                        Row(children: [
+                          if (gameMode.isNotEmpty) ...[
+                            Icon(
+                              mismatched || noSources
+                                  ? Icons.warning_amber_rounded
+                                  : modeMatch ? Icons.check_circle : Icons.circle_outlined,
+                              size: 10,
+                              color: mismatched || noSources ? Colors.orange.shade600
+                                  : modeMatch ? Colors.green.shade600 : Colors.grey.shade500,
+                            ),
+                            const SizedBox(width: 3),
+                            Text(
+                              mismatched ? '$gameMode  ⚠ not loaded' : gameMode,
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: mismatched || noSources ? Colors.orange.shade700
+                                    : modeMatch ? Colors.green.shade700 : Colors.grey.shade600,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                          ],
+                          Text(modLabel,
+                              style: TextStyle(fontSize: 10, color: Colors.grey.shade500)),
+                        ]),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    tooltip: isOpen ? 'Hide saves' : '${files.length} saves — show all',
+                    icon: Row(mainAxisSize: MainAxisSize.min, children: [
+                      Text('${files.length}',
+                          style: TextStyle(fontSize: 10, color: Colors.grey.shade600)),
+                      Icon(isOpen ? Icons.expand_less : Icons.expand_more,
+                          size: 18, color: Colors.grey.shade600),
+                    ]),
+                    onPressed: () => setState(() {
+                      if (isOpen) _expanded.remove(charName);
+                      else _expanded.add(charName);
+                    }),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          if (isOpen) ...[
+            Divider(height: 1, color: Colors.grey.shade200),
+            Column(
+              children: files.map((f) => _buildFileTile(f, indented: true)).toList(),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFileTile(File file, {String? charName, bool indented = false}) {
+    final header       = _headers[file.path];
+    final name         = charName ?? (header?['name']?.isNotEmpty == true
+        ? header!['name']! : p.basenameWithoutExtension(file.path));
+    final fileName     = p.basename(file.path);
+    final gameMode     = header?['gameMode'] ?? '';
+    final race         = header?['race'] ?? '';
+    final primaryClass = header?['primaryClass'] ?? '';
+    final totalLevel   = header?['totalLevel'] ?? '';
+    final ext          = p.extension(file.path);
+    final modified     = file.lastModifiedSync();
+    final modeMatch    = gameMode.isNotEmpty &&
+        datasetRegistry.containsKey(gameMode.toLowerCase());
+    final noSources    = gameMode.isNotEmpty && datasetRegistry.isEmpty;
+    final mismatched   = gameMode.isNotEmpty && !modeMatch && !noSources;
+
+    final summaryParts = <String>[
+      if (!indented && race.isNotEmpty) race,
+      if (primaryClass.isNotEmpty && totalLevel.isNotEmpty) '$primaryClass $totalLevel'
+      else if (primaryClass.isNotEmpty) primaryClass,
+    ];
+    final summary      = summaryParts.join(' · ');
+    final saveVersion  = header?['saveVersion'] ?? '';
+    final savedAt      = header?['savedAt'] ?? '';
+    final modLabel = savedAt.isNotEmpty
+        ? _fmtDate(DateTime.tryParse(savedAt)?.toLocal() ?? modified)
+        : _fmtDate(modified);
+    final versionLabel = saveVersion.isNotEmpty ? 'v$saveVersion' : '';
+
+    final tile = ListTile(
+      dense: true,
+      contentPadding: EdgeInsets.only(
+          left: indented ? 36 : 12, right: 12, top: 2, bottom: 2),
+      leading: Icon(
+        ext == '.json' ? Icons.data_object : Icons.description,
+        size: indented ? 18 : 22,
+        color: mismatched ? Colors.orange.shade400
+            : indented ? Colors.grey.shade500 : null,
+      ),
+      title: Text(indented ? fileName : name,
+          style: TextStyle(
+              fontSize: indented ? 12 : 13,
+              fontWeight: indented ? FontWeight.normal : FontWeight.w600)),
+      subtitle: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (summary.isNotEmpty)
+            Text(summary,
+                style: const TextStyle(fontSize: 11, fontStyle: FontStyle.italic)),
+          Row(children: [
+            if (gameMode.isNotEmpty) ...[
+              Icon(
+                mismatched || noSources ? Icons.warning_amber_rounded
+                    : modeMatch ? Icons.check_circle : Icons.circle_outlined,
+                size: 10,
+                color: mismatched || noSources ? Colors.orange.shade600
+                    : modeMatch ? Colors.green.shade600 : Colors.grey.shade500,
+              ),
+              const SizedBox(width: 3),
+              Text(
+                mismatched ? '$gameMode  ⚠ not loaded' : gameMode,
+                style: TextStyle(
+                  fontSize: 10,
+                  color: mismatched || noSources ? Colors.orange.shade700
+                      : modeMatch ? Colors.green.shade700 : Colors.grey.shade600,
+                ),
+              ),
+              const SizedBox(width: 8),
+            ],
+            Text(modLabel,
+                style: TextStyle(fontSize: 10, color: Colors.grey.shade500)),
+            if (versionLabel.isNotEmpty) ...[
+              const SizedBox(width: 6),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade200,
+                  borderRadius: BorderRadius.circular(3),
+                ),
+                child: Text(versionLabel,
+                    style: TextStyle(fontSize: 9, color: Colors.grey.shade700)),
+              ),
+            ],
+          ]),
+        ],
+      ),
+      trailing: _loading
+          ? const SizedBox(width: 16, height: 16,
+              child: CircularProgressIndicator(strokeWidth: 2))
+          : null,
+      onTap: _loading || header == null ? null : () => _select(file),
+    );
+
+    if (indented) return tile;
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 2),
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(6),
+        side: BorderSide(color: Colors.grey.shade300),
+      ),
+      child: tile,
+    );
+  }
+
+  String _fmtDate(DateTime dt) {
+    final now  = DateTime.now();
+    final diff = now.difference(dt);
+    if (diff.inDays == 0) return 'Today ${dt.hour.toString().padLeft(2,'0')}:${dt.minute.toString().padLeft(2,'0')}';
+    if (diff.inDays == 1) return 'Yesterday';
+    if (diff.inDays < 7)  return '${diff.inDays} days ago';
+    return '${dt.year}-${dt.month.toString().padLeft(2,'0')}-${dt.day.toString().padLeft(2,'0')}';
   }
 }

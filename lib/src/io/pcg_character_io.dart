@@ -1347,6 +1347,33 @@ class PCGCharacterIO {
   static String _unesc(String s) => s.replaceAll('\\n', '\n');
 
   /// Returns true if content is a PCGen PCG file.
+  /// Lightweight parse of a PCG file for history reconstruction.
+  /// Extracts only classLevels, selectedAbilities, saveVersion, savedAt —
+  /// no dataset required. Returns the raw data map.
+  static Map<String, dynamic> parseHistoryData(String content) {
+    final data = <String, dynamic>{
+      'classLevels':       <Map<String, dynamic>>[],
+      'selectedAbilities': <String, dynamic>{},
+      'abilityTypes':      <String, dynamic>{},
+      'abilityDescs':      <String, dynamic>{},
+      'saveVersion': 0,
+      'savedAt': '',
+    };
+    for (final rawLine in content.split('\n')) {
+      final line = rawLine.trim();
+      if (line.startsWith('FLUTTERPCG_SAVEVERSION:')) {
+        data['saveVersion'] = int.tryParse(line.substring(23).trim()) ?? 0;
+      } else if (line.startsWith('FLUTTERPCG_SAVED:')) {
+        data['savedAt'] = line.substring(17).trim();
+      } else if (line.startsWith('CLASSABILITIESLEVEL:')) {
+        _readClassAbilitiesLevel(data, line.substring(20));
+      } else if (line.startsWith('ABILITY:')) {
+        _readAbility(data, line.substring(8));
+      }
+    }
+    return data;
+  }
+
   /// Accepts Java PCGen format (PCGVERSION: first) and our own format
   /// (# System Information first, written by older builds before build-097).
   static bool isPCGFormat(String content) {
