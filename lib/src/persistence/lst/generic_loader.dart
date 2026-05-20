@@ -734,6 +734,281 @@ class GenericLoader<T extends CDOMObject> extends LstObjectFileLoader<T> {
         case 'FORMATCAT':
           return;
 
+        // ---- Race/deity domain grants ----
+        case 'DOMAINS':
+          // DOMAINS:Air,Animal,Earth — domains granted by this deity
+          for (final d in value.split(',')) {
+            final dm = d.trim();
+            if (dm.isNotEmpty) {
+              try { obj.addToListFor(ListKey.getConstant<String>('DOMAIN_GRANTS'), dm); } catch (_) {}
+            }
+          }
+          return;
+
+        // ---- Alignment restrictions ----
+        case 'ALIGN':
+          // ALIGN:LG|LN|LE — allowed alignments for class/deity/feat
+          for (final a in value.split(RegExp(r'[|,]'))) {
+            final al = a.trim();
+            if (al.isNotEmpty) {
+              try { obj.addToListFor(ListKey.getConstant<String>('ALIGN_ALLOWED'), al); } catch (_) {}
+            }
+          }
+          return;
+
+        // ---- Proficiency changes ----
+        case 'CHANGEPROF':
+          // CHANGEPROF:TYPE.Exotic|PREWEAPONPROF:1,Bastard Sword
+          try { obj.addToListFor(ListKey.getConstant<String>('CHANGEPROF_LIST'), value); } catch (_) {}
+          return;
+
+        // ---- Custom stat definitions ----
+        case 'DEFINESTAT':
+          // DEFINESTAT:STAT|ABB:x|... — defines a custom stat (game mode)
+          try { obj.addToListFor(ListKey.getConstant<String>('DEFINESTAT_LIST'), value); } catch (_) {}
+          return;
+
+        // ---- Sub-race variants ----
+        case 'SUBRACE':
+          // SUBRACE:Wood Elf|High Elf — sub-race options for this race
+          for (final sr in value.split('|')) {
+            final s = sr.trim();
+            if (s.isNotEmpty) {
+              try { obj.addToListFor(ListKey.getConstant<String>('SUBRACE_LIST'), s); } catch (_) {}
+            }
+          }
+          return;
+
+        // ---- Gender lock ----
+        case 'GENDERLOCK':
+          // GENDERLOCK:Male — forces character gender
+          try { obj.addToListFor(ListKey.getConstant<String>('GENDER_LOCK'), value.trim()); } catch (_) {}
+          return;
+
+        // ---- Class options ----
+        case 'ALLOWBASECLASS':
+          // ALLOWBASECLASS:YES/NO — whether prestige class allows base class levels
+          try { obj.putObject(CDOMObjectKey.getConstant<bool>('ALLOW_BASE_CLASS'),
+              value.trim().toUpperCase() == 'YES'); } catch (_) {}
+          return;
+
+        case 'EXCLASS':
+          // EXCLASS:Wizard — class an ex-member cannot re-take
+          for (final c in value.split('|')) {
+            final cl = c.trim();
+            if (cl.isNotEmpty) {
+              try { obj.addToListFor(ListKey.getConstant<String>('EX_CLASS_LIST'), cl); } catch (_) {}
+            }
+          }
+          return;
+
+        case 'EXCHANGELEVEL':
+          // EXCHANGELEVEL:ClassName|N — swap N levels with another class (epic prestige)
+          try { obj.addToListFor(ListKey.getConstant<String>('EXCHANGE_LEVEL'), value); } catch (_) {}
+          return;
+
+        // ---- FACTSET — multi-value facts ----
+        case 'FACTSET':
+          // FACTSET:FieldName|Value1|Value2
+          {
+            final pipeIdx = value.indexOf('|');
+            if (pipeIdx > 0) {
+              final factName = value.substring(0, pipeIdx).trim().toUpperCase();
+              for (final fv in value.substring(pipeIdx + 1).split('|')) {
+                final fvt = fv.trim();
+                if (fvt.isNotEmpty) {
+                  try { obj.addToListFor(ListKey.getConstant<String>('FACTSET_$factName'), fvt); } catch (_) {}
+                }
+              }
+            }
+          }
+          return;
+
+        // ---- Companions / followers ----
+        case 'FOLLOWERS':
+          // FOLLOWERS:CompanionType=N — max followers of a given companion type
+          for (final f in value.split('|')) {
+            final ft = f.trim();
+            if (ft.isNotEmpty) {
+              try { obj.addToListFor(ListKey.getConstant<String>('FOLLOWERS_LIST'), ft); } catch (_) {}
+            }
+          }
+          return;
+
+        case 'COMPANIONLIST':
+          // COMPANIONLIST:CompanionType|Race1|Race2|... — allowed companion races
+          try { obj.addToListFor(ListKey.getConstant<String>('COMPANION_LIST'), value); } catch (_) {}
+          return;
+
+        // ---- Additional choice (alias for CHOOSE in some LST contexts) ----
+        case 'CHOICE':
+          try { obj.addToListFor(ListKey.getConstant<String>('CHOICE_LIST'), value); } catch (_) {}
+          return;
+
+        // ---- Container capacity ----
+        case 'CONTAINS':
+          // CONTAINS:Weight|AMOUNT=N — how much a container holds
+          try { obj.addToListFor(ListKey.getConstant<String>('CONTAINS_LIST'), value); } catch (_) {}
+          return;
+
+        // ---- Effective caster level addition ----
+        case 'ADDLEVEL':
+          // ADDLEVEL:N — adds N to effective caster level check
+          {
+            final n = int.tryParse(value.trim());
+            if (n != null) {
+              try { obj.putObject(CDOMObjectKey.getConstant<int>('ADD_LEVEL'), n); } catch (_) {}
+            }
+          }
+          return;
+
+        // ---- Double-weapon / secondary head stats ----
+        case 'ALTCRITMULT':
+          // ALTCRITMULT:x3 — secondary head critical multiplier
+          try { obj.putString(StringKey.altText, value.trim()); } catch (_) {}
+          return;
+
+        case 'ALTCRITRANGE':
+          // ALTCRITRANGE:2 — secondary head crit range
+          try { obj.putObject(CDOMObjectKey.getConstant<int>('ALT_CRITRANGE'),
+              int.tryParse(value.trim()) ?? 1); } catch (_) {}
+          return;
+
+        case 'ALTDAMAGE':
+          // ALTDAMAGE:1d6 — secondary head damage dice
+          try { obj.putString(StringKey.damageOverride, value.trim()); } catch (_) {}
+          return;
+
+        case 'ALTEQMOD':
+          // ALTEQMOD:STEEL|LEATHER — equipment mods for secondary head
+          for (final mod in value.split('|')) {
+            final m = mod.trim();
+            if (m.isNotEmpty) {
+              try { obj.addToListFor(ListKey.getConstant<String>('ALT_EQMOD_KEYS'), m); } catch (_) {}
+            }
+          }
+          return;
+
+        case 'ALTTYPE':
+          // ALTTYPE:Sword.Short — alternate type for equipment display
+          for (final t in value.split('.')) {
+            final tp = t.trim();
+            if (tp.isNotEmpty) {
+              try { obj.addToListFor(ListKey.getConstant<String>('ALT_TYPE_LIST'), tp); } catch (_) {}
+            }
+          }
+          return;
+
+        // ---- Movement clone ----
+        case 'MOVECLONE':
+          // MOVECLONE:Walk,* — clone a move type (with optional multiplier)
+          try { obj.addToListFor(ListKey.getConstant<String>('MOVE_CLONE'), value); } catch (_) {}
+          return;
+
+        // ---- Equipment options ----
+        case 'REMOVABLE':
+          // REMOVABLE:YES/NO — whether equipment can be removed
+          try { obj.putObject(CDOMObjectKey.getConstant<bool>('REMOVABLE'),
+              value.trim().toUpperCase() != 'NO'); } catch (_) {}
+          return;
+
+        case 'REACHMULT':
+          // REACHMULT:2 — multiplier for natural reach
+          try {
+            final r = double.tryParse(value.trim());
+            if (r != null) { obj.putObject(CDOMObjectKey.getConstant<double>('REACH_MULT'), r); }
+          } catch (_) {}
+          return;
+
+        case 'BASEQTY':
+          // BASEQTY:N — base stack quantity for equipment
+          try { obj.putObject(CDOMObjectKey.getConstant<int>('BASE_QTY'),
+              int.tryParse(value.trim()) ?? 1); } catch (_) {}
+          return;
+
+        case 'ASSIGNTOALL':
+          // ASSIGNTOALL:YES — applies bonus/ability to all attacks/heads
+          try { obj.putObject(CDOMObjectKey.getConstant<bool>('ASSIGN_TO_ALL'),
+              value.trim().toUpperCase() == 'YES'); } catch (_) {}
+          return;
+
+        // ---- Spell prohibition ----
+        case 'PROHIBITSPELL':
+          // PROHIBITSPELL:ALIGNMENT.Evil — prohibited spell school/alignment
+          try { obj.addToListFor(ListKey.getConstant<String>('PROHIBIT_SPELLS'), value); } catch (_) {}
+          return;
+
+        case 'PROHIBITCOST':
+          // PROHIBITCOST:N — XP cost to override a prohibited spell restriction
+          try { obj.putObject(CDOMObjectKey.getConstant<int>('PROHIBIT_COST'),
+              int.tryParse(value.trim()) ?? 0); } catch (_) {}
+          return;
+
+        // ---- Item creation feats ----
+        case 'ITEM':
+          // ITEM:ARMOR|WEAPON — item types this feat can create
+          for (final t in value.split('|')) {
+            final tp = t.trim();
+            if (tp.isNotEmpty) {
+              try { obj.addToListFor(ListKey.getConstant<String>('ITEM_TYPES'), tp); } catch (_) {}
+            }
+          }
+          return;
+
+        case 'ITEMCREATE':
+          // ITEMCREATE:ItemType — item creation target formula
+          try { obj.putString(StringKey.itemcreate, value); } catch (_) {}
+          return;
+
+        // ---- Spellbook pages ----
+        case 'NUMPAGES':
+          // NUMPAGES:N — total pages in this spellbook
+          try { obj.putObject(CDOMObjectKey.getConstant<int>('NUM_PAGES'),
+              int.tryParse(value.trim()) ?? 100); } catch (_) {}
+          return;
+
+        case 'PAGEUSAGE':
+          // PAGEUSAGE:N — pages consumed per spell level
+          try { obj.putString(StringKey.pageUsage, value.trim()); } catch (_) {}
+          return;
+
+        // ---- Unarmed multiplier ----
+        case 'UMULT':
+          // UMULT:TYPE=*N — unarmed damage multiplier by attack type
+          try { obj.addToListFor(ListKey.getConstant<String>('UMULT_LIST'), value); } catch (_) {}
+          return;
+
+        // ---- Deity/follower validity ----
+        case 'VALIDFORDEITY':
+          // VALIDFORDEITY:Deity1|Deity2 — deities this domain/spell is valid for
+          for (final d in value.split('|')) {
+            final dv = d.trim();
+            if (dv.isNotEmpty) {
+              try { obj.addToListFor(ListKey.getConstant<String>('VALID_DEITIES'), dv); } catch (_) {}
+            }
+          }
+          return;
+
+        case 'VALIDFORFOLLOWER':
+          // VALIDFORFOLLOWER:ClassName=N — allowed follower classes and min level
+          for (final f in value.split('|')) {
+            final fv = f.trim();
+            if (fv.isNotEmpty) {
+              try { obj.addToListFor(ListKey.getConstant<String>('VALID_FOLLOWERS'), fv); } catch (_) {}
+            }
+          }
+          return;
+
+        // ---- Spell target area ----
+        case 'TARGETAREA':
+          // TARGETAREA:Personal|Close|Medium — spell target area description
+          try { obj.putString(StringKey.targetArea, value.trim()); } catch (_) {}
+          return;
+
+        // ---- Pure metadata — discard ----
+        case 'SOURCELINK':
+          return;
+
         // ---- Everything else: store generically so nothing is silently lost ----
         default:
           _storeExtraToken(obj, tag, value);

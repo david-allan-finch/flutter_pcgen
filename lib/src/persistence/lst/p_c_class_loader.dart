@@ -285,6 +285,10 @@ class PCClassLoader extends GenericLoader<PCClass> {
           // Minor/epic gating tokens — store generically; no sheet impact for non-epic
           try { pcClass.addToListFor(ListKey.getConstant<String>('EXTRA_LEVEL_TOKENS'), '$tag:$value'); } catch (_) {}
           break;
+        case 'ADDDOMAINS':
+          // ADDDOMAINS=DomainName[PRETEMPLATE:1,TemplateName] — conditionally grant a domain at this level
+          try { pcClass.addToListFor(ListKey.getConstant<String>('DOMAIN_GRANTS_CONDITIONAL'), '$level:$value'); } catch (_) {}
+          break;
         default:
           // ignore: avoid_print
           print('PCGen STUB: ClassLevel token: $tag=$value');
