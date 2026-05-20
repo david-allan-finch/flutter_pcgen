@@ -138,6 +138,11 @@ class PCGenFrameState extends State<PCGenFrame> {
         && loadedDataSet.value != null;
 
     if (!correctModeLoaded && matched.isNotEmpty) {
+      // Switching game mode: close all currently-open characters first.
+      // The global loadedDataSet is shared by all UI tabs — if we let characters
+      // from different game modes coexist, their tabs will show data from the
+      // wrong game mode after the dataset is replaced.
+      _closeAllCharactersForModeSwitch();
       await _loadSources(matched, gameModeName);
     }
 
@@ -147,6 +152,21 @@ class PCGenFrameState extends State<PCGenFrame> {
     if (character != null) {
       CharacterManager.getCharacters().addElement(character);
       setCharacter(character);
+    }
+  }
+
+  /// Close all open characters without prompting — called before a game mode
+  /// switch so no character retains stale dataset references.
+  void _closeAllCharactersForModeSwitch() {
+    setCharacter(null);
+    final chars = CharacterManager.getCharacters();
+    // Collect keys first to avoid mutating while iterating.
+    final toClose = <CharacterFacade>[];
+    for (int i = 0; i < chars.getSize(); i++) {
+      toClose.add(chars.getElementAt(i));
+    }
+    for (final c in toClose) {
+      CharacterManager.removeCharacter(c);
     }
   }
 
