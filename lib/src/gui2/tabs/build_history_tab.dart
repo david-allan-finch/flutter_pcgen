@@ -722,81 +722,96 @@ class _LevelRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final isAltRow = entry.charLevel % 2 == 0;
 
-    // Abilities column: stat bumps with running total in brackets
-    final abilityLines = <(String text, Color color)>[
+    // (icon, text, color) tuples used by noteCol below.
+    // Abilities: stat bumps with running total
+    final abilityLines = <(IconData, String, Color)>[
       for (final e in entry.statBumps.entries)
         (() {
-          final total = entry.statTotals[e.key];
+          final total  = entry.statTotals[e.key];
           final suffix = total != null ? ' ($total)' : '';
-          return ('${e.key} +${e.value}$suffix', Colors.green.shade700);
+          return (Icons.arrow_circle_up_outlined,
+              '${e.key} +${e.value}$suffix', Colors.green.shade700);
         })(),
     ];
 
-    // Skill Ranks column: gains/losses with total ranks in brackets
-    final skillRankLines = <(String text, Color color)>[
+    // Skill Ranks: gains/losses with total
+    final skillRankLines = <(IconData, String, Color)>[
       for (final e in entry.skillGains.entries)
         (() {
-          final total = entry.skillTotals[e.key];
+          final total  = entry.skillTotals[e.key];
           final suffix = total != null ? ' (${_fmtRank(total)})' : '';
-          return ('${e.key} +${_fmtRank(e.value)}$suffix', Colors.teal.shade700);
+          return (Icons.trending_up,
+              '${e.key} +${_fmtRank(e.value)}$suffix', Colors.teal.shade700);
         })(),
       for (final e in entry.skillLosses.entries)
         (() {
-          final total = entry.skillTotals[e.key];
+          final total  = entry.skillTotals[e.key];
           final suffix = total != null ? ' (${_fmtRank(total)})' : '';
-          return ('${e.key} −${_fmtRank(e.value)}$suffix', Colors.orange.shade700);
+          return (Icons.trending_down,
+              '${e.key} −${_fmtRank(e.value)}$suffix', Colors.orange.shade700);
         })(),
     ];
 
-    // Feats column: feats taken, removed feats, changed feats
-    final featLines = <(String text, Color color)>[
+    // Feats: taken, removed, changed
+    final featLines = <(IconData, String, Color)>[
       for (final f in entry.feats) ...[
         (() {
           final base    = f.contains('|') ? f.split('|').first : f;
           final applied = f.contains('|') ? ' (${f.split('|').last})' : '';
-          return ('$base$applied', Colors.grey.shade700);
+          return (Icons.auto_awesome_outlined, '$base$applied', Colors.grey.shade700);
         })(),
       ],
       for (final f in entry.removedFeats)
-        ('− ${f.contains('|') ? '${f.split('|').first} (${f.split('|').last})' : f}',
+        (Icons.remove_circle_outline,
+            f.contains('|') ? '${f.split('|').first} (${f.split('|').last})' : f,
             Colors.red.shade600),
       for (final f in entry.changedFeats)
-        ('~ $f', Colors.orange.shade700),
+        (Icons.change_circle_outlined, f, Colors.orange.shade700),
     ];
 
-    // Items column: structured changes with slot information
-    final itemLines = <(String text, Color color)>[];
+    // Items: structured changes with slot info and action icons
+    final itemLines = <(IconData, String, Color)>[];
     for (final (name, prev, curr) in entry.itemChanges) {
       if (prev == null) {
-        // Newly added
         if (curr != null && curr.isNotEmpty) {
-          itemLines.add(('+ $name [$curr]', Colors.indigo.shade500));  // added & equipped
+          itemLines.add((Icons.add_box_outlined, '$name [$curr]', Colors.indigo.shade500));
         } else {
-          itemLines.add(('+ $name', Colors.indigo.shade400));           // added to inventory
+          itemLines.add((Icons.add_box_outlined, name, Colors.indigo.shade400));
         }
       } else if (curr == null) {
-        // Removed
         if (prev.isNotEmpty) {
-          itemLines.add(('− $name [$prev]', Colors.red.shade500));      // removed while equipped
+          itemLines.add((Icons.indeterminate_check_box_outlined,
+              '$name [$prev]', Colors.red.shade500));
         } else {
-          itemLines.add(('− $name', Colors.red.shade400));               // removed from inventory
+          itemLines.add((Icons.indeterminate_check_box_outlined, name, Colors.red.shade400));
         }
       } else if (prev.isEmpty && curr.isNotEmpty) {
-        itemLines.add(('⚔ $name → $curr', Colors.blue.shade600));       // equipped from inventory
+        itemLines.add((Icons.shield_outlined, '$name → $curr', Colors.blue.shade600));
       } else if (prev.isNotEmpty && curr.isEmpty) {
-        itemLines.add(('○ $name ← $prev', Colors.grey.shade600));       // unequipped to inventory
+        itemLines.add((Icons.shield, '$name ← $prev', Colors.grey.shade600));
       } else if (prev != curr) {
-        itemLines.add(('~ $name: $prev → $curr', Colors.orange.shade700)); // moved slot
+        itemLines.add((Icons.swap_horiz, '$name: $prev → $curr', Colors.orange.shade700));
       }
     }
 
-    Widget noteCol(List<(String, Color)> items) {
+    Widget noteCol(List<(IconData, String, Color)> items) {
       if (items.isEmpty) return const SizedBox.shrink();
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: items
-            .map((t) => Text(t.$1, style: TextStyle(fontSize: 11, color: t.$2)))
-            .toList(),
+        children: items.map((t) => Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(top: 1),
+              child: Icon(t.$1, size: 11, color: t.$3),
+            ),
+            const SizedBox(width: 3),
+            Expanded(
+              child: Text(t.$2,
+                  style: TextStyle(fontSize: 11, color: t.$3)),
+            ),
+          ],
+        )).toList(),
       );
     }
 
