@@ -119,7 +119,7 @@ class PCGenFrameState extends State<PCGenFrame> {
     final campaignNames = (header['campaigns'] ?? '').split('|')
         .map((s) => s.trim()).where((s) => s.isNotEmpty).toList();
 
-    // Match campaign names to loaded Campaign objects.
+    // Match campaign names against all discovered Campaign objects.
     final allCampaigns = Globals.getCampaignList();
     final matched = <Campaign>[];
     for (final name in campaignNames) {
@@ -130,29 +130,68 @@ class PCGenFrameState extends State<PCGenFrame> {
       if (found != null) matched.add(found);
     }
 
-    // If the correct game mode is already loaded, use the existing full dataset
-    // rather than reloading from a potentially incomplete campaign list. This
-    // handles characters saved before build-103 which only stored one CAMPAIGN: line.
+    // If the correct game mode is already loaded, use the existing full dataset.
     final currentMode = loadedDataSet.value?.gameModeStr ?? '';
     final correctModeLoaded = currentMode.toLowerCase() == gameModeName.toLowerCase()
         && loadedDataSet.value != null;
 
-    if (!correctModeLoaded && matched.isNotEmpty) {
-      // Switching game mode: close all currently-open characters first.
-      // The global loadedDataSet is shared by all UI tabs — if we let characters
-      // from different game modes coexist, their tabs will show data from the
-      // wrong game mode after the dataset is replaced.
-      _closeAllCharactersForModeSwitch();
-      await _loadSources(matched, gameModeName);
+    if (!correctModeLoaded) {
+      if (matched.isNotEmpty) {
+        // Auto-load: campaigns are discoverable — switch mode and load sources.
+        // Show a loading overlay so the user knows something is happening.
+        _closeAllCharactersForModeSwitch();
+        await _loadSourcesWithOverlay(matched, gameModeName);
+      } else if (campaignNames.isNotEmpty) {
+        // Campaigns listed in the file but none found locally — warn and continue
+        // with whatever is loaded (character will have reduced resolution).
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(
+              'Could not find source data for "$gameModeName". '
+              'The character may not display correctly.\n'
+              'Missing: ${campaignNames.take(3).join(', ')}'
+              '${campaignNames.length > 3 ? ' (+${campaignNames.length - 3} more)' : ''}',
+            ),
+            duration: const Duration(seconds: 6),
+            action: SnackBarAction(
+              label: 'Load Sources',
+              onPressed: showSourceSelectionDialog,
+            ),
+          ));
+        }
+      }
     }
 
-    // Now load the character itself.
     if (!mounted) return;
     final character = await CharacterFileIO.load(path);
     if (character != null) {
       CharacterManager.getCharacters().addElement(character);
       setCharacter(character);
     }
+  }
+
+  /// Load sources with a modal progress overlay so the user sees that work
+  /// is happening rather than the UI appearing frozen.
+  Future<void> _loadSourcesWithOverlay(
+      List<Campaign> campaigns, String gameModeName) async {
+    if (!mounted) return;
+    // Show non-dismissable loading dialog
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => PopScope(
+        canPop: false,
+        child: AlertDialog(
+          content: Row(children: [
+            const CircularProgressIndicator(),
+            const SizedBox(width: 16),
+            Expanded(child: Text('Loading $gameModeName sources…')),
+          ]),
+        ),
+      ),
+    );
+    await _loadSources(campaigns, gameModeName);
+    if (mounted) Navigator.of(context, rootNavigator: true).pop();
   }
 
   /// Close all open characters without prompting — called before a game mode
@@ -215,9 +254,6 @@ class PCGenFrameState extends State<PCGenFrame> {
       context: context,
       builder: (_) => _LoadCharacterDialog(
         onLoad: (path, header) => _loadCharacterWithSources(path, header),
-        onLoadSources: () {
-          showSourceSelectionDialog();
-        },
       ),
     );
   }
@@ -924,8 +960,7 @@ class _ExportDialogState extends State<_ExportDialog> {
 
 class _LoadCharacterDialog extends StatefulWidget {
   final Future<void> Function(String path, Map<String, String> header) onLoad;
-  final VoidCallback? onLoadSources;
-  const _LoadCharacterDialog({required this.onLoad, this.onLoadSources});
+  const _LoadCharacterDialog({required this.onLoad});
 
   @override
   State<_LoadCharacterDialog> createState() => _LoadCharacterDialogState();
@@ -1288,49 +1323,9 @@ class _LoadCharacterDialogState extends State<_LoadCharacterDialog> {
     );
   }
 
-  /// Open a file, prompting about sources if needed.
+  /// Open a file — sources are auto-loaded by _loadCharacterWithSources if
+  /// the required campaigns are discoverable. No blocking dialog needed here.
   Future<void> _openFile(File file, Map<String, String> header) async {
-    final gameMode   = header['gameMode'] ?? '';
-    final loadedMode = loadedDataSet.value?.gameModeStr ?? '';
-    final modeMatch  = gameMode.isNotEmpty && loadedMode.isNotEmpty &&
-        gameMode.toLowerCase() == loadedMode.toLowerCase();
-    final mismatched = gameMode.isNotEmpty && loadedMode.isNotEmpty && !modeMatch;
-    final noSources  = gameMode.isNotEmpty && loadedMode.isEmpty;
-
-    if (mismatched || noSources) {
-      final action = await showDialog<String>(
-        context: context,
-        builder: (_) => AlertDialog(
-          title: Row(children: [
-            Icon(Icons.warning_amber_rounded, color: Colors.orange.shade700, size: 20),
-            const SizedBox(width: 8),
-            const Text('Sources Not Loaded'),
-          ]),
-          content: Text(
-            mismatched
-                ? 'This character requires the "$gameMode" game mode, but '
-                  '"$loadedMode" is currently loaded.\n\nLoad sources for "$gameMode" first?'
-                : 'This character requires the "$gameMode" game mode but no '
-                  'sources are loaded.\n\nLoad sources first?',
-          ),
-          actions: [
-            TextButton(onPressed: () => Navigator.pop(context, 'cancel'),
-                child: const Text('Cancel')),
-            TextButton(onPressed: () => Navigator.pop(context, 'open'),
-                child: const Text('Open Anyway')),
-            FilledButton(onPressed: () => Navigator.pop(context, 'sources'),
-                child: const Text('Load Sources First')),
-          ],
-        ),
-      );
-      if (action == 'sources') {
-        if (mounted) Navigator.pop(context);
-        widget.onLoadSources?.call();
-        return;
-      }
-      if (action != 'open') return;
-    }
-
     setState(() => _loading = true);
     await widget.onLoad(file.path, header);
     if (mounted) Navigator.pop(context);
