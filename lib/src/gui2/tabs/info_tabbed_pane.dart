@@ -37,6 +37,7 @@ import 'package:flutter_pcgen/src/gui2/tabs/spells_info_tab.dart';
 import 'package:flutter_pcgen/src/gui2/tabs/summary_info_tab.dart';
 import 'package:flutter_pcgen/src/gui2/tabs/temp_bonus_info_tab.dart';
 import 'package:flutter_pcgen/src/gui2/tabs/template_info_tab.dart';
+import 'package:flutter_pcgen/src/gui2/tabs/build_history_tab.dart';
 
 /// Tab index constants matching the Java originals.
 class InfoTabbedPaneIndex {
@@ -107,6 +108,7 @@ class InfoTabbedPaneState extends State<InfoTabbedPane>
       _TabEntry(label: 'Temp Bonus',  type: TempBonusInfoTab,     builder: () => const TempBonusInfoTab()),
       _TabEntry(label: 'Companions',  type: CompanionInfoTab,     builder: () => const CompanionInfoTab()),
       _TabEntry(label: 'Sheet',       type: CharacterSheetInfoTab,builder: () => const CharacterSheetInfoTab()),
+      _TabEntry(label: 'History',     type: BuildHistoryTab,      builder: () => const BuildHistoryTab()),
     ]);
   }
 
