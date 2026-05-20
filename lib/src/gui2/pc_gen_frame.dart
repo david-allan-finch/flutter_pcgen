@@ -1059,41 +1059,57 @@ class _LoadCharacterDialogState extends State<_LoadCharacterDialog> {
     if (files.length == 1) {
       return _buildFileTile(files.first, charName: charName);
     }
-    // Primary: most recently modified (already sorted newest-first)
-    final primary = files.first;
-    final header  = _headerCache[primary.path];
+    // Primary: most recently modified (already sorted newest-first by _groups getter)
+    final primary      = files.first;
+    final header       = _headerCache[primary.path];
     final race         = header?['race'] ?? '';
     final primaryClass = header?['primaryClass'] ?? '';
     final totalLevel   = header?['totalLevel'] ?? '';
+    final gameMode     = header?['gameMode'] ?? '';
+    final loadedMode   = loadedDataSet.value?.gameModeStr ?? '';
+    final modeMatch    = gameMode.isNotEmpty && loadedMode.isNotEmpty &&
+        gameMode.toLowerCase() == loadedMode.toLowerCase();
+    final mismatched   = gameMode.isNotEmpty && loadedMode.isNotEmpty && !modeMatch;
+    final noSources    = gameMode.isNotEmpty && loadedMode.isEmpty;
     final summaryParts = <String>[
       if (race.isNotEmpty) race,
       if (primaryClass.isNotEmpty && totalLevel.isNotEmpty) '$primaryClass $totalLevel'
       else if (primaryClass.isNotEmpty) primaryClass,
     ];
-    final summary   = summaryParts.join(' · ');
-    final isOpen    = _expanded.contains(charName);
+    final summary = summaryParts.join(' · ');
+    final isOpen  = _expanded.contains(charName);
+    final modLabel = _fmtDate(primary.lastModifiedSync());
+
+    // Tapping the group header opens the newest file directly.
+    // The expand button (chevron) is a separate hit target.
+    Future<void> openNewest() => _openFile(primary, header ?? {});
 
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 2),
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(6),
-        side: BorderSide(color: Colors.grey.shade300),
+        side: BorderSide(color: mismatched || noSources
+            ? Colors.orange.shade300 : Colors.grey.shade300),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Group header — tap to expand/collapse
+          // Group header row
           InkWell(
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(6)),
-            onTap: () => setState(() {
-              if (isOpen) _expanded.remove(charName); else _expanded.add(charName);
-            }),
+            borderRadius: BorderRadius.vertical(
+                top: const Radius.circular(6),
+                bottom: isOpen ? Radius.zero : const Radius.circular(6)),
+            onTap: _loading ? null : openNewest,
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              padding: const EdgeInsets.fromLTRB(12, 8, 4, 8),
               child: Row(
                 children: [
-                  Icon(Icons.people, size: 20, color: Theme.of(context).colorScheme.primary),
+                  Icon(Icons.people,
+                      size: 20,
+                      color: mismatched || noSources
+                          ? Colors.orange.shade400
+                          : Theme.of(context).colorScheme.primary),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Column(
@@ -1104,26 +1120,109 @@ class _LoadCharacterDialogState extends State<_LoadCharacterDialog> {
                         if (summary.isNotEmpty)
                           Text(summary,
                               style: const TextStyle(fontSize: 11, fontStyle: FontStyle.italic)),
+                        Row(children: [
+                          if (gameMode.isNotEmpty) ...[
+                            Icon(
+                              mismatched || noSources
+                                  ? Icons.warning_amber_rounded
+                                  : modeMatch ? Icons.check_circle : Icons.circle_outlined,
+                              size: 10,
+                              color: mismatched || noSources ? Colors.orange.shade600
+                                  : modeMatch ? Colors.green.shade600 : Colors.grey.shade500,
+                            ),
+                            const SizedBox(width: 3),
+                            Text(
+                              mismatched ? '$gameMode  ⚠ loaded: $loadedMode' : gameMode,
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: mismatched || noSources ? Colors.orange.shade700
+                                    : modeMatch ? Colors.green.shade700 : Colors.grey.shade600,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                          ],
+                          Text(modLabel,
+                              style: TextStyle(fontSize: 10, color: Colors.grey.shade500)),
+                        ]),
                       ],
                     ),
                   ),
-                  Text('${files.length} saves',
-                      style: TextStyle(fontSize: 10, color: Colors.grey.shade600)),
-                  const SizedBox(width: 4),
-                  Icon(isOpen ? Icons.expand_less : Icons.expand_more,
-                      size: 18, color: Colors.grey.shade600),
+                  // Expand/collapse button — separate from the load tap target
+                  IconButton(
+                    tooltip: isOpen ? 'Hide saves' : '${files.length} saves — show all',
+                    icon: Row(mainAxisSize: MainAxisSize.min, children: [
+                      Text('${files.length}',
+                          style: TextStyle(fontSize: 10, color: Colors.grey.shade600)),
+                      Icon(isOpen ? Icons.expand_less : Icons.expand_more,
+                          size: 18, color: Colors.grey.shade600),
+                    ]),
+                    onPressed: () => setState(() {
+                      if (isOpen) _expanded.remove(charName);
+                      else _expanded.add(charName);
+                    }),
+                  ),
                 ],
               ),
             ),
           ),
-          // Children — shown when expanded
-          if (isOpen)
+          // Save list — shown when expanded
+          if (isOpen) ...[
+            Divider(height: 1, color: Colors.grey.shade200),
             Column(
               children: files.map((f) => _buildFileTile(f, indented: true)).toList(),
             ),
+          ],
         ],
       ),
     );
+  }
+
+  /// Open a file, prompting about sources if needed.
+  Future<void> _openFile(File file, Map<String, String> header) async {
+    final gameMode   = header['gameMode'] ?? '';
+    final loadedMode = loadedDataSet.value?.gameModeStr ?? '';
+    final modeMatch  = gameMode.isNotEmpty && loadedMode.isNotEmpty &&
+        gameMode.toLowerCase() == loadedMode.toLowerCase();
+    final mismatched = gameMode.isNotEmpty && loadedMode.isNotEmpty && !modeMatch;
+    final noSources  = gameMode.isNotEmpty && loadedMode.isEmpty;
+
+    if (mismatched || noSources) {
+      final action = await showDialog<String>(
+        context: context,
+        builder: (_) => AlertDialog(
+          title: Row(children: [
+            Icon(Icons.warning_amber_rounded, color: Colors.orange.shade700, size: 20),
+            const SizedBox(width: 8),
+            const Text('Sources Not Loaded'),
+          ]),
+          content: Text(
+            mismatched
+                ? 'This character requires the "$gameMode" game mode, but '
+                  '"$loadedMode" is currently loaded.\n\nLoad sources for "$gameMode" first?'
+                : 'This character requires the "$gameMode" game mode but no '
+                  'sources are loaded.\n\nLoad sources first?',
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(context, 'cancel'),
+                child: const Text('Cancel')),
+            TextButton(onPressed: () => Navigator.pop(context, 'open'),
+                child: const Text('Open Anyway')),
+            FilledButton(onPressed: () => Navigator.pop(context, 'sources'),
+                child: const Text('Load Sources First')),
+          ],
+        ),
+      );
+      if (action == 'sources') {
+        if (mounted) Navigator.pop(context);
+        widget.onLoadSources?.call();
+        return;
+      }
+      if (action != 'open') return;
+    }
+
+    setState(() => _loading = true);
+    await widget.onLoad(file.path, header);
+    if (mounted) Navigator.pop(context);
   }
 
   Widget _buildFileTile(File file, {String? charName, bool indented = false}) {
@@ -1149,54 +1248,8 @@ class _LoadCharacterDialogState extends State<_LoadCharacterDialog> {
       if (primaryClass.isNotEmpty && totalLevel.isNotEmpty) '$primaryClass $totalLevel'
       else if (primaryClass.isNotEmpty) primaryClass,
     ];
-    final summary = summaryParts.join(' · ');
-
+    final summary  = summaryParts.join(' · ');
     final modLabel = _fmtDate(modified);
-
-    Future<void> doLoad() async {
-      setState(() => _loading = true);
-      await widget.onLoad(file.path, header ?? {});
-      if (mounted) Navigator.pop(context);
-    }
-
-    Future<void> handleTap() async {
-      if (mismatched || noSources) {
-        final action = await showDialog<String>(
-          context: context,
-          builder: (_) => AlertDialog(
-            title: Row(children: [
-              Icon(Icons.warning_amber_rounded,
-                  color: Colors.orange.shade700, size: 20),
-              const SizedBox(width: 8),
-              const Text('Sources Not Loaded'),
-            ]),
-            content: Text(
-              mismatched
-                  ? 'This character requires the "$gameMode" game mode, but '
-                    '"$loadedMode" is currently loaded.\n\nLoad sources for '
-                    '"$gameMode" first?'
-                  : 'This character requires the "$gameMode" game mode but no '
-                    'sources are loaded.\n\nLoad sources first?',
-            ),
-            actions: [
-              TextButton(onPressed: () => Navigator.pop(context, 'cancel'),
-                  child: const Text('Cancel')),
-              TextButton(onPressed: () => Navigator.pop(context, 'open'),
-                  child: const Text('Open Anyway')),
-              FilledButton(onPressed: () => Navigator.pop(context, 'sources'),
-                  child: const Text('Load Sources First')),
-            ],
-          ),
-        );
-        if (action == 'sources') {
-          if (mounted) Navigator.pop(context);
-          widget.onLoadSources?.call();
-          return;
-        }
-        if (action != 'open') return;
-      }
-      await doLoad();
-    }
 
     final tile = ListTile(
       dense: true,
@@ -1248,7 +1301,7 @@ class _LoadCharacterDialogState extends State<_LoadCharacterDialog> {
           ? const SizedBox(width: 16, height: 16,
               child: CircularProgressIndicator(strokeWidth: 2))
           : null,
-      onTap: _loading ? null : handleTap,
+      onTap: _loading ? null : () => _openFile(file, header ?? {}),
     );
 
     if (indented) return tile;
