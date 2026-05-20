@@ -32,7 +32,12 @@ class BuildHistoryTab extends StatefulWidget {
 class _BuildHistoryTabState extends State<BuildHistoryTab> {
   List<_SaveBlock> _blocks = [];
   bool _loading = true;
-  final Set<int> _collapsed = {}; // block indices the user has collapsed
+  String _statusMsg = 'Scanning save files…';
+  final Set<int> _collapsed = {};
+
+  void _setStatus(String msg) {
+    if (mounted) setState(() => _statusMsg = msg);
+  }
 
   @override
   void initState() {
@@ -50,12 +55,12 @@ class _BuildHistoryTabState extends State<BuildHistoryTab> {
   void _refresh() {
     final char = currentCharacter.value;
     if (char is! CharacterFacadeImpl) {
-      if (mounted) setState(() { _blocks = []; _loading = false; });
+      if (mounted) setState(() { _blocks = []; _loading = false; _statusMsg = ''; });
       return;
     }
-    if (mounted) setState(() => _loading = true);
+    if (mounted) setState(() { _loading = true; _statusMsg = 'Scanning save files…'; });
     _load(char).then((blocks) {
-      if (mounted) setState(() { _blocks = blocks; _loading = false; });
+      if (mounted) setState(() { _blocks = blocks; _loading = false; _statusMsg = ''; });
     });
   }
 
@@ -81,18 +86,22 @@ class _BuildHistoryTabState extends State<BuildHistoryTab> {
             .where((f) => f.path.endsWith('.pcg'))
             .toList();
 
-        final matches = <(int version, String savedAt, DateTime mtime, Map<String, dynamic> data)>[];
+        _setStatus('Scanning ${candidates.length} file${candidates.length == 1 ? "" : "s"}…');
+
+        final matches = <(int version, String savedAt, DateTime mtime, String filename, Map<String, dynamic> data)>[];
+        int scanned = 0;
         for (final file in candidates) {
+          scanned++;
+          final fname = p.basename(file.path);
+          _setStatus('Reading $fname ($scanned/${candidates.length})…');
           try {
             final content = await file.readAsString();
             final header  = PCGCharacterIO.peekHeader(content);
 
             final bool isMatch;
             if (uuid.isNotEmpty) {
-              // UUID available — definitive match.
               isMatch = header['charUuid'] == uuid;
             } else {
-              // No UUID — match by name + race + firstClass (same as file browser).
               final hName  = (header['name'] ?? p.basenameWithoutExtension(file.path)).toLowerCase();
               final hRace  = (header['race'] ?? '').toLowerCase();
               final hFirst = (header['firstClass'] ?? '').toLowerCase();
@@ -102,13 +111,20 @@ class _BuildHistoryTabState extends State<BuildHistoryTab> {
             }
 
             if (isMatch) {
+              _setStatus('Loading $fname…');
               final data    = PCGCharacterIO.parseHistoryData(content);
               final version = data['saveVersion'] as int? ?? 0;
               final savedAt = data['savedAt']     as String? ?? '';
               final mtime   = file.lastModifiedSync();
-              matches.add((version, savedAt, mtime, data));
+              matches.add((version, savedAt, mtime, fname, data));
             }
           } catch (_) {}
+        }
+
+        if (matches.isNotEmpty) {
+          _setStatus('Found ${matches.length} save file${matches.length == 1 ? "" : "s"} — building history…');
+        } else {
+          _setStatus('No matching save files found — using current character data…');
         }
 
         // Oldest first: ascending version, then savedAt, then mtime.
@@ -117,11 +133,12 @@ class _BuildHistoryTabState extends State<BuildHistoryTab> {
           if (a.$2.isNotEmpty && b.$2.isNotEmpty) return a.$2.compareTo(b.$2);
           return a.$3.compareTo(b.$3);
         });
-        orderedData.addAll(matches.map((e) => e.$4));
+        orderedData.addAll(matches.map((e) => e.$5));
       }
-    } catch (_) {}
+    } catch (_) {
+      _setStatus('Error scanning save directory.');
+    }
 
-    // Final fallback: use the in-memory data if nothing was found on disk.
     if (orderedData.isEmpty) {
       orderedData.add(charData);
     }
@@ -270,7 +287,17 @@ class _BuildHistoryTabState extends State<BuildHistoryTab> {
           return const Center(child: Text('No character loaded.'));
         }
         if (_loading) {
-          return const Center(child: CircularProgressIndicator());
+          return Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const CircularProgressIndicator(),
+                const SizedBox(height: 16),
+                Text(_statusMsg,
+                    style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+              ],
+            ),
+          );
         }
         if (_blocks.isEmpty) {
           return const Center(child: Text('No level history found in character file.'));
