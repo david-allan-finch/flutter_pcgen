@@ -1360,6 +1360,8 @@ class PCGCharacterIO {
       // item name → slot: '' = inventory/carried, 'Primary Hand' = equipped,
       //                    'in Backpack' = inside a container
       'equipment':         <String, String>{},
+      'baseStats':         <String, int>{},     // STR/DEX/CON/INT/WIS/CHA → base score
+      'race':              '',
       'saveVersion': 0,
       'savedAt': '',
     };
@@ -1402,6 +1404,19 @@ class PCGCharacterIO {
             (data['skillRanks'] as Map<String, double>)[skillName] = rank;
           }
         }
+      } else if (line.startsWith('STAT:')) {
+        // STAT:STR|SCORE:16
+        final parts    = line.substring(5).split('|');
+        final statName = parts.first.trim().toUpperCase();
+        for (final p in parts.skip(1)) {
+          if (p.toUpperCase().startsWith('SCORE:')) {
+            final score = int.tryParse(p.substring(6).trim());
+            if (score != null) (data['baseStats'] as Map<String, int>)[statName] = score;
+            break;
+          }
+        }
+      } else if (line.startsWith('RACE:')) {
+        data['race'] = line.substring(5).trim();
       } else if (line.startsWith('EQUIPNAME:')) {
         // Register every item as ''  (inventory) by default.
         // The actual slot is resolved from EQUIPSET: lines after the full scan.

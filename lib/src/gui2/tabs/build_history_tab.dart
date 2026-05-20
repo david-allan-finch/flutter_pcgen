@@ -278,6 +278,11 @@ class _BuildHistoryTabState extends State<BuildHistoryTab> {
         savedAt: savedAt,
         levels: blockEntries,
         isSingleFile: saves.length == 1,
+        race:      si == 0 ? (saves.first['race'] as String? ?? '') : '',
+        baseStats: si == 0
+            ? Map<String, int>.from(
+                (saves.first['baseStats'] as Map? ?? {}).cast<String, int>())
+            : const {},
       ));
 
       prevLevelCount = currCount;
@@ -397,6 +402,9 @@ class _SaveBlock {
   final String savedAt;
   final List<_LevelEntry> levels;
   final bool isSingleFile;
+  // Only populated for the initial creation block (si == 0):
+  final String race;
+  final Map<String, int> baseStats;
 
   _SaveBlock({
     required this.label,
@@ -404,6 +412,8 @@ class _SaveBlock {
     required this.savedAt,
     required this.levels,
     required this.isSingleFile,
+    this.race = '',
+    this.baseStats = const {},
   });
 }
 
@@ -561,6 +571,10 @@ class _BlockCard extends StatelessWidget {
           if (!isCollapsed) ...[
             if (!block.isSingleFile)
               Divider(height: 1, color: Colors.grey.shade200),
+            if (block.race.isNotEmpty || block.baseStats.isNotEmpty)
+              _CreationSummaryRow(race: block.race, baseStats: block.baseStats),
+            if (block.race.isNotEmpty || block.baseStats.isNotEmpty)
+              Divider(height: 1, color: Colors.grey.shade200),
             _HeaderRow(),
             Divider(height: 1, color: Colors.grey.shade200),
             ...block.levels.asMap().entries.map(
@@ -570,6 +584,92 @@ class _BlockCard extends StatelessWidget {
                   Divider(height: 1, color: Colors.grey.shade100),
               ]),
             ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _CreationSummaryRow extends StatelessWidget {
+  final String race;
+  final Map<String, int> baseStats;
+
+  const _CreationSummaryRow({required this.race, required this.baseStats});
+
+  // Standard 3.5e stat order
+  static const _statOrder = ['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'];
+
+  int _mod(int score) => (score - 10) ~/ 2;
+  String _fmtMod(int m) => m >= 0 ? '+$m' : '$m';
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final orderedStats = _statOrder
+        .where((s) => baseStats.containsKey(s))
+        .toList();
+    // Fall back to whatever order we have if the standard keys aren't present
+    final displayStats = orderedStats.isNotEmpty
+        ? orderedStats
+        : baseStats.keys.toList();
+
+    return Container(
+      color: theme.colorScheme.primaryContainer.withOpacity(0.25),
+      padding: const EdgeInsets.fromLTRB(12, 6, 12, 6),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (race.isNotEmpty)
+            Row(children: [
+              Icon(Icons.person_outline, size: 13,
+                  color: theme.colorScheme.primary),
+              const SizedBox(width: 5),
+              Text('Race: ',
+                  style: TextStyle(fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: theme.colorScheme.primary)),
+              Text(race,
+                  style: const TextStyle(fontSize: 11)),
+            ]),
+          if (displayStats.isNotEmpty) ...[
+            if (race.isNotEmpty) const SizedBox(height: 4),
+            Row(children: [
+              Icon(Icons.fitness_center, size: 13,
+                  color: theme.colorScheme.primary),
+              const SizedBox(width: 5),
+              Text('Base stats: ',
+                  style: TextStyle(fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: theme.colorScheme.primary)),
+              Expanded(
+                child: Wrap(
+                  spacing: 10,
+                  children: displayStats.map((stat) {
+                    final score = baseStats[stat]!;
+                    final mod   = _mod(score);
+                    return RichText(
+                      text: TextSpan(
+                        style: const TextStyle(fontSize: 11,
+                            color: Colors.black87),
+                        children: [
+                          TextSpan(text: '$stat ',
+                              style: const TextStyle(
+                                  fontWeight: FontWeight.w600)),
+                          TextSpan(text: '$score '),
+                          TextSpan(
+                            text: '(${_fmtMod(mod)})',
+                            style: TextStyle(
+                                fontSize: 10,
+                                color: Colors.grey.shade600),
+                          ),
+                        ],
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
+            ]),
           ],
         ],
       ),
