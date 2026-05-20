@@ -256,6 +256,72 @@ class PCGenFrameState extends State<PCGenFrame> {
     if (character != null) saveCharacter(character);
   }
 
+  /// Show a dialog to save the character as a new file (checkpoint save).
+  /// Keeps the same UUID so the browser groups it with existing saves.
+  void showSaveNewVersionDialog(CharacterFacade? character) {
+    if (character is! CharacterFacadeImpl || !mounted) return;
+    final impl = character;
+
+    // Build a suggested filename: Name_Lx or Name_vN
+    final charName  = impl.getName().trim().isEmpty ? 'unnamed' : impl.getName().trim();
+    final level     = impl.getTotalCharacterLevel();
+    final nextVer   = impl.getSaveVersion() + 1;
+    final suggested = level > 0 ? '${charName}_L$level' : '${charName}_v$nextVer';
+
+    final controller = TextEditingController(text: suggested);
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Save New Version'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Creates a new save file for this character.\n'
+              'The original file is kept unchanged.',
+              style: TextStyle(fontSize: 13),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: controller,
+              autofocus: true,
+              decoration: const InputDecoration(
+                labelText: 'Filename (without .pcg)',
+                border: OutlineInputBorder(),
+                isDense: true,
+              ),
+              onSubmitted: (_) => Navigator.pop(ctx, true),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    ).then((_) {
+      final name = controller.text.trim();
+      controller.dispose();
+      if (name.isEmpty) return;
+      CharacterFileIO.saveNewVersion(impl, name).then((path) {
+        if (!mounted) return;
+        if (path != null) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text('Saved new version: ${path.split(r'\').last.split('/').last}'),
+            duration: const Duration(seconds: 3),
+          ));
+        }
+      });
+    });
+  }
+
   bool saveAllCharacters() {
     final chars = CharacterManager.getCharacters();
     for (int i = 0; i < chars.getSize(); i++) {

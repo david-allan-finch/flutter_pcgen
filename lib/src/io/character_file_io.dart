@@ -80,6 +80,34 @@ class CharacterFileIO {
     }
   }
 
+  /// Save [character] to a new file with [suggestedName] (without extension).
+  /// The UUID is preserved — this is a checkpoint of the same character, not a copy.
+  /// Returns the path written, or null on failure.
+  static Future<String?> saveNewVersion(
+      CharacterFacadeImpl character, String suggestedName) async {
+    try {
+      _syncCampaignNames(character);
+      final dir      = await _getCharDir();
+      final safeName = suggestedName.trim().isEmpty
+          ? character.getName().replaceAll(RegExp(r'[^\w\s\-]'), '_')
+          : suggestedName.replaceAll(RegExp(r'[^\w\s\-.]'), '_');
+      // Find a non-colliding filename
+      var path = p.join(dir.path, '$safeName.pcg');
+      var counter = 2;
+      while (File(path).existsSync()) {
+        path = p.join(dir.path, '${safeName}_$counter.pcg');
+        counter++;
+      }
+      await File(path).writeAsString(PCGCharacterIO.write(character), flush: true);
+      // Update the character's file path to point to the new file
+      character.setFilePath(path);
+      return path;
+    } catch (e) {
+      print('CharacterFileIO.saveNewVersion error: $e');
+      return null;
+    }
+  }
+
   /// Save [character] to an explicit [path] in PCG v2 format.
   static Future<bool> saveAs(CharacterFacadeImpl character, String path) async {
     try {

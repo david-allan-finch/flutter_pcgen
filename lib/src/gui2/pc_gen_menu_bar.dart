@@ -78,6 +78,7 @@ class _PCGenMenuBarState extends State<PCGenMenuBar> {
         const PopupMenuDivider(),
         _item(PCGenActionMap.saveCommand, 'Save'),
         _item(PCGenActionMap.saveAsCommand, 'Save As...'),
+        _item(PCGenActionMap.saveNewVersionCommand, 'Save New Version…'),
         _item(PCGenActionMap.saveAllCommand, 'Save All'),
         _item(PCGenActionMap.revertCommand, 'Revert to Saved'),
         const PopupMenuDivider(),

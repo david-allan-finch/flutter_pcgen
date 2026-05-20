@@ -61,6 +61,7 @@ class PCGenActionMap {
   static const String closeAllCommand = 'file.closeall';
   static const String saveCommand = 'file.save';
   static const String saveAsCommand = 'file.saveas';
+  static const String saveNewVersionCommand = 'file.savenewversion';
   static const String saveAllCommand = 'file.saveall';
   static const String revertCommand = 'file.reverttosaved';
   static const String partyCommand = 'file.party';
@@ -131,6 +132,8 @@ class PCGenActionMap {
         });
     _put(saveAsCommand, 'Save As', accelerator: 'Shift+Ctrl+S', iconKey: 'SaveAs16',
         handler: () => frame.showSaveCharacterChooser(frame.getSelectedCharacterRef().get()));
+    _put(saveNewVersionCommand, 'Save New Version…', accelerator: 'Ctrl+Shift+N',
+        handler: () => frame.showSaveNewVersionDialog(frame.getSelectedCharacterRef().get()));
     _put(saveAllCommand, 'Save All', iconKey: 'SaveAll16',
         handler: () => frame.saveAllCharacters());
     _put(revertCommand, 'Revert to Saved', accelerator: 'Ctrl+R',
