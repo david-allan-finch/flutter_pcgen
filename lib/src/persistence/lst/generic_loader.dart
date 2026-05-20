@@ -861,6 +861,8 @@ class GenericLoader<T extends CDOMObject> extends LstObjectFileLoader<T> {
         }
         break;
       default:
+        // ignore: avoid_print
+        print('PCGen STUB: AUTO token type: $autoType');
         break;
     }
   }
@@ -900,6 +902,8 @@ class GenericLoader<T extends CDOMObject> extends LstObjectFileLoader<T> {
         }
         break;
       default:
+        // ignore: avoid_print
+        print('PCGen STUB: ADD token type: $addType');
         break;
     }
   }

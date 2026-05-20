@@ -426,7 +426,7 @@ class PcgenTokenContext extends FtlContext {
         }
         return '0';
       case 'MISC':
-        return '0';
+        return _stub('STAT.${parts[1]}.MISC');
       case 'LONGNAME':
         // Full stat name e.g. "Strength"
         const longNames = {
@@ -448,7 +448,7 @@ class PcgenTokenContext extends FtlContext {
     }
     // Multi-part: STAT.N.MOD.NOTEMP etc — try first sub-token
     if (parts.length > 3) return _stat(parts.sublist(0, 3));
-    return '';
+    return _stub('STAT field: ${parts.join(".")}');
   }
 
   // ─── Save tokens: SAVE.N.TOTAL / .BASE / .STAT ────────────────────────────
@@ -478,7 +478,7 @@ class PcgenTokenContext extends FtlContext {
       case 'MISC.NOMAGIC.NOSTAT':
       case 'MISC':  return _stub('SAVE.${parts[1]}.MISC');
     }
-    return '';
+    return _stub('SAVE field: ${parts.join(".")}');
   }
 
   // ─── AC tokens: AC.TOTAL / .FLAT / .TOUCH / .ARMOR / .SHIELD / .DEX ──────
@@ -492,9 +492,9 @@ class PcgenTokenContext extends FtlContext {
       case 'BASE':         return '10';
       case 'ARMOR':        return _pc.getArmorBonus().toString();
       case 'ARMORENHANCEMENT':
-      case 'ENHANCEMENT':  return '0'; // enhancement to armor
+      case 'ENHANCEMENT':  return _stub('AC.ARMORENHANCEMENT');
       case 'SHIELD':       return _pc.getShieldBonus().toString();
-      case 'SHIELDENHANCEMENT': return '0';
+      case 'SHIELDENHANCEMENT': return _stub('AC.SHIELDENHANCEMENT');
       case 'ABILITY':
       case 'DEX':          return _signed(_pc.getStatModByAbb('DEX'));
       case 'DEFLECTION':   return _pc.getDeflectionBonus().toString();
@@ -571,10 +571,10 @@ class PcgenTokenContext extends FtlContext {
       case 'MOD':        return _pc.getSkillBonus(skName, skKey).toString();
       case 'MISC':       return _pc.getSkillMiscBonus(skName).toString();
       case 'UNTRAINED':  return '1';
-      case 'EXCLUSIVE':  return '0';
+      case 'EXCLUSIVE':  return '0'; // intentional: exclusive skills not tracked
       case 'CLASSSK':    return _pc.isClassSkill(skName) ? '1' : '0';
     }
-    return '';
+    return _stub('SKILL field: ${parts.join(".")}');
   }
 
   List<Map<String, dynamic>>? _skillCache;
@@ -768,7 +768,7 @@ class PcgenTokenContext extends FtlContext {
       case 'UNTRAINED':
         final s = sk['skill'];
         return (s is Skill && !s.isUntrained()) ? '0' : '1';
-      case 'EXCLUSIVE': return '0';
+      case 'EXCLUSIVE': return '0'; // intentional: exclusive skills not tracked
       case 'CLASSSK':   return _pc.isClassSkill(skName) ? '1' : '0';
       case 'ACPv':
         // Armor check penalty applies flag (from ACHECK:YES on the skill LST)
@@ -778,7 +778,7 @@ class PcgenTokenContext extends FtlContext {
         }
         return '0';
     }
-    return '';
+    return _stub('SKILLSIT field: ${parts.join(".")}');
   }
 
   String _skillAbility(Map<String, dynamic> sk) {
@@ -840,12 +840,12 @@ class PcgenTokenContext extends FtlContext {
       case 'TOTAL':    return _atkString(totalHit);
       case 'BASE':     return _atkString(bab);
       case 'STAT':     return _signed(statMod);
-      case 'SIZE':     return '+0';
+      case 'SIZE':     return _stub('ATTACK.${parts[1]}.SIZE');
       case 'EPIC':     return '+0';
-      case 'MISC':     return '+0';
+      case 'MISC':     return _stub('ATTACK.${parts[1]}.MISC');
       case 'NOMAGIC.NOSTAT': return _signed(bab);
     }
-    return '';
+    return _stub('ATTACK field: ${parts.join(".")}');
   }
 
   String _weaponProfs(List<String> parts) {
@@ -1479,7 +1479,7 @@ class PcgenTokenContext extends FtlContext {
         return item['type'] as String? ?? '';
       }
     }
-    return '';
+    return _stub('GEAR field: $field');
   }
 
   // ─── Primary-hand weapon (WEAPONH) ───────────────────────────────────────
@@ -1496,11 +1496,11 @@ class PcgenTokenContext extends FtlContext {
       case 'BASICDAMAGE':
       case 'DAMAGE':    return w['damage'] as String? ?? '';
       case 'CRIT':      return w['crit'] as String? ?? '';
-      case 'MULT':      return '';
-      case 'TYPE':      return '';
+      case 'MULT':      return _stub('WEAPONH.MULT');
+      case 'TYPE':      return _stub('WEAPONH.TYPE');
       case 'HAND':      return 'Primary';
     }
-    return '';
+    return _stub('WEAPONH field: ${parts.join(".")}');
   }
 
   // ─── Color / length / move / pool tokens ─────────────────────────────────
@@ -1518,9 +1518,9 @@ class PcgenTokenContext extends FtlContext {
   String _length(List<String> parts) {
     if (parts.length < 2) return '';
     switch (parts[1]) {
-      case 'HAIR': return '';
+      case 'HAIR': return _stub('LENGTH.HAIR');
     }
-    return '';
+    return _stub('LENGTH field: ${parts.join(".")}');
   }
 
   String _move(List<String> parts) {
@@ -1535,15 +1535,15 @@ class PcgenTokenContext extends FtlContext {
       case 'NAME': return key.toString();
       case 'RATE': return speeds[key].toString();
     }
-    return '';
+    return _stub('MOVE field: ${parts.join(".")}');
   }
 
   String _pool(List<String> parts) {
     if (parts.length < 2) return '';
     switch (parts[1]) {
-      case 'COST': return '0'; // point-buy cost — not tracked
+      case 'COST': return _stub('POOL.COST');
     }
-    return '';
+    return _stub('POOL field: ${parts.join(".")}');
   }
 
   String _sizeToLong(String abbr) {

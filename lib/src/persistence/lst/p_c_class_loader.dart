@@ -180,6 +180,8 @@ class PCClassLoader extends GenericLoader<PCClass> {
           }
           break;
         default:
+          // ignore: avoid_print
+          print('PCGen STUB: ClassLevel token: $tag=$value');
           break;
       }
     }
