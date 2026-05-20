@@ -1,16 +1,15 @@
 // Build History tab — reconstructs level-up choices from PCG data.
 //
-// When a character has multiple save files (same UUID, different saveVersion),
-// each file is loaded and the levels are grouped into per-save blocks so you
-// can see exactly what changed at each checkpoint.
+// When a character has multiple save files (same UUID, or matching
+// name+race+firstClass), each file is loaded and the levels are grouped into
+// per-save blocks.  Skill rank gains and new equipment are diffed between saves
+// and shown on the last level entry of each block.
 //
 // Data sources:
-//   CLASSABILITIESLEVEL lines → exact levelling order, HP rolled, skill points,
-//                                stat bumps (PRESTAT). Fully reliable.
-//   ABILITY:FEAT lines        → feats in selection order. Order is reliable;
-//                                level assigned by diffing consecutive saves,
-//                                falling back to standard 3.5e slot estimation.
-//   SKILL lines               → total ranks by class only (no per-level detail).
+//   CLASSABILITIESLEVEL → exact level order, HP, skill points, stat bumps.
+//   ABILITY:FEAT        → feats in selection order (level estimated from slot rules).
+//   SKILL:              → total ranks at save time; diff gives ranks spent per block.
+//   EQUIPNAME:          → items present at save time; diff gives new acquisitions.
 
 import 'dart:io';
 
@@ -64,16 +63,16 @@ class _BuildHistoryTabState extends State<BuildHistoryTab> {
     });
   }
 
-  Future<List<_SaveBlock>> _load(CharacterFacadeImpl char) async {
-    final uuid = char.getCharUuid();
+  // ─── File loading ──────────────────────────────────────────────────────────
 
-    // Composite identity for files without UUID — same logic as the file browser.
-    final charData   = char.toJson();
-    final charName   = char.getName().toLowerCase();
-    final charRace   = (charData['raceKey'] as String? ?? '').toLowerCase();
-    final firstLevel = ((charData['classLevels'] as List?)?.whereType<Map>().firstOrNull);
-    final charFirst  = (firstLevel?['classKey'] as String? ??
-                        firstLevel?['className'] as String? ?? '').toLowerCase();
+  Future<List<_SaveBlock>> _load(CharacterFacadeImpl char) async {
+    final uuid     = char.getCharUuid();
+    final charData = char.toJson();
+    final charName = char.getName().toLowerCase();
+    final charRace = (charData['raceKey'] as String? ?? '').toLowerCase();
+    final firstLv  = (charData['classLevels'] as List?)?.whereType<Map>().firstOrNull;
+    final charFirst = (firstLv?['classKey'] as String? ??
+                       firstLv?['className'] as String? ?? '').toLowerCase();
 
     final orderedData = <Map<String, dynamic>>[];
 
@@ -88,7 +87,7 @@ class _BuildHistoryTabState extends State<BuildHistoryTab> {
 
         _setStatus('Scanning ${candidates.length} file${candidates.length == 1 ? "" : "s"}…');
 
-        final matches = <(int version, String savedAt, DateTime mtime, String filename, Map<String, dynamic> data)>[];
+        final matches = <(int version, String savedAt, DateTime mtime, Map<String, dynamic> data)>[];
         int scanned = 0;
         for (final file in candidates) {
           scanned++;
@@ -116,42 +115,37 @@ class _BuildHistoryTabState extends State<BuildHistoryTab> {
               final version = data['saveVersion'] as int? ?? 0;
               final savedAt = data['savedAt']     as String? ?? '';
               final mtime   = file.lastModifiedSync();
-              matches.add((version, savedAt, mtime, fname, data));
+              matches.add((version, savedAt, mtime, data));
             }
           } catch (_) {}
         }
 
         if (matches.isNotEmpty) {
-          _setStatus('Found ${matches.length} save file${matches.length == 1 ? "" : "s"} — building history…');
+          _setStatus('Found ${matches.length} save${matches.length == 1 ? "" : "s"} — building history…');
         } else {
-          _setStatus('No matching save files found — using current character data…');
+          _setStatus('No matching saves found — using current character data…');
         }
 
-        // Oldest first: ascending version, then savedAt, then mtime.
         matches.sort((a, b) {
           if (a.$1 != b.$1) return a.$1.compareTo(b.$1);
           if (a.$2.isNotEmpty && b.$2.isNotEmpty) return a.$2.compareTo(b.$2);
           return a.$3.compareTo(b.$3);
         });
-        orderedData.addAll(matches.map((e) => e.$5));
+        orderedData.addAll(matches.map((e) => e.$4));
       }
     } catch (_) {
       _setStatus('Error scanning save directory.');
     }
 
-    if (orderedData.isEmpty) {
-      orderedData.add(charData);
-    }
-
+    if (orderedData.isEmpty) orderedData.add(charData);
     return _buildBlocks(orderedData);
   }
 
   // ─── History reconstruction ────────────────────────────────────────────────
 
   List<_SaveBlock> _buildBlocks(List<Map<String, dynamic>> saves) {
-    // Use the save with the most levels as the authoritative source — the sort
-    // order (by version/date) does not guarantee the last file has the most
-    // levels (e.g. two v0 files in arbitrary mtime order).
+    // Authoritative source = save with most levels (not necessarily saves.last,
+    // since sort order doesn't guarantee max levels are last).
     final authoritative = saves.reduce((a, b) {
       final aLen = (a['classLevels'] as List? ?? []).length;
       final bLen = (b['classLevels'] as List? ?? []).length;
@@ -164,13 +158,9 @@ class _BuildHistoryTabState extends State<BuildHistoryTab> {
     final allEntries = _buildAllEntries(allLevels, allFeats);
     if (allEntries.isEmpty) return [];
 
-    // Checkpoints: how many levels each save had. Clamp so they never exceed
-    // allEntries.length and never go below the previous checkpoint (a later save
-    // can't have fewer levels than an earlier one in the block sequence).
-    final rawCheckpoints = saves
-        .map((s) => (s['classLevels'] as List? ?? []).length)
-        .toList();
-
+    // Checkpoints: level count per save, clamped so they never exceed the total
+    // and never go below the previous (prevents sublist range errors).
+    final rawCheckpoints = saves.map((s) => (s['classLevels'] as List? ?? []).length).toList();
     final checkpoints = <int>[];
     int floor = 0;
     for (final c in rawCheckpoints) {
@@ -178,6 +168,10 @@ class _BuildHistoryTabState extends State<BuildHistoryTab> {
       checkpoints.add(clamped);
       floor = clamped;
     }
+
+    // Skill and equipment baselines for diff computation.
+    var prevSkills = <String, double>{};
+    var prevEquip  = <String>{};
 
     final blocks = <_SaveBlock>[];
     int prevLevelCount = 0;
@@ -188,21 +182,44 @@ class _BuildHistoryTabState extends State<BuildHistoryTab> {
       final currCount    = checkpoints[si];
       final blockEntries = allEntries.sublist(prevLevelCount, currCount);
 
-      final currFeatCount = ((data['selectedAbilities'] as Map?)?['FEAT'] as List?)
-          ?.length ?? 0;
-      final newFeatCount  = currFeatCount - prevFeatCount;
+      final currFeatCount = ((data['selectedAbilities'] as Map?)?['FEAT'] as List?)?.length ?? 0;
+      prevFeatCount = currFeatCount;
 
-      // Block label
-      final version   = data['saveVersion'] as int? ?? (si + 1);
-      final savedAt   = data['savedAt']     as String? ?? '';
-      final dateLabel = _fmtDate(savedAt);
+      // Skill rank delta: ranks added since the previous save.
+      final currSkills = Map<String, double>.from(
+          (data['skillRanks'] as Map? ?? {}).cast<String, double>());
+      final skillDelta = <String, double>{};
+      for (final e in currSkills.entries) {
+        final gained = e.value - (prevSkills[e.key] ?? 0);
+        if (gained > 0.01) skillDelta[e.key] = gained;
+      }
+      prevSkills = currSkills;
+
+      // Equipment delta: items added since the previous save.
+      final currEquip = Set<String>.from((data['equipment'] as List? ?? []).cast<String>());
+      final newItems  = currEquip.difference(prevEquip).toList()..sort();
+      prevEquip = currEquip;
+
+      // Attach skill/item diffs to the last level entry of this block.
+      if (blockEntries.isNotEmpty) {
+        blockEntries.last.skillGains = skillDelta;
+        blockEntries.last.newItems   = newItems;
+      }
+
+      // Block label: use display order when version is 0 (unknown).
+      final version    = data['saveVersion'] as int? ?? 0;
+      final displayNum = version > 0 ? 'v$version' : '${si + 1}';
+      final savedAt    = data['savedAt'] as String? ?? '';
+      final dateLabel  = _fmtDate(savedAt);
+      final datePart   = dateLabel.isNotEmpty ? ' · $dateLabel' : '';
+
       final String label;
       if (saves.length == 1) {
-        label = 'History';
+        label = 'History$datePart';
       } else if (si == 0) {
-        label = 'Initial creation${dateLabel.isNotEmpty ? " · $dateLabel" : ""}';
+        label = 'Initial creation$datePart';
       } else {
-        label = 'Save v$version${dateLabel.isNotEmpty ? " · $dateLabel" : ""}';
+        label = 'Save $displayNum$datePart';
       }
 
       blocks.add(_SaveBlock(
@@ -214,14 +231,11 @@ class _BuildHistoryTabState extends State<BuildHistoryTab> {
       ));
 
       prevLevelCount = currCount;
-      prevFeatCount  = currFeatCount;
     }
 
     return blocks;
   }
 
-  /// Build the full ordered [_LevelEntry] list from a complete set of level lines
-  /// and feats, assigning feats using slot estimation.
   List<_LevelEntry> _buildAllEntries(List<Map> levelLines, List<String> feats) {
     final result      = <_LevelEntry>[];
     final classCounts = <String, int>{};
@@ -229,10 +243,10 @@ class _BuildHistoryTabState extends State<BuildHistoryTab> {
     int featIdx   = 0;
 
     for (final l in levelLines) {
-      final className  = l['classKey'] as String? ?? l['className'] as String? ?? '?';
-      final hp         = l['hp']           as int? ?? 0;
-      final skills     = l['skillsGained'] as int? ?? 0;
-      final statGains  = Map<String, int>.from(
+      final className = l['classKey'] as String? ?? l['className'] as String? ?? '?';
+      final hp        = l['hp']           as int? ?? 0;
+      final skills    = l['skillsGained'] as int? ?? 0;
+      final statGains = Map<String, int>.from(
           (l['statGains'] as Map?)?.cast<String, int>() ?? {});
 
       classCounts[className] = (classCounts[className] ?? 0) + 1;
@@ -240,8 +254,7 @@ class _BuildHistoryTabState extends State<BuildHistoryTab> {
       charLevel++;
 
       final isGeneralFeatLevel = charLevel == 1 || charLevel % 3 == 0;
-      final totalSlots = (isGeneralFeatLevel ? 1 : 0) +
-          _classBonusFeatSlots(className, classLevel);
+      final totalSlots = (isGeneralFeatLevel ? 1 : 0) + _classBonusFeatSlots(className, classLevel);
 
       final featsAtLevel = <String>[];
       for (int i = 0; i < totalSlots && featIdx < feats.length; i++) {
@@ -259,11 +272,9 @@ class _BuildHistoryTabState extends State<BuildHistoryTab> {
       ));
     }
 
-    // Any leftover feats attach to the last entry.
     if (featIdx < feats.length && result.isNotEmpty) {
       result.last.feats.addAll(feats.sublist(featIdx));
     }
-
     return result;
   }
 
@@ -297,9 +308,7 @@ class _BuildHistoryTabState extends State<BuildHistoryTab> {
     return ValueListenableBuilder<CharacterFacade?>(
       valueListenable: currentCharacter,
       builder: (context, char, _) {
-        if (char == null) {
-          return const Center(child: Text('No character loaded.'));
-        }
+        if (char == null) return const Center(child: Text('No character loaded.'));
         if (_loading) {
           return Center(
             child: Column(
@@ -356,6 +365,9 @@ class _LevelEntry {
   final int skillsGained;
   final Map<String, int> statBumps;
   final List<String> feats;
+  // Populated only for the last entry of each save block:
+  Map<String, double> skillGains = {};
+  List<String> newItems = [];
 
   _LevelEntry({
     required this.charLevel,
@@ -391,7 +403,6 @@ class _HistoryView extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // Header bar
         Padding(
           padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
           child: Row(children: [
@@ -403,7 +414,6 @@ class _HistoryView extends StatelessWidget {
           ]),
         ),
         const Divider(height: 1),
-        // Block list
         Expanded(
           child: ListView.builder(
             padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 6),
@@ -416,13 +426,11 @@ class _HistoryView extends StatelessWidget {
             ),
           ),
         ),
-        // Footer note
         Padding(
           padding: const EdgeInsets.fromLTRB(12, 4, 12, 6),
           child: Text(
-            'Feat assignment is estimated from standard 3.5e feat-slot rules. '
-            'Skill points shown are class ranks gained (before INT modifier). '
-            'Save blocks are reconstructed from ${blocks.length == 1 ? "a single save file" : "${blocks.length} save files with the same UUID"}.',
+            'Feat assignment estimated from standard 3.5e slot rules. '
+            'Skills and items shown are changes since the previous save.',
             style: TextStyle(fontSize: 10, color: Colors.grey.shade500,
                 fontStyle: FontStyle.italic),
           ),
@@ -460,7 +468,6 @@ class _BlockCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Block header — tap to expand/collapse (unless single-file = no header)
           if (!block.isSingleFile)
             InkWell(
               borderRadius: BorderRadius.vertical(
@@ -470,8 +477,7 @@ class _BlockCard extends StatelessWidget {
               onTap: onToggle,
               child: Container(
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.surfaceContainerHighest
-                      .withOpacity(0.5),
+                  color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.5),
                   borderRadius: BorderRadius.vertical(
                     top: const Radius.circular(6),
                     bottom: isCollapsed ? const Radius.circular(6) : Radius.zero,
@@ -479,8 +485,7 @@ class _BlockCard extends StatelessWidget {
                 ),
                 padding: const EdgeInsets.fromLTRB(12, 7, 8, 7),
                 child: Row(children: [
-                  Icon(Icons.save_outlined, size: 15,
-                      color: theme.colorScheme.primary),
+                  Icon(Icons.save_outlined, size: 15, color: theme.colorScheme.primary),
                   const SizedBox(width: 6),
                   Expanded(
                     child: Text(block.label,
@@ -495,14 +500,11 @@ class _BlockCard extends StatelessWidget {
               ),
             ),
 
-          // Level rows
           if (!isCollapsed) ...[
             if (!block.isSingleFile)
               Divider(height: 1, color: Colors.grey.shade200),
-            // Column header — only show on first block or after a block header
-            if (index == 0 || !block.isSingleFile) _HeaderRow(),
-            if (index == 0 || !block.isSingleFile)
-              Divider(height: 1, color: Colors.grey.shade200),
+            _HeaderRow(),
+            Divider(height: 1, color: Colors.grey.shade200),
             ...block.levels.asMap().entries.map(
               (e) => Column(children: [
                 _LevelRow(entry: e.value),
@@ -525,12 +527,13 @@ class _HeaderRow extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       child: Row(children: [
         SizedBox(width: 34, child: Text('Lvl', style: s, textAlign: TextAlign.center)),
-        const SizedBox(width: 6),
+        const SizedBox(width: 4),
         Expanded(flex: 3, child: Text('Class', style: s)),
+        SizedBox(width: 28, child: Text('Cl', style: s, textAlign: TextAlign.center)),
         SizedBox(width: 36, child: Text('HP', style: s, textAlign: TextAlign.center)),
-        SizedBox(width: 44, child: Text('Skills', style: s, textAlign: TextAlign.center)),
+        SizedBox(width: 40, child: Text('Skills', style: s, textAlign: TextAlign.center)),
         Expanded(flex: 3, child: Text('Abilities', style: s)),
-        Expanded(flex: 4, child: Text('Feats', style: s)),
+        Expanded(flex: 4, child: Text('Feats / Items', style: s)),
       ]),
     );
   }
@@ -544,22 +547,33 @@ class _LevelRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final isAltRow = entry.charLevel % 2 == 0;
 
-    final statLines = entry.statBumps.entries
-        .map((e) => '${e.key} +${e.value}')
-        .toList();
+    // Abilities column: stat bumps + skill rank gains
+    final abilityLines = <(String text, Color color)>[
+      for (final e in entry.statBumps.entries)
+        ('${e.key} +${e.value}', Colors.green.shade700),
+      for (final e in entry.skillGains.entries)
+        ('${e.key} +${_fmtRank(e.value)}', Colors.teal.shade700),
+    ];
 
-    final featLines = entry.feats.map((f) {
-      final base    = f.contains('|') ? f.split('|').first : f;
-      final applied = f.contains('|') ? ' (${f.split('|').last})' : '';
-      return '$base$applied';
-    }).toList();
+    // Feats / Items column: feats + new items
+    final featLines = <(String text, Color color)>[
+      for (final f in entry.feats) ...[
+        (() {
+          final base    = f.contains('|') ? f.split('|').first : f;
+          final applied = f.contains('|') ? ' (${f.split('|').last})' : '';
+          return ('$base$applied', Colors.grey.shade700);
+        })(),
+      ],
+      for (final item in entry.newItems)
+        ('+ $item', Colors.indigo.shade400),
+    ];
 
-    Widget noteCol(List<String> items, Color color) {
+    Widget noteCol(List<(String, Color)> items) {
       if (items.isEmpty) return const SizedBox.shrink();
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: items
-            .map((n) => Text(n, style: TextStyle(fontSize: 11, color: color)))
+            .map((t) => Text(t.$1, style: TextStyle(fontSize: 11, color: t.$2)))
             .toList(),
       );
     }
@@ -568,7 +582,7 @@ class _LevelRow extends StatelessWidget {
       color: isAltRow ? Colors.grey.shade50 : null,
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
       child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        // Level badge
+        // Character level badge
         SizedBox(
           width: 34,
           child: Center(
@@ -588,16 +602,20 @@ class _LevelRow extends StatelessWidget {
             ),
           ),
         ),
-        const SizedBox(width: 6),
-        // Class name + class level
+        const SizedBox(width: 4),
+        // Class name
         Expanded(
           flex: 3,
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(entry.className,
-                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500)),
-            Text('(${entry.className} ${entry.classLevel})',
-                style: TextStyle(fontSize: 10, color: Colors.grey.shade500)),
-          ]),
+          child: Text(entry.className,
+              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500)),
+        ),
+        // Class level — its own column
+        SizedBox(
+          width: 28,
+          child: Center(
+            child: Text('${entry.classLevel}',
+                style: TextStyle(fontSize: 11, color: Colors.grey.shade600)),
+          ),
         ),
         // HP
         SizedBox(
@@ -608,19 +626,24 @@ class _LevelRow extends StatelessWidget {
                     color: Colors.red.shade700)),
           ),
         ),
-        // Skills
+        // Skill points gained this level
         SizedBox(
-          width: 44,
+          width: 40,
           child: Center(
             child: Text(entry.skillsGained > 0 ? '+${entry.skillsGained}' : '—',
                 style: TextStyle(fontSize: 12, color: Colors.blue.shade700)),
           ),
         ),
-        // Abilities (stat bumps)
-        Expanded(flex: 3, child: noteCol(statLines, Colors.green.shade700)),
-        // Feats
-        Expanded(flex: 4, child: noteCol(featLines, Colors.grey.shade700)),
+        // Abilities: stat bumps + skill rank spends
+        Expanded(flex: 3, child: noteCol(abilityLines)),
+        // Feats + items acquired
+        Expanded(flex: 4, child: noteCol(featLines)),
       ]),
     );
+  }
+
+  String _fmtRank(double r) {
+    if (r == r.truncateToDouble()) return r.toInt().toString();
+    return r.toStringAsFixed(1);
   }
 }

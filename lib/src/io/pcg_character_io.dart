@@ -1356,6 +1356,8 @@ class PCGCharacterIO {
       'selectedAbilities': <String, dynamic>{},
       'abilityTypes':      <String, dynamic>{},
       'abilityDescs':      <String, dynamic>{},
+      'skillRanks':        <String, double>{},   // skill name → total ranks
+      'equipment':         <String>[],            // item names present at save time
       'saveVersion': 0,
       'savedAt': '',
     };
@@ -1369,6 +1371,36 @@ class PCGCharacterIO {
         _readClassAbilitiesLevel(data, line.substring(20));
       } else if (line.startsWith('ABILITY:')) {
         _readAbility(data, line.substring(8));
+      } else if (line.startsWith('SKILL:')) {
+        // SKILL:Climb|OUTPUTORDER:1|CLASSBOUGHT:[CLASS:Fighter|RANKS:5.0|COST:1|CLASSSKILL:Y]
+        final rest     = line.substring(6);
+        final nameEnd  = rest.indexOf('|');
+        final skillName = nameEnd > 0 ? rest.substring(0, nameEnd).trim() : rest.trim();
+        if (skillName.isNotEmpty) {
+          double rank = 0;
+          final cbMatch = RegExp(r'CLASSBOUGHT:\[([^\]]+)\]').firstMatch(rest);
+          if (cbMatch != null) {
+            for (final part in cbMatch.group(1)!.split('|')) {
+              if (part.toUpperCase().startsWith('RANKS:')) {
+                rank = double.tryParse(part.substring(6).trim()) ?? 0;
+                break;
+              }
+            }
+          }
+          if (rank == 0) {
+            final m = RegExp(r'RANK:([0-9.]+)').firstMatch(rest);
+            if (m != null) rank = double.tryParse(m.group(1)!) ?? 0;
+          }
+          if (rank > 0) {
+            (data['skillRanks'] as Map<String, double>)[skillName] = rank;
+          }
+        }
+      } else if (line.startsWith('EQUIPNAME:')) {
+        // EQUIPNAME:Longsword +1|OUTPUTORDER:2|COST:5015.0|QUANTITY:1.0|LOCATION:...|...
+        final rest    = line.substring(10);
+        final nameEnd = rest.indexOf('|');
+        final name    = nameEnd > 0 ? rest.substring(0, nameEnd).trim() : rest.trim();
+        if (name.isNotEmpty) (data['equipment'] as List<String>).add(name);
       }
     }
     return data;
