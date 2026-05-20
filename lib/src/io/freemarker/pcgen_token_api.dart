@@ -226,6 +226,10 @@ class PcgenTokenContext extends FtlContext {
       case 'LENGTH':      return _length(parts);
       case 'MOVE':        return _move(parts);
       case 'POOL':        return _pool(parts);
+      case 'MOVEMENT':    return _movementSummary();
+      case 'HANDED':      return _data('handed') as String? ?? 'Right';
+      case 'FAVOREDLIST':
+      case 'FAVOREDCLASS': return _favoredClassList();
 
       case 'STAT':        return _stat(parts);
       case 'BASESAVE':
@@ -1723,6 +1727,36 @@ class PcgenTokenContext extends FtlContext {
       case 'RATE': return speeds[key].toString();
     }
     return _stub('MOVE field: ${parts.join(".")}');
+  }
+
+  /// MOVEMENT — full movement summary string e.g. "Walk 30 ft., Fly 60 ft."
+  String _movementSummary() {
+    final speeds = _data('moveSpeeds') as Map? ?? {};
+    if (speeds.isEmpty) return '30 ft.';
+    return speeds.entries
+        .map((e) => speeds.length == 1 ? '${e.value} ft.' : '${e.key} ${e.value} ft.')
+        .join(', ');
+  }
+
+  /// FAVOREDLIST — comma-separated list of favored classes.
+  /// In 3.5e this is the highest-level class; in PF it can be multiple.
+  String _favoredClassList() {
+    // Check character data first (stored from PCG FAVOREDCLASS: tag)
+    final stored = _data('favoredClass') as String? ?? '';
+    if (stored.isNotEmpty) return stored;
+    // Fallback: derive from class levels — highest-level class is favored
+    final classLevels = _data('classLevels') as List? ?? [];
+    final counts = <String, int>{};
+    for (final l in classLevels) {
+      if (l is Map) {
+        final k = l['classKey'] as String? ?? '';
+        if (k.isNotEmpty) counts[k] = (counts[k] ?? 0) + 1;
+      }
+    }
+    if (counts.isEmpty) return '';
+    // Return the class with the most levels (or first if tied)
+    final top = counts.entries.reduce((a, b) => a.value >= b.value ? a : b);
+    return top.key;
   }
 
   String _pool(List<String> parts) {

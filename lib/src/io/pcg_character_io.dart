@@ -574,6 +574,10 @@ class PCGCharacterIO {
           data['gender'] = value.trim();
           break;
         case 'HANDED':
+          data['handed'] = value.trim();
+          break;
+        case 'FAVOREDCLASS':
+          data['favoredClass'] = value.trim();
           break;
         case 'HEIGHT':
           data['height'] = int.tryParse(value.trim()) ?? 0;
