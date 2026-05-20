@@ -965,10 +965,17 @@ class _LoadCharacterDialogState extends State<_LoadCharacterDialog> {
       });
     }
 
-    // Re-key by display name for the UI (groups with same UUID get the same display name)
+    // Re-key by display name for the UI.
+    // After sorting newest-first, use the name from the newest save so the
+    // group always shows the character's most recent name (e.g. if renamed).
     final result = <String, List<File>>{};
     for (final entry in byId.entries) {
-      result[names[entry.key]!] = entry.value;
+      final files   = entry.value; // already sorted newest-first
+      final newest  = _headerCache[files.first.path];
+      final dispName = newest?['name']?.isNotEmpty == true
+          ? newest!['name']!
+          : names[entry.key]!;
+      result[dispName] = files;
     }
     return result;
   }
