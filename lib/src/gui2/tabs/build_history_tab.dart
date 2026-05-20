@@ -179,7 +179,8 @@ class _BuildHistoryTabState extends State<BuildHistoryTab> {
     var prevFeats  = <String>{};
     // Running stat totals: initialised from first save's STAT: scores.
     var runningStats = Map<String, int>.from(
-        (saves.first['baseStats'] as Map? ?? {}).cast<String, int>());
+        Map.fromEntries((saves.first['baseStats'] as Map? ?? {}).entries.map(
+            (e) => MapEntry(e.key as String, (e.value as num).toInt()))));
 
     final blocks = <_SaveBlock>[];
     int prevLevelCount = 0;
@@ -190,8 +191,11 @@ class _BuildHistoryTabState extends State<BuildHistoryTab> {
       final blockEntries = allEntries.sublist(prevLevelCount, currCount);
 
       // ── Skill diffs ──────────────────────────────────────────────────────
-      final currSkills = Map<String, double>.from(
-          (data['skillRanks'] as Map? ?? {}).cast<String, double>());
+      // Use (v as num).toDouble() — the fallback toJson() path may return ints
+      // for whole-number rank values (e.g. 5 instead of 5.0).
+      final currSkills = Map<String, double>.fromEntries(
+          (data['skillRanks'] as Map? ?? {}).entries.map(
+              (e) => MapEntry(e.key as String, (e.value as num).toDouble())));
       final skillGains  = <String, double>{};
       final skillLosses = <String, double>{};
       for (final e in currSkills.entries) {
@@ -313,8 +317,9 @@ class _BuildHistoryTabState extends State<BuildHistoryTab> {
       final className = l['classKey'] as String? ?? l['className'] as String? ?? '?';
       final hp        = l['hp']           as int? ?? 0;
       final skills    = l['skillsGained'] as int? ?? 0;
-      final statGains = Map<String, int>.from(
-          (l['statGains'] as Map?)?.cast<String, int>() ?? {});
+      final statGains = Map<String, int>.fromEntries(
+          ((l['statGains'] as Map?) ?? {}).entries.map(
+              (e) => MapEntry(e.key as String, (e.value as num).toInt())));
 
       classCounts[className] = (classCounts[className] ?? 0) + 1;
       final classLevel = classCounts[className]!;
