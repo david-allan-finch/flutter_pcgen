@@ -105,11 +105,11 @@ class ParsedPrereq {
       case 'PREHANDSEQ':
       case 'PREHANDSGTEQ':
       case 'PREHANDSLT':
-      case 'PRESPELLSCHOOL':
-      case 'PRESPELLSCHOOLSUB':
-      case 'PRESPELL':
+      case 'PRESPELL':          result = _evalPreSpell(ctx);            break;
+      case 'PRESPELLSCHOOL':    result = _evalPreSpellSchool(ctx);      break;
+      case 'PRESPELLSCHOOLSUB': result = _evalPreSpellSchoolSub(ctx);   break;
+      case 'PRESPELLDESCRIPTOR':result = _evalPreSpellDescriptor(ctx);  break;
       case 'PRESPELLBOOK':
-      case 'PRESPELLDESCRIPTOR':
       case 'PRECAMPAIGN':
       case 'PREAGEGTEQ':
       case 'PREAGERANGE':
@@ -444,6 +444,62 @@ class ParsedPrereq {
     return true;
   }
 
+  bool _evalPreSpell(PrereqContext ctx) {
+    // PRESPELL:N,SpellName1,SpellName2 — character must know N of the listed spells.
+    final parts = raw.split(',');
+    if (parts.length < 2) return true;
+    final needed = int.tryParse(parts[0].trim()) ?? 1;
+    int matched = 0;
+    for (int i = 1; i < parts.length; i++) {
+      final name = parts[i].trim().toLowerCase();
+      if (name.isNotEmpty && ctx.knownSpellNamesLower.contains(name)) matched++;
+    }
+    return matched >= needed;
+  }
+
+  bool _evalPreSpellSchool(PrereqContext ctx) {
+    // PRESPELLSCHOOL:N,School1,School2 — knows N spells belonging to the listed school(s).
+    final parts = raw.split(',');
+    if (parts.length < 2) return true;
+    final needed = int.tryParse(parts[0].trim()) ?? 1;
+    final schools = parts.skip(1).map((s) => s.trim().toLowerCase()).toSet();
+    int matched = 0;
+    for (final spellName in ctx.knownSpellNamesLower) {
+      final school = ctx.spellSchoolFor(spellName).toLowerCase();
+      if (school.isNotEmpty && schools.contains(school)) matched++;
+    }
+    return matched >= needed;
+  }
+
+  bool _evalPreSpellSchoolSub(PrereqContext ctx) {
+    // PRESPELLSCHOOLSUB:N,SubSchool — knows N spells of the given subschool.
+    final parts = raw.split(',');
+    if (parts.length < 2) return true;
+    final needed = int.tryParse(parts[0].trim()) ?? 1;
+    final subs = parts.skip(1).map((s) => s.trim().toLowerCase()).toSet();
+    int matched = 0;
+    for (final spellName in ctx.knownSpellNamesLower) {
+      final sub = ctx.spellSubSchoolFor(spellName).toLowerCase();
+      if (sub.isNotEmpty && subs.contains(sub)) matched++;
+    }
+    return matched >= needed;
+  }
+
+  bool _evalPreSpellDescriptor(PrereqContext ctx) {
+    // PRESPELLDESCRIPTOR:N,Descriptor — knows N spells with the given descriptor.
+    final parts = raw.split(',');
+    if (parts.length < 2) return true;
+    final needed = int.tryParse(parts[0].trim()) ?? 1;
+    final descs = parts.skip(1).map((s) => s.trim().toLowerCase()).toSet();
+    int matched = 0;
+    for (final spellName in ctx.knownSpellNamesLower) {
+      final descStr = ctx.spellDescriptorFor(spellName).toLowerCase();
+      final spellDescs = descStr.split(RegExp(r'[,;]')).map((d) => d.trim()).toSet();
+      if (spellDescs.any((d) => descs.contains(d))) matched++;
+    }
+    return matched >= needed;
+  }
+
   bool _evalPreSpellType(PrereqContext ctx) {
     // PRESPELLTYPE:Arcane=1 or PRESPELLTYPE:1,Arcane — checks spellcasting ability.
     // Use class keys as a proxy: arcane casters have Bard/Sorcerer/Wizard etc. class levels.
@@ -513,6 +569,16 @@ abstract class PrereqContext {
   List<String> get templateKeys;
   List<String> get weaponProficiencies;
   String get sizeKey; // e.g. 'M', 'S', 'L'
+
+  // ---- Spell knowledge (for PRESPELL / PRESPELLSCHOOL evaluators) ----
+  /// Lowercase spell names the character knows (spellbook, known list, domain).
+  Set<String> get knownSpellNamesLower;
+  /// Returns the school (e.g. 'Evocation') for [spellName], or ''.
+  String spellSchoolFor(String spellName);
+  /// Returns the subschool for [spellName], or ''.
+  String spellSubSchoolFor(String spellName);
+  /// Returns the descriptor string (e.g. 'Fire,Force') for [spellName], or ''.
+  String spellDescriptorFor(String spellName);
 }
 
 // ---------------------------------------------------------------------------

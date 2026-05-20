@@ -19,6 +19,7 @@ class SpellsInfoTabState extends State<SpellsInfoTab>
   late final TabController _tabController;
   final TextEditingController _search = TextEditingController();
   String? _classFilter; // null = all classes
+  bool _myClassOnly = false; // filter All Spells to character's class lists
 
   void setCharacter(dynamic character) => setState(() {});
 
@@ -81,9 +82,16 @@ class SpellsInfoTabState extends State<SpellsInfoTab>
     }
     final known = _getSpellList(character, 'knownSpells');
 
+    // Group by spell level
+    final byLevel = <int, List<Map<String, dynamic>>>{};
+    for (final sp in known) {
+      final lvl = (sp['level'] as num?)?.toInt() ?? 0;
+      (byLevel[lvl] ??= []).add(sp);
+    }
+    final levels = byLevel.keys.toList()..sort();
+
     return Column(
       children: [
-        // Spell slots summary panel
         _buildSlotSummary(character, dataset),
         const Divider(height: 1),
         if (known.isEmpty)
@@ -98,8 +106,60 @@ class SpellsInfoTabState extends State<SpellsInfoTab>
           )
         else
           Expanded(
-            child: _buildSpellListView(character, known, 'knownSpells',
-                removable: true),
+            child: ListView(
+              children: [
+                for (final lvl in levels) ...[
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(12, 8, 12, 2),
+                    child: Text(
+                      lvl == 0 ? 'Cantrips / Orisons' : 'Level $lvl',
+                      style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.blue.shade800),
+                    ),
+                  ),
+                  ...byLevel[lvl]!.map((sp) {
+                    final name  = sp['name'] as String? ?? '';
+                    final level = (sp['level'] as num?)?.toInt() ?? 0;
+                    int dc = 0;
+                    try { dc = (character as dynamic).getSpellSaveDC(level) as int? ?? 0; } catch (_) {}
+                    final dsSpell = dataset?.spells
+                        .cast<dynamic>()
+                        .where((s) => (s.getDisplayName() as String).toLowerCase() == name.toLowerCase())
+                        .firstOrNull;
+                    return ListTile(
+                      dense: true,
+                      leading: CircleAvatar(
+                        radius: 11,
+                        backgroundColor: Colors.blue.shade100,
+                        child: Text('$level', style: const TextStyle(fontSize: 10)),
+                      ),
+                      title: Text(name, style: const TextStyle(fontSize: 12)),
+                      subtitle: dc > 0
+                          ? Text('DC $dc', style: TextStyle(fontSize: 10, color: Colors.grey.shade600))
+                          : null,
+                      trailing: Row(mainAxisSize: MainAxisSize.min, children: [
+                        if (dsSpell != null)
+                          IconButton(
+                            icon: Icon(Icons.info_outline, size: 16, color: Colors.blue.shade400),
+                            tooltip: 'Spell details',
+                            onPressed: () => _showSpellDetail(context, dsSpell),
+                          ),
+                        IconButton(
+                          icon: const Icon(Icons.remove_circle_outline, size: 16, color: Colors.red),
+                          tooltip: 'Remove',
+                          onPressed: () => _removeFromList(character, 'knownSpells', name),
+                        ),
+                      ]),
+                      onTap: dsSpell != null
+                          ? () => _showSpellDetail(context, dsSpell)
+                          : null,
+                    );
+                  }),
+                ],
+              ],
+            ),
           ),
       ],
     );
@@ -286,14 +346,19 @@ class SpellsInfoTabState extends State<SpellsInfoTab>
     final charClasses = _getCharacterSpellcastingClassNames(character, dataset);
 
     final query = _search.text.trim().toLowerCase();
+    // Build set of character's class display names for "my class only" filter
+    final myClassNames = charClasses.map((c) => c.toLowerCase()).toSet();
+
     final filtered = allSpells.where((s) {
-      // Text filter
       if (query.isNotEmpty &&
           !s.getDisplayName().toLowerCase().contains(query)) return false;
-      // Class filter
       if (_classFilter != null && _classFilter!.isNotEmpty) {
         final classMap = _parseSpellClasses(s);
         if (!classMap.containsKey(_classFilter)) return false;
+      }
+      if (_myClassOnly && myClassNames.isNotEmpty) {
+        final classMap = _parseSpellClasses(s);
+        if (!classMap.keys.any((k) => myClassNames.contains(k.toLowerCase()))) return false;
       }
       return true;
     }).toList();
@@ -331,6 +396,16 @@ class SpellsInfoTabState extends State<SpellsInfoTab>
                 ),
               ],
               const SizedBox(width: 8),
+              if (charClasses.isNotEmpty)
+                Row(mainAxisSize: MainAxisSize.min, children: [
+                  Checkbox(
+                    value: _myClassOnly,
+                    onChanged: (v) => setState(() => _myClassOnly = v ?? false),
+                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    visualDensity: VisualDensity.compact,
+                  ),
+                  const Text('My classes', style: TextStyle(fontSize: 11)),
+                ]),
               if (character != null)
                 TextButton.icon(
                   icon: const Icon(Icons.add, size: 14),
@@ -386,6 +461,9 @@ class SpellsInfoTabState extends State<SpellsInfoTab>
                         .take(4)
                         .join(', ');
 
+                    final alreadyKnown = character != null &&
+                        _getSpellList(character, 'knownSpells')
+                            .any((s) => s['name'] == spell.getDisplayName());
                     return ListTile(
                       dense: true,
                       leading: CircleAvatar(
@@ -409,24 +487,28 @@ class SpellsInfoTabState extends State<SpellsInfoTab>
                           : null,
                       trailing: character == null
                           ? null
-                          : TextButton(
-                              child: const Text('Add to Known',
-                                  style: TextStyle(fontSize: 11)),
-                              onPressed: () {
-                                _addToList(character, 'knownSpells', {
-                                  'name': spell.getDisplayName(),
-                                  'key': spell.getKeyName(),
-                                  'level': displayLevel,
-                                });
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                        'Added ${spell.getDisplayName()}'),
-                                    duration: const Duration(seconds: 1),
-                                  ),
-                                );
-                              },
-                            ),
+                          : alreadyKnown
+                              ? Icon(Icons.check, size: 16,
+                                  color: Colors.green.shade600)
+                              : TextButton(
+                                  child: const Text('Add',
+                                      style: TextStyle(fontSize: 11)),
+                                  onPressed: () {
+                                    _addToList(character, 'knownSpells', {
+                                      'name': spell.getDisplayName(),
+                                      'key':  spell.getKeyName(),
+                                      'level': displayLevel,
+                                    });
+                                    setState(() {});
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text('Added ${spell.getDisplayName()}'),
+                                        duration: const Duration(seconds: 1),
+                                      ),
+                                    );
+                                  },
+                                ),
+                      onTap: () => _showSpellDetail(context, spell),
                     );
                   },
                 ),
@@ -613,6 +695,103 @@ class SpellsInfoTabState extends State<SpellsInfoTab>
           ],
         ),
       ),
+    );
+  }
+
+  // ---- Spell detail --------------------------------------------------------
+
+  void _showSpellDetail(BuildContext context, dynamic spell) {
+    String _s(StringKey k) {
+      try { return (spell as dynamic).getString(k) as String? ?? ''; } catch (_) { return ''; }
+    }
+
+    final name       = (spell as dynamic).getDisplayName() as String? ?? '';
+    final school     = _s(StringKey.genre);
+    final subSchool  = _s(StringKey.setting);
+    final descriptor = _s(StringKey.dataFormat);
+    final components = _s(StringKey.spellComponents);
+    final castTime   = _s(StringKey.duration);    // CASTTIME stored in duration key
+    final duration   = _s(StringKey.help);        // DURATION stored in help key
+    final range      = _s(StringKey.spellRange);
+    final target     = _s(StringKey.targetArea);
+    final saveInfo   = _s(StringKey.convertName);
+    final desc       = _s(StringKey.description);
+    final classesRaw = _s(StringKey.campaignSetting); // "ClassName=N|..."
+
+    // Parse class levels
+    final classEntries = <String>[];
+    for (final part in classesRaw.split('|')) {
+      final eq = part.indexOf('=');
+      if (eq > 0) classEntries.add('${part.substring(0, eq)} ${part.substring(eq + 1)}');
+    }
+
+    final schoolLine = [school, if (subSchool.isNotEmpty) '($subSchool)',
+        if (descriptor.isNotEmpty) '[$descriptor]'].join(' ');
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
+      builder: (_) => DraggableScrollableSheet(
+        initialChildSize: 0.55,
+        minChildSize: 0.3,
+        maxChildSize: 0.9,
+        expand: false,
+        builder: (_, controller) => ListView(
+          controller: controller,
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+          children: [
+            Center(
+              child: Container(width: 36, height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade400,
+                    borderRadius: BorderRadius.circular(2))),
+            ),
+            const SizedBox(height: 12),
+            Text(name,
+                style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
+            if (schoolLine.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 2),
+                child: Text(schoolLine,
+                    style: TextStyle(fontSize: 12, fontStyle: FontStyle.italic,
+                        color: Colors.grey.shade700)),
+              ),
+            const Divider(height: 20),
+            _spellRow('Classes',    classEntries.take(6).join(', ')),
+            _spellRow('Components', components),
+            _spellRow('Cast Time',  castTime),
+            _spellRow('Range',      range),
+            _spellRow('Target',     target),
+            _spellRow('Duration',   duration),
+            _spellRow('Save',       saveInfo),
+            if (desc.isNotEmpty) ...[
+              const Divider(height: 20),
+              Text('Description',
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600,
+                      color: Colors.grey.shade700)),
+              const SizedBox(height: 6),
+              Text(desc, style: const TextStyle(fontSize: 13)),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _spellRow(String label, String value) {
+    if (value.isEmpty) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 3),
+      child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        SizedBox(
+          width: 90,
+          child: Text('$label:',
+              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+        ),
+        Expanded(child: Text(value, style: const TextStyle(fontSize: 12))),
+      ]),
     );
   }
 

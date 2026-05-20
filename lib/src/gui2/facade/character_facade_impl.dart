@@ -2127,6 +2127,29 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
 
     final classLevelCounts = counts.map((k, v) => MapEntry(k, v));
 
+    // Build spell lookup maps for PRESPELL / PRESPELLSCHOOL evaluators.
+    final spellSchoolMap    = <String, String>{};
+    final spellSubSchoolMap = <String, String>{};
+    final spellDescriptorMap= <String, String>{};
+    try {
+      final spellList = (dataset as dynamic).spells as List? ?? [];
+      for (final sp in spellList) {
+        final name = ((sp as dynamic).getDisplayName() as String? ?? '').toLowerCase();
+        if (name.isEmpty) continue;
+        final school   = (sp as dynamic).getString(StringKey.genre)      as String? ?? '';
+        final subSchool= (sp as dynamic).getString(StringKey.setting)    as String? ?? '';
+        final desc     = (sp as dynamic).getString(StringKey.dataFormat) as String? ?? '';
+        if (school.isNotEmpty)    spellSchoolMap[name]     = school;
+        if (subSchool.isNotEmpty) spellSubSchoolMap[name]  = subSchool;
+        if (desc.isNotEmpty)      spellDescriptorMap[name] = desc;
+      }
+    } catch (_) {}
+    final knownSpellNamesLower = <String>{};
+    for (final sp in (_data['knownSpells'] as List? ?? [])) {
+      final n = (sp as Map?)?['name'] as String? ?? '';
+      if (n.isNotEmpty) knownSpellNamesLower.add(n.toLowerCase());
+    }
+
     // Collect class skill names for PrereqContext (PRECSKILL evaluation)
     final classSkillSet = <String>{};
     try {
@@ -2220,6 +2243,10 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
           for (final e in ((_data['skillRanks'] as Map?) ?? {}).entries)
             e.key.toString().toLowerCase(): (e.value as num?)?.toDouble() ?? 0.0
         },
+        knownSpellNamesLower: knownSpellNamesLower,
+        spellSchools:    spellSchoolMap,
+        spellSubSchools: spellSubSchoolMap,
+        spellDescriptors:spellDescriptorMap,
       );
 
       for (final bonus in entry.value) {
@@ -2476,6 +2503,10 @@ class _SimplePrereqCtxFacade implements PrereqContext {
   final Map<String, int> _statScores;
   final Map<String, List<String>> _selectedAbilities;
   final Map<String, double> _skillRanks;
+  @override final Set<String> knownSpellNamesLower;
+  final Map<String, String> _spellSchools;      // lower name → school
+  final Map<String, String> _spellSubSchools;   // lower name → subschool
+  final Map<String, String> _spellDescriptors;  // lower name → descriptor
 
   _SimplePrereqCtxFacade({
     required this.alignmentKey,
@@ -2485,10 +2516,18 @@ class _SimplePrereqCtxFacade implements PrereqContext {
     required Map<String, int> statScores,
     required Map<String, List<String>> selectedAbilities,
     required Map<String, double> skillRanks,
+    Set<String>? knownSpellNamesLower,
+    Map<String, String>? spellSchools,
+    Map<String, String>? spellSubSchools,
+    Map<String, String>? spellDescriptors,
   })  : _statMods = statMods,
         _statScores = statScores,
         _selectedAbilities = selectedAbilities,
-        _skillRanks = skillRanks;
+        _skillRanks = skillRanks,
+        knownSpellNamesLower = knownSpellNamesLower ?? const {},
+        _spellSchools    = spellSchools    ?? const {},
+        _spellSubSchools = spellSubSchools ?? const {},
+        _spellDescriptors= spellDescriptors?? const {};
 
   @override
   List<String> selectedAbilityKeys([String? category]) {
@@ -2523,4 +2562,11 @@ class _SimplePrereqCtxFacade implements PrereqContext {
   @override List<String> get templateKeys => const [];
   @override List<String> get weaponProficiencies => const [];
   @override String get sizeKey => 'M';
+
+  @override String spellSchoolFor(String spellName) =>
+      _spellSchools[spellName.toLowerCase()] ?? '';
+  @override String spellSubSchoolFor(String spellName) =>
+      _spellSubSchools[spellName.toLowerCase()] ?? '';
+  @override String spellDescriptorFor(String spellName) =>
+      _spellDescriptors[spellName.toLowerCase()] ?? '';
 }
