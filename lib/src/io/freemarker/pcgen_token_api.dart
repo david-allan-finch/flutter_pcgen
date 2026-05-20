@@ -52,6 +52,18 @@ class PcgenTokenContext extends FtlContext {
   // ─── Main token dispatcher ─────────────────────────────────────────────────
 
   String _resolve(String token) {
+    if (token.isEmpty) return '';
+
+    // ((expr)+0) — PCGen numeric-coercion wrapper: evaluate inner token, add 0.
+    if (token.startsWith('((') && token.endsWith('+0)')) {
+      final inner = token.substring(2, token.length - 3).trim();
+      final val = _resolve(inner);
+      return (num.tryParse(val) ?? 0).toString();
+    }
+    if (token.startsWith('(') && token.endsWith(')')) {
+      return _resolve(token.substring(1, token.length - 1).trim());
+    }
+
     // COUNT[...] tokens (with optional arithmetic suffix: COUNT[STATS]-1)
     if (token.startsWith('COUNT[')) {
       final closeIdx = token.indexOf(']');
@@ -362,7 +374,27 @@ class PcgenTokenContext extends FtlContext {
       // ── Equipment by type ────────────────────────────────────────────────
       case 'EQTYPE': return _eqType(parts);
 
-      default:            return _stub('top-level: $token');
+      // ── Miscellaneous wealth sections ────────────────────────────────────
+      case 'MISC': {
+        // MISC.FUNDS — display funds as a formatted string
+        // MISC.MAGIC / MISC.COMPANIONS — magic item value / companion value
+        final sub = parts.length > 1 ? parts[1].toUpperCase() : '';
+        if (sub == 'FUNDS' || sub == 'MAGIC' || sub == 'COMPANIONS' || sub == 'TOTAL') {
+          return _pc.getFunds().toStringAsFixed(2);
+        }
+        return _stub('MISC: $token');
+      }
+
+      default: {
+        // Try as a bare game/character variable (e.g. UseAlternateDamage,
+        // UseCombatManueverBonus) before logging as a true stub.
+        final cVars = _data('charVariables') as Map? ?? {};
+        final varKey = parts[0]; // single-word token matches variable name
+        if (cVars.containsKey(varKey)) {
+          return (cVars[varKey] as double? ?? 0.0).toInt().toString();
+        }
+        return _stub('top-level: $token');
+      }
     }
   }
 
@@ -473,10 +505,10 @@ class PcgenTokenContext extends FtlContext {
       case 'BASE':  return base.toString();
       case 'STATMOD':
       case 'STAT':  return _signed(statMod);
-      case 'MAGIC': return _stub('SAVE.${parts[1]}.MAGIC');
+      case 'MAGIC': return '0'; // magic save bonus not broken out from total yet
       case 'EPIC':  return '0';
       case 'MISC.NOMAGIC.NOSTAT':
-      case 'MISC':  return _stub('SAVE.${parts[1]}.MISC');
+      case 'MISC':  return '0'; // misc save bonus not broken out from total yet
     }
     return _stub('SAVE field: ${parts.join(".")}');
   }
@@ -649,6 +681,12 @@ class PcgenTokenContext extends FtlContext {
       case 'LONGNAME':    return w['name'] as String? ?? '';
       case 'PROFICIENCY': return w['name'] as String? ?? '';
       case 'REACHUNIT':   return 'ft.';
+      case 'MULT': {
+        // Extract multiplier from '20/×2' or '19-20/×3' crit string
+        final crit = w['crit'] as String? ?? '20/×2';
+        final slash = crit.lastIndexOf('/');
+        return slash >= 0 ? crit.substring(slash + 1) : '×2';
+      }
       case 'ISTYPE': {
         // WEAPON.N.ISTYPE.TypeName
         if (parts.length < 4) return '0';
@@ -1496,7 +1534,12 @@ class PcgenTokenContext extends FtlContext {
       case 'BASICDAMAGE':
       case 'DAMAGE':    return w['damage'] as String? ?? '';
       case 'CRIT':      return w['crit'] as String? ?? '';
-      case 'MULT':      return _stub('WEAPONH.MULT');
+      case 'MULT': {
+        // Extract from crit string e.g. '20/×2'
+        final crit = w['crit'] as String? ?? '20/×2';
+        final slash = crit.lastIndexOf('/');
+        return slash >= 0 ? crit.substring(slash + 1) : '×2';
+      }
       case 'TYPE':      return _stub('WEAPONH.TYPE');
       case 'HAND':      return 'Primary';
     }
