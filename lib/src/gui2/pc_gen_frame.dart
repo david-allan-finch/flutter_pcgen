@@ -926,22 +926,49 @@ class _LoadCharacterDialogState extends State<_LoadCharacterDialog> {
     if (mounted) setState(() => _scanning = false);
   }
 
-  // Group files by character name. Files with the same NAME in their PCG header
-  // are considered saves of the same character (different levels, backups, etc.).
+  // Group files by character UUID (FLUTTERPCG_UUID) when available, otherwise
+  // by character name. Within each group, sort newest-first by:
+  //   1. FLUTTERPCG_SAVEVERSION (highest = most recent) when present
+  //   2. FLUTTERPCG_SAVED timestamp when present
+  //   3. File system modification time as final fallback
   Map<String, List<File>> get _groups {
     final q = _search.text.trim().toLowerCase();
-    final result = <String, List<File>>{};
+    // uuid/name → files
+    final byId  = <String, List<File>>{};
+    // uuid → display name (use the name from the newest file in the group)
+    final names = <String, String>{};
+
     for (final file in _allFiles) {
       final header = _headerCache[file.path];
-      final name = header?['name']?.isNotEmpty == true
-          ? header!['name']!
-          : p.basenameWithoutExtension(file.path);
+      final name   = header?['name']?.isNotEmpty == true
+          ? header!['name']! : p.basenameWithoutExtension(file.path);
       if (q.isNotEmpty && !name.toLowerCase().contains(q)) continue;
-      result.putIfAbsent(name, () => []).add(file);
+      // Prefer UUID as group key so copies with the same name stay separate
+      final uuid = header?['charUuid'] ?? '';
+      final key  = uuid.isNotEmpty ? uuid : name;
+      byId.putIfAbsent(key, () => []).add(file);
+      names[key] = name; // last writer wins — all files in the group share a name
     }
-    // Sort each group newest-first (by file modification time)
-    for (final files in result.values) {
-      files.sort((a, b) => b.lastModifiedSync().compareTo(a.lastModifiedSync()));
+
+    // Sort each group: highest saveVersion first, then savedAt desc, then mtime desc
+    for (final files in byId.values) {
+      files.sort((a, b) {
+        final ha = _headerCache[a.path];
+        final hb = _headerCache[b.path];
+        final va = int.tryParse(ha?['saveVersion'] ?? '') ?? -1;
+        final vb = int.tryParse(hb?['saveVersion'] ?? '') ?? -1;
+        if (va != vb) return vb.compareTo(va);
+        final ta = ha?['savedAt'] ?? '';
+        final tb = hb?['savedAt'] ?? '';
+        if (ta.isNotEmpty && tb.isNotEmpty) return tb.compareTo(ta);
+        return b.lastModifiedSync().compareTo(a.lastModifiedSync());
+      });
+    }
+
+    // Re-key by display name for the UI (groups with same UUID get the same display name)
+    final result = <String, List<File>>{};
+    for (final entry in byId.entries) {
+      result[names[entry.key]!] = entry.value;
     }
     return result;
   }
@@ -1248,8 +1275,14 @@ class _LoadCharacterDialogState extends State<_LoadCharacterDialog> {
       if (primaryClass.isNotEmpty && totalLevel.isNotEmpty) '$primaryClass $totalLevel'
       else if (primaryClass.isNotEmpty) primaryClass,
     ];
-    final summary  = summaryParts.join(' · ');
-    final modLabel = _fmtDate(modified);
+    final summary     = summaryParts.join(' · ');
+    final saveVersion = header?['saveVersion'] ?? '';
+    final savedAt     = header?['savedAt'] ?? '';
+    // Prefer embedded save timestamp over filesystem mtime
+    final modLabel = savedAt.isNotEmpty
+        ? _fmtDate(DateTime.tryParse(savedAt)?.toLocal() ?? modified)
+        : _fmtDate(modified);
+    final versionLabel = saveVersion.isNotEmpty ? 'v$saveVersion' : '';
 
     final tile = ListTile(
       dense: true,
@@ -1294,6 +1327,18 @@ class _LoadCharacterDialogState extends State<_LoadCharacterDialog> {
             ],
             Text(modLabel,
                 style: TextStyle(fontSize: 10, color: Colors.grey.shade500)),
+            if (versionLabel.isNotEmpty) ...[
+              const SizedBox(width: 6),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade200,
+                  borderRadius: BorderRadius.circular(3),
+                ),
+                child: Text(versionLabel,
+                    style: TextStyle(fontSize: 9, color: Colors.grey.shade700)),
+              ),
+            ],
           ]),
         ],
       ),

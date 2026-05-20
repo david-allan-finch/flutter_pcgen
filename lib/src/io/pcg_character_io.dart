@@ -26,6 +26,12 @@ class PCGCharacterIO {
   static const String _pcgVersion = '2.0';
   static const String _appVersion = '8.00.00'; // reported app version
 
+  // Flutter-PCGen extension tags — ignored by Java PCGen (unknown tags are silently skipped).
+  // FLUTTERPCG_ prefix avoids collisions with any future official PCGen tags.
+  static const String _tagUuid    = 'FLUTTERPCG_UUID';
+  static const String _tagVersion = 'FLUTTERPCG_SAVEVERSION';
+  static const String _tagSaved   = 'FLUTTERPCG_SAVED';
+
   // ---------------------------------------------------------------------------
   // Write
   // ---------------------------------------------------------------------------
@@ -35,6 +41,18 @@ class PCGCharacterIO {
     final data = character.toJson();
 
     buf.writeln('PCGVERSION:2.0');
+
+    // Flutter-PCGen extension tags (ignored by Java PCGen).
+    // UUID: stable per character, regenerated only on copy/duplication.
+    // SAVEVERSION: monotonically increasing save counter.
+    // SAVED: ISO 8601 UTC timestamp of this save.
+    final uuid        = character.ensureUuid();
+    final saveVersion = character.incrementSaveVersion();
+    final savedAt     = DateTime.now().toUtc().toIso8601String();
+    buf.writeln('$_tagUuid:$uuid');
+    buf.writeln('$_tagVersion:$saveVersion');
+    buf.writeln('$_tagSaved:$savedAt');
+
     buf.writeln('# System Information');
     // Write all active campaign names — one CAMPAIGN: line each.
     // Prefer the override list (from currently loaded dataset), then fall back
@@ -454,6 +472,7 @@ class PCGCharacterIO {
       'biography': '', 'appearance': '', 'notes': '',
       'raceKey': '', 'alignmentKey': '', 'deityKey': '',
       'gameMode': '35e', 'campaignName': '', 'campaignNames': <String>[],
+      'charUuid': '', 'saveVersion': 0, 'savedAt': '',
       'statScores': <String, dynamic>{},
       'classLevels': <dynamic>[],
       'classSpellBase': <String, String>{},
@@ -498,6 +517,15 @@ class PCGCharacterIO {
       final value = line.substring(colonIdx + 1);
 
       switch (key) {
+        case 'FLUTTERPCG_UUID':
+          data['charUuid'] = value.trim();
+          break;
+        case 'FLUTTERPCG_SAVEVERSION':
+          data['saveVersion'] = int.tryParse(value.trim()) ?? 0;
+          break;
+        case 'FLUTTERPCG_SAVED':
+          data['savedAt'] = value.trim();
+          break;
         case 'PCGVERSION':
         case 'VERSION':
         case 'ROLLMETHOD':
@@ -1372,6 +1400,12 @@ class PCGCharacterIO {
       final key = line.substring(0, idx).toUpperCase();
       final val = line.substring(idx + 1).trim();
       switch (key) {
+        case 'FLUTTERPCG_UUID':
+          result['charUuid'] = val;
+        case 'FLUTTERPCG_SAVEVERSION':
+          result['saveVersion'] = val;
+        case 'FLUTTERPCG_SAVED':
+          result['savedAt'] = val;
         case 'CHARACTERNAME':
         case 'NAME':
           result['name'] = _unesc(val);

@@ -17,6 +17,7 @@
 //
 // Translation of pcgen.gui2.facade.CharacterFacadeImpl
 
+import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/list_key.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/object_key.dart';
@@ -1123,6 +1124,48 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
 
   String getGameMode() => _str('gameMode');
   void setGameMode(String mode) => _set('gameMode', mode);
+
+  // ── Flutter-PCGen extension identity fields ─────────────────────────────
+
+  /// Returns the character's UUID, generating one if it doesn't exist yet.
+  /// Call this just before writing so new characters get a UUID on first save.
+  String ensureUuid() {
+    final existing = _data['charUuid'] as String? ?? '';
+    if (existing.isNotEmpty) return existing;
+    final uuid = _generateUuid();
+    _data['charUuid'] = uuid;
+    return uuid;
+  }
+
+  /// Increment and return the save version counter.
+  /// Version 1 is the first save of a newly created character.
+  int incrementSaveVersion() {
+    final next = ((_data['saveVersion'] as int?) ?? 0) + 1;
+    _data['saveVersion'] = next;
+    return next;
+  }
+
+  String getCharUuid()   => _data['charUuid']   as String? ?? '';
+  int    getSaveVersion() => _data['saveVersion'] as int?    ?? 0;
+  String getSavedAt()    => _data['savedAt']     as String? ?? '';
+
+  /// Assign a brand-new UUID — call when duplicating/copying a character
+  /// so the copy is tracked independently from the original.
+  void resetUuid() => _data['charUuid'] = _generateUuid();
+
+  static String _generateUuid() {
+    // RFC 4122 v4 UUID using dart:math Random.secure()
+    final rng = Random.secure();
+    final b   = List<int>.generate(16, (_) => rng.nextInt(256));
+    b[6] = (b[6] & 0x0f) | 0x40;
+    b[8] = (b[8] & 0x3f) | 0x80;
+    String h(int v) => v.toRadixString(16).padLeft(2, '0');
+    return '${b.sublist(0,4).map(h).join()}'
+        '-${b.sublist(4,6).map(h).join()}'
+        '-${b.sublist(6,8).map(h).join()}'
+        '-${b.sublist(8,10).map(h).join()}'
+        '-${b.sublist(10,16).map(h).join()}';
+  }
 
   /// Names of all campaigns active when this character was loaded / created.
   /// Used by write() to reproduce the full CAMPAIGN: header section on save.
