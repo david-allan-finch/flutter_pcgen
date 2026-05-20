@@ -62,46 +62,68 @@ class _BuildHistoryTabState extends State<BuildHistoryTab> {
   Future<List<_SaveBlock>> _load(CharacterFacadeImpl char) async {
     final uuid = char.getCharUuid();
 
-    // Collect all PCG files that share this character's UUID, sorted oldest→newest.
+    // Composite identity for files without UUID — same logic as the file browser.
+    final charData   = char.toJson();
+    final charName   = char.getName().toLowerCase();
+    final charRace   = (charData['raceKey'] as String? ?? '').toLowerCase();
+    final firstLevel = ((charData['classLevels'] as List?)?.whereType<Map>().firstOrNull);
+    final charFirst  = (firstLevel?['classKey'] as String? ??
+                        firstLevel?['className'] as String? ?? '').toLowerCase();
+
     final orderedData = <Map<String, dynamic>>[];
 
-    if (uuid.isNotEmpty) {
-      try {
-        final dir = Directory(await CharacterFileIO.getCharDir());
-        if (dir.existsSync()) {
-          final candidates = dir
-              .listSync()
-              .whereType<File>()
-              .where((f) => f.path.endsWith('.pcg'))
-              .toList();
+    try {
+      final dir = Directory(await CharacterFileIO.getCharDir());
+      if (dir.existsSync()) {
+        final candidates = dir
+            .listSync()
+            .whereType<File>()
+            .where((f) => f.path.endsWith('.pcg'))
+            .toList();
 
-          final matches = <(int version, String savedAt, Map<String, dynamic> data)>[];
-          for (final file in candidates) {
-            try {
-              final content = await file.readAsString();
-              final header  = PCGCharacterIO.peekHeader(content);
-              if (header['charUuid'] == uuid) {
-                final data    = PCGCharacterIO.parseHistoryData(content);
-                final version = data['saveVersion'] as int? ?? 0;
-                final savedAt = data['savedAt']     as String? ?? '';
-                matches.add((version, savedAt, data));
-              }
-            } catch (_) {}
-          }
+        final matches = <(int version, String savedAt, DateTime mtime, Map<String, dynamic> data)>[];
+        for (final file in candidates) {
+          try {
+            final content = await file.readAsString();
+            final header  = PCGCharacterIO.peekHeader(content);
 
-          // Oldest first: ascending version, then savedAt lexicographic.
-          matches.sort((a, b) {
-            if (a.$1 != b.$1) return a.$1.compareTo(b.$1);
-            return a.$2.compareTo(b.$2);
-          });
-          orderedData.addAll(matches.map((e) => e.$3));
+            final bool isMatch;
+            if (uuid.isNotEmpty) {
+              // UUID available — definitive match.
+              isMatch = header['charUuid'] == uuid;
+            } else {
+              // No UUID — match by name + race + firstClass (same as file browser).
+              final hName  = (header['name'] ?? p.basenameWithoutExtension(file.path)).toLowerCase();
+              final hRace  = (header['race'] ?? '').toLowerCase();
+              final hFirst = (header['firstClass'] ?? '').toLowerCase();
+              isMatch = hName == charName &&
+                  (hRace.isEmpty  || charRace.isEmpty  || hRace  == charRace) &&
+                  (hFirst.isEmpty || charFirst.isEmpty || hFirst == charFirst);
+            }
+
+            if (isMatch) {
+              final data    = PCGCharacterIO.parseHistoryData(content);
+              final version = data['saveVersion'] as int? ?? 0;
+              final savedAt = data['savedAt']     as String? ?? '';
+              final mtime   = file.lastModifiedSync();
+              matches.add((version, savedAt, mtime, data));
+            }
+          } catch (_) {}
         }
-      } catch (_) {}
-    }
 
-    // Fallback: use the in-memory character data (single-save or no UUID).
+        // Oldest first: ascending version, then savedAt, then mtime.
+        matches.sort((a, b) {
+          if (a.$1 != b.$1) return a.$1.compareTo(b.$1);
+          if (a.$2.isNotEmpty && b.$2.isNotEmpty) return a.$2.compareTo(b.$2);
+          return a.$3.compareTo(b.$3);
+        });
+        orderedData.addAll(matches.map((e) => e.$4));
+      }
+    } catch (_) {}
+
+    // Final fallback: use the in-memory data if nothing was found on disk.
     if (orderedData.isEmpty) {
-      orderedData.add(char.toJson());
+      orderedData.add(charData);
     }
 
     return _buildBlocks(orderedData);
