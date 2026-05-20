@@ -1388,7 +1388,8 @@ class PCGCharacterIO {
 
     // PCG — scan first 80 lines
     // CLASS lines: CLASS:Name|SUBCLASS:None|LEVEL:5|...
-    final classes    = <String, int>{}; // className → level
+    final classes    = <String, int>{}; // className → level (insertion order preserved)
+    String? firstClass;                 // first CLASS entry — used for identity grouping
     final campaigns  = <String>[];      // CAMPAIGN: entries
     int lineCount = 0;
     for (final raw in content.split('\n')) {
@@ -1436,7 +1437,10 @@ class PCGCharacterIO {
               break;
             }
           }
-          if (className.isNotEmpty) classes[className] = level;
+          if (className.isNotEmpty) {
+            classes[className] = level;
+            firstClass ??= className; // first CLASS line = starting class
+          }
       }
     }
     if (campaigns.isNotEmpty) result['campaigns'] = campaigns.join('|');
@@ -1448,6 +1452,7 @@ class PCGCharacterIO {
           .key;
       result['primaryClass'] = primary;
       result['totalLevel'] = '$total';
+      if (firstClass != null) result['firstClass'] = firstClass!;
     }
     return result;
   }

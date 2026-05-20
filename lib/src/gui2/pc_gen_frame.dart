@@ -1040,11 +1040,26 @@ class _LoadCharacterDialogState extends State<_LoadCharacterDialog> {
       final name   = header?['name']?.isNotEmpty == true
           ? header!['name']! : p.basenameWithoutExtension(file.path);
       if (q.isNotEmpty && !name.toLowerCase().contains(q)) continue;
-      // Prefer UUID as group key so copies with the same name stay separate
-      final uuid = header?['charUuid'] ?? '';
-      final key  = uuid.isNotEmpty ? uuid : name;
+
+      // Group key priority:
+      // 1. FLUTTERPCG_UUID — definitive; copies get a new UUID so stay separate.
+      // 2. name + race + firstClass — two characters can share a name but differ
+      //    in race or starting class; require all three to match before grouping.
+      // 3. name only — no class data at all (empty character, pre-class file).
+      final uuid       = header?['charUuid'] ?? '';
+      final race       = header?['race'] ?? '';
+      final firstClass = header?['firstClass'] ?? '';
+      final String key;
+      if (uuid.isNotEmpty) {
+        key = uuid;
+      } else if (race.isNotEmpty || firstClass.isNotEmpty) {
+        // Composite identity: name + race + firstClass (all lower-case for comparison)
+        key = '${name.toLowerCase()}|${race.toLowerCase()}|${firstClass.toLowerCase()}';
+      } else {
+        key = name; // fallback for files with no header data yet
+      }
       byId.putIfAbsent(key, () => []).add(file);
-      names[key] = name; // last writer wins — all files in the group share a name
+      names[key] = name;
     }
 
     // Sort each group: highest saveVersion first, then savedAt desc, then mtime desc
