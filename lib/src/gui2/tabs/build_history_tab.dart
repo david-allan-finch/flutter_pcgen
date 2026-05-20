@@ -113,8 +113,12 @@ class _BuildHistoryTabState extends State<BuildHistoryTab> {
               _setStatus('Loading $fname…');
               final data    = PCGCharacterIO.parseHistoryData(content);
               final version = data['saveVersion'] as int? ?? 0;
-              final savedAt = data['savedAt']     as String? ?? '';
               final mtime   = file.lastModifiedSync();
+              // If the file has no embedded timestamp, fall back to filesystem mtime.
+              if ((data['savedAt'] as String).isEmpty) {
+                data['savedAt'] = mtime.toUtc().toIso8601String();
+              }
+              final savedAt = data['savedAt'] as String;
               matches.add((version, savedAt, mtime, data));
             }
           } catch (_) {}
@@ -169,41 +173,71 @@ class _BuildHistoryTabState extends State<BuildHistoryTab> {
       floor = clamped;
     }
 
-    // Skill and equipment baselines for diff computation.
+    // Baselines for diff computation.
     var prevSkills = <String, double>{};
     var prevEquip  = <String>{};
+    var prevFeats  = <String>{};
 
     final blocks = <_SaveBlock>[];
     int prevLevelCount = 0;
-    int prevFeatCount  = 0;
 
     for (int si = 0; si < saves.length; si++) {
       final data         = saves[si];
       final currCount    = checkpoints[si];
       final blockEntries = allEntries.sublist(prevLevelCount, currCount);
 
-      final currFeatCount = ((data['selectedAbilities'] as Map?)?['FEAT'] as List?)?.length ?? 0;
-      prevFeatCount = currFeatCount;
-
-      // Skill rank delta: ranks added since the previous save.
+      // ── Skill diffs ──────────────────────────────────────────────────────
       final currSkills = Map<String, double>.from(
           (data['skillRanks'] as Map? ?? {}).cast<String, double>());
-      final skillDelta = <String, double>{};
+      final skillGains  = <String, double>{};
+      final skillLosses = <String, double>{};
       for (final e in currSkills.entries) {
-        final gained = e.value - (prevSkills[e.key] ?? 0);
-        if (gained > 0.01) skillDelta[e.key] = gained;
+        final delta = e.value - (prevSkills[e.key] ?? 0);
+        if (delta >  0.01) skillGains[e.key]  =  delta;
+        if (delta < -0.01) skillLosses[e.key] = -delta; // stored as positive magnitude
+      }
+      // Skills present in previous save but gone entirely now.
+      for (final e in prevSkills.entries) {
+        if (!currSkills.containsKey(e.key)) skillLosses[e.key] = e.value;
       }
       prevSkills = currSkills;
 
-      // Equipment delta: items added since the previous save.
-      final currEquip = Set<String>.from((data['equipment'] as List? ?? []).cast<String>());
-      final newItems  = currEquip.difference(prevEquip).toList()..sort();
+      // ── Equipment diffs ───────────────────────────────────────────────────
+      final currEquip    = Set<String>.from((data['equipment'] as List? ?? []).cast<String>());
+      final addedItems   = currEquip.difference(prevEquip).toList()..sort();
+      final removedItems = prevEquip.difference(currEquip).toList()..sort();
       prevEquip = currEquip;
 
-      // Attach skill/item diffs to the last level entry of this block.
+      // ── Feat diffs ────────────────────────────────────────────────────────
+      // The per-level slot estimator already shows feats added; we only surface
+      // feats that were REMOVED or whose application target CHANGED.
+      final currFeatList = ((data['selectedAbilities'] as Map?)?['FEAT'] as List?)
+          ?.cast<String>() ?? [];
+      final currFeats = Set<String>.from(currFeatList);
+      final removedFeats = prevFeats.difference(currFeats).toList()..sort();
+      // Changed feats: same base name but different appliedTo (e.g. Weapon Focus target swapped).
+      final changedFeats = <String>[];
+      for (final prev in prevFeats) {
+        final prevBase = prev.contains('|') ? prev.split('|').first : prev;
+        for (final curr in currFeats) {
+          final currBase = curr.contains('|') ? curr.split('|').first : curr;
+          if (prevBase == currBase && prev != curr && !prevFeats.contains(curr)) {
+            final prevApplied = prev.contains('|') ? prev.split('|').last : '';
+            final currApplied = curr.contains('|') ? curr.split('|').last : '';
+            changedFeats.add('$prevBase: $prevApplied → $currApplied');
+          }
+        }
+      }
+      prevFeats = currFeats;
+
+      // ── Apply all diffs to the last level of this block ───────────────────
       if (blockEntries.isNotEmpty) {
-        blockEntries.last.skillGains = skillDelta;
-        blockEntries.last.newItems   = newItems;
+        blockEntries.last.skillGains   = skillGains;
+        blockEntries.last.skillLosses  = skillLosses;
+        blockEntries.last.addedItems   = addedItems;
+        blockEntries.last.removedItems = removedItems;
+        blockEntries.last.removedFeats = removedFeats;
+        blockEntries.last.changedFeats = changedFeats;
       }
 
       // Block label: use display order when version is 0 (unknown).
@@ -366,8 +400,12 @@ class _LevelEntry {
   final Map<String, int> statBumps;
   final List<String> feats;
   // Populated only for the last entry of each save block:
-  Map<String, double> skillGains = {};
-  List<String> newItems = [];
+  Map<String, double> skillGains   = {};
+  Map<String, double> skillLosses  = {};
+  List<String> addedItems   = [];
+  List<String> removedItems = [];
+  List<String> removedFeats = [];
+  List<String> changedFeats = [];
 
   _LevelEntry({
     required this.charLevel,
@@ -547,15 +585,17 @@ class _LevelRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final isAltRow = entry.charLevel % 2 == 0;
 
-    // Abilities column: stat bumps + skill rank gains
+    // Abilities column: stat bumps + skill gains + skill losses
     final abilityLines = <(String text, Color color)>[
       for (final e in entry.statBumps.entries)
         ('${e.key} +${e.value}', Colors.green.shade700),
       for (final e in entry.skillGains.entries)
         ('${e.key} +${_fmtRank(e.value)}', Colors.teal.shade700),
+      for (final e in entry.skillLosses.entries)
+        ('${e.key} −${_fmtRank(e.value)}', Colors.orange.shade700),
     ];
 
-    // Feats / Items column: feats + new items
+    // Feats / Items column: feats, feat removals/changes, items added/removed
     final featLines = <(String text, Color color)>[
       for (final f in entry.feats) ...[
         (() {
@@ -564,8 +604,15 @@ class _LevelRow extends StatelessWidget {
           return ('$base$applied', Colors.grey.shade700);
         })(),
       ],
-      for (final item in entry.newItems)
+      for (final f in entry.removedFeats)
+        ('− ${f.contains('|') ? '${f.split('|').first} (${f.split('|').last})' : f}',
+            Colors.red.shade600),
+      for (final f in entry.changedFeats)
+        ('~ $f', Colors.orange.shade700),
+      for (final item in entry.addedItems)
         ('+ $item', Colors.indigo.shade400),
+      for (final item in entry.removedItems)
+        ('− $item', Colors.red.shade400),
     ];
 
     Widget noteCol(List<(String, Color)> items) {
