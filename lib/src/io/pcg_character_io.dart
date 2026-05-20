@@ -1356,11 +1356,18 @@ class PCGCharacterIO {
       'selectedAbilities': <String, dynamic>{},
       'abilityTypes':      <String, dynamic>{},
       'abilityDescs':      <String, dynamic>{},
-      'skillRanks':        <String, double>{},   // skill name → total ranks
-      'equipment':         <String, String>{},    // item name → equipped slot ('' = inventory)
+      'skillRanks':        <String, double>{},
+      // item name → slot: '' = inventory/carried, 'Primary Hand' = equipped,
+      //                    'in Backpack' = inside a container
+      'equipment':         <String, String>{},
       'saveVersion': 0,
       'savedAt': '',
     };
+
+    // EQUIPSET lines collected for post-processing — they hold the actual slots.
+    final equipsetRaw = <String>[];
+    String activeSetRoot = '0.1'; // overridden by CALCEQUIPSET if present
+
     for (final rawLine in content.split('\n')) {
       final line = rawLine.trim();
       if (line.startsWith('FLUTTERPCG_SAVEVERSION:')) {
@@ -1373,8 +1380,8 @@ class PCGCharacterIO {
         _readAbility(data, line.substring(8));
       } else if (line.startsWith('SKILL:')) {
         // SKILL:Climb|OUTPUTORDER:1|CLASSBOUGHT:[CLASS:Fighter|RANKS:5.0|COST:1|CLASSSKILL:Y]
-        final rest     = line.substring(6);
-        final nameEnd  = rest.indexOf('|');
+        final rest      = line.substring(6);
+        final nameEnd   = rest.indexOf('|');
         final skillName = nameEnd > 0 ? rest.substring(0, nameEnd).trim() : rest.trim();
         if (skillName.isNotEmpty) {
           double rank = 0;
@@ -1396,31 +1403,99 @@ class PCGCharacterIO {
           }
         }
       } else if (line.startsWith('EQUIPNAME:')) {
-        // EQUIPNAME:Longsword +1|OUTPUTORDER:2|COST:5015.0|QUANTITY:1.0|LOCATION:Primary Hand|...
+        // Register every item as ''  (inventory) by default.
+        // The actual slot is resolved from EQUIPSET: lines after the full scan.
         final rest    = line.substring(10);
         final nameEnd = rest.indexOf('|');
         final name    = nameEnd > 0 ? rest.substring(0, nameEnd).trim() : rest.trim();
         if (name.isNotEmpty) {
-          String slot = '';
-          for (final part in rest.split('|').skip(1)) {
-            if (part.toUpperCase().startsWith('LOCATION:')) {
-              final loc = part.substring(9).trim();
-              // 'Carried' / 'Equipped' / empty → treat as inventory (no slot)
-              if (loc.isNotEmpty &&
-                  loc.toLowerCase() != 'carried' &&
-                  loc.toLowerCase() != 'equipped') {
-                slot = loc;
-              }
-              break;
-            }
-          }
-          // If the same item name is already tracked, prefer the equipped entry.
-          final eq = data['equipment'] as Map<String, String>;
-          if (!eq.containsKey(name) || slot.isNotEmpty) eq[name] = slot;
+          (data['equipment'] as Map<String, String>).putIfAbsent(name, () => '');
+        }
+      } else if (line.startsWith('EQUIPSET:')) {
+        equipsetRaw.add(line.substring(9));
+      } else if (line.startsWith('CALCEQUIPSET:')) {
+        activeSetRoot = line.substring(13).trim();
+      }
+    }
+
+    // ── Resolve actual slots from EQUIPSET lines ─────────────────────────────
+    if (equipsetRaw.isNotEmpty) {
+      // Build id → (slotLabel, itemName)
+      final idToEntry = <String, (String slot, String value)>{};
+      for (final es in equipsetRaw) {
+        final parts = es.split('|');
+        final slot  = parts.first.trim();
+        String id = '', value = '';
+        for (final p in parts.skip(1)) {
+          final up = p.toUpperCase();
+          if (up.startsWith('ID:'))    id    = p.substring(3).trim();
+          if (up.startsWith('VALUE:')) value = p.substring(6).trim();
+        }
+        if (id.isNotEmpty && value.isNotEmpty) idToEntry[id] = (slot, value);
+      }
+
+      final eq      = data['equipment'] as Map<String, String>;
+      final prefix  = '$activeSetRoot.';
+
+      for (final entry in idToEntry.entries) {
+        final id    = entry.key;
+        final (slot, value) = entry.value;
+        if (!id.startsWith(prefix)) continue; // not in the active set
+        final depth = id.split('.').length;   // 0.1 = 2, 0.1.N = 3, 0.1.N.M = 4
+
+        if (depth == 3) {
+          // Direct child of the active set: body slot, Carried, or container placed on body.
+          final normalized = _normalizeHistorySlot(slot);
+          eq[value] = normalized; // '' for carried, slot name for equipped
+        } else if (depth >= 4) {
+          // Grandchild or deeper: item is inside a container.
+          // Walk up to the direct-child ancestor to get the container name.
+          final parts      = id.split('.');
+          final parentId   = parts.sublist(0, 3).join('.');  // always 0.1.N
+          final parentEntry = idToEntry[parentId];
+          final container  = parentEntry?.$2 ?? 'Container';
+          eq[value] = 'in $container';
         }
       }
     }
+
     return data;
+  }
+
+  /// Normalise a raw PCGen EQUIPSET slot name to our display slot name.
+  /// Returns '' for carried/unequipped items, slot name for equipped, raw value otherwise.
+  static String _normalizeHistorySlot(String slot) {
+    switch (slot.toLowerCase()) {
+      case 'carried':
+      case 'equipped': return '';           // on person but not in a body slot
+      case 'primary hand':
+      case 'both hands':   return 'Primary Hand';
+      case 'secondary hand':
+      case 'off hand':
+      case 'shield':       return 'Off Hand';
+      case 'head':         return 'Head';
+      case 'eyes':         return 'Eyes';
+      case 'neck':         return 'Neck';
+      case 'shoulders':    return 'Shoulders';
+      case 'back':         return 'Back';
+      case 'body':
+      case 'armor':        return 'Armor';
+      case 'torso':
+      case 'clothing':     return 'Torso';
+      case 'arms':         return 'Arms';
+      case 'hands':        return 'Hands';
+      case 'fingers':      return 'Fingers';
+      case 'ring (left)':  return 'Ring (Left)';
+      case 'ring (right)': return 'Ring (Right)';
+      case 'waist':
+      case 'belt':         return 'Belt';
+      case 'foot':
+      case 'feet':         return 'Feet';
+      case 'ammunition':   return 'Ammunition';
+      case 'natural-primary':   return 'Natural-Primary';
+      case 'natural-secondary': return 'Natural-Secondary';
+      default:             return slot; // unknown / container name used as slot label
+    }
   }
 
   /// Accepts Java PCGen format (PCGVERSION: first) and our own format
