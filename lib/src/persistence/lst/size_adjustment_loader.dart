@@ -3,6 +3,7 @@
 //
 // Translation of pcgen.persistence.lst.SizeAdjustmentLoader
 
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter_pcgen/src/core/size_adjustment.dart';
 import 'package:flutter_pcgen/src/rules/context/load_context.dart';
 import 'package:flutter_pcgen/src/persistence/lst/lst_line_file_loader.dart';
@@ -71,7 +72,10 @@ class SizeAdjustmentLoader extends LstLineFileLoader {
           // Stored as raw tokens until BONUS/ABILITY dispatch is fully wired.
           size.rawTokens.add('$key:$value');
         default:
-          break;
+          if (kDebugMode) {
+            // ignore: avoid_print
+            print('PCGen STUB: sizeAdjustment.lst unknown sub-token $key=$value');
+          }
       }
     }
   }

@@ -17,6 +17,7 @@
 //
 // Translation of pcgen.persistence.lst.CampaignLoader
 
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter_pcgen/src/cdom/enumeration/integer_key.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/list_key.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/object_key.dart';
@@ -31,6 +32,8 @@ import 'package:flutter_pcgen/src/persistence/lst/lst_utils.dart';
 ///
 /// A .pcc file contains metadata (name, game mode, publisher, etc.) and lists
 /// of LST data files for each object type (races, classes, feats, etc.).
+final _reportedPccTags = <String>{};
+
 class CampaignLoader {
   /// Token names that reference external .pcc sub-campaigns.
   static const String _pccToken = 'PCC';
@@ -262,8 +265,10 @@ class CampaignLoader {
         break;
 
       default:
-        // Unrecognised token — silently skip (matches Java behaviour).
-        break;
+        if (kDebugMode && _reportedPccTags.add(tag)) {
+          // ignore: avoid_print
+          print('PCGen STUB: PCC unknown token $tag (first value: $value)');
+        }
     }
   }
 

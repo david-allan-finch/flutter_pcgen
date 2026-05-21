@@ -17,6 +17,7 @@
 //
 // Translation of pcgen.persistence.lst.StatsAndChecksLoader
 
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter_pcgen/src/core/pc_alignment.dart';
 import 'package:flutter_pcgen/src/core/pc_check.dart';
 import 'package:flutter_pcgen/src/core/pc_stat.dart';
@@ -95,15 +96,34 @@ class StatsAndChecksLoader {
         _context.getReferenceContext().register(bsi);
         loadable = bsi;
       default:
-        // Unknown key — ignored
+        // ignore: avoid_print
+        print('PCGen STUB: statsandchecks unknown object type $key — line ignored');
         return;
     }
 
-    // Apply remaining tab-delimited tokens to the loaded object
+    // Dispatch remaining tab-delimited sub-tokens to the loaded object.
+    // Known sub-tokens that are not yet dispatched are printed so we can
+    // prioritise implementing them.
     for (int i = 1; i < cols.length; i++) {
       final tok = cols[i].trim();
       if (tok.isEmpty) continue;
-      // TODO: dispatch token via TokenStore / LstUtils.processToken
+      final c = tok.indexOf(':');
+      if (c <= 0) continue;
+      final subKey = tok.substring(0, c).trim().toUpperCase();
+      final subVal = tok.substring(c + 1).trim();
+      if (!kDebugMode) continue;
+      switch (subKey) {
+        case 'ABB':
+          // ignore: avoid_print
+          print('PCGen STUB: statsandchecks $key ABB=$subVal (abbreviation not yet stored on object)');
+        case 'BASESTATSCORE':
+        case 'STATRANGE':
+          // ignore: avoid_print
+          print('PCGen STUB: statsandchecks BONUSSPELLLEVEL $subKey=$subVal (not yet wired to bonus spell calc)');
+        default:
+          // ignore: avoid_print
+          print('PCGen STUB: statsandchecks $key sub-token $subKey=$subVal (not implemented)');
+      }
     }
   }
 }

@@ -17,9 +17,13 @@
 //
 // Translation of pcgen.persistence.lst.GameModeLoader
 
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter_pcgen/src/core/ability_category.dart';
 import 'package:flutter_pcgen/src/core/game_mode.dart';
 import 'package:flutter_pcgen/src/persistence/lst/ability_category_loader.dart';
+
+// Track which stub tokens have already been reported so we only print once.
+final _reportedStubs = <String>{};
 
 // ---------------------------------------------------------------------------
 // Token helpers — parse tab-delimited subtokens into a map
@@ -210,8 +214,11 @@ final class GameModeLoader {
         gm.addWeaponCategoryName(value);
 
       case 'WEAPONNONPROFPENALTY':
-        // stored as a game mode variable; no dedicated field needed
-        break;
+        // TODO: store on GameMode and apply as attack penalty for non-proficiency
+        if (kDebugMode && _reportedStubs.add('WEAPONNONPROFPENALTY')) {
+          // ignore: avoid_print
+          print('PCGen STUB: game mode WEAPONNONPROFPENALTY=$value (not yet applied to combat rolls)');
+        }
 
       case 'WEAPONTYPE':
         // WEAPONTYPE:Name|Abbrev
@@ -272,9 +279,18 @@ final class GameModeLoader {
       case 'MONSTERROLES':
       case 'MONSTERROLEDEFAULT':
       case 'CRSTEPS':
+        // TODO: store on GameMode for monster/XP calculation
+        if (kDebugMode && _reportedStubs.add(key)) {
+          // ignore: avoid_print
+          print('PCGen STUB: game mode $key (not yet stored; first value: $value)');
+        }
+
       case 'EQSIZEPENALTY':
-        // Stored but no dedicated field yet; safe to discard
-        break;
+        // TODO: parse inline BONUS tokens and apply to equipment size penalty system
+        if (kDebugMode && _reportedStubs.add('EQSIZEPENALTY')) {
+          // ignore: avoid_print
+          print('PCGen STUB: game mode EQSIZEPENALTY (complex inline BONUS — not yet evaluated)');
+        }
 
       case 'MAXNONEPICLEVEL':
         gm.setMaxNonEpicLevel(int.tryParse(value) ?? 20);
@@ -324,7 +340,10 @@ final class GameModeLoader {
         }
 
       default:
-        break;
+        if (kDebugMode && _reportedStubs.add(key)) {
+          // ignore: avoid_print
+          print('PCGen STUB: game mode unknown token $key (first value: $value)');
+        }
     }
   }
 

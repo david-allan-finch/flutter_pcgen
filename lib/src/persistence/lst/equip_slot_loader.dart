@@ -2,6 +2,7 @@
 //
 // Translation of pcgen.persistence.lst.EquipSlotLoader
 
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter_pcgen/src/core/character/equip_slot.dart';
 import 'package:flutter_pcgen/src/core/game_mode.dart';
 import 'package:flutter_pcgen/src/core/system_collections.dart';
@@ -64,7 +65,10 @@ class EquipSlotLoader extends LstLineFileLoader {
             if (typeName.isNotEmpty) eqSlot.addContainedType(typeName);
           }
         default:
-          break;
+          if (kDebugMode) {
+            // ignore: avoid_print
+            print('PCGen STUB: equipmentslots.lst unknown sub-token $key=$value');
+          }
       }
     }
 

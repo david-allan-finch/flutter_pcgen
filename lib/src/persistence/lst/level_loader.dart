@@ -17,6 +17,7 @@
 //
 // Translation of pcgen.persistence.lst.LevelLoader
 
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter_pcgen/src/core/game_mode.dart';
 import 'package:flutter_pcgen/src/core/level_info.dart';
 
@@ -87,8 +88,10 @@ final class LevelLoader {
       case 'MINXP':
         info.minXPString = value;
       default:
-        // Unknown LevelLstToken — ignored
-        break;
+        if (kDebugMode) {
+          // ignore: avoid_print
+          print('PCGen STUB: level.lst unknown token $key=$value');
+        }
     }
   }
 }

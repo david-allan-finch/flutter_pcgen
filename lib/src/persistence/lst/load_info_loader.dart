@@ -3,6 +3,7 @@
 //
 // Translation of pcgen.persistence.lst.LoadInfoLoader
 
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter_pcgen/src/persistence/lst/lst_line_file_loader.dart';
 
 /// Loads encumbrance and carry capacity data from load.lst game mode files.
@@ -73,7 +74,10 @@ class LoadInfoLoader extends LstLineFileLoader {
         }
 
       default:
-        break;
+        if (kDebugMode) {
+          // ignore: avoid_print
+          print('PCGen STUB: load.lst unknown token $key=$rest');
+        }
     }
   }
 

@@ -2,6 +2,7 @@
 //
 // Translation of pcgen.persistence.lst.AbilityCategoryLoader
 
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter_pcgen/src/core/ability_category.dart';
 import 'package:flutter_pcgen/src/persistence/lst/lst_line_file_loader.dart';
 
@@ -65,9 +66,23 @@ class AbilityCategoryLoader extends LstLineFileLoader {
       case 'DISPLAYNAME':
         cat.setDisplayName(value);
         break;
-      default:
-        // Remaining tokens (POOL, ABILITYCATEGORY sub-refs, etc.) ignored for now
+      case 'POOL':
+        cat.setPoolVarName(value);
         break;
+      case 'DISPLAYLOCATION':
+        cat.setDisplayLocation(value);
+        break;
+      case 'ABILITYLIST':
+        for (final entry in value.split('|')) {
+          final e = entry.trim();
+          if (e.isNotEmpty) cat.addToAbilityList(e);
+        }
+        break;
+      default:
+        if (kDebugMode) {
+          // ignore: avoid_print
+          print('PCGen STUB: ABILITYCATEGORY sub-token $key=$value (not yet stored on AbilityCategory)');
+        }
     }
   }
 }

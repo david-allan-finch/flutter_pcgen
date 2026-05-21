@@ -90,6 +90,21 @@ class AbilityCategory implements Category<Ability> {
   void addAbilityType(String type) { _types.add(type.toUpperCase()); }
   Set<String> getTypes() => Set.unmodifiable(_types);
 
+  // POOL: — variable name for the pool size (e.g. POOL_Language)
+  String _poolVarName = '';
+  String getPoolVarName() => _poolVarName;
+  void setPoolVarName(String v) { _poolVarName = v; }
+
+  // DISPLAYLOCATION: — where this category appears in the UI
+  String _displayLocation = '';
+  String getDisplayLocation() => _displayLocation;
+  void setDisplayLocation(String v) { _displayLocation = v; }
+
+  // ABILITYLIST: — pipe-delimited list of specific ability keys in this category
+  final List<String> _abilityList = [];
+  void addToAbilityList(String key) { _abilityList.add(key); }
+  List<String> getAbilityList() => List.unmodifiable(_abilityList);
+
   List<Ability> getAbilities() => List.unmodifiable(_abilities);
   void addAbility(Ability ability) { _abilities.add(ability); }
   void removeAbility(Ability ability) { _abilities.remove(ability); }

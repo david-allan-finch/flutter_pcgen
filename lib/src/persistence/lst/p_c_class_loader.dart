@@ -373,8 +373,12 @@ class PCClassLoader extends GenericLoader<PCClass> {
               pcClass.putString(StringKey.classType, factVal);
             case 'ABB':
               pcClass.putString(StringKey.abbKr, factVal);
+            case 'SPELLTYPE':
+              // Stored for spell type filtering (Arcane/Divine/Psychic)
+              try { pcClass.addToListFor(ListKey.getConstant<String>('SPELL_TYPE'), factVal); } catch (_) {}
             default:
-              break;
+              // ignore: avoid_print
+              print('PCGen STUB: class FACT $factName=$factVal (not yet stored)');
           }
         }
         return true;

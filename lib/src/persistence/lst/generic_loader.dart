@@ -132,6 +132,9 @@ class GenericLoader<T extends CDOMObject> extends LstObjectFileLoader<T> {
           try { obj.putString(StringKey.abbKr, value); } catch (_) {}
           return;
         case 'STATMOD':
+          // Stat modifier formula (e.g. floor(SCORE/2)-5). The Dart port
+          // hardcodes the standard d20 formula in _statModByAbb() so this
+          // token is intentionally skipped — not a stub.
           return;
         case 'DEFINE':
           // DEFINE:VarName|initialValue — store for two-pass VAR resolution.
