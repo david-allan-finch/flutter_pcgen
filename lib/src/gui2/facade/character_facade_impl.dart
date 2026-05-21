@@ -717,6 +717,13 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
     return total - base - statMod - magic;
   }
 
+  /// Total accumulated bonus for [saveName] across all BONUS:SAVE and
+  /// BONUS:CHECKS sources.  Returns 0 if nothing has been accumulated yet
+  /// (e.g. 3.5e characters whose save bonuses come from class progression).
+  int getSaveTotal(String saveName) =>
+      _bonusAcc.totalIntWithAll('SAVE',   saveName) +
+      _bonusAcc.totalIntWithAll('CHECKS', saveName);
+
   /// Size modifier to AC: Fine +8 … Colossal −8.
   int getSizeACModifier() {
     const mods = {'F': 8, 'D': 4, 'T': 2, 'S': 1, 'M': 0, 'L': -1, 'H': -2, 'G': -4, 'C': -8};

@@ -1228,11 +1228,11 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
 
   Widget _buildSavesSection(dynamic character, List<String> statKeys,
       List<PCStat> statObjects, DataSet? dataset) {
-    const saves = [
-      ('Fortitude', 'Fort', 'CON'),
-      ('Reflex',    'Ref',  'DEX'),
-      ('Will',      'Will', 'WIS'),
-    ];
+    // Use the checks loaded from the game mode's SAVE: LST files — same as Java's
+    // <#list pc.checks as check> iteration.  Falls back gracefully if none loaded.
+    final checks = dataset?.checks ?? const [];
+    if (checks.isEmpty) return const SizedBox.shrink();
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(12),
@@ -1241,15 +1241,19 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
           children: [
             Text('Saving Throws', style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 8),
-            Row(
-              children: saves.map((s) {
-                final (fullName, abbr, statAbb) = s;
-                final total = _computeSave(fullName, statAbb, character,
+            Wrap(
+              spacing: 12,
+              runSpacing: 8,
+              children: checks.map((check) {
+                final name  = check.getDisplayName();
+                final key   = check.getKeyName();
+                final total = _computeSave(name, key, character,
                     statKeys, statObjects, dataset);
-                return Padding(
-                  padding: const EdgeInsets.only(right: 12),
-                  child: _saveChip(abbr, _fmtMod(total)),
-                );
+                // Abbreviate: first 4 chars, except Reflex → Ref
+                final abbr = name.length <= 4 ? name
+                    : name.toLowerCase() == 'reflex' ? 'Ref'
+                    : name.substring(0, 4);
+                return _saveChip(abbr, _fmtMod(total));
               }).toList(),
             ),
           ],
@@ -1258,13 +1262,32 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
     );
   }
 
-  int _computeSave(String saveName, String statAbb, dynamic character,
+  /// Compute the total for a saving throw named [saveName] / [saveKey].
+  ///
+  /// Mirrors Java's PlayerCharacter.calculateSaveBonus():
+  ///   total = base progression (class good/bad save table) + stat modifier
+  ///           + all BONUS:SAVE contributions from the bonus accumulator.
+  ///
+  /// The stat modifier component is already included in BONUS:SAVE for game
+  /// modes like 5e (e.g. BONUS:SAVE|Strength|STR), so we only add it manually
+  /// for 3.5e-style games where the class GOOD/BAD progression drives the base.
+  int _computeSave(String saveName, String saveKey, dynamic character,
       List<String> statKeys, List<PCStat> statObjects, DataSet? dataset) {
-    final statMod = _getStatMod(character, statKeys, statObjects, statAbb);
-    if (dataset == null) return statMod;
+    if (dataset == null) return 0;
+
+    // 1. Accumulator total: all BONUS:SAVE|saveKey contributions.
+    int accTotal = 0;
+    try {
+      accTotal = (character as dynamic).getSaveTotal(saveKey) as int? ?? 0;
+    } catch (_) {}
+    if (accTotal != 0) return accTotal; // 5e-style: stat mod already in accumulator
+
+    // 2. 3.5e-style fallback: class-table base + stat modifier.
+    //    The stat modifier for this save is derived from the BONUS:SAVE|saveName|StatAbb
+    //    token in the game mode's save LST; we approximate using the save name.
     List classLevels = [];
     try { classLevels = ((character as dynamic).toJson()['classLevels'] as List?) ?? []; } catch (_) {}
-    if (classLevels.isEmpty) return statMod;
+
     final counts = <String, int>{};
     for (final l in classLevels) {
       if (l is Map) { final k = l['classKey'] as String? ?? ''; counts[k] = (counts[k] ?? 0) + 1; }
@@ -1281,7 +1304,32 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
         base += entry.value / 3;
       }
     }
+
+    // Derive stat abbreviation from the save name (3.5e convention).
+    final statAbb = _saveStatAbb(saveName);
+    final statMod = statAbb.isNotEmpty
+        ? _getStatMod(character, statKeys, statObjects, statAbb)
+        : 0;
+
     return base.floor() + statMod;
+  }
+
+  /// Best-effort mapping of save name → stat abbreviation for 3.5e-style games.
+  /// Game modes where BONUS:SAVE already includes the stat (like 5e) won't reach
+  /// this because getSaveTotal() will return a non-zero value first.
+  String _saveStatAbb(String saveName) {
+    final lower = saveName.toLowerCase();
+    if (lower.contains('fort'))  return 'CON';
+    if (lower.contains('reflex') || lower.contains('ref')) return 'DEX';
+    if (lower.contains('will'))  return 'WIS';
+    // 5e-style: save name IS the stat name
+    if (lower.startsWith('str')) return 'STR';
+    if (lower.startsWith('dex')) return 'DEX';
+    if (lower.startsWith('con')) return 'CON';
+    if (lower.startsWith('int')) return 'INT';
+    if (lower.startsWith('wis')) return 'WIS';
+    if (lower.startsWith('cha')) return 'CHA';
+    return '';
   }
 
   Widget _saveChip(String label, String value) {
