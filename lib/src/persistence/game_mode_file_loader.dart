@@ -37,6 +37,7 @@ import 'package:flutter_pcgen/src/persistence/lst/point_buy_loader.dart';
 import 'package:flutter_pcgen/src/persistence/lst/trait_loader.dart';
 import 'package:flutter_pcgen/src/persistence/lst/location_loader.dart';
 import 'package:flutter_pcgen/src/persistence/lst/equip_slot_loader.dart';
+import 'package:flutter_pcgen/src/core/settings_handler.dart';
 
 /// Loads game mode data files (miscinfo.lst, statsandchecks.lst, level.lst,
 /// sizeAdjustment.lst, etc.) from the system/gameModes directory tree.
@@ -131,6 +132,7 @@ class GameModeFileLoader extends PCGenTask {
     // level.lst / rules.lst (custom line-by-line format)
     _loadInfoFile(gameMode, File('${specDir.path}/level.lst').uri, 'level');
     _loadInfoFile(gameMode, File('${specDir.path}/rules.lst').uri, 'rules');
+    _loadCodeControlFile(gameMode, File('${specDir.path}/codeControl.lst'));
 
     // Standard LST files
     _loadModeLstFile(gameMode, specDir, gameModeDir, 'statsandchecks.lst', StatsAndChecksLoader(gameMode.getModeContext()));
@@ -157,8 +159,57 @@ class GameModeFileLoader extends PCGenTask {
       if (line.isEmpty || line.startsWith('#')) continue;
       if (type == 'level') {
         xpTable = LevelLoader.parseLine(gameMode, line, i + 1, uri, xpTable);
+      } else if (type == 'rules') {
+        _parseRuleCheckLine(line);
       }
-      // rules lines are handled by ruleCheckLoader (TODO)
+    }
+  }
+
+  /// Parses one line from rules.lst and registers the rule default in
+  /// SettingsHandler unless the user has already overridden it.
+  ///
+  /// Format: NAME:displayName  VAR:key  DEFAULT:Yes/No  [EXCLUDE:key]  [DESC:...]
+  static void _parseRuleCheckLine(String line) {
+    String? varKey;
+    bool? defaultOn;
+    for (final tok in line.split('\t')) {
+      final t = tok.trim();
+      final c = t.indexOf(':');
+      if (c <= 0) continue;
+      final k = t.substring(0, c).toUpperCase();
+      final v = t.substring(c + 1);
+      switch (k) {
+        case 'VAR':
+        case 'PARM':
+          varKey = v.trim();
+        case 'DEFAULT':
+          defaultOn = v.trim().toUpperCase() == 'YES';
+      }
+    }
+    if (varKey != null && defaultOn != null) {
+      // Only set if the user hasn't already configured this rule
+      if (!SettingsHandler.hasRuleCheck(varKey)) {
+        SettingsHandler.setRuleCheck(varKey, defaultOn);
+      }
+    }
+  }
+
+  /// Parses codeControl.lst for ALIGNMENTFEATURE and DOMAINFEATURE flags.
+  static void _loadCodeControlFile(GameMode gameMode, File file) {
+    if (!file.existsSync()) return;
+    for (final rawLine in file.readAsLinesSync()) {
+      final line = rawLine.trim();
+      if (line.isEmpty || line.startsWith('#')) continue;
+      final c = line.indexOf(':');
+      if (c <= 0) continue;
+      final key = line.substring(0, c).toUpperCase();
+      final val = line.substring(c + 1).trim().toUpperCase();
+      switch (key) {
+        case 'ALIGNMENTFEATURE':
+          gameMode.setAlignmentFeature(val == 'YES');
+        case 'DOMAINFEATURE':
+          gameMode.setDomainFeature(val == 'YES');
+      }
     }
   }
 

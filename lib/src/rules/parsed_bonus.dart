@@ -9,6 +9,7 @@
 library;
 
 import 'package:flutter_pcgen/src/rules/formula_evaluator.dart';
+import 'package:flutter_pcgen/src/core/settings_handler.dart';
 
 // ---------------------------------------------------------------------------
 // ParsedPrereq
@@ -91,7 +92,7 @@ class ParsedPrereq {
       case 'PREBASESIZELTEQ':
       case 'PREBASESIZEGT':
       case 'PREBASESIZEGTEQ': result = true; break;
-      case 'PRERULE':         result = true; break;
+      case 'PRERULE':         result = _evalPreRule(ctx); break;
       case 'PREHD':           result = _evalPreHD(ctx);          break;
       case 'PREHP':           result = _evalPreHP(ctx);          break;
       case 'PREMOVE':         result = _evalPreMove(ctx);        break;
@@ -442,6 +443,20 @@ class ParsedPrereq {
   bool _evalPreSR(PrereqContext ctx, bool gteq) {
     // PRESRGTEQ:N / PRESRLT:N — spell resistance check; pass optimistically
     return true;
+  }
+
+  bool _evalPreRule(PrereqContext ctx) {
+    // PRERULE:N,RuleKey1,RuleKey2 — passes if N of the listed rules are enabled.
+    // Rules are registered from rules.lst DEFAULT values via SettingsHandler.
+    final parts = raw.split(',');
+    if (parts.isEmpty) return true;
+    final needed = int.tryParse(parts[0].trim()) ?? 1;
+    int matched = 0;
+    for (int i = 1; i < parts.length; i++) {
+      final ruleKey = parts[i].trim();
+      if (ruleKey.isNotEmpty && SettingsHandler.getRuleCheck(ruleKey)) matched++;
+    }
+    return matched >= needed;
   }
 
   bool _evalPreSpell(PrereqContext ctx) {

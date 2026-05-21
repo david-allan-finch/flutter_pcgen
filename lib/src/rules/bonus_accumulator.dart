@@ -257,6 +257,10 @@ class _PrereqCtx implements PrereqContext {
   @override List<String> get templateKeys => const [];
   @override List<String> get weaponProficiencies => const [];
   @override String get sizeKey => 'M';
+  @override Set<String> get knownSpellNamesLower => const {};
+  @override String spellSchoolFor(String spellName) => '';
+  @override String spellSubSchoolFor(String spellName) => '';
+  @override String spellDescriptorFor(String spellName) => '';
 }
 
 class CharacterBonusEngine {

@@ -42,10 +42,99 @@ class XPTable {
 class ClassType {
   String name;
   bool isMonster;
+  bool xpPenalty;
+  String crFormula;
+  int crMod;
+  int crModPriority;
 
-  ClassType(this.name, {this.isMonster = false});
+  ClassType(this.name, {
+    this.isMonster = false,
+    this.xpPenalty = false,
+    this.crFormula = 'CL',
+    this.crMod = 0,
+    this.crModPriority = 1,
+  });
 
   String getName() => name;
+}
+
+// ---------------------------------------------------------------------------
+// RollMethod — one dice rolling method for character creation
+// ---------------------------------------------------------------------------
+
+class RollMethod {
+  final String name;
+  final String sortKey;
+  final String method;
+
+  const RollMethod(this.name, this.sortKey, this.method);
+}
+
+// ---------------------------------------------------------------------------
+// UnitSet — unit system (Imperial / Metric)
+// ---------------------------------------------------------------------------
+
+class UnitSet {
+  final String name;
+  final String heightUnit;
+  final double heightFactor;
+  final String heightPattern;
+  final String distanceUnit;
+  final double distanceFactor;
+  final String distancePattern;
+  final String weightUnit;
+  final double weightFactor;
+  final String weightPattern;
+
+  const UnitSet({
+    required this.name,
+    this.heightUnit = 'ftin',
+    this.heightFactor = 1.0,
+    this.heightPattern = '#',
+    this.distanceUnit = 'ft.',
+    this.distanceFactor = 1.0,
+    this.distancePattern = '#.##',
+    this.weightUnit = 'lbs.',
+    this.weightFactor = 1.0,
+    this.weightPattern = '#.##',
+  });
+}
+
+// ---------------------------------------------------------------------------
+// WieldCategory — weapon wield category definition
+// ---------------------------------------------------------------------------
+
+class WieldCategory {
+  final String name;
+  int hands;
+  bool finessable;
+  int sizeDiff;
+  List<String> switchRules;    // PREVARLTEQ/PREVARGTEQ → SWITCH:
+  List<String> upCategories;   // UP: progressions
+  List<String> downCategories; // DOWN: progressions
+
+  WieldCategory(this.name, {
+    this.hands = 1,
+    this.finessable = false,
+    this.sizeDiff = 0,
+    List<String>? switchRules,
+    List<String>? upCategories,
+    List<String>? downCategories,
+  })  : switchRules = switchRules ?? [],
+        upCategories = upCategories ?? [],
+        downCategories = downCategories ?? [];
+}
+
+// ---------------------------------------------------------------------------
+// ACType — AC calculation type definition
+// ---------------------------------------------------------------------------
+
+class ACType {
+  final String name;
+  final List<String> add;    // bonus types to include
+  final List<String> remove; // bonus types to exclude
+
+  const ACType(this.name, {this.add = const [], this.remove = const []});
 }
 
 // ---------------------------------------------------------------------------
@@ -145,6 +234,27 @@ final class GameMode implements Comparable<Object> {
   int _displayOrder = 0x7fffffff; // Integer.MAX_VALUE default
   String _previewDir   = '';
   String _previewSheet = '';
+
+  // Tokens added from miscinfo.lst
+  bool _alignmentFeature = true;
+  bool _domainFeature = true;
+  final Map<String, bool> _tabVisible = {}; // TAB:key VISIBLE:NO
+  final Map<String, String> _weaponTypeAbbrev2 = {}; // WEAPONTYPE:name|abbrev
+  final List<String> _weaponCategoryNames = []; // WEAPONCATEGORY:name
+  final Map<String, ACType> _acTypes = {}; // ACTYPE:name ADD/REMOVE
+  final Map<String, UnitSet> _unitSets = {}; // UNITSET:name ...
+  final List<WieldCategory> _wieldCategoryDefs = []; // WIELDCATEGORY: with HANDS/SIZEDIFF
+  final List<String> _baseDice = []; // BASEDICE: raw entries
+  int _rangepenalty = 0; // RANGEPENALTY:
+  int _squareSize = 5;   // SQUARESIZE:
+  String _acName = 'AC'; // ACNAME:
+  String _bonusStacks = ''; // BONUSSTACKS:
+  final List<String> _resizableEquipTypes = []; // RESIZABLEEQUIPTYPE:
+  final List<String> _characterTypes2 = []; // CHARACTERTYPE:
+  String _defaultDataset = ''; // DEFAULTDATASET:
+  final List<RollMethod> _rollMethods = []; // ROLLMETHOD: with METHOD: subtoken
+  final Map<String, String> _infoSheets = {}; // INFOSHEET:type|path
+  final Map<String, String> _outputSheets = {}; // OUTPUTSHEET:type|path
 
   GameMode(String name) : _name = name, _folderName = name;
 
@@ -459,11 +569,115 @@ final class GameMode implements Comparable<Object> {
     // TODO: read from PCGenSettings and update fields
   }
 
-  dynamic getUnitSet() => null; // TODO: return loaded UnitSet object
+  UnitSet? getUnitSet([String? name]) {
+    final key = name ?? _defaultUnitSet;
+    return _unitSets[key];
+  }
 
   String getPurchaseModeMethodName() => _purchaseModeMethodName;
   String getDefaultXPTableName() => _defaultXPTableName;
   String getDefaultCharacterType() => _defaultCharacterType;
+
+  // ---------------------------------------------------------------------------
+  // Code control (codeControl.lst)
+  // ---------------------------------------------------------------------------
+
+  bool isAlignmentFeatureEnabled() => _alignmentFeature;
+  void setAlignmentFeature(bool v) { _alignmentFeature = v; }
+  bool isDomainFeatureEnabled() => _domainFeature;
+  void setDomainFeature(bool v) { _domainFeature = v; }
+
+  // ---------------------------------------------------------------------------
+  // Tab visibility (TAB: VISIBLE:NO in miscinfo.lst)
+  // ---------------------------------------------------------------------------
+
+  /// Returns true if the tab identified by [tabKey] should be shown.
+  /// Defaults to true if not specified.
+  bool isTabVisible(String tabKey) => _tabVisible[tabKey.toUpperCase()] ?? true;
+  void setTabVisible(String tabKey, bool visible) {
+    _tabVisible[tabKey.toUpperCase()] = visible;
+  }
+
+  // ---------------------------------------------------------------------------
+  // ACNAME / ACTYPE
+  // ---------------------------------------------------------------------------
+
+  String getACName() => _acName;
+  void setACName(String s) { _acName = s; }
+
+  void addACType(ACType acType) { _acTypes[acType.name] = acType; }
+  ACType? getACType(String name) => _acTypes[name];
+  Map<String, ACType> getAllACTypes() => Map.unmodifiable(_acTypes);
+
+  // ---------------------------------------------------------------------------
+  // Weapon types / categories
+  // ---------------------------------------------------------------------------
+
+  void addWeaponTypeName(String name, String abbrev) {
+    _weaponTypeAbbrev2[name] = abbrev;
+  }
+  Map<String, String> getWeaponTypeNames() => Map.unmodifiable(_weaponTypeAbbrev2);
+
+  void addWeaponCategoryName(String name) { _weaponCategoryNames.add(name); }
+  List<String> getWeaponCategoryNames() => List.unmodifiable(_weaponCategoryNames);
+
+  // ---------------------------------------------------------------------------
+  // Wield categories (named with HANDS/SIZEDIFF)
+  // ---------------------------------------------------------------------------
+
+  void addWieldCategoryDef(WieldCategory wc) { _wieldCategoryDefs.add(wc); }
+  WieldCategory? getWieldCategoryDef(String name) {
+    for (final wc in _wieldCategoryDefs) {
+      if (wc.name == name) return wc;
+    }
+    return null;
+  }
+  List<WieldCategory> getAllWieldCategoryDefs() => List.unmodifiable(_wieldCategoryDefs);
+
+  // ---------------------------------------------------------------------------
+  // Unit sets
+  // ---------------------------------------------------------------------------
+
+  void addUnitSet(UnitSet us) { _unitSets[us.name] = us; }
+  Map<String, UnitSet> getAllUnitSets() => Map.unmodifiable(_unitSets);
+
+  // ---------------------------------------------------------------------------
+  // Roll methods
+  // ---------------------------------------------------------------------------
+
+  void addRollMethod(RollMethod rm) { _rollMethods.add(rm); }
+  List<RollMethod> getRollMethods() => List.unmodifiable(_rollMethods);
+
+  // ---------------------------------------------------------------------------
+  // Misc miscinfo tokens
+  // ---------------------------------------------------------------------------
+
+  int getRangePenalty() => _rangepenalty;
+  void setRangePenalty(int v) { _rangepenalty = v; }
+
+  int getSquareSize() => _squareSize;
+  void setSquareSize(int v) { _squareSize = v; }
+
+  String getBonusStacks() => _bonusStacks;
+  void setBonusStacks(String v) { _bonusStacks = v; }
+
+  void addResizableEquipType(String t) { _resizableEquipTypes.add(t); }
+  List<String> getResizableEquipTypes() => List.unmodifiable(_resizableEquipTypes);
+
+  void addCharacterType2(String t) { _characterTypes2.add(t); }
+  List<String> getCharacterTypes2() => List.unmodifiable(_characterTypes2);
+
+  String getDefaultDataset() => _defaultDataset;
+  void setDefaultDataset(String s) { _defaultDataset = s; }
+
+  void addBaseDice(String entry) { _baseDice.add(entry); }
+  List<String> getBaseDice() => List.unmodifiable(_baseDice);
+
+  void addInfoSheet(String type, String path) { _infoSheets[type] = path; }
+  Map<String, String> getAllInfoSheets() => Map.unmodifiable(_infoSheets);
+
+  void addOutputSheet(String type, String path) { _outputSheets[type] = path; }
+  Map<String, String> getAllOutputSheets() => Map.unmodifiable(_outputSheets);
 
   // ---------------------------------------------------------------------------
   // Comparable / Object
