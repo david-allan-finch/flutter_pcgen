@@ -1,0 +1,43 @@
+SOURCELONG:System Reference Document	SOURCESHORT:SRD5	SOURCEWEB:http://dnd.wizards.com/articles/features/systems-reference-document-srd	SOURCEDATE:2016-01
+# Original Entry: PCGen dataset team — SRD 5.1 Backgrounds
+# All 13 backgrounds from the SRD 5.1 (PHB pp.125-141)
+#
+# Each background grants:
+#   ABILITY:Skill|AUTOMATIC — skill proficiencies (adds Proficiency_Bonus to the skill's VAR)
+#   ABILITY:Internal|AUTOMATIC|Tool Proficiency ~ X — tool proficiency
+#   BONUS:VAR|POOL_Language|N — language choice slots (resolved in Character tab)
+#   ABILITY:Language|AUTOMATIC|Name — specific language grants
+#   DESC — background feature description
+#   KIT — starting equipment (see srd5_kits.lst)
+#
+# Where a background offers a choice of tool (e.g. "one artisan's tool"), the most
+# thematic option is granted automatically.  DMs may substitute via house rules.
+
+###Block: Backgrounds
+
+# Name			Key						Category			Type		Skill grants													Tool grants																					Language grants			Feature description
+Acolyte			KEY:Acolyte				CATEGORY:Special Ability	TYPE:Background	ABILITY:Skill|AUTOMATIC|Insight|Religion																													BONUS:VAR|POOL_Language|2								DESC:Shelter of the Faithful: As an acolyte, you command the respect of those who share your faith. You can perform religious ceremonies, and your fellow worshipers will provide food, lodging, and healing (if able).	KIT:Acolyte Background
+
+Charlatan		KEY:Charlatan			CATEGORY:Special Ability	TYPE:Background	ABILITY:Skill|AUTOMATIC|Deception|Sleight of Hand													ABILITY:Internal|AUTOMATIC|Tool Proficiency ~ Disguise Kit|Tool Proficiency ~ Forgery Kit										DESC:False Identity: You have created a second identity. You have documentation, established acquaintances, and disguises to make yourself appear as a different person.	KIT:Charlatan Background
+
+Criminal		KEY:Criminal			CATEGORY:Special Ability	TYPE:Background	ABILITY:Skill|AUTOMATIC|Deception|Stealth															ABILITY:Internal|AUTOMATIC|Tool Proficiency ~ Dice Set|Tool Proficiency ~ Thieves' Tools										DESC:Criminal Contact: You have a reliable contact who acts as your liaison to a network of criminals. You know how to find this contact, who can help you find people, information, and services in any city.	KIT:Criminal Background
+
+Entertainer		KEY:Entertainer			CATEGORY:Special Ability	TYPE:Background	ABILITY:Skill|AUTOMATIC|Acrobatics|Performance														ABILITY:Internal|AUTOMATIC|Tool Proficiency ~ Disguise Kit|Tool Proficiency ~ Lute											DESC:By Popular Demand: You can always find a place to perform — inn, tavern, circus, or noble's court. When you perform, you receive free lodging and food of a modest standard, plus some goodwill from the owner.	KIT:Entertainer Background
+
+Folk Hero		KEY:Folk Hero			CATEGORY:Special Ability	TYPE:Background	ABILITY:Skill|AUTOMATIC|Animal Handling|Survival													ABILITY:Internal|AUTOMATIC|Tool Proficiency ~ Smith's Tools|Tool Proficiency ~ Vehicles (Land)								DESC:Rustic Hospitality: Since you come from the ranks of the common folk, you fit in easily among them. Commoners will shelter you from the law or anyone else searching for you, though they won't risk their lives.	KIT:Folk Hero Background
+
+Guild Artisan	KEY:Guild Artisan		CATEGORY:Special Ability	TYPE:Background	ABILITY:Skill|AUTOMATIC|Insight|Persuasion															ABILITY:Internal|AUTOMATIC|Tool Proficiency ~ Carpenter's Tools	BONUS:VAR|POOL_Language|1						DESC:Guild Membership: As an established member of a guild you have access to a network of contacts. Your guild will help with legal matters, bail, and recovery of debts owed to you.	KIT:Guild Artisan Background
+
+Hermit			KEY:Hermit				CATEGORY:Special Ability	TYPE:Background	ABILITY:Skill|AUTOMATIC|Medicine|Religion															ABILITY:Internal|AUTOMATIC|Tool Proficiency ~ Herbalism Kit					BONUS:VAR|POOL_Language|1						DESC:Discovery: The hallmark of your hermit life is the discovery of a unique and powerful truth. Whether it will change the world or simply your own life is up to you.	KIT:Hermit Background
+
+Noble			KEY:Noble				CATEGORY:Special Ability	TYPE:Background	ABILITY:Skill|AUTOMATIC|History|Persuasion															ABILITY:Internal|AUTOMATIC|Tool Proficiency ~ Playing Card Set				BONUS:VAR|POOL_Language|1						DESC:Position of Privilege: Thanks to your noble birth, people are inclined to think the best of you. You are welcome in high society, and people assume you have the right to be wherever you are.	KIT:Noble Background
+
+Outlander		KEY:Outlander			CATEGORY:Special Ability	TYPE:Background	ABILITY:Skill|AUTOMATIC|Athletics|Survival															ABILITY:Internal|AUTOMATIC|Tool Proficiency ~ Flute						BONUS:VAR|POOL_Language|1						DESC:Wanderer: You have an excellent memory for maps and geography, and you can always recall the general layout of terrain, settlements, and other features around you. You can find food and fresh water each day.	KIT:Outlander Background
+
+Sage			KEY:Sage				CATEGORY:Special Ability	TYPE:Background	ABILITY:Skill|AUTOMATIC|Arcana|History																													BONUS:VAR|POOL_Language|2								DESC:Researcher: When you attempt to learn or recall a piece of lore, if you do not know the information, you often know where and from whom you can obtain it.	KIT:Sage Background
+
+Sailor			KEY:Sailor				CATEGORY:Special Ability	TYPE:Background	ABILITY:Skill|AUTOMATIC|Athletics|Perception														ABILITY:Internal|AUTOMATIC|Tool Proficiency ~ Navigator's Tools|Tool Proficiency ~ Vehicles (Water)							DESC:Ship's Passage: When you need to, you can secure free passage on a sailing ship for yourself and your adventuring companions. The passage may be in exchange for light work.	KIT:Sailor Background
+
+Soldier			KEY:Soldier				CATEGORY:Special Ability	TYPE:Background	ABILITY:Skill|AUTOMATIC|Athletics|Intimidation														ABILITY:Internal|AUTOMATIC|Tool Proficiency ~ Dice Set|Tool Proficiency ~ Vehicles (Land)									DESC:Military Rank: You have a military rank from your career as a soldier. Soldiers loyal to your former military organisation still recognise your authority and influence.	KIT:Soldier Background
+
+Urchin			KEY:Urchin				CATEGORY:Special Ability	TYPE:Background	ABILITY:Skill|AUTOMATIC|Sleight of Hand|Stealth														ABILITY:Internal|AUTOMATIC|Tool Proficiency ~ Disguise Kit|Tool Proficiency ~ Thieves' Tools								DESC:City Secrets: You know the secret patterns and flow to cities and can find passages through the urban sprawl that others would miss. You can find a path between any two locations twice as fast as normal.	KIT:Urchin Background

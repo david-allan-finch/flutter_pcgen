@@ -34,6 +34,8 @@ ALIGN:CE
 STARTPACK:UA	VISIBLE:NO	APPLY:INSTANT
 ALIGN:UA
 
+###Block: Backgrounds
+
 STARTPACK:Acolyte Background	EQUIPBUY:0
 GEAR:Prayer Book
 GEAR:Stick of Incense	QTY:5
@@ -41,6 +43,84 @@ GEAR:Vestments
 GEAR:Clothes (Common)
 GEAR:Belt Pouch
 GEAR:Coin (Gold)		QTY:15
+
+STARTPACK:Charlatan Background	EQUIPBUY:0
+GEAR:Clothes (Fine)
+GEAR:Disguise Kit
+GEAR:Coin (Gold)		QTY:15
+
+STARTPACK:Criminal Background	EQUIPBUY:0
+GEAR:Crowbar
+GEAR:Thieves' Tools
+GEAR:Clothes (Common)
+GEAR:Belt Pouch
+GEAR:Coin (Gold)		QTY:15
+
+STARTPACK:Entertainer Background	EQUIPBUY:0
+GEAR:Instrument (Lute)
+GEAR:Costume
+GEAR:Belt Pouch
+GEAR:Coin (Gold)		QTY:15
+
+STARTPACK:Folk Hero Background	EQUIPBUY:0
+GEAR:Shovel
+GEAR:Iron Pot
+GEAR:Clothes (Common)
+GEAR:Belt Pouch
+GEAR:Coin (Gold)		QTY:10
+
+STARTPACK:Guild Artisan Background	EQUIPBUY:0
+GEAR:Carpenter's Tools
+GEAR:Letter of Introduction
+GEAR:Clothes (Traveler's)
+GEAR:Belt Pouch
+GEAR:Coin (Gold)		QTY:15
+
+STARTPACK:Hermit Background	EQUIPBUY:0
+GEAR:Scroll Case
+GEAR:Blanket (Winter)
+GEAR:Clothes (Common)
+GEAR:Herbalism Kit
+GEAR:Coin (Gold)		QTY:5
+
+STARTPACK:Noble Background	EQUIPBUY:0
+GEAR:Clothes (Fine)
+GEAR:Signet Ring
+GEAR:Scroll of Pedigree
+GEAR:Coin (Gold)		QTY:25
+
+STARTPACK:Outlander Background	EQUIPBUY:0
+GEAR:Staff
+GEAR:Hunting Trap
+GEAR:Clothes (Traveler's)
+GEAR:Belt Pouch
+GEAR:Coin (Gold)		QTY:10
+
+STARTPACK:Sage Background	EQUIPBUY:0
+GEAR:Ink (1 ounce bottle)
+GEAR:Quill
+GEAR:Knife (Small)
+GEAR:Clothes (Common)
+GEAR:Belt Pouch
+GEAR:Coin (Gold)		QTY:10
+
+STARTPACK:Sailor Background	EQUIPBUY:0
+GEAR:Rope (Silk/50')
+GEAR:Clothes (Common)
+GEAR:Belt Pouch
+GEAR:Coin (Gold)		QTY:10
+
+STARTPACK:Soldier Background	EQUIPBUY:0
+GEAR:Dice Set
+GEAR:Clothes (Common)
+GEAR:Belt Pouch
+GEAR:Coin (Gold)		QTY:10
+
+STARTPACK:Urchin Background	EQUIPBUY:0
+GEAR:Knife (Small)
+GEAR:Clothes (Common)
+GEAR:Belt Pouch
+GEAR:Coin (Gold)		QTY:10
 
 ###Block - Packs
 STARTPACK:Burglar's Pack	VISIBLE:NO	EQUIPBUY:0

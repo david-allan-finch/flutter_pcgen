@@ -46,6 +46,7 @@ EQUIPMENT:srd5_equip_arms_armor.lst
 EQUIPMENT:srd5_equip_magic.lst
 
 EQUIPMOD:srd5_equipmods.lst
+ABILITY:srd5_backgrounds.lst
 ABILITY:srd5_feats.lst
 
 KIT:srd5_kits.lst
