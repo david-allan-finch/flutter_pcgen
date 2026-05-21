@@ -1,8 +1,8 @@
 // Translation of pcgen.gui2.tabs.AbilitiesInfoTab
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/list_key.dart';
+import 'package:flutter_pcgen/src/core/ability_category.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/object_key.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/string_key.dart';
 import 'package:flutter_pcgen/src/core/ability.dart';
@@ -19,29 +19,37 @@ class AbilitiesInfoTab extends StatefulWidget {
   State<AbilitiesInfoTab> createState() => AbilitiesInfoTabState();
 }
 
-class AbilitiesInfoTabState extends State<AbilitiesInfoTab>
-    with SingleTickerProviderStateMixin {
+class AbilitiesInfoTabState extends State<AbilitiesInfoTab> {
   dynamic _character;
-  late final TabController _catTabController;
   final TextEditingController _search = TextEditingController();
   bool _qualifiesOnly = false;
   Ability? _focusedAbility;
 
-  static const _kCategories = ['FEAT', 'Special Ability', 'Class Ability'];
-
   void setCharacter(dynamic character) => setState(() => _character = character);
 
   @override
-  void initState() {
-    super.initState();
-    _catTabController = TabController(length: _kCategories.length, vsync: this);
-  }
-
-  @override
   void dispose() {
-    _catTabController.dispose();
     _search.dispose();
     super.dispose();
+  }
+
+  /// Returns visible categories that have at least one ability loaded.
+  /// FEAT is always listed first; others sorted alphabetically.
+  /// Falls back to a minimal set when no dataset is loaded.
+  List<AbilityCategory> _visibleCategories(DataSet? dataset) {
+    if (dataset == null || dataset.abilities.isEmpty) return const [];
+    const kPriority = {'FEAT': 0};
+    final cats = dataset.abilities.entries
+        .where((e) => e.key.isVisible() && e.value.isNotEmpty)
+        .map((e) => e.key)
+        .toList()
+      ..sort((a, b) {
+        final pa = kPriority[a.getKeyName().toUpperCase()] ?? 99;
+        final pb = kPriority[b.getKeyName().toUpperCase()] ?? 99;
+        if (pa != pb) return pa.compareTo(pb);
+        return a.getDisplayName().compareTo(b.getDisplayName());
+      });
+    return cats;
   }
 
   @override
@@ -52,118 +60,140 @@ class AbilitiesInfoTabState extends State<AbilitiesInfoTab>
         return ValueListenableBuilder(
           valueListenable: currentCharacter,
           builder: (context, character, _) {
+            final cats = _visibleCategories(dataset);
+
+            if (cats.isEmpty) {
+              return const Center(
+                child: Text('Load a dataset to see abilities.',
+                    style: TextStyle(color: Colors.grey)),
+              );
+            }
+
             final featBudget = _computeFeatBudget(character, dataset);
             final featUsed   = character != null
                 ? (_getSelectedKeys(character, 'FEAT')).length
                 : 0;
 
-            return Column(
-              children: [
-                TabBar(
-                  controller: _catTabController,
-                  isScrollable: true,
-                  tabs: _kCategories.map((c) => Tab(text: c)).toList(),
-                ),
-                // Feat budget bar — only show on FEAT tab
-                AnimatedBuilder(
-                  animation: _catTabController,
-                  builder: (context, _) {
-                    if (_catTabController.index != 0) return const SizedBox.shrink();
-                    final remaining = featBudget - featUsed;
-                    final over = remaining < 0;
-                    return Container(
-                      color: over
-                          ? Colors.red.shade50
-                          : remaining == 0
-                              ? Colors.green.shade50
-                              : null,
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 4),
-                      child: Row(children: [
-                        Text(
-                          'Feats: $featUsed / $featBudget used',
-                          style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                              color: over
-                                  ? Colors.red.shade700
-                                  : remaining == 0
-                                      ? Colors.green.shade700
-                                      : Colors.grey.shade700),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: LinearProgressIndicator(
-                            value: featBudget > 0
-                                ? (featUsed / featBudget).clamp(0.0, 1.0)
-                                : 0,
-                            backgroundColor: Colors.grey.shade200,
-                            color: over
-                                ? Colors.red
-                                : remaining == 0
-                                    ? Colors.green
-                                    : Theme.of(context).colorScheme.primary,
-                          ),
-                        ),
-                        if (over)
-                          Padding(
-                            padding: const EdgeInsets.only(left: 8),
-                            child: Text(
-                              '${-remaining} over budget',
-                              style: TextStyle(
-                                  fontSize: 11, color: Colors.red.shade700),
-                            ),
-                          )
-                        else if (remaining > 0)
-                          Padding(
-                            padding: const EdgeInsets.only(left: 8),
-                            child: Text(
-                              '$remaining remaining',
-                              style: TextStyle(
-                                  fontSize: 11,
-                                  color: Colors.grey.shade600),
-                            ),
-                          ),
-                      ]),
-                    );
-                  },
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  child: Row(children: [
-                    Expanded(
-                      child: TextField(
-                        controller: _search,
-                        decoration: const InputDecoration(
-                          prefixIcon: Icon(Icons.search),
-                          hintText: 'Filter…',
-                          border: OutlineInputBorder(),
-                          isDense: true,
-                        ),
-                        onChanged: (_) => setState(() {}),
+            // ValueKey causes DefaultTabController to reset whenever the
+            // category set changes (e.g. when a dataset is first loaded).
+            return DefaultTabController(
+              key: ValueKey(cats.map((c) => c.getKeyName()).join('|')),
+              length: cats.length,
+              child: Builder(
+                builder: (tabContext) {
+                  final ctrl = DefaultTabController.of(tabContext);
+                  return Column(
+                    children: [
+                      TabBar(
+                        isScrollable: true,
+                        tabs: cats.map((c) => Tab(text: c.getDisplayName())).toList(),
                       ),
-                    ),
-                    const SizedBox(width: 8),
-                    FilterChip(
-                      label: const Text('Qualifies', style: TextStyle(fontSize: 12)),
-                      selected: _qualifiesOnly,
-                      onSelected: (v) => setState(() => _qualifiesOnly = v),
-                      visualDensity: VisualDensity.compact,
-                      tooltip: 'Show only feats this character qualifies for',
-                    ),
-                  ]),
-                ),
-                Expanded(
-                  child: TabBarView(
-                    controller: _catTabController,
-                    children: _kCategories.map((cat) {
-                      final available =
-                          dataset?.getAbilitiesByCategoryName(cat) ?? const <Ability>[];
-                      return _buildCategoryView(character, available, cat);
-                    }).toList(),
-                  ),
-                ),
-              ],
+                      // Feat budget bar — only show when FEAT tab is active
+                      AnimatedBuilder(
+                        animation: ctrl,
+                        builder: (context, _) {
+                          final idx = ctrl.index.clamp(0, cats.length - 1);
+                          final isFeat = cats[idx].getKeyName().toUpperCase() == 'FEAT';
+                          if (!isFeat) return const SizedBox.shrink();
+                          final remaining = featBudget - featUsed;
+                          final over = remaining < 0;
+                          return Container(
+                            color: over
+                                ? Colors.red.shade50
+                                : remaining == 0
+                                    ? Colors.green.shade50
+                                    : null,
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 4),
+                            child: Row(children: [
+                              Text(
+                                'Feats: $featUsed / $featBudget used',
+                                style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: over
+                                        ? Colors.red.shade700
+                                        : remaining == 0
+                                            ? Colors.green.shade700
+                                            : Colors.grey.shade700),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: LinearProgressIndicator(
+                                  value: featBudget > 0
+                                      ? (featUsed / featBudget).clamp(0.0, 1.0)
+                                      : 0,
+                                  backgroundColor: Colors.grey.shade200,
+                                  color: over
+                                      ? Colors.red
+                                      : remaining == 0
+                                          ? Colors.green
+                                          : Theme.of(context).colorScheme.primary,
+                                ),
+                              ),
+                              if (over)
+                                Padding(
+                                  padding: const EdgeInsets.only(left: 8),
+                                  child: Text(
+                                    '${-remaining} over budget',
+                                    style: TextStyle(
+                                        fontSize: 11, color: Colors.red.shade700),
+                                  ),
+                                )
+                              else if (remaining > 0)
+                                Padding(
+                                  padding: const EdgeInsets.only(left: 8),
+                                  child: Text(
+                                    '$remaining remaining',
+                                    style: TextStyle(
+                                        fontSize: 11,
+                                        color: Colors.grey.shade600),
+                                  ),
+                                ),
+                            ]),
+                          );
+                        },
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        child: Row(children: [
+                          Expanded(
+                            child: TextField(
+                              controller: _search,
+                              decoration: const InputDecoration(
+                                prefixIcon: Icon(Icons.search),
+                                hintText: 'Filter…',
+                                border: OutlineInputBorder(),
+                                isDense: true,
+                              ),
+                              onChanged: (_) => setState(() {}),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          FilterChip(
+                            label: const Text('Qualifies', style: TextStyle(fontSize: 12)),
+                            selected: _qualifiesOnly,
+                            onSelected: (v) => setState(() => _qualifiesOnly = v),
+                            visualDensity: VisualDensity.compact,
+                            tooltip: 'Show only abilities this character qualifies for',
+                          ),
+                        ]),
+                      ),
+                      Expanded(
+                        child: TabBarView(
+                          children: cats.map((cat) {
+                            final available =
+                                dataset?.getAbilitiesByCategoryName(cat.getKeyName())
+                                ?? const <Ability>[];
+                            return _buildCategoryView(
+                                character, available, cat.getKeyName());
+                          }).toList(),
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              ),
             );
           },
         );
@@ -887,4 +917,8 @@ class _SimplePrereqCtx implements PrereqContext {
   @override List<String> get templateKeys => const [];
   @override List<String> get weaponProficiencies => const [];
   @override String get sizeKey => 'M';
+  @override Set<String> get knownSpellNamesLower => const {};
+  @override String spellSchoolFor(String spellName) => '';
+  @override String spellSubSchoolFor(String spellName) => '';
+  @override String spellDescriptorFor(String spellName) => '';
 }
