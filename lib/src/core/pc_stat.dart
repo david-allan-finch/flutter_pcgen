@@ -24,6 +24,8 @@ import 'package:flutter_pcgen/src/core/pcobject.dart';
 // Represents an ability score (STR, DEX, CON, etc.).
 final class PCStat extends PObject
     implements NonInteractive, SortKeyRequired {
+  String _abb = '';
+
   @override
   String? getLocalScopeName() => 'PC.STAT';
 
@@ -32,4 +34,8 @@ final class PCStat extends PObject
 
   @override
   String getSortKey() => getString(StringKey.sortKey) as String? ?? '';
+
+  /// 3-letter abbreviation used in formulas (e.g. 'STR', 'DEX').
+  void setAbb(String abb) => _abb = abb.toUpperCase();
+  String getAbb() => _abb.isNotEmpty ? _abb : getKeyName().toUpperCase();
 }

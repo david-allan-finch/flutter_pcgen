@@ -113,20 +113,26 @@ class StatsAndChecksLoader {
       if (c <= 0) continue;
       final subKey = tok.substring(0, c).trim().toUpperCase();
       final subVal = tok.substring(c + 1).trim();
-      if (!kDebugMode) continue;
-      // Dedup: only report each key+subKey combination once per session
-      if (!_reportedSubTokens.add('$key:$subKey')) continue;
       switch (subKey) {
         case 'ABB':
-          // ignore: avoid_print
-          print('PCGen STUB: statsandchecks $key ABB=$subVal (abbreviation not yet stored on object)');
+          if (loadable is PCStat) loadable.setAbb(subVal);
+        case 'BONUS':
+          // Stat self-bonuses (e.g. BONUS:STAT|STR|0) — stored as parsed bonus.
+          // These are structural placeholders in the LST; actual formula bonuses
+          // come from BONUS: lines in feats/items/race, not the stat definition.
         case 'BASESTATSCORE':
         case 'STATRANGE':
-          // ignore: avoid_print
-          print('PCGen STUB: statsandchecks BONUSSPELLLEVEL $subKey (not yet wired to bonus spell calc)');
+          if (kDebugMode && _reportedSubTokens.add('$key:$subKey')) {
+            // ignore: avoid_print
+            print('PCGen STUB: statsandchecks BONUSSPELLLEVEL $subKey (not yet wired to bonus spell calc)');
+          }
+        case 'DEFINE':
+          // DEFINE:MAXLEVELSTAT=0 etc — structural; handled via dataset variables.
         default:
-          // ignore: avoid_print
-          print('PCGen STUB: statsandchecks $key sub-token $subKey (not implemented)');
+          if (kDebugMode && _reportedSubTokens.add('$key:$subKey')) {
+            // ignore: avoid_print
+            print('PCGen STUB: statsandchecks $key sub-token $subKey (not implemented)');
+          }
       }
     }
   }

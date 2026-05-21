@@ -76,6 +76,10 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
   bool _bonusDirty = true; // rebuild on next access
   dynamic _dataset; // cached dataset reference for incremental rebuilds
 
+  /// Maps stat abbreviation (e.g. 'STR') → stat key name (e.g. 'Strength').
+  /// Built from dataset.stats in rebuildBonuses so _statModByAbb can resolve.
+  final Map<String, String> _abbToStatKey = {};
+
   /// Class skill names for this character (populated during rebuildBonuses).
   List<String> classSkillNames = const [];
 
@@ -456,27 +460,30 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
   }
 
   int _statModByAbb(String abb) {
-    // Delegate to getModTotal so magic item bonuses (Amulet of Health, etc.)
-    // are included in saves, HP, initiative, and AC calculations.
     final upper = abb.toUpperCase();
-    // Find the matching PCStat by abbreviation
+    // Resolve the stat's key name in _data['statScores'] via the abbreviation map.
+    // E.g. 'STR' → 'Strength', then look up _data['statScores']['Strength'].
+    final statKeyName = _abbToStatKey[upper];
     try {
-      // Try direct abbreviation lookup in statScores
       final scores = _data['statScores'];
-      if (scores is Map && scores.containsKey(upper)) {
-        final base = (scores[upper] as num?)?.toInt() ?? 10;
-        int levelGains = 0;
-        final levels = _data['classLevels'] as List? ?? [];
-        for (final l in levels) {
-          if (l is Map) {
-            final gains = l['statGains'] as Map?;
-            if (gains != null) {
-              levelGains += (gains[upper] as num?)?.toInt() ?? 0;
+      if (scores is Map) {
+        // Try abbreviation key first (set by setAbb), then full-name key.
+        final rawScore = scores[statKeyName] ?? scores[upper];
+        if (rawScore != null) {
+          final base = (rawScore as num?)?.toInt() ?? 10;
+          int levelGains = 0;
+          final levels = _data['classLevels'] as List? ?? [];
+          for (final l in levels) {
+            if (l is Map) {
+              final gains = l['statGains'] as Map?;
+              if (gains != null) {
+                levelGains += ((gains[statKeyName] ?? gains[upper]) as num?)?.toInt() ?? 0;
+              }
             }
           }
+          final itemBonus = _bonusAcc.totalIntWithAll('STAT', upper);
+          return ((base + levelGains + itemBonus - 10) / 2).floor();
         }
-        final itemBonus = _bonusAcc.totalIntWithAll('STAT', upper);
-        return ((base + levelGains + itemBonus - 10) / 2).floor();
       }
     } catch (_) {}
     return 0;
@@ -885,10 +892,15 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
   }
 
   FormulaContext _buildFormulaCtx() {
+    final rawScores = _data['statScores'] as Map? ?? {};
     final statScores = <String, int>{};
-    (_data['statScores'] as Map? ?? {}).forEach((k, v) {
+    rawScores.forEach((k, v) {
       statScores[k.toString().toUpperCase()] = (v as num?)?.toInt() ?? 10;
     });
+    for (final entry in _abbToStatKey.entries) {
+      final score = (rawScores[entry.value] as num?)?.toInt() ?? 10;
+      statScores[entry.key] = score;
+    }
     final statMods =
         statScores.map((k, v) => MapEntry(k, ((v - 10) / 2).floor()));
     final classLevelList = _data['classLevels'] as List? ?? [];
@@ -1847,6 +1859,20 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
   /// Call after loading a character, changing race/class/feats/equipment.
   void rebuildBonuses(dynamic dataset) {
     if (dataset == null) return;
+
+    // Build abbreviation→keyName map from dataset stats (e.g. 'STR'→'Strength').
+    // This is used by _statModByAbb and the formula context so that formulas
+    // referencing 'STR' resolve to the correct score in statScores.
+    _abbToStatKey.clear();
+    try {
+      final stats = (dataset as dynamic).stats as List? ?? [];
+      for (final s in stats) {
+        final abb    = (s as dynamic).getAbb()      as String? ?? '';
+        final keyN   = (s as dynamic).getKeyName()  as String? ?? '';
+        if (abb.isNotEmpty && keyN.isNotEmpty) _abbToStatKey[abb.toUpperCase()] = keyN;
+      }
+    } catch (_) {}
+
     final allBonuses = <ParsedBonus>[];
 
     // Helper: collect ParsedBonus from any CDOMObject
@@ -2046,11 +2072,25 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
     } catch (_) {}
 
     // ---- Pass 2: Evaluate BONUS:VAR to accumulate variable values ----
+    // Build statScores keyed by abbreviation ('STR', 'DEX', ...) so that
+    // formula expressions like "STR" and "STRSCORE" resolve correctly.
+    // _abbToStatKey maps 'STR' → 'Strength' (stat key name in _data['statScores']).
     final statScores = <String, int>{};
     final scoreMap = _data['statScores'] as Map? ?? {};
     scoreMap.forEach((k, v) {
-      statScores[k.toString().toUpperCase()] = (v as num?)?.toInt() ?? 10;
+      final keyUpper = k.toString().toUpperCase();
+      final score = (v as num?)?.toInt() ?? 10;
+      // If we have an abbreviation that maps to this key name, use the abbreviation.
+      // Also keep the full-key form so both 'STR' and 'STRENGTH' resolve.
+      statScores[keyUpper] = score;
     });
+    // Add/overwrite using abbreviation keys so formulas reference the right value.
+    for (final entry in _abbToStatKey.entries) {
+      final abb  = entry.key;                // e.g. 'STR'
+      final keyN = entry.value;              // e.g. 'Strength'
+      final score = (scoreMap[keyN] as num?)?.toInt() ?? 10;
+      statScores[abb] = score;
+    }
     final statMods = statScores.map((k, v) => MapEntry(k, ((v - 10) / 2).floor()));
 
     // Quick formula context with current stats + initial vars for VAR resolution

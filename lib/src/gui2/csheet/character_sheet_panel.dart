@@ -569,6 +569,8 @@ class _CharacterSheetView extends StatelessWidget {
     try { tohitRanged  = _tryGet(() => (character as dynamic).getTohitBonusRanged())       as int? ?? 0; } catch (_) {}
     try { damageMelee  = _tryGet(() => (character as dynamic).getDamageBonusMelee())       as int? ?? 0; } catch (_) {}
     try { damageRanged = _tryGet(() => (character as dynamic).getDamageBonusRanged())      as int? ?? 0; } catch (_) {}
+    // ignore: avoid_print
+    print('[Sheet] bab=$bab strMod=$strMod dexMod=$dexMod tohitMelee=$tohitMelee');
 
     final gearRaw = data['gear'] as List? ?? [];
 
@@ -687,7 +689,11 @@ class _CharacterSheetView extends StatelessWidget {
       String dmg = '—', critStr = '20', wield = 'Melee';
       bool isRanged = false;
       if (item != null) {
-        try { dmg   = (item as dynamic).getDamageString() as String? ?? '—'; } catch (_) {}
+        try {
+          dmg = (item as dynamic).getDamageString() as String? ?? '—';
+          // ignore: avoid_print
+          print('[Sheet] weapon key=$key dsKey=${keyToDsKey[key]} itemKey=${(item as dynamic).getKeyName()} dmg=$dmg');
+        } catch (_) {}
         try {
           final critR = (item as dynamic).getCritRange() as int? ?? 1;
           final critM = (item as dynamic).getCritMult()  as String? ?? '';
