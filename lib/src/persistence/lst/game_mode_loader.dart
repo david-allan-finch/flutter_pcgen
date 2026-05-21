@@ -144,6 +144,7 @@ final class GameModeLoader {
       case 'SHORTRANGEDISTANCE':
         gm.setShortRangeDistance(int.tryParse(value) ?? gm.getShortRangeDistance());
       case 'SKILLMULT':
+      case 'SKILLMULTIPLIER':
         gm.addSkillMultiplierLevel(value);
       case 'SPELLBASECONCENTRATION':
         gm.setSpellBaseConcentration(value);
@@ -165,6 +166,7 @@ final class GameModeLoader {
         gm.setPreviewDir(value);
       case 'PREVIEWSHEET':
         gm.setPreviewSheet(value);
+      case 'WEAPONREACH':
       case 'WEAPONREACHFORMULA':
         gm.setWeaponReachFormula(value);
       case 'XPENABLED':

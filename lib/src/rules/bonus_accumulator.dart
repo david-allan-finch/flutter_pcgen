@@ -261,6 +261,8 @@ class _PrereqCtx implements PrereqContext {
   @override String spellSchoolFor(String spellName) => '';
   @override String spellSubSchoolFor(String spellName) => '';
   @override String spellDescriptorFor(String spellName) => '';
+  @override String get characterType => 'PC';
+  @override String? getFact(String objectType, String fieldName) => null;
 }
 
 class CharacterBonusEngine {

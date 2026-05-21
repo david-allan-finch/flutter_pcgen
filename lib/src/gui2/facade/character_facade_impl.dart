@@ -2576,4 +2576,6 @@ class _SimplePrereqCtxFacade implements PrereqContext {
       _spellSubSchools[spellName.toLowerCase()] ?? '';
   @override String spellDescriptorFor(String spellName) =>
       _spellDescriptors[spellName.toLowerCase()] ?? '';
+  @override String get characterType => 'PC';
+  @override String? getFact(String objectType, String fieldName) => null;
 }

@@ -50,8 +50,18 @@ class SystemCollections {
   // ---------------------------------------------------------------------------
 
   static GameMode? getGameModeNamed(String aString) {
-    for (final GameMode gm in _gameModeList) {
-      if (gm.getName().toLowerCase() == aString.toLowerCase()) return gm;
+    final lower = aString.toLowerCase();
+    // 1. Exact directory name match
+    for (final gm in _gameModeList) {
+      if (gm.getName().toLowerCase() == lower) return gm;
+    }
+    // 2. GAMEMODEKEY match (e.g. Pathfinder_RPG → Pathfinder directory)
+    for (final gm in _gameModeList) {
+      if (gm.getGameModeKey().toLowerCase() == lower) return gm;
+    }
+    // 3. ALLOWEDMODES match (e.g. DnD → 35e game mode)
+    for (final gm in _gameModeList) {
+      if (gm.allowedModes.any((m) => m.toLowerCase() == lower)) return gm;
     }
     return null;
   }

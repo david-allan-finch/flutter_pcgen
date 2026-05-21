@@ -152,6 +152,17 @@ class GenericLoader<T extends CDOMObject> extends LstObjectFileLoader<T> {
         case 'BONUS':
           _parseBonusToken(obj, value);
           return;
+        case 'MODIFY':
+          // MODIFY:VarName|OPERATION|formula — new formula parser variable modifier.
+          // Store as raw string for future evaluation; the new formula system
+          // uses MODIFY instead of BONUS:VAR for the Pathfinder stat definitions.
+          try {
+            obj.addToListFor(
+              ListKey.getConstant<String>('MODIFY_TOKENS'),
+              value,
+            );
+          } catch (_) {}
+          return;
         case 'COST':
           try { obj.putString(StringKey.cost, value); } catch (_) {}
           return;
@@ -404,6 +415,14 @@ class GenericLoader<T extends CDOMObject> extends LstObjectFileLoader<T> {
               }
             }
           }
+          return;
+        case 'ROLE':
+          // ROLE:Combat.Skill — class combat role; store as a type list for display/filtering
+          try {
+            for (final r in value.split('.')) {
+              if (r.isNotEmpty) obj.addToListFor(ListKey.getConstant<String>('ROLE'), r.trim());
+            }
+          } catch (_) {}
           return;
         case 'GROUP':
           // GROUP:UNSELECTED etc. — ignore for now

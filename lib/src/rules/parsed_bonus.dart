@@ -110,6 +110,8 @@ class ParsedPrereq {
       case 'PRESPELLSCHOOL':    result = _evalPreSpellSchool(ctx);      break;
       case 'PRESPELLSCHOOLSUB': result = _evalPreSpellSchoolSub(ctx);   break;
       case 'PRESPELLDESCRIPTOR':result = _evalPreSpellDescriptor(ctx);  break;
+      case 'PRECHARACTERTYPE': result = _evalPreCharacterType(ctx); break;
+      case 'PREFACT':          result = _evalPreFact(ctx);          break;
       case 'PRESPELLBOOK':
       case 'PRECAMPAIGN':
       case 'PREAGEGTEQ':
@@ -445,6 +447,32 @@ class ParsedPrereq {
     return true;
   }
 
+  bool _evalPreCharacterType(PrereqContext ctx) {
+    // PRECHARACTERTYPE:N,Type1,Type2 — N of the listed types must match character type.
+    final parts = raw.split(',');
+    if (parts.isEmpty) return true;
+    final needed = int.tryParse(parts[0].trim()) ?? 1;
+    final charType = ctx.characterType.toLowerCase();
+    int matched = 0;
+    for (int i = 1; i < parts.length; i++) {
+      if (parts[i].trim().toLowerCase() == charType) matched++;
+    }
+    return matched >= needed;
+  }
+
+  bool _evalPreFact(PrereqContext ctx) {
+    // PREFACT:ObjectType|FactField|RequiredValue — checks a FACT field value.
+    // Format: ABILITY|IsPC|TRUE  or  CLASS|ClassType|PC
+    final parts = raw.split('|');
+    if (parts.length < 3) return true;
+    final objectType = parts[0].trim();
+    final fieldName  = parts[1].trim();
+    final expected   = parts[2].trim().toLowerCase();
+    final actual = ctx.getFact(objectType, fieldName);
+    if (actual == null) return true; // unknown — pass optimistically
+    return actual.toLowerCase() == expected;
+  }
+
   bool _evalPreRule(PrereqContext ctx) {
     // PRERULE:N,RuleKey1,RuleKey2 — passes if N of the listed rules are enabled.
     // Rules are registered from rules.lst DEFAULT values via SettingsHandler.
@@ -584,6 +612,12 @@ abstract class PrereqContext {
   List<String> get templateKeys;
   List<String> get weaponProficiencies;
   String get sizeKey; // e.g. 'M', 'S', 'L'
+
+  /// Character type for PRECHARACTERTYPE evaluation (e.g. 'PC', 'NPC', 'Monster').
+  String get characterType => 'PC';
+
+  /// FACT field lookup for PREFACT evaluation. Returns null if the field is not known.
+  String? getFact(String objectType, String fieldName) => null;
 
   // ---- Spell knowledge (for PRESPELL / PRESPELLSCHOOL evaluators) ----
   /// Lowercase spell names the character knows (spellbook, known list, domain).
