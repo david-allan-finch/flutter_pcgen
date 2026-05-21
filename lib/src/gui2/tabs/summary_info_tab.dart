@@ -8,7 +8,6 @@ import 'package:flutter/services.dart';
 
 import 'package:flutter_pcgen/src/core/data_set.dart';
 import 'package:flutter_pcgen/src/core/language.dart';
-import 'package:flutter_pcgen/src/core/pc_class.dart';
 import 'package:flutter_pcgen/src/core/pc_stat.dart';
 import 'package:flutter_pcgen/src/gui2/app_state.dart';
 import 'package:flutter_pcgen/src/gui2/tabs/character_info_tab.dart';
@@ -1147,9 +1146,25 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
   // ---- Combat section -------------------------------------------------------
 
   Widget _buildCombatSection(dynamic character, List<String> statKeys, List<PCStat> statObjects) {
-    final dataset = loadedDataSet.value;
+    final strMod = _getStatMod(character, statKeys, statObjects, 'STR');
     final dexMod = _getStatMod(character, statKeys, statObjects, 'DEX');
-    final bab    = _computeBab(character, dataset);
+
+    // Use the facade's bonus-accumulator BAB (accounts for BONUS:COMBAT|BASEAB feats/items).
+    String babStr = '+0';
+    int babInt = 0;
+    int tohitMelee = 0;
+    int tohitRanged = 0;
+    try {
+      babStr       = (character as dynamic).getBAB() as String? ?? '+0';
+      babInt       = (character as dynamic).getBABInt() as int? ?? 0;
+      tohitMelee   = (character as dynamic).getTohitBonusMelee() as int? ?? 0;
+      tohitRanged  = (character as dynamic).getTohitBonusRanged() as int? ?? 0;
+    } catch (_) {}
+
+    final meleeFirst  = babInt + strMod + tohitMelee;
+    final rangedFirst = babInt + dexMod + tohitRanged;
+    final meleeSeq  = _attackSequence(meleeFirst);
+    final rangedSeq = _attackSequence(rangedFirst);
 
     return Card(
       child: Padding(
@@ -1159,11 +1174,11 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
           children: [
             Text('Combat', style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 8),
-            Row(children: [
+            Wrap(spacing: 12, runSpacing: 8, children: [
               _combatChip('Initiative', _fmtMod(dexMod)),
-              const SizedBox(width: 12),
-              _combatChip('BAB', _babSequence(bab)),
-              const SizedBox(width: 12),
+              _combatChip('BAB', babStr),
+              _combatChip('Melee Atk', meleeSeq),
+              _combatChip('Ranged Atk', rangedSeq),
               _combatChip('AC', '${10 + dexMod}'),
             ]),
           ],
@@ -1172,31 +1187,17 @@ class _SummaryInfoTabState extends State<SummaryInfoTabWidget>
     );
   }
 
-  String _babSequence(int bab) {
-    if (bab <= 0) return '+0';
-    if (bab < 6) return '+$bab';
+  /// Build a full attack sequence from the first-attack total bonus.
+  /// Each subsequent attack is -5. Stops when bonus drops to 0 or below.
+  String _attackSequence(int firstBonus) {
+    if (firstBonus <= 0) return _fmtMod(firstBonus);
     final attacks = <String>[];
-    int current = bab;
-    while (current > 0) { attacks.add('+$current'); current -= 5; }
+    int cur = firstBonus;
+    while (cur > 0 && attacks.length < 8) {
+      attacks.add(_fmtMod(cur));
+      cur -= 5;
+    }
     return attacks.join('/');
-  }
-
-  int _computeBab(dynamic character, DataSet? dataset) {
-    List classLevels = [];
-    try { classLevels = ((character as dynamic).toJson()['classLevels'] as List?) ?? []; } catch (_) {}
-    if (classLevels.isEmpty) return 0;
-    final classes = dataset?.classes ?? const <PCClass>[];
-    final counts = <String, int>{};
-    for (final l in classLevels) {
-      if (l is Map) { final k = l['classKey'] as String? ?? ''; counts[k] = (counts[k] ?? 0) + 1; }
-    }
-    double total = 0.0;
-    for (final entry in counts.entries) {
-      final cls = classes.where((c) => c.getKeyName() == entry.key).firstOrNull;
-      final bab = cls?.getBabProgression() ?? '';
-      total += entry.value * (bab == 'Full' ? 1.0 : bab == 'Half' ? 0.5 : 0.75);
-    }
-    return total.floor();
   }
 
   Widget _combatChip(String label, String value) {

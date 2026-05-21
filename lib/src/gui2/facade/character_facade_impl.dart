@@ -594,6 +594,9 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
     return attacks.join('/');
   }
 
+  /// Raw integer BAB (before attack sequence expansion). Use getBAB() for display.
+  int getBABInt() => _bonusAcc.totalInt('COMBAT', 'BASEAB');
+
   /// Universal to-hit bonus (BONUS:COMBAT|TOHIT — applies to all attacks).
   int getTohitBonus() => _bonusAcc.totalInt('COMBAT', 'TOHIT');
 
