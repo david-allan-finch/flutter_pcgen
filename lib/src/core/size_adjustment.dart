@@ -24,6 +24,10 @@ import 'package:flutter_pcgen/src/core/pcobject.dart';
 /// Translated from pcgen.core.SizeAdjustment. Provides size-based bonus
 /// activation and scoping under "PC.SIZE".
 final class SizeAdjustment extends PObject {
+  bool isDefaultSize = false;
+  int sizeNum = 0;
+  final List<String> rawTokens = []; // BONUS:/ABILITY: lines stored pending dispatch
+
   String? getSortKey() => getString(StringKey.sortKey);
 
   /// Returns the local scope name for variable resolution.

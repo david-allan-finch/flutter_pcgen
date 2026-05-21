@@ -114,10 +114,15 @@ final class GameModeLoader {
       case 'DISPLAYORDER':
         gm.setDisplayOrder(int.tryParse(value) ?? gm.getDisplayOrder());
       case 'DIESIZES':
-        final sizes = value.split('|')
-            .map((s) => int.tryParse(s.trim()))
-            .whereType<int>()
-            .toList();
+        // Format: 1,2,3,MIN=4,6,8,10,MAX=12,20,100,1000
+        // MIN= marks the soft minimum; MAX= marks the hard maximum cap.
+        // Strip these prefixes before parsing so int.tryParse succeeds.
+        final sizes = value.split(',').map((s) {
+          var t = s.trim();
+          if (t.startsWith('MIN=')) t = t.substring(4);
+          else if (t.startsWith('MAX=')) t = t.substring(4);
+          return int.tryParse(t);
+        }).whereType<int>().toList();
         if (sizes.isNotEmpty) gm.setDieSizes(sizes);
       case 'HPABBREV':
         gm.setHPAbbrev(value);
@@ -133,10 +138,9 @@ final class GameModeLoader {
         gm.setRankModFormula(value);
       case 'ROLLHP':
         gm.setRollHP(int.tryParse(value) ?? gm.getRollHP());
-      case 'ROLLMETHOD':
-        gm.setRollMethod(int.tryParse(value) ?? gm.getRollMethod());
       case 'ROLLFORMULA':
         gm.setRollFormula(value);
+      case 'SHORTRANGE':
       case 'SHORTRANGEDISTANCE':
         gm.setShortRangeDistance(int.tryParse(value) ?? gm.getShortRangeDistance());
       case 'SKILLMULT':
@@ -267,13 +271,75 @@ final class GameModeLoader {
       case 'MONSTERROLEDEFAULT':
       case 'CRSTEPS':
       case 'EQSIZEPENALTY':
-      case 'MAXNONEPICLEVEL':
         // Stored but no dedicated field yet; safe to discard
         break;
+
+      case 'MAXNONEPICLEVEL':
+        gm.setMaxNonEpicLevel(int.tryParse(value) ?? 20);
+
+      case 'GAMEMODEKEY':
+        // Alternate reference key for this game mode (used in PCC GAMEMODE: lookups)
+        gm.setGameModeKey(value);
+
+      case 'BONUSFEATLEVELSTARTINTERVAL':
+        gm.setBonusFeatLevels(value);
+
+      case 'BONUSSTATLEVELSTARTINTERVAL':
+        gm.setBonusStatLevels(value);
+
+      case 'SKILLCOST_CLASS':
+        gm.setSkillCostClass(int.tryParse(value) ?? 1);
+
+      case 'SKILLCOST_CROSSCLASS':
+        gm.setSkillCostCrossClass(int.tryParse(value) ?? 2);
+
+      case 'SKILLCOST_EXCLUSIVE':
+        gm.setSkillCostExclusive(int.tryParse(value) ?? 0);
+
+      case 'PLUSCOST':
+        // PLUSCOST:TYPE|formula  — enhancement cost formula by equipment type
+        {
+          final pipe = value.indexOf('|');
+          if (pipe > 0) {
+            gm.addPlusCost(value.substring(0, pipe).trim(),
+                           value.substring(pipe + 1).trim());
+          }
+        }
+
+      case 'XPAWARD':
+        // XPAWARD:CR=XP|CR=XP|…  where CR may be a fraction like 1/4
+        for (final entry in value.split('|')) {
+          final eq = entry.indexOf('=');
+          if (eq > 0) {
+            final crStr = entry.substring(0, eq).trim();
+            final xp = int.tryParse(entry.substring(eq + 1).trim());
+            if (xp != null) {
+              // Store fractional CRs as scaled integers (CR*8 so 1/8=1, 1/4=2, 1/2=4, 1=8…)
+              final crInt = _parseCRToInt(crStr);
+              if (crInt != null) gm.addXPaward(crInt, xp);
+            }
+          }
+        }
 
       default:
         break;
     }
+  }
+
+  /// Converts a CR string (possibly a fraction like "1/4" or "1/2") to a
+  /// scaled integer (multiplied by 8 so all standard CRs are whole numbers).
+  static int? _parseCRToInt(String cr) {
+    final slash = cr.indexOf('/');
+    if (slash > 0) {
+      final num = int.tryParse(cr.substring(0, slash).trim());
+      final den = int.tryParse(cr.substring(slash + 1).trim());
+      if (num != null && den != null && den != 0) {
+        return (num * 8 ~/ den); // e.g. 1/4 → 2, 1/2 → 4, 1/8 → 1
+      }
+      return null;
+    }
+    final n = int.tryParse(cr.trim());
+    return n != null ? n * 8 : null;
   }
 
   static void _parseTab(GameMode gm, String name, String fullLine) {

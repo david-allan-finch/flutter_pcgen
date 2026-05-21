@@ -37,6 +37,7 @@ import 'package:flutter_pcgen/src/persistence/lst/point_buy_loader.dart';
 import 'package:flutter_pcgen/src/persistence/lst/trait_loader.dart';
 import 'package:flutter_pcgen/src/persistence/lst/location_loader.dart';
 import 'package:flutter_pcgen/src/persistence/lst/equip_slot_loader.dart';
+import 'package:flutter_pcgen/src/persistence/lst/migration_loader.dart';
 import 'package:flutter_pcgen/src/core/settings_handler.dart';
 
 /// Loads game mode data files (miscinfo.lst, statsandchecks.lst, level.lst,
@@ -133,6 +134,7 @@ class GameModeFileLoader extends PCGenTask {
     _loadInfoFile(gameMode, File('${specDir.path}/level.lst').uri, 'level');
     _loadInfoFile(gameMode, File('${specDir.path}/rules.lst').uri, 'rules');
     _loadCodeControlFile(gameMode, File('${specDir.path}/codeControl.lst'));
+    await _loadMigrationFile(gameMode, specDir, gameModeDir);
 
     // Standard LST files
     _loadModeLstFile(gameMode, specDir, gameModeDir, 'statsandchecks.lst', StatsAndChecksLoader(gameMode.getModeContext()));
@@ -209,6 +211,12 @@ class GameModeFileLoader extends PCGenTask {
           gameMode.setAlignmentFeature(val == 'YES');
         case 'DOMAINFEATURE':
           gameMode.setDomainFeature(val == 'YES');
+        case 'FACE':
+          gameMode.setFaceLabel(line.substring(c + 1).trim());
+        case 'STATINPUT':
+          gameMode.setStatInput(line.substring(c + 1).trim());
+        case 'STATMODSAVE':
+          gameMode.setStatModSave(line.substring(c + 1).trim());
       }
     }
   }
@@ -255,6 +263,13 @@ class GameModeFileLoader extends PCGenTask {
     final loader = LocationLoader();
     loader.setGameMode(gameMode.getName());
     await _loadLineModeLstFile(loader, specDir, gameModeDir, 'bio/locations.lst');
+  }
+
+  Future<void> _loadMigrationFile(
+      GameMode gameMode, Directory specDir, Directory gameModeDir) async {
+    final loader = MigrationLoader();
+    loader.setGameMode(gameMode.getName());
+    await _loadLineModeLstFile(loader, specDir, gameModeDir, 'migration.lst');
   }
 
   Future<void> _loadEquipSlotsFile(

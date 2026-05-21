@@ -19,6 +19,7 @@
 import 'package:flutter_pcgen/src/cdom/base/bonus_container.dart';
 import 'package:flutter_pcgen/src/cdom/base/loadable.dart';
 import 'package:flutter_pcgen/src/core/bonus/bonus_obj.dart';
+import 'package:flutter_pcgen/src/core/point_buy_cost.dart';
 
 // Represents a point-buy method (e.g. "28-Point Buy") from the game mode.
 final class PointBuyMethod implements BonusContainer, Loadable {
@@ -40,6 +41,16 @@ final class PointBuyMethod implements BonusContainer, Loadable {
     var desc = _methodName;
     if (_pointFormula != '0') desc += ' ($_pointFormula)';
     return desc;
+  }
+
+  final List<PointBuyCost> _statCosts = [];
+  void addPointBuyCost(PointBuyCost pbc) => _statCosts.add(pbc);
+  List<PointBuyCost> getStatCosts() => List.unmodifiable(_statCosts);
+  int getCostForScore(int score) {
+    for (final c in _statCosts) {
+      if (int.tryParse(c.getKeyName()) == score) return c.getBuyCost();
+    }
+    return 0;
   }
 
   void addBonus(BonusObj bon) => _bonusList.add(bon);

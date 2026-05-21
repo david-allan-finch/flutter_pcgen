@@ -670,6 +670,27 @@ final class GameMode implements Comparable<Object> {
   String getDefaultDataset() => _defaultDataset;
   void setDefaultDataset(String s) { _defaultDataset = s; }
 
+  // codeControl.lst extras (Pathfinder/Starfinder)
+  String _faceLabel = 'Face';
+  String _statInput = 'STATSCORE';
+  String _statModSave = '';
+  String getFaceLabel() => _faceLabel;
+  void setFaceLabel(String s) { _faceLabel = s; }
+  String getStatInput() => _statInput;
+  void setStatInput(String s) { _statInput = s; }
+  String getStatModSave() => _statModSave;
+  void setStatModSave(String s) { _statModSave = s; }
+
+  // Alternate reference key for cross-mode PCC lookups (GAMEMODEKEY)
+  String _gameModeKey = '';
+  String getGameModeKey() => _gameModeKey.isEmpty ? _name : _gameModeKey;
+  void setGameModeKey(String s) { _gameModeKey = s; }
+
+  // Magic item enhancement cost formulas (PLUSCOST) keyed by equipment type
+  final Map<String, String> _plusCosts = {};
+  void addPlusCost(String equipType, String formula) { _plusCosts[equipType] = formula; }
+  Map<String, String> getAllPlusCosts() => Map.unmodifiable(_plusCosts);
+
   void addBaseDice(String entry) { _baseDice.add(entry); }
   List<String> getBaseDice() => List.unmodifiable(_baseDice);
 

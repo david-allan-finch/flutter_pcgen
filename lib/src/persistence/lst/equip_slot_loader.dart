@@ -1,19 +1,4 @@
-//
 // Copyright 2001 (C) Bryan McRoberts <merton_monk@yahoo.com>
-//
-// This library is free software; you can redistribute it and/or
-// modify it under the terms of the GNU Lesser General Public
-// License as published by the Free Software Foundation; either
-// version 2.1 of the License, or (at your option) any later version.
-//
-// This library is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-// Lesser General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public
-// License along with this library; if not, write to the Free Software
-// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.persistence.lst.EquipSlotLoader
 
@@ -22,10 +7,15 @@ import 'package:flutter_pcgen/src/core/game_mode.dart';
 import 'package:flutter_pcgen/src/core/system_collections.dart';
 import 'package:flutter_pcgen/src/persistence/lst/lst_line_file_loader.dart';
 
-/// Loads EquipSlot definitions from equipslot .lst files in the game mode.
+/// Loads EquipSlot definitions from equipmentslots.lst in the game mode dir.
 ///
-/// Each line defines one equipment slot (e.g. SLOTNAME:Weapon Hand).
-/// The parsed slots are added to SystemCollections for the current game mode.
+/// File format — two types of line:
+///
+///   NUMSLOTS:DEFAULT  HEAD:1  HANDS:2  TORSO:1  LEGS:2  SHIELD:1  [VEHICLE:1]
+///   EQSLOT:Head  CONTAINS:Headgear=1|Helmet=1  NUMBER:HEAD
+///
+/// NUMSLOTS defines how many of each body region a character has.
+/// EQSLOT defines one named slot with the item types it accepts.
 class EquipSlotLoader extends LstLineFileLoader {
   String _gameMode = '';
 
@@ -35,27 +25,43 @@ class EquipSlotLoader extends LstLineFileLoader {
   void parseLine(dynamic context, String lstLine, Uri sourceUri) {
     if (lstLine.isEmpty || lstLine.startsWith('#')) return;
 
+    final firstColonIdx = lstLine.indexOf(':');
+    if (firstColonIdx <= 0) return;
+
+    final lineKey = lstLine.substring(0, firstColonIdx).trim().toUpperCase();
+
+    if (lineKey == 'NUMSLOTS') {
+      _parseNumSlots(lstLine);
+      return;
+    }
+
+    // EQSLOT line — each tab-delimited field is a sub-token
     final eqSlot = EquipSlot();
-    final cols = lstLine.split('\t');
-
-    for (final col in cols) {
+    for (final col in lstLine.split('\t')) {
       final s = col.trim();
-      final colonIdx = s.indexOf(':');
-      if (colonIdx <= 0) continue;
-
-      final key = s.substring(0, colonIdx).trim();
-      final value = s.substring(colonIdx + 1).trim();
+      final c = s.indexOf(':');
+      if (c <= 0) continue;
+      final key   = s.substring(0, c).trim().toUpperCase();
+      final value = s.substring(c + 1).trim();
 
       switch (key) {
-        case 'SLOTNAME':
+        case 'EQSLOT':
           eqSlot.slotName = value;
-        case 'NUMSLOTS':
-          eqSlot.containNum = int.tryParse(value) ?? 1;
+        case 'SLOTNAME':
+          // Older alias — keep for backwards compatibility
+          eqSlot.slotName = value;
         case 'NUMBER':
           eqSlot.slotNumType = value;
+        case 'NUMSLOTS':
+          eqSlot.containNum = int.tryParse(value) ?? 1;
         case 'CONTAINS':
+          // Format: Type=count|Type=count  — strip the =count suffix
           for (final t in value.split('|')) {
-            if (t.trim().isNotEmpty) eqSlot.addContainedType(t.trim());
+            final raw = t.trim();
+            if (raw.isEmpty) continue;
+            final eqIdx = raw.indexOf('=');
+            final typeName = eqIdx > 0 ? raw.substring(0, eqIdx).trim() : raw;
+            if (typeName.isNotEmpty) eqSlot.addContainedType(typeName);
           }
         default:
           break;
@@ -64,6 +70,26 @@ class EquipSlotLoader extends LstLineFileLoader {
 
     if (eqSlot.slotName.isNotEmpty) {
       SystemCollections.addToEquipSlotsList(eqSlot, _gameMode);
+    }
+  }
+
+  /// Parses a NUMSLOTS line and stores body region counts in SystemCollections.
+  ///
+  /// NUMSLOTS:DEFAULT  HEAD:1  HANDS:2  TORSO:1  LEGS:2  SHIELD:1  [VEHICLE:1]
+  void _parseNumSlots(String line) {
+    final counts = <String, int>{};
+    for (final col in line.split('\t')) {
+      final s = col.trim();
+      final c = s.indexOf(':');
+      if (c <= 0) continue;
+      final key   = s.substring(0, c).trim().toUpperCase();
+      final value = s.substring(c + 1).trim();
+      if (key == 'NUMSLOTS') continue; // skip the primary key
+      final n = int.tryParse(value);
+      if (n != null) counts[key] = n;
+    }
+    if (counts.isNotEmpty) {
+      SystemCollections.setEquipSlotCounts(counts, _gameMode);
     }
   }
 }

@@ -34,6 +34,7 @@ class SystemCollections {
   static final List<GameMode> _gameModeList = [];
   static final List<GameModeDisplay> _gameModeDisplayList = [];
   static final Map<String, List<String>> _hairStyleMap = {};
+  static final Map<String, List<String>> _hairLengthMap = {};
   static final Map<String, List<String>> _interestsMap = {};
   static final Map<String, List<String>> _locationMap = {};
   static final Map<String, List<String>> _phobiaMap = {};
@@ -183,6 +184,20 @@ class SystemCollections {
     }
   }
 
+  static final Map<String, Map<String, int>> _slotCounts = {};
+
+  /// Stores the body-region slot counts from a NUMSLOTS line.
+  static void setEquipSlotCounts(Map<String, int> counts, String gameMode) {
+    _slotCounts[gameMode] = Map.of(counts);
+  }
+
+  /// Returns the number of available slots for [regionKey] in [gameMode].
+  static int getEquipSlotCount(String regionKey, String gameMode) {
+    return _slotCounts[gameMode]?[regionKey.toUpperCase()]
+        ?? _slotCounts['*']?[regionKey.toUpperCase()]
+        ?? 0;
+  }
+
   static void addToBodyStructureList(String bodyStructure, String gameMode) {
     _bodyStructureMap.putIfAbsent(gameMode, () => []);
     if (!_bodyStructureMap[gameMode]!.contains(bodyStructure)) {
@@ -209,6 +224,16 @@ class SystemCollections {
     }
     // Note: Java source adds hairStyle a second time unconditionally – preserved.
     _hairStyleMap[gameMode]!.add(hairStyle);
+  }
+
+  static void addToHairLengthList(String hairLength, String gameMode) {
+    _hairLengthMap.putIfAbsent(gameMode, () => []);
+    _hairLengthMap[gameMode]!.add(hairLength);
+  }
+
+  static List<String> getHairLengthList() {
+    final gm = SettingsHandler.getGameAsProperty().getName();
+    return _hairLengthMap[gm] ?? _hairLengthMap['*'] ?? const [];
   }
 
   static void addToInterestsList(String interest, String gameMode) {

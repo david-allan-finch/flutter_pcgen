@@ -79,8 +79,10 @@ final class LevelLoader {
       case 'LEVEL':
         info.levelString = value;
       case 'MAXCLASSSKILLRANK':
+      case 'CSKILLMAX':
         info.maxClassSkillString = value;
       case 'MAXCROSSSKILLRANK':
+      case 'CCSKILLMAX':
         info.maxCrossClassSkillString = value;
       case 'MINXP':
         info.minXPString = value;

@@ -54,6 +54,8 @@ class TraitLoader extends LstLineFileLoader {
           SystemCollections.addToInterestsList(lstLine.trim(), _gameMode);
         case 5:
           SystemCollections.addToHairStyleList(lstLine.trim(), _gameMode);
+        case 6:
+          SystemCollections.addToHairLengthList(lstLine.trim(), _gameMode);
         default:
           break;
       }
@@ -70,6 +72,8 @@ class TraitLoader extends LstLineFileLoader {
         _traitType = 4;
       } else if (lstLine.startsWith('[HAIRSTYLE]')) {
         _traitType = 5;
+      } else if (lstLine.startsWith('[HAIRLENGTH]')) {
+        _traitType = 6;
       }
     }
   }

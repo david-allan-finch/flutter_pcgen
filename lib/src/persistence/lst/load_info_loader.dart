@@ -1,59 +1,101 @@
-//
 // Copyright 2010 (C) Tom Parker <thpr@users.sourceforge.net>
 // Copyright 2001 (C) Bryan McRoberts <merton_monk@yahoo.com>
-//
-// This library is free software; you can redistribute it and/or
-// modify it under the terms of the GNU Lesser General Public
-// License as published by the Free Software Foundation; either
-// version 2.1 of the License, or (at your option) any later version.
-//
-// This library is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-// Lesser General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public
-// License along with this library; if not, write to the Free Software
-// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.persistence.lst.LoadInfoLoader
 
 import 'package:flutter_pcgen/src/persistence/lst/lst_line_file_loader.dart';
 
-/// Loads encumbrance and load info from load.lst game mode files.
+/// Loads encumbrance and carry capacity data from load.lst game mode files.
 ///
-/// Defines load categories (Light, Medium, Heavy, Overloaded) and the
-/// formulas used to calculate carry capacity by strength score.
+/// File format:
+///   SIZEMULT:F|0.125       — size abbreviation → capacity multiplier
+///   LOAD:1|10              — STR score → max carry weight in pounds
+///   LOADMULT:4             — multiplier for loads above STR 29
+///   ENCUMBRANCE:Light|1/3||0  — encumbrance category|fraction|speedMod|skillPenalty
 class LoadInfoLoader extends LstLineFileLoader {
-  // load category name → formula string
-  final Map<String, String> _loadMap = {};
+  /// Size abbreviation → carrying capacity multiplier (e.g. 'F' → 0.125)
+  final Map<String, double> sizeMult = {};
 
-  Map<String, String> get loadMap => Map.unmodifiable(_loadMap);
+  /// STR score → maximum carry weight in lbs (e.g. 1 → 10, 10 → 100)
+  final Map<int, int> loadTable = {};
+
+  /// Multiplier applied when STR > the last table entry (default 4)
+  double loadMult = 4.0;
+
+  /// Encumbrance categories: name → {fraction, speedMod, skillPenalty}
+  final Map<String, Map<String, String>> encumbranceCategories = {};
 
   @override
   void parseLine(dynamic context, String lstLine, Uri sourceUri) {
     if (lstLine.isEmpty || lstLine.startsWith('#')) return;
 
-    final cols = lstLine.split('\t');
-    if (cols.isEmpty) return;
+    final colonIdx = lstLine.indexOf(':');
+    if (colonIdx <= 0) return;
+    final key = lstLine.substring(0, colonIdx).trim();
+    final rest = lstLine.substring(colonIdx + 1).trim();
 
-    // Each token is KEY:value
-    for (final col in cols) {
-      final tok = col.trim();
-      final colonIdx = tok.indexOf(':');
-      if (colonIdx <= 0) continue;
-      final key = tok.substring(0, colonIdx).trim();
-      final value = tok.substring(colonIdx + 1).trim();
+    switch (key) {
+      case 'SIZEMULT':
+        // SIZEMULT:F|0.125
+        final pipe = rest.indexOf('|');
+        if (pipe > 0) {
+          final sizeAbb = rest.substring(0, pipe).trim();
+          final factor  = double.tryParse(rest.substring(pipe + 1).trim());
+          if (sizeAbb.isNotEmpty && factor != null) {
+            sizeMult[sizeAbb] = factor;
+          }
+        }
 
-      switch (key) {
-        case 'LOADSCOREVALUE':
-        case 'LOADMULTIPLIER':
-        case 'SIZEMULT':
-          _loadMap[key] = value;
-        default:
-          // Unknown token — ignored
-          break;
+      case 'LOAD':
+        // LOAD:10|100  (STR score | max pounds)
+        final pipe = rest.indexOf('|');
+        if (pipe > 0) {
+          final score  = int.tryParse(rest.substring(0, pipe).trim());
+          final weight = int.tryParse(rest.substring(pipe + 1).trim());
+          if (score != null && weight != null) {
+            loadTable[score] = weight;
+          }
+        }
+
+      case 'LOADMULT':
+        loadMult = double.tryParse(rest) ?? loadMult;
+
+      case 'ENCUMBRANCE':
+        // ENCUMBRANCE:Light|1/3||0  — name|fractionOfMax|speedMod|skillPenalty
+        final parts = rest.split('|');
+        if (parts.isNotEmpty) {
+          final name = parts[0].trim();
+          encumbranceCategories[name] = {
+            'fraction':     parts.length > 1 ? parts[1].trim() : '',
+            'speedMod':     parts.length > 2 ? parts[2].trim() : '',
+            'skillPenalty': parts.length > 3 ? parts[3].trim() : '0',
+          };
+        }
+
+      default:
+        break;
+    }
+  }
+
+  /// Returns the maximum carry weight for [strScore] in pounds.
+  /// Returns 0 if the table has no entries.
+  int maxCarryForStr(int strScore) {
+    if (loadTable.isEmpty) return 0;
+    // Find the largest table entry ≤ strScore
+    int? result;
+    int? lastScore;
+    for (final entry in loadTable.entries.toList()..sort((a, b) => a.key.compareTo(b.key))) {
+      if (entry.key <= strScore) {
+        result = entry.value;
+        lastScore = entry.key;
       }
     }
+    if (result == null) return 0;
+    if (strScore > (lastScore ?? strScore)) {
+      // Apply LOADMULT for each step beyond the table
+      final steps = strScore - (lastScore ?? strScore);
+      return (result * (loadMult * steps)).toInt();
+    }
+    return result;
   }
 }

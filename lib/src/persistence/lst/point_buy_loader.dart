@@ -1,69 +1,91 @@
-//
 // Copyright 2010 (C) Tom Parker <thpr@users.sourceforge.net>
-//
-// This library is free software; you can redistribute it and/or
-// modify it under the terms of the GNU Lesser General Public
-// License as published by the Free Software Foundation; either
-// version 2.1 of the License, or (at your option) any later version.
-//
-// This library is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-// Lesser General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public
-// License along with this library; if not, write to the Free Software
-// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 // Translation of pcgen.persistence.lst.PointBuyLoader
 
 import 'package:flutter_pcgen/src/core/point_buy_cost.dart';
 import 'package:flutter_pcgen/src/core/point_buy_method.dart';
 import 'package:flutter_pcgen/src/rules/context/load_context.dart';
-import 'package:flutter_pcgen/src/persistence/lst/simple_loader.dart';
+import 'package:flutter_pcgen/src/persistence/lst/lst_line_file_loader.dart';
 
-/// Loads PointBuyMethod and PointBuyCost objects from a pointbuy.lst file.
+/// Loads PointBuyMethod and PointBuyCost objects from a pointbuymethods.lst file.
 ///
-/// The first token of each line determines the object type:
-///   POINTBUYMETHOD:<name> — a named point-buy method (e.g. "Standard (15)")
-///   STAT:<stat>=<cost>    — a stat-to-cost mapping entry
-class PointBuyLoader extends SimpleLoader<dynamic> {
-  PointBuyLoader() : super(dynamic);
+/// Actual file format (tab-delimited sub-tokens):
+///   STAT:8       COST:8
+///   STAT:9       COST:9
+///   METHOD:Standard Campaign   POINTS:80
+///
+/// Each block of STAT lines belongs to the most-recent METHOD header.
+/// Multiple METHOD sections may appear in one file.
+class PointBuyLoader extends LstLineFileLoader {
+  PointBuyMethod? _currentMethod;
+  final List<PointBuyMethod> _methods = [];
+
+  List<PointBuyMethod> get methods => List.unmodifiable(_methods);
 
   @override
-  dynamic getLoadable(dynamic context, String firstToken, Uri sourceUri) {
-    final colonIdx = firstToken.indexOf(':');
-    if (colonIdx <= 0) return null;
+  void parseLine(dynamic context, String lstLine, Uri sourceUri) {
+    if (lstLine.isEmpty || lstLine.startsWith('#')) return;
 
-    final key = firstToken.substring(0, colonIdx).trim();
-    final value = firstToken.substring(colonIdx + 1).trim();
-    if (value.isEmpty) return null;
+    final firstColonIdx = lstLine.indexOf(':');
+    if (firstColonIdx <= 0) return;
 
-    switch (key) {
-      case 'POINTBUYMETHOD':
-        final method = PointBuyMethod();
-        method.setName(value);
-        method.setSourceURI(sourceUri.toString());
-        if (context is LoadContext) {
-          context.getReferenceContext().register(method);
-        }
-        return method;
-      case 'STAT':
-        // STAT:<statScore>=<pointCost>
-        final eqIdx = value.indexOf('=');
-        if (eqIdx > 0) {
-          final score = int.tryParse(value.substring(0, eqIdx).trim());
-          final cost = int.tryParse(value.substring(eqIdx + 1).trim());
-          if (score != null && cost != null) {
-            final pbc = PointBuyCost();
-            pbc.setName(score.toString());
-            pbc.setBuyCost(cost);
-            return pbc;
-          }
-        }
-        return null;
-      default:
-        return null;
+    final lineKey = lstLine.substring(0, firstColonIdx).trim().toUpperCase();
+
+    if (lineKey == 'METHOD') {
+      // METHOD:Name  POINTS:n
+      // Start a new point-buy method
+      final subs = _subtokens(lstLine);
+      final name   = subs['METHOD'] ?? '';
+      final points = subs['POINTS'] ?? '0';
+      if (name.isEmpty) return;
+
+      final method = PointBuyMethod();
+      method.setName(name);
+      method.setPointFormula(points);
+      method.setSourceURI(sourceUri.toString());
+      if (context is LoadContext) {
+        context.getReferenceContext().register(method);
+      }
+      _currentMethod = method;
+      _methods.add(method);
+      return;
     }
+
+    if (lineKey == 'STAT') {
+      // STAT:score  COST:cost
+      final subs  = _subtokens(lstLine);
+      final score = int.tryParse(subs['STAT'] ?? '');
+      final cost  = int.tryParse(subs['COST'] ?? '');
+      if (score == null || cost == null) return;
+
+      final pbc = PointBuyCost();
+      pbc.setName(score.toString());
+      pbc.setBuyCost(cost);
+      // Associate with current method if available
+      _currentMethod?.addPointBuyCost(pbc);
+      return;
+    }
+
+    // Also accept the older POINTBUYMETHOD: tag for backward compatibility
+    if (lineKey == 'POINTBUYMETHOD') {
+      final value = lstLine.substring(firstColonIdx + 1).trim();
+      final method = PointBuyMethod();
+      method.setName(value);
+      method.setSourceURI(sourceUri.toString());
+      _currentMethod = method;
+      _methods.add(method);
+    }
+  }
+
+  /// Parses all tab-delimited KEY:value pairs from [line] into a map.
+  static Map<String, String> _subtokens(String line) {
+    final m = <String, String>{};
+    for (final tok in line.split('\t')) {
+      final t = tok.trim();
+      final c = t.indexOf(':');
+      if (c <= 0) continue;
+      m[t.substring(0, c).toUpperCase()] = t.substring(c + 1).trim();
+    }
+    return m;
   }
 }
