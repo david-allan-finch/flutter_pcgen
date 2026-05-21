@@ -17,6 +17,7 @@
 //
 // Translation of pcgen.persistence.lst.PCClassLoader
 
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter_pcgen/src/cdom/enumeration/list_key.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/object_key.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/string_key.dart';
@@ -36,6 +37,8 @@ import 'package:flutter_pcgen/src/rules/parsed_bonus.dart';
 /// for a sub-class header, "ClassName  <level>" for a class level definition,
 /// etc. This Dart version provides the outer parse loop and dispatches to
 /// helpers for the complex class-level logic.
+final _reportedClassLevelTags = <String>{};
+
 class PCClassLoader extends GenericLoader<PCClass> {
   PCClassLoader() : super(() => PCClass());
 
@@ -289,9 +292,30 @@ class PCClassLoader extends GenericLoader<PCClass> {
           // ADDDOMAINS=DomainName[PRETEMPLATE:1,TemplateName] — conditionally grant a domain at this level
           try { pcClass.addToListFor(ListKey.getConstant<String>('DOMAIN_GRANTS_CONDITIONAL'), '$level:$value'); } catch (_) {}
           break;
+        case 'SPELLS':
+          // SPELLS=Class|TIMES=N|CASTERLEVEL=N|SpellName,DC
+          // Spell-like ability granted at this class level.
+          // TODO: wire into spell-like ability system
+          try { pcClass.addToListFor(ListKey.getConstant<String>('LEVEL_SPELL_LIKE'), '$level:$value'); } catch (_) {}
+          if (kDebugMode && _reportedClassLevelTags.add('SPELLS')) {
+            // ignore: avoid_print
+            print('PCGen STUB: ClassLevel SPELLS (stored raw, not yet evaluated as spell-like abilities)');
+          }
+          break;
+        case 'DR':
+          // DR=N/Type — damage reduction granted at this class level
+          // TODO: apply to character damage reduction pool
+          try { pcClass.addToListFor(ListKey.getConstant<String>('LEVEL_DR'), '$level:$value'); } catch (_) {}
+          if (kDebugMode && _reportedClassLevelTags.add('DR')) {
+            // ignore: avoid_print
+            print('PCGen STUB: ClassLevel DR (stored raw, not yet applied to character DR)');
+          }
+          break;
         default:
-          // ignore: avoid_print
-          print('PCGen STUB: ClassLevel token: $tag=$value');
+          if (kDebugMode && _reportedClassLevelTags.add(tag)) {
+            // ignore: avoid_print
+            print('PCGen STUB: ClassLevel token: $tag (not implemented)');
+          }
           break;
       }
     }

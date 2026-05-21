@@ -33,6 +33,8 @@ import 'package:flutter_pcgen/src/rules/context/load_context.dart';
 ///   CHECKNAME   → PCCheck (deprecated; prefer SAVE: in .pcc files)
 ///   ALIGNMENTNAME → PCAlignment (deprecated; prefer ALIGNMENT: in .pcc files)
 ///   BONUSSPELLLEVEL → BonusSpellInfo
+final _reportedSubTokens = <String>{};
+
 class StatsAndChecksLoader {
   final LoadContext _context;
 
@@ -112,6 +114,8 @@ class StatsAndChecksLoader {
       final subKey = tok.substring(0, c).trim().toUpperCase();
       final subVal = tok.substring(c + 1).trim();
       if (!kDebugMode) continue;
+      // Dedup: only report each key+subKey combination once per session
+      if (!_reportedSubTokens.add('$key:$subKey')) continue;
       switch (subKey) {
         case 'ABB':
           // ignore: avoid_print
@@ -119,10 +123,10 @@ class StatsAndChecksLoader {
         case 'BASESTATSCORE':
         case 'STATRANGE':
           // ignore: avoid_print
-          print('PCGen STUB: statsandchecks BONUSSPELLLEVEL $subKey=$subVal (not yet wired to bonus spell calc)');
+          print('PCGen STUB: statsandchecks BONUSSPELLLEVEL $subKey (not yet wired to bonus spell calc)');
         default:
           // ignore: avoid_print
-          print('PCGen STUB: statsandchecks $key sub-token $subKey=$subVal (not implemented)');
+          print('PCGen STUB: statsandchecks $key sub-token $subKey (not implemented)');
       }
     }
   }

@@ -82,13 +82,47 @@ class SpellsInfoTabState extends State<SpellsInfoTab>
     }
     final known = _getSpellList(character, 'knownSpells');
 
-    // Group by spell level
-    final byLevel = <int, List<Map<String, dynamic>>>{};
+    // Group known spells by class then level.
+    // First determine the character's spellcasting classes in level order.
+    final charSpellClasses = _getCharacterSpellcastingClassNames(character, dataset);
+
+    // Build: Map<className, Map<level, List<Map>>>
+    final byClassLevel = <String, Map<int, List<Map<String, dynamic>>>>{};
+
     for (final sp in known) {
-      final lvl = (sp['level'] as num?)?.toInt() ?? 0;
-      (byLevel[lvl] ??= []).add(sp);
+      final name  = sp['name'] as String? ?? '';
+      final level = (sp['level'] as num?)?.toInt() ?? 0;
+
+      // Find which of the character's classes knows this spell
+      String spellClass = 'Other';
+      if (dataset != null) {
+        final dsSpell = dataset.spells
+            .cast<dynamic>()
+            .where((s) => (s.getDisplayName() as String).toLowerCase() == name.toLowerCase())
+            .firstOrNull;
+        if (dsSpell != null) {
+          final classMap = _parseSpellClasses(dsSpell as Spell);
+          // Prefer a class the character actually has
+          for (final cls in charSpellClasses) {
+            if (classMap.containsKey(cls)) { spellClass = cls; break; }
+          }
+          // Fall back to any class in the map
+          if (spellClass == 'Other' && classMap.isNotEmpty) {
+            spellClass = classMap.keys.first;
+          }
+        }
+      }
+
+      ((byClassLevel[spellClass] ??= {})[level] ??= []).add(sp);
     }
-    final levels = byLevel.keys.toList()..sort();
+
+    // Sort classes: character's classes first, then others alphabetically
+    final sortedClasses = [
+      ...charSpellClasses.where(byClassLevel.containsKey),
+      ...byClassLevel.keys
+          .where((k) => !charSpellClasses.contains(k))
+          .toList()..sort(),
+    ];
 
     return Column(
       children: [
@@ -108,60 +142,102 @@ class SpellsInfoTabState extends State<SpellsInfoTab>
           Expanded(
             child: ListView(
               children: [
-                for (final lvl in levels) ...[
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(12, 8, 12, 2),
-                    child: Text(
-                      lvl == 0 ? 'Cantrips / Orisons' : 'Level $lvl',
-                      style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.blue.shade800),
-                    ),
-                  ),
-                  ...byLevel[lvl]!.map((sp) {
-                    final name  = sp['name'] as String? ?? '';
-                    final level = (sp['level'] as num?)?.toInt() ?? 0;
-                    int dc = 0;
-                    try { dc = (character as dynamic).getSpellSaveDC(level) as int? ?? 0; } catch (_) {}
-                    final dsSpell = dataset?.spells
-                        .cast<dynamic>()
-                        .where((s) => (s.getDisplayName() as String).toLowerCase() == name.toLowerCase())
-                        .firstOrNull;
-                    return ListTile(
-                      dense: true,
-                      leading: CircleAvatar(
-                        radius: 11,
-                        backgroundColor: Colors.blue.shade100,
-                        child: Text('$level', style: const TextStyle(fontSize: 10)),
-                      ),
-                      title: Text(name, style: const TextStyle(fontSize: 12)),
-                      subtitle: dc > 0
-                          ? Text('DC $dc', style: TextStyle(fontSize: 10, color: Colors.grey.shade600))
-                          : null,
-                      trailing: Row(mainAxisSize: MainAxisSize.min, children: [
-                        if (dsSpell != null)
-                          IconButton(
-                            icon: Icon(Icons.info_outline, size: 16, color: Colors.blue.shade400),
-                            tooltip: 'Spell details',
-                            onPressed: () => _showSpellDetail(context, dsSpell),
-                          ),
-                        IconButton(
-                          icon: const Icon(Icons.remove_circle_outline, size: 16, color: Colors.red),
-                          tooltip: 'Remove',
-                          onPressed: () => _removeFromList(character, 'knownSpells', name),
-                        ),
-                      ]),
-                      onTap: dsSpell != null
-                          ? () => _showSpellDetail(context, dsSpell)
-                          : null,
-                    );
-                  }),
+                for (final cls in sortedClasses) ...[
+                  _buildKnownClassNode(character, dataset, cls, byClassLevel[cls]!),
                 ],
               ],
             ),
           ),
       ],
+    );
+  }
+
+  Widget _buildKnownClassNode(
+    dynamic character,
+    DataSet? dataset,
+    String className,
+    Map<int, List<Map<String, dynamic>>> byLevel,
+  ) {
+    final totalCount = byLevel.values.fold(0, (s, l) => s + l.length);
+    final levels = byLevel.keys.toList()..sort();
+
+    return ExpansionTile(
+      initiallyExpanded: true,
+      tilePadding: const EdgeInsets.symmetric(horizontal: 12),
+      title: Row(children: [
+        Icon(Icons.auto_stories, size: 14, color: Colors.blue.shade700),
+        const SizedBox(width: 6),
+        Text(className,
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+        const SizedBox(width: 8),
+        Text('($totalCount)',
+            style: TextStyle(fontSize: 11, color: Colors.grey.shade600)),
+      ]),
+      children: [
+        for (final lvl in levels)
+          _buildKnownLevelNode(character, dataset, className, lvl, byLevel[lvl]!),
+      ],
+    );
+  }
+
+  Widget _buildKnownLevelNode(
+    dynamic character,
+    DataSet? dataset,
+    String className,
+    int level,
+    List<Map<String, dynamic>> spells,
+  ) {
+    final levelLabel = level == 0 ? 'Cantrips / Orisons' : 'Level $level';
+    return ExpansionTile(
+      initiallyExpanded: true,
+      tilePadding: const EdgeInsets.only(left: 28, right: 12),
+      title: Text(levelLabel,
+          style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: Colors.blue.shade800)),
+      children: spells.map((sp) {
+        final name = sp['name'] as String? ?? '';
+        int dc = 0;
+        try { dc = (character as dynamic).getSpellSaveDC(level) as int? ?? 0; } catch (_) {}
+        final dsSpell = dataset?.spells
+            .cast<dynamic>()
+            .where((s) => (s.getDisplayName() as String).toLowerCase() == name.toLowerCase())
+            .firstOrNull;
+        return ListTile(
+          dense: true,
+          contentPadding: const EdgeInsets.only(left: 48, right: 8),
+          leading: CircleAvatar(
+            radius: 10,
+            backgroundColor: Colors.blue.shade100,
+            child: Text('$level', style: const TextStyle(fontSize: 9)),
+          ),
+          title: Text(name, style: const TextStyle(fontSize: 12)),
+          subtitle: dc > 0
+              ? Text('DC $dc',
+                  style: TextStyle(fontSize: 10, color: Colors.grey.shade600))
+              : null,
+          trailing: Row(mainAxisSize: MainAxisSize.min, children: [
+            if (dsSpell != null)
+              IconButton(
+                icon: Icon(Icons.info_outline,
+                    size: 16, color: Colors.blue.shade400),
+                tooltip: 'Spell details',
+                onPressed: () => _showSpellDetail(context, dsSpell),
+              ),
+            IconButton(
+              icon: const Icon(Icons.remove_circle_outline,
+                  size: 16, color: Colors.red),
+              tooltip: 'Remove',
+              onPressed: () =>
+                  _removeFromList(character, 'knownSpells', name),
+            ),
+          ]),
+          onTap: dsSpell != null
+              ? () => _showSpellDetail(context, dsSpell)
+              : null,
+        );
+      }).toList(),
     );
   }
 
@@ -337,183 +413,269 @@ class SpellsInfoTabState extends State<SpellsInfoTab>
     );
   }
 
-  // ---- All Spells tab ------------------------------------------------------
+  // ---- All Spells tab (tree: class → level → spell) ------------------------
 
   Widget _buildAllSpellsTab(dynamic character, DataSet? dataset) {
     final allSpells = dataset?.spells ?? const [];
-
-    // Build list of character's spellcasting class names for filter
     final charClasses = _getCharacterSpellcastingClassNames(character, dataset);
-
-    final query = _search.text.trim().toLowerCase();
-    // Build set of character's class display names for "my class only" filter
     final myClassNames = charClasses.map((c) => c.toLowerCase()).toSet();
+    final query = _search.text.trim().toLowerCase();
+    final knownNames = character != null
+        ? _getSpellList(character, 'knownSpells')
+            .map((s) => (s['name'] as String? ?? '').toLowerCase())
+            .toSet()
+        : const <String>{};
 
-    final filtered = allSpells.where((s) {
-      if (query.isNotEmpty &&
-          !s.getDisplayName().toLowerCase().contains(query)) return false;
-      if (_classFilter != null && _classFilter!.isNotEmpty) {
-        final classMap = _parseSpellClasses(s);
-        if (!classMap.containsKey(_classFilter)) return false;
+    if (allSpells.isEmpty) {
+      return Center(
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          const Icon(Icons.auto_stories, size: 48, color: Colors.grey),
+          const SizedBox(height: 8),
+          const Text('No spells loaded.', style: TextStyle(color: Colors.grey)),
+          if (character != null) ...[
+            const SizedBox(height: 16),
+            ElevatedButton.icon(
+              icon: const Icon(Icons.add),
+              label: const Text('Add Spell Manually'),
+              onPressed: () => _showAddSpellDialog(character),
+            ),
+          ],
+        ]),
+      );
+    }
+
+    // Build tree: Map<className, Map<level, List<Spell>>>
+    // Apply class + search filters while building
+    final tree = <String, Map<int, List<Spell>>>{};
+    int totalMatches = 0;
+
+    for (final spell in allSpells) {
+      final name = spell.getDisplayName();
+      if (query.isNotEmpty && !name.toLowerCase().contains(query)) continue;
+
+      final classMap = _parseSpellClasses(spell);
+      if (classMap.isEmpty) continue;
+
+      for (final entry in classMap.entries) {
+        final cls = entry.key;
+        final lvl = entry.value;
+
+        // "My classes" filter
+        if (_myClassOnly && myClassNames.isNotEmpty &&
+            !myClassNames.contains(cls.toLowerCase())) continue;
+
+        ((tree[cls] ??= {})[lvl] ??= []).add(spell);
       }
-      if (_myClassOnly && myClassNames.isNotEmpty) {
-        final classMap = _parseSpellClasses(s);
-        if (!classMap.keys.any((k) => myClassNames.contains(k.toLowerCase()))) return false;
-      }
-      return true;
-    }).toList();
+      totalMatches++;
+    }
+
+    // Sort class names: character's spellcasting classes first, then alpha
+    final sortedClasses = [
+      ...charClasses.where(tree.containsKey),
+      ...tree.keys
+          .where((k) => !charClasses.contains(k))
+          .toList()..sort(),
+    ];
 
     return Column(
       children: [
+        // Search + filters toolbar
         Padding(
-          padding: const EdgeInsets.all(8),
-          child: Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: _search,
-                  decoration: const InputDecoration(
-                    prefixIcon: Icon(Icons.search),
-                    hintText: 'Search spells…',
-                    border: OutlineInputBorder(),
-                    isDense: true,
-                  ),
-                  onChanged: (_) => setState(() {}),
-                ),
-              ),
-              if (charClasses.isNotEmpty) ...[
-                const SizedBox(width: 8),
-                DropdownButton<String>(
-                  value: _classFilter,
-                  hint: const Text('Class', style: TextStyle(fontSize: 12)),
+          padding: const EdgeInsets.fromLTRB(8, 8, 8, 4),
+          child: Row(children: [
+            Expanded(
+              child: TextField(
+                controller: _search,
+                decoration: const InputDecoration(
+                  prefixIcon: Icon(Icons.search),
+                  hintText: 'Search spells…',
+                  border: OutlineInputBorder(),
                   isDense: true,
-                  items: [
-                    const DropdownMenuItem(value: null, child: Text('All')),
-                    ...charClasses.map((c) =>
-                        DropdownMenuItem(value: c, child: Text(c))),
-                  ],
-                  onChanged: (v) => setState(() => _classFilter = v),
                 ),
-              ],
+                onChanged: (_) => setState(() {}),
+              ),
+            ),
+            if (charClasses.isNotEmpty) ...[
               const SizedBox(width: 8),
-              if (charClasses.isNotEmpty)
-                Row(mainAxisSize: MainAxisSize.min, children: [
-                  Checkbox(
-                    value: _myClassOnly,
-                    onChanged: (v) => setState(() => _myClassOnly = v ?? false),
-                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    visualDensity: VisualDensity.compact,
-                  ),
-                  const Text('My classes', style: TextStyle(fontSize: 11)),
-                ]),
-              if (character != null)
-                TextButton.icon(
-                  icon: const Icon(Icons.add, size: 14),
-                  label: const Text('Manual'),
-                  onPressed: () => _showAddSpellDialog(character),
+              Row(mainAxisSize: MainAxisSize.min, children: [
+                Checkbox(
+                  value: _myClassOnly,
+                  onChanged: (v) => setState(() => _myClassOnly = v ?? false),
+                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  visualDensity: VisualDensity.compact,
                 ),
+                const Text('My classes', style: TextStyle(fontSize: 11)),
+              ]),
             ],
-          ),
+            if (character != null) ...[
+              const SizedBox(width: 4),
+              TextButton.icon(
+                icon: const Icon(Icons.add, size: 14),
+                label: const Text('Manual'),
+                onPressed: () => _showAddSpellDialog(character),
+              ),
+            ],
+          ]),
         ),
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+          padding: const EdgeInsets.fromLTRB(12, 0, 12, 4),
           child: Align(
             alignment: Alignment.centerLeft,
-            child: Text('${filtered.length} of ${allSpells.length} spells',
-                style: const TextStyle(fontSize: 11, color: Colors.grey)),
+            child: Text(
+              '$totalMatches spells across ${sortedClasses.length} classes',
+              style: const TextStyle(fontSize: 11, color: Colors.grey),
+            ),
           ),
         ),
+        // Tree
         Expanded(
-          child: allSpells.isEmpty
-              ? Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(Icons.auto_stories, size: 48, color: Colors.grey),
-                      const SizedBox(height: 8),
-                      const Text('No spells loaded.',
-                          style: TextStyle(color: Colors.grey)),
-                      const SizedBox(height: 16),
-                      if (character != null)
-                        ElevatedButton.icon(
-                          icon: const Icon(Icons.add),
-                          label: const Text('Add Spell Manually'),
-                          onPressed: () => _showAddSpellDialog(character),
-                        ),
-                    ],
-                  ),
-                )
-              : ListView.builder(
-                  itemCount: filtered.length,
-                  itemBuilder: (context, i) {
-                    final spell = filtered[i];
-                    final school = spell.getString(StringKey.genre) ?? '';
-                    final classMap = _parseSpellClasses(spell);
-                    // Show level for the filtered class, or lowest level
-                    final displayLevel = _classFilter != null &&
-                            classMap.containsKey(_classFilter)
-                        ? classMap[_classFilter]!
-                        : (classMap.values.isNotEmpty
-                            ? (classMap.values.reduce((a, b) => a < b ? a : b))
-                            : 0);
-                    final classStr = classMap.entries
-                        .map((e) => '${e.key} ${e.value}')
-                        .take(4)
-                        .join(', ');
-
-                    final alreadyKnown = character != null &&
-                        _getSpellList(character, 'knownSpells')
-                            .any((s) => s['name'] == spell.getDisplayName());
-                    return ListTile(
-                      dense: true,
-                      leading: CircleAvatar(
-                        radius: 12,
-                        backgroundColor: Colors.blue.shade100,
-                        child: Text('$displayLevel',
-                            style: const TextStyle(fontSize: 10)),
-                      ),
-                      title: Text(spell.getDisplayName(),
-                          style: const TextStyle(fontSize: 12)),
-                      subtitle: (school.isNotEmpty || classStr.isNotEmpty)
-                          ? Text(
-                              [
-                                if (school.isNotEmpty) school,
-                                if (classStr.isNotEmpty) classStr,
-                              ].join(' • '),
-                              style: const TextStyle(
-                                  fontSize: 10, color: Colors.grey),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis)
-                          : null,
-                      trailing: character == null
-                          ? null
-                          : alreadyKnown
-                              ? Icon(Icons.check, size: 16,
-                                  color: Colors.green.shade600)
-                              : TextButton(
-                                  child: const Text('Add',
-                                      style: TextStyle(fontSize: 11)),
-                                  onPressed: () {
-                                    _addToList(character, 'knownSpells', {
-                                      'name': spell.getDisplayName(),
-                                      'key':  spell.getKeyName(),
-                                      'level': displayLevel,
-                                    });
-                                    setState(() {});
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text('Added ${spell.getDisplayName()}'),
-                                        duration: const Duration(seconds: 1),
-                                      ),
-                                    );
-                                  },
-                                ),
-                      onTap: () => _showSpellDetail(context, spell),
-                    );
-                  },
+          child: tree.isEmpty
+              ? const Center(
+                  child: Text('No spells match.',
+                      style: TextStyle(color: Colors.grey)))
+              : ListView(
+                  children: [
+                    for (final cls in sortedClasses)
+                      _buildClassNode(
+                          character, cls, tree[cls]!, knownNames, myClassNames),
+                  ],
                 ),
         ),
       ],
+    );
+  }
+
+  Widget _buildClassNode(
+    dynamic character,
+    String className,
+    Map<int, List<Spell>> byLevel,
+    Set<String> knownNames,
+    Set<String> myClassNames,
+  ) {
+    final isMyClass = myClassNames.contains(className.toLowerCase());
+    final totalCount = byLevel.values.fold(0, (s, l) => s + l.length);
+    final levels = byLevel.keys.toList()..sort();
+
+    return ExpansionTile(
+      initiallyExpanded: isMyClass,
+      tilePadding: const EdgeInsets.symmetric(horizontal: 12),
+      title: Row(children: [
+        Icon(isMyClass ? Icons.school : Icons.menu_book,
+            size: 14,
+            color: isMyClass ? Colors.blue.shade700 : Colors.grey.shade600),
+        const SizedBox(width: 6),
+        Text(className,
+            style: TextStyle(
+                fontWeight:
+                    isMyClass ? FontWeight.bold : FontWeight.normal,
+                fontSize: 13,
+                color: isMyClass ? null : Colors.grey.shade800)),
+        const SizedBox(width: 8),
+        Text('($totalCount)',
+            style: TextStyle(fontSize: 11, color: Colors.grey.shade500)),
+      ]),
+      children: [
+        for (final lvl in levels)
+          _buildLevelNode(
+              character, className, lvl, byLevel[lvl]!, knownNames),
+      ],
+    );
+  }
+
+  Widget _buildLevelNode(
+    dynamic character,
+    String className,
+    int level,
+    List<Spell> spells,
+    Set<String> knownNames,
+  ) {
+    final label = level == 0 ? 'Cantrips / Orisons' : 'Level $level';
+    // Sort spells alphabetically within each level
+    final sorted = List<Spell>.from(spells)
+      ..sort((a, b) => a.getDisplayName().compareTo(b.getDisplayName()));
+
+    return ExpansionTile(
+      initiallyExpanded: level == 0,
+      tilePadding: const EdgeInsets.only(left: 32, right: 12),
+      title: Text('$label  (${spells.length})',
+          style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+              color: Colors.blue.shade700)),
+      children: sorted.map((spell) {
+        final name     = spell.getDisplayName();
+        final school   = spell.getString(StringKey.genre) ?? '';
+        final isKnown  = knownNames.contains(name.toLowerCase());
+        final classMap = _parseSpellClasses(spell);
+        // Build compact class list excluding the current class
+        final otherClasses = classMap.entries
+            .where((e) => e.key != className)
+            .map((e) => '${e.key} ${e.value}')
+            .take(3)
+            .join(', ');
+
+        return ListTile(
+          dense: true,
+          contentPadding: const EdgeInsets.only(left: 56, right: 8),
+          leading: CircleAvatar(
+            radius: 10,
+            backgroundColor:
+                isKnown ? Colors.green.shade100 : Colors.blue.shade50,
+            child: Text('$level',
+                style: TextStyle(
+                    fontSize: 9,
+                    color: isKnown
+                        ? Colors.green.shade800
+                        : Colors.blue.shade800)),
+          ),
+          title: Text(name,
+              style: TextStyle(
+                  fontSize: 12,
+                  fontWeight:
+                      isKnown ? FontWeight.w600 : FontWeight.normal)),
+          subtitle: (school.isNotEmpty || otherClasses.isNotEmpty)
+              ? Text(
+                  [
+                    if (school.isNotEmpty) school,
+                    if (otherClasses.isNotEmpty) otherClasses,
+                  ].join(' • '),
+                  style:
+                      const TextStyle(fontSize: 10, color: Colors.grey),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                )
+              : null,
+          trailing: character == null
+              ? null
+              : isKnown
+                  ? Icon(Icons.check_circle,
+                      size: 16, color: Colors.green.shade600)
+                  : TextButton(
+                      style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 0),
+                          minimumSize: Size.zero,
+                          tapTargetSize:
+                              MaterialTapTargetSize.shrinkWrap),
+                      child: const Text('Add',
+                          style: TextStyle(fontSize: 11)),
+                      onPressed: () {
+                        _addToList(character, 'knownSpells', {
+                          'name':  name,
+                          'key':   spell.getKeyName(),
+                          'level': level,
+                          'class': className,
+                        });
+                        setState(() {});
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                          content: Text('Added $name'),
+                          duration: const Duration(seconds: 1),
+                        ));
+                      },
+                    ),
+          onTap: () => _showSpellDetail(context, spell),
+        );
+      }).toList(),
     );
   }
 

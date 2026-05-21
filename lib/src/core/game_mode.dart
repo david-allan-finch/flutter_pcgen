@@ -670,6 +670,26 @@ final class GameMode implements Comparable<Object> {
   String getDefaultDataset() => _defaultDataset;
   void setDefaultDataset(String s) { _defaultDataset = s; }
 
+  // Display labels
+  String _acAbbrev = 'AC';
+  String getACAbrev() => _acAbbrev;
+  void setACAbrev(String s) { _acAbbrev = s; }
+
+  String _alignmentName = 'Alignment';
+  String getAlignmentName() => _alignmentName;
+  void setAlignmentName(String s) { _alignmentName = s; }
+
+  // Types to hide from UI lists
+  final Set<String> _hiddenFeatTypes = {};
+  void addHiddenFeatType(String t) { _hiddenFeatTypes.add(t); }
+  Set<String> getHiddenFeatTypes() => Set.unmodifiable(_hiddenFeatTypes);
+  bool isFeatTypeHidden(String t) => _hiddenFeatTypes.contains(t);
+
+  final Set<String> _hiddenEquipTypes = {};
+  void addHiddenEquipType(String t) { _hiddenEquipTypes.add(t); }
+  Set<String> getHiddenEquipTypes() => Set.unmodifiable(_hiddenEquipTypes);
+  bool isEquipTypeHidden(String t) => _hiddenEquipTypes.contains(t);
+
   // codeControl.lst extras (Pathfinder/Starfinder)
   String _faceLabel = 'Face';
   String _statInput = 'STATSCORE';

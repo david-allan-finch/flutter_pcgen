@@ -264,6 +264,70 @@ class CampaignLoader {
       case 'PREFILETYPE':
         break;
 
+      case 'DESC':
+        // Campaign description shown in the source selection dialog
+        campaign.putString(StringKey.description, value);
+
+      case 'SHOWINMENU':
+        // Whether this campaign appears in the source selector (YES/NO)
+        campaign.putObject(
+            CDOMObjectKey.getConstant<bool>('SHOW_IN_MENU'),
+            value.trim().toUpperCase() != 'NO');
+
+      case 'KEY':
+        // Alternate key name for this campaign
+        try { campaign.setKeyName(value.trim()); } catch (_) {}
+
+      case 'ALLOWDUPES':
+        // Allow duplicate object keys from this source (e.g. ALLOWDUPES:SPELL)
+        campaign.addToListFor(
+            ListKey.getConstant<String>('ALLOW_DUPES'), value);
+
+      case 'FORWARDREF':
+        // Forward reference to objects this campaign requires (e.g. FORWARDREF:RACE|Orc)
+        // Stored for potential validation; not enforced in the Flutter port.
+        campaign.addToListFor(
+            ListKey.getConstant<String>('FORWARD_REF'), value);
+
+      case 'HIDETYPE':
+        // HIDETYPE:FEAT|TypeA|TypeB — hide these types from UI lists
+        campaign.addToListFor(
+            ListKey.getConstant<String>('HIDE_TYPES'), value);
+
+      case 'COMPANIONLIST':
+        // COMPANIONLIST:Type|Race1|Race2 — allowed companion races
+        campaign.addToListFor(
+            ListKey.getConstant<String>('COMPANION_LIST'), value);
+
+      case 'PRECAMPAIGN':
+      case '!PRECAMPAIGN':
+        // Campaign prerequisite / exclusion — stored for informational use.
+        // The Flutter port does not enforce these during source loading.
+        campaign.addToListFor(
+            ListKey.getConstant<String>(
+                tag.startsWith('!') ? 'PRECAMPAIGN_EXCLUDE' : 'PRECAMPAIGN_REQUIRE'),
+            value);
+
+      case 'BONUS':
+        // BONUS:ABILITYPOOL|Pool|N — global bonus applied when this campaign loads.
+        // Stored as raw string for future evaluation.
+        campaign.addToListFor(
+            ListKey.getConstant<String>('PCC_BONUS_LIST'), value);
+
+      case 'DEFINE':
+        // DEFINE:VarName|value — variable definition applied globally.
+        campaign.addToListFor(
+            ListKey.getConstant<String>('PCC_DEFINE_LIST'), value);
+
+      case 'OPTION':
+        // OPTION:key=value — sets a PCGen option/flag.
+        campaign.addToListFor(
+            ListKey.getConstant<String>('PCC_OPTIONS'), value);
+
+      case 'GLOBALMODIFIER':
+        // GLOBALMODIFIER:file.lst — global modifier file.
+        _addFileEntry(campaign, 'FILE_GLOBALMOD', value, source);
+
       default:
         if (kDebugMode && _reportedPccTags.add(tag)) {
           // ignore: avoid_print

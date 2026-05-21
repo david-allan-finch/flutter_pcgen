@@ -246,8 +246,26 @@ class GenericLoader<T extends CDOMObject> extends LstObjectFileLoader<T> {
           try { obj.putString(StringKey.dataFormat, value); } catch (_) {}
           return;
         case 'CLASSES':
-          // CLASSES:Wizard=3|Sorcerer=3|Cleric=5|...
-          try { obj.putString(StringKey.campaignSetting, value); } catch (_) {}
+          // CLASSES:Wizard=3|Sorcerer=3|... — append to existing entry so that
+          // multiple .MOD lines each adding one class accumulate correctly.
+          try {
+            final existing = obj.getString(StringKey.campaignSetting) ?? '';
+            if (existing.isEmpty) {
+              obj.putString(StringKey.campaignSetting, value);
+            } else {
+              // Merge: add only entries not already present (by class name)
+              final existing2 = existing;
+              final currentKeys = existing2.split('|')
+                  .map((e) => e.split('=').first.trim())
+                  .toSet();
+              final newParts = value.split('|').where((p) {
+                final cls = p.split('=').first.trim();
+                return cls.isNotEmpty && !currentKeys.contains(cls);
+              }).join('|');
+              obj.putString(StringKey.campaignSetting,
+                  newParts.isEmpty ? existing2 : '$existing2|$newParts');
+            }
+          } catch (_) {}
           return;
         case 'CASTTIME':
         case 'CASTINGTIME':

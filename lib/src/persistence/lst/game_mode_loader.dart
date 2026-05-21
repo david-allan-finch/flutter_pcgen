@@ -276,6 +276,25 @@ final class GameModeLoader {
           }
         }
 
+      case 'ACABBREV':
+        gm.setACAbrev(value);
+
+      case 'ALIGNMENTNAME':
+        // Label used in the UI for the alignment concept (e.g. 'Alignment')
+        gm.setAlignmentName(value);
+
+      case 'HIDDENFEATTYPES':
+        // Pipe-delimited feat types hidden from the feat selection UI
+        for (final t in value.split('|')) {
+          if (t.isNotEmpty) gm.addHiddenFeatType(t.trim());
+        }
+
+      case 'HIDDENEQUIPTYPES':
+        // Pipe-delimited equipment sub-types hidden from the equipment UI
+        for (final t in value.split('|')) {
+          if (t.isNotEmpty) gm.addHiddenEquipType(t.trim());
+        }
+
       case 'MONSTERROLES':
       case 'MONSTERROLEDEFAULT':
       case 'CRSTEPS':
