@@ -419,39 +419,47 @@ class PcgenTokenContext extends FtlContext {
     switch (parts[2]) {
       case 'NAME':    return abb;
       case 'ABB':     return abb;
+      // Base score — no temporary or equipment bonuses.
+      // When parts[3]+ exist they are NOTEMP/NOEQUIP qualifiers on the MOD
+      // sub-token (handled below); here parts[2] IS NOTEMP/NOEQUIP itself.
       case 'NOTEMP':
       case 'NOEQUIP':
-      case 'NOTEMP.NOEQUIP':
+        if (dataset != null) {
+          try {
+            final stat = (dataset.stats as List).firstWhere((s) => s.getKeyName() == abb);
+            return _pc.getScoreBase(stat).toString();
+          } catch (_) {}
+        }
+        return (_data('statScores')?[abb] as num?)?.toString() ?? '10';
+      // Effective (total) score — includes racial / item / spell bonuses.
+      case 'NOTEMP.NOEQUIP': // only matches when token is NOT split by '.'
       case 'SCORE':
       case 'TOTAL':
         if (dataset != null) {
           try {
             final stat = (dataset.stats as List).firstWhere((s) => s.getKeyName() == abb);
-            final eff = _pc.getEffectiveScore(stat);
-            // ignore: avoid_print
-            print('[STAT] $abb ${parts[2]} firstWhere HIT keyName=${stat.getKeyName()} effective=$eff');
-            return eff.toString();
+            return _pc.getEffectiveScore(stat).toString();
           } catch (_) {}
         }
-        final raw = (_data('statScores')?[abb] as num?)?.toString() ?? '10';
-        // ignore: avoid_print
-        print('[STAT] $abb ${parts[2]} fallback raw=$raw');
-        return raw;
+        return (_data('statScores')?[abb] as num?)?.toString() ?? '10';
       case 'MOD':
-      case 'BASEMOD':
+      case 'BASEMOD': {
+        // STAT.N.MOD.NOTEMP or STAT.N.MOD.NOTEMP.NOEQUIP → base modifier only.
+        final isBaseOnly = parts.length > 3 &&
+            (parts[3].toUpperCase() == 'NOTEMP' || parts[3].toUpperCase() == 'NOEQUIP');
         if (dataset != null) {
           try {
             final stat = (dataset.stats as List).firstWhere((s) => s.getKeyName() == abb);
-            final m = _pc.getModTotal(stat);
-            // ignore: avoid_print
-            print('[STAT] $abb MOD firstWhere HIT keyName=${stat.getKeyName()} mod=$m');
-            return _signed(m);
+            if (isBaseOnly) {
+              final base = _pc.getScoreBase(stat);
+              return _signed(((base - 10) / 2).floor());
+            }
+            return _signed(_pc.getModTotal(stat));
           } catch (_) {}
         }
         final score = (_data('statScores')?[abb] as num?)?.toInt() ?? 10;
-        // ignore: avoid_print
-        print('[STAT] $abb MOD fallback score=$score mod=${((score - 10) / 2).floor()}');
         return _signed(((score - 10) / 2).floor());
+      }
       case 'BASE':
         if (dataset != null) {
           try {
@@ -734,7 +742,11 @@ class PcgenTokenContext extends FtlContext {
         // Skip placeholder / artifact skill names
         if (name.toLowerCase() == 'not used' || name.toLowerCase() == 'untrained') continue;
         final ranks = _pc.getSkillRanks(entry);
-        if (ranks > 0 || !name.contains('(')) {
+        // Only include specialised skills (Craft ~ Armorsmithing, Knowledge ~ Arcana,
+        // Perform ~ Sing, etc.) if the character has ranks in them. Both '(' and '~'
+        // are PCGen specialisation separators; skills without either are always shown.
+        final isSpecialised = name.contains('(') || name.contains('~');
+        if (ranks > 0 || !isSpecialised) {
           results.add(entry);
         }
       } catch (_) {}
