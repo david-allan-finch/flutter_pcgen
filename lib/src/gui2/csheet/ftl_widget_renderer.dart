@@ -300,7 +300,13 @@ class FtlWidgetSink extends FtlSink {
           final w = done.build();
           if (w != null) _top.addWidget(w);
         }
-        _stack.add(_RowB());
+        {
+          // <tr bgcolor="…"> — row-level background applied to cells that have no
+          // explicit background of their own (e.g. alternating #DDDDDD / white rows).
+          final trBgAttr = _attrValue(attrs, 'bgcolor');
+          final trBg = trBgAttr != null ? _CssStyle._parseColor(trBgAttr) : null;
+          _stack.add(_RowB(rowBg: trBg));
+        }
         return;
       case 'th':
         // Auto-close any open cell before starting a new one (browser behavior).
@@ -312,9 +318,10 @@ class FtlWidgetSink extends FtlSink {
         final csth = int.tryParse(_attrValue(attrs, 'colspan') ?? '') ?? 1;
         final rsth = int.tryParse(_attrValue(attrs, 'rowspan') ?? '') ?? 1;
         final wth  = _parseCellWidth(_attrValue(attrs, 'width'));
+        final rowBgTh = _stack.whereType<_RowB>().lastOrNull?.rowBg;
         _stack.add(_CellB(isHeader: true,  css: css, colspan: csth, rowspan: rsth,
                           widthFraction: wth.$1, widthFixed: wth.$2,
-                          cellPad: _cellPadStack.last));
+                          cellPad: _cellPadStack.last, rowBg: rowBgTh));
         return;
       case 'td':
         // Auto-close any open cell before starting a new one (browser behavior).
@@ -326,9 +333,10 @@ class FtlWidgetSink extends FtlSink {
         final cstd = int.tryParse(_attrValue(attrs, 'colspan') ?? '') ?? 1;
         final rstd = int.tryParse(_attrValue(attrs, 'rowspan') ?? '') ?? 1;
         final wtd  = _parseCellWidth(_attrValue(attrs, 'width'));
+        final rowBgTd = _stack.whereType<_RowB>().lastOrNull?.rowBg;
         _stack.add(_CellB(isHeader: false, css: css, colspan: cstd, rowspan: rstd,
                           widthFraction: wtd.$1, widthFixed: wtd.$2,
-                          cellPad: _cellPadStack.last));
+                          cellPad: _cellPadStack.last, rowBg: rowBgTd));
         return;
       case 'ul':  _stack.add(_ListB(ordered: false)); return;
       case 'ol':  _stack.add(_ListB(ordered: true));  return;
@@ -1607,6 +1615,8 @@ class _RowWidget extends StatelessWidget {
 }
 
 class _RowB extends _Builder {
+  final Color? rowBg;
+  _RowB({this.rowBg});
   final cells = <_CellData>[];
   @override void addWidget(Widget w) {
     if (w is _CellWidget) cells.add(w.data);
@@ -1631,10 +1641,11 @@ class _CellB extends _Builder {
   final double? widthFraction;
   final double? widthFixed;
   final double cellPad;
+  final Color? rowBg; // fallback background from parent <tr bgcolor="…">
   _CellB({required this.isHeader, required this.css,
           this.colspan = 1, this.rowspan = 1,
           this.widthFraction, this.widthFixed,
-          this.cellPad = 1.0});
+          this.cellPad = 1.0, this.rowBg});
 
   @override void addWidget(Widget w) { _flushPending(); _children.add(w); }
 
@@ -1647,7 +1658,8 @@ class _CellB extends _Builder {
           colspan: colspan, rowspan: rowspan, hasContent: false));
     }
 
-    final bg  = css.bgColor ?? (isHeader ? const Color(0xFFD0D7DC) : null);
+    // Cell background: explicit CSS > row-level bgcolor > header default.
+    final bg  = css.bgColor ?? rowBg ?? (isHeader ? const Color(0xFFD0D7DC) : null);
     final fg  = _autoFg(bg, css.textColor);
     final fs  = css.fontSize ?? 10.0;
     final fw  = css.fontWeight ?? (isHeader ? FontWeight.bold : FontWeight.normal);

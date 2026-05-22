@@ -11,6 +11,7 @@
 //   ABILITY.FEAT.0.NAME → first feat name
 
 import 'package:flutter_pcgen/src/cdom/enumeration/list_key.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/object_key.dart';
 import 'package:flutter_pcgen/src/cdom/enumeration/string_key.dart';
 import 'package:flutter_pcgen/src/core/skill.dart';
 import 'package:flutter_pcgen/src/io/freemarker/ftl_context.dart';
@@ -733,19 +734,31 @@ class PcgenTokenContext extends FtlContext {
       try {
         final name = s.getKeyName();
         if (name.isEmpty) continue;
+        // Skip placeholder / artifact skill names
+        if (name.toLowerCase() == 'not used' || name.toLowerCase() == 'untrained') continue;
+
+        // Visibility filter: the template/export sheet only renders skills that are
+        // VISIBLE:YES or VISIBLE:EXPORT (or have no VISIBLE token, which defaults to YES).
+        // VISIBLE:DISPLAY skills appear in the GUI tabs for selection but not on the
+        // printed/exported sheet — e.g. all Craft (X) specialisations are DISPLAY-only
+        // while Craft (Untrained) is EXPORT.
+        String vis = 'YES';
+        try {
+          vis = (s as dynamic).getSafeObject(
+              CDOMObjectKey.getConstant<String>('VISIBLE')) as String? ?? 'YES';
+        } catch (_) {}
+        if (vis == 'DISPLAY' || vis == 'NO') continue;
+
         final entry = <String, dynamic>{
           'name':  name,
           'key':   name,
           'stat':  s.getKeyStatAbb(),
           'skill': s,
         };
-        // Skip placeholder / artifact skill names
-        if (name.toLowerCase() == 'not used' || name.toLowerCase() == 'untrained') continue;
         final ranks = _pc.getSkillRanks(entry);
-        // Specialised skills (Craft ~ Armorsmithing, Knowledge ~ Arcana, Perform ~ Sing,
-        // etc.) are only shown when the character has ranks in them — UNLESS the skill
-        // itself allows untrained use (e.g. "Craft (untrained)"), in which case it always
-        // shows. Both '(' and '~' are PCGen specialisation separators.
+        // Specialised skills (those whose EXPORT-visible variant includes a separator)
+        // only appear when the character has ranks.  The VISIBLE filter above already
+        // handles most of this, but keep the separator check as a safety net.
         final isSpecialised = name.contains('(') || name.contains('~');
         bool canUseUntrained = false;
         try { canUseUntrained = (s as dynamic).isUntrained() as bool? ?? false; } catch (_) {}
