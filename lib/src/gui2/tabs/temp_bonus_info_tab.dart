@@ -84,11 +84,10 @@ class TempBonusInfoTabState extends State<TempBonusInfoTab> {
                   : ListView.builder(
                       itemCount: bonuses.length,
                       itemBuilder: (context, i) {
-                        final bonus = bonuses[i];
-                        final name = bonus['name'] as String? ?? 'Bonus';
-                        final value = bonus['value'] as String? ?? '+0';
-                        final stat = bonus['stat'] as String? ?? '';
-                        final active = bonus['active'] as bool? ?? true;
+                        final bonus  = bonuses[i];
+                        final name   = bonus['name']   as String? ?? bonus['rawSource'] as String? ?? 'Bonus';
+                        final active = bonus['active'] as bool?   ?? true;
+                        final summary = _bonusSummary(bonus);
                         return Card(
                           margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                           child: ListTile(
@@ -103,7 +102,12 @@ class TempBonusInfoTabState extends State<TempBonusInfoTab> {
                                 style: TextStyle(
                                     decoration: active ? null : TextDecoration.lineThrough,
                                     color: active ? null : Colors.grey)),
-                            subtitle: Text('$stat $value'),
+                            subtitle: summary.isNotEmpty
+                                ? Text(summary,
+                                    style: TextStyle(
+                                        fontSize: 10,
+                                        color: active ? Colors.grey.shade600 : Colors.grey.shade400))
+                                : null,
                             trailing: IconButton(
                               icon: const Icon(Icons.delete_outline,
                                   size: 16, color: Colors.red),
@@ -132,13 +136,34 @@ class TempBonusInfoTabState extends State<TempBonusInfoTab> {
     return [];
   }
 
+  /// One-line summary of what a bonus entry does.
+  String _bonusSummary(Map<String, dynamic> entry) {
+    final bonuses = entry['bonuses'] as List? ?? [];
+    if (bonuses.isEmpty) {
+      // Legacy flat structure
+      final cat = entry['category'] as String? ?? '';
+      final tgt = entry['target']   as String? ?? '';
+      final val = entry['value']    as String? ?? '';
+      return '$cat $tgt $val';
+    }
+    return bonuses.map((b) {
+      if (b is! Map) return '';
+      final cat     = b['category']  as String? ?? '';
+      final targets = (b['targets']  as List?)?.join('/') ?? b['target'] as String? ?? '';
+      final formula = b['formula']   as String? ?? '';
+      final type    = b['bonusType'] as String? ?? '';
+      final typePart = type.isNotEmpty ? ' [$type]' : '';
+      return '$cat $targets $formula$typePart';
+    }).where((s) => s.isNotEmpty).join('  ·  ');
+  }
+
   void _toggleBonus(dynamic character, int index, bool active) {
     try {
       final data = (character as dynamic).toJson() as Map<String, dynamic>;
       final list = data['tempBonuses'] as List?;
       if (list != null && index < list.length) {
         list[index]['active'] = active;
-        currentCharacter.notifyListeners();
+        (character as dynamic).notifyListeners();
         setState(() {});
       }
     } catch (_) {}
@@ -150,7 +175,7 @@ class TempBonusInfoTabState extends State<TempBonusInfoTab> {
       final list = data['tempBonuses'] as List?;
       if (list != null && index < list.length) {
         list.removeAt(index);
-        currentCharacter.notifyListeners();
+        (character as dynamic).notifyListeners();
         setState(() {});
       }
     } catch (_) {}
@@ -268,15 +293,19 @@ class TempBonusInfoTabState extends State<TempBonusInfoTab> {
       final data = (character as dynamic).toJson() as Map<String, dynamic>;
       final list = (data['tempBonuses'] ??= <Map<String, dynamic>>[]) as List;
       list.add({
-        'name': name,
-        'category': category,
-        'target': target,
-        'stat': '$category|$target',
-        'value': value,
-        'bonusType': bonusType,
-        'active': true,
+        'name':      name,
+        'rawSource': 'SPELL=$name',
+        'active':    true,
+        'bonuses': [
+          {
+            'category':  category,
+            'targets':   [target],
+            'formula':   value,
+            'bonusType': bonusType,
+          }
+        ],
       });
-      currentCharacter.notifyListeners();
+      (character as dynamic).notifyListeners();
       setState(() {});
     } catch (_) {}
   }
@@ -320,36 +349,40 @@ class TempBonusInfoTabState extends State<TempBonusInfoTab> {
       final name = tb['name'] as String;
       final data = (character as dynamic).toJson() as Map<String, dynamic>;
       final list = (data['tempBonuses'] ??= <Map<String, dynamic>>[]) as List;
-      // Remove existing entry with this name
-      list.removeWhere((b) => b is Map && b['name'] == name);
+      list.removeWhere((b) => b is Map && b['name'] == name && (b['fromAbility'] == true));
       if (active) {
-        // Parse each TEMPBONUS entry and add to list
-        final bonuses = tb['bonuses'] as List? ?? [];
-        for (final raw in bonuses) {
+        final rawBonuses = tb['bonuses'] as List? ?? [];
+        final subBonuses = <Map<String, dynamic>>[];
+        for (final raw in rawBonuses) {
           if (raw is! String) continue;
-          // Format: ANYPC|CATEGORY|TARGET|VALUE[|TYPE=...]
+          // Format: TBTARGET|CATEGORY|TARGET|VALUE[|TYPE=...]
           final parts = raw.split('|');
           if (parts.length < 4) continue;
-          final category  = parts[1];
-          final target    = parts[2];
-          final value     = parts[3];
+          final category = parts[1];
+          final targets  = parts[2].split(',').map((t) => t.trim()).toList();
+          final formula  = parts[3];
           String bonusType = '';
           for (final p in parts.skip(4)) {
             if (p.toUpperCase().startsWith('TYPE=')) bonusType = p.substring(5);
           }
-          list.add({
-            'name': name,
-            'category': category,
-            'target': target,
-            'stat': '$category|$target',
-            'value': value,
+          subBonuses.add({
+            'category':  category,
+            'targets':   targets,
+            'formula':   formula,
             'bonusType': bonusType,
-            'active': true,
+          });
+        }
+        if (subBonuses.isNotEmpty) {
+          list.add({
+            'name':        name,
+            'rawSource':   'FEAT=$name',
+            'active':      true,
             'fromAbility': true,
+            'bonuses':     subBonuses,
           });
         }
       }
-      currentCharacter.notifyListeners();
+      (character as dynamic).notifyListeners();
       setState(() {});
     } catch (_) {}
   }

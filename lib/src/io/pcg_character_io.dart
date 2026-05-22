@@ -445,6 +445,34 @@ class PCGCharacterIO {
     }
     buf.writeln();
 
+    // Active temporary bonuses in native Java PCGen TEMPBONUS format.
+    final tempBonuses = data['tempBonuses'];
+    if (tempBonuses is List) {
+      for (final entry in tempBonuses) {
+        if (entry is! Map) continue;
+        final active    = entry['active'] as bool? ?? true;
+        if (!active) continue;
+        final rawSource = entry['rawSource'] as String?;
+        final name      = entry['name'] as String? ?? '';
+        final source    = rawSource ?? 'SPELL=$name';
+        final bonuses   = entry['bonuses'] as List? ?? [];
+        if (bonuses.isEmpty) continue;
+        final sb = StringBuffer('TEMPBONUS:$source|TBTARGET:PC');
+        for (final b in bonuses) {
+          if (b is! Map) continue;
+          final category  = b['category'] as String? ?? '';
+          final targets   = (b['targets'] as List?)?.join(',') ?? b['target'] as String? ?? '';
+          final formula   = b['formula'] as String? ?? '0';
+          final bonusType = b['bonusType'] as String? ?? '';
+          final typeSuffix = bonusType.isNotEmpty ? '|TYPE=$bonusType' : '';
+          // Pipe chars inside the bonus value must be escaped as &pipe;
+          sb.write('|TBBONUS:${category}&pipe;${targets}&pipe;$formula$typeSuffix');
+        }
+        buf.writeln(sb.toString());
+      }
+      buf.writeln();
+    }
+
     // Sheet input variables (ammo checkboxes, spell slots, PC.HP, etc.)
     // Native Java PCGen format: PREVIEWVAR:key|value
     //   PREVIEWVAR:key|value   (matches IOConstants.TAG_PREVIEWSHEETVAR)
@@ -990,41 +1018,54 @@ class PCGCharacterIO {
     // All TEMPBONUS lines saved in a PCG were active at save time.
     final parts = value.split('|');
     if (parts.isEmpty) return;
-    final source = parts[0].trim(); // e.g. "SPELL=Barkskin" or "FEAT=..."
+    final rawSource = parts[0].trim(); // e.g. "SPELL=Barkskin"
+    final name = _formatTempBonusSource(rawSource);
     final tempBonuses = (data['tempBonuses'] ??= <dynamic>[]) as List;
 
+    // Group all TBBONUS lines under one entry per source (one checkbox per spell/effect).
+    final existing = tempBonuses.cast<Map>()
+        .where((e) => e['rawSource'] == rawSource)
+        .firstOrNull;
+    final entry = existing ?? <String, dynamic>{
+      'name':      name,
+      'rawSource': rawSource,
+      'active':    true,
+      'bonuses':   <Map<String, dynamic>>[],
+    };
+    if (existing == null) tempBonuses.add(entry);
+
     for (final p in parts.skip(1)) {
-      if (!p.toUpperCase().startsWith('TBBONUS:')) continue;
+      final pu = p.toUpperCase();
+      if (!pu.startsWith('TBBONUS:')) continue;
       // Unescape &pipe; → | inside the bonus string
       final bonusStr = p.substring(8).replaceAll('&pipe;', '|');
-      // bonusStr is now like "COMBAT|AC|formula|TYPE=X"
-      // Split on | to extract category, targets, formula, optional TYPE
       final bParts = bonusStr.split('|');
       if (bParts.length < 3) continue;
-      final category  = bParts[0].trim();
-      final target    = bParts[1].trim();
-      final formula   = bParts[2].trim();
+      final category = bParts[0].trim().toUpperCase();
+      // Targets may be comma-separated: "FORTITUDE,REFLEX,WILL"
+      final targets  = bParts[1].trim().split(',').map((t) => t.trim()).toList();
+      final formula  = bParts[2].trim();
       String bonusType = '';
       for (int i = 3; i < bParts.length; i++) {
         final bp = bParts[i].trim();
         if (bp.toUpperCase().startsWith('TYPE=')) {
-          bonusType = bp.substring(5).trim();
-          // Strip .REPLACE/.STACK suffixes (stored separately in Java)
-          bonusType = bonusType
+          bonusType = bp.substring(5).trim()
               .replaceAll(RegExp(r'\.REPLACE$', caseSensitive: false), '')
               .replaceAll(RegExp(r'\.STACK$',   caseSensitive: false), '');
         }
       }
-      // Store as our internal tempBonus map format
-      tempBonuses.add({
-        'source':    source,
+      (entry['bonuses'] as List).add({
         'category':  category,
-        'target':    target,
-        'value':     formula,
+        'targets':   targets,
+        'formula':   formula,
         'bonusType': bonusType,
-        'active':    true,
       });
     }
+  }
+
+  static String _formatTempBonusSource(String raw) {
+    final eq = raw.indexOf('=');
+    return eq >= 0 ? raw.substring(eq + 1) : raw;
   }
 
   static void _readFeat(Map<String, dynamic> data, String value) {

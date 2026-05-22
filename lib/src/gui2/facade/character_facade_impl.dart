@@ -2487,22 +2487,68 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
       final active = entry['active'] as bool? ?? true;
       if (!active) continue;
 
-      final category = (entry['category'] as String? ?? 'COMBAT').toUpperCase();
-      final target   = (entry['target']   as String? ?? 'AC').toUpperCase();
-      final formula  = (entry['value']    as String? ?? '0').replaceAll('+', '');
-      final bonusType = (entry['bonusType'] as String? ?? '');
+      final bonusList = entry['bonuses'] as List?;
+      if (bonusList != null) {
+        // New grouped structure: one entry per source with a list of sub-bonuses.
+        for (final b in bonusList) {
+          if (b is! Map) continue;
+          final category  = (b['category']  as String? ?? '').toUpperCase();
+          final targets   = (b['targets']   as List?)?.cast<String>()
+                            ?? [(b['target'] as String? ?? '')];
+          final formula   =  b['formula']   as String? ?? '0';
+          final bonusType =  b['bonusType'] as String? ?? '';
+          final value     = _evalTempFormula(formula);
+          if (value == 0) continue;
+          for (final target in targets) {
+            _bonusAcc.add(ParsedBonus(
+              category:  category,
+              targets:   [target.toUpperCase()],
+              formula:   formula,
+              bonusType: bonusType,
+              stack:     BonusStack.normal,
+            ), value);
+          }
+        }
+      } else {
+        // Legacy flat structure (pre-grouped saves).
+        final category  = (entry['category']  as String? ?? 'COMBAT').toUpperCase();
+        final target    = (entry['target']     as String? ?? 'AC').toUpperCase();
+        final formula   = (entry['value']      as String? ?? '0').replaceAll('+', '');
+        final bonusType =  entry['bonusType']  as String? ?? '';
+        final value     = _evalTempFormula(formula);
+        if (value == 0) continue;
+        _bonusAcc.add(ParsedBonus(
+          category:  category,
+          targets:   [target],
+          formula:   formula,
+          bonusType: bonusType,
+          stack:     BonusStack.normal,
+        ), value);
+      }
+    }
+  }
 
-      final value = double.tryParse(formula) ?? 0.0;
-      if (value == 0) continue;
-
-      final tempBonus = ParsedBonus(
-        category: category,
-        targets: [target],
-        formula: formula,
-        bonusType: bonusType,
-        stack: bonusType.isEmpty ? BonusStack.normal : BonusStack.normal,
-      );
-      _bonusAcc.add(tempBonus, value);
+  double _evalTempFormula(String formula) {
+    final clean = formula.trim().replaceAll('+', '');
+    // Direct numeric parse.
+    final direct = double.tryParse(clean);
+    if (direct != null) return direct;
+    // Pattern: -N*(M) — e.g. "-1*(2)" used by Energy Drain stacking.
+    final stackMatch = RegExp(r'^(-?\d+\.?\d*)\*\((-?\d+\.?\d*)\)$').firstMatch(clean);
+    if (stackMatch != null) {
+      return double.parse(stackMatch.group(1)!) * double.parse(stackMatch.group(2)!);
+    }
+    // Substitute TL (total level) and try again.
+    final withTl = clean.replaceAll(RegExp(r'\bTL\b', caseSensitive: false),
+        getTotalLevel().toString());
+    final afterTl = double.tryParse(withTl);
+    if (afterTl != null) return afterTl;
+    // Fall back to formula evaluator.
+    try {
+      return FormulaEvaluator().evaluate(withTl, _buildFormulaCtx()).toDouble();
+    } catch (_) {
+      debugPrint('[TempBonus] could not evaluate formula: "$formula"');
+      return 0;
     }
   }
 
