@@ -35,8 +35,9 @@ class FtlWidgetSink extends FtlSink {
 
   // ─── Table cellpadding stack ──────────────────────────────────────────────
   // Each <table> pushes its cellpadding (in logical px); </table> pops.
-  // Browser default cellpadding is 1px.
-  final _cellPadStack = <double>[1.0];
+  // Browser default cellpadding is roughly 3px (1px per the spec, but browsers
+  // add visual spacing beyond this; 3px matches real-world rendering better).
+  final _cellPadStack = <double>[3.0];
 
   // ─── Widget stack ─────────────────────────────────────────────────────────
 
@@ -283,7 +284,7 @@ class FtlWidgetSink extends FtlSink {
         // Cell-level borders come from CSS classes (.abb, .abt, .border9…).
         final borderVal = int.tryParse(_attrValue(attrs, 'border') ?? '0') ?? 0;
         final cpAttr   = _attrValue(attrs, 'cellpadding');
-        final cp = cpAttr != null ? (double.tryParse(cpAttr) ?? 1.0) : 1.0;
+        final cp = cpAttr != null ? (double.tryParse(cpAttr) ?? 3.0) : 3.0;
         final csAttr   = _attrValue(attrs, 'cellspacing');
         final cs = csAttr != null ? (double.tryParse(csAttr) ?? 0.0) : 0.0;
         _cellPadStack.add(cp);
@@ -1694,6 +1695,20 @@ class _CellB extends _Builder {
         : styledChildren.length == 1 ? styledChildren.first
         : Column(crossAxisAlignment: caa, children: styledChildren);
 
+    // Align content within the Expanded cell.
+    // A Text widget's textAlign only positions text within its own natural
+    // width — it has no effect on placement inside a wider parent.  We need
+    // an Align/Center wrapper so the content actually moves to the right
+    // position within the cell (matching browser <td align="center"> and
+    // CSS text-align:center behaviour).
+    if (styledChildren.isNotEmpty) {
+      if (ta == TextAlign.center) {
+        content = Center(child: content);
+      } else if (ta == TextAlign.right) {
+        content = Align(alignment: Alignment.centerRight, child: content);
+      }
+    }
+
     // Vertical-align: only wrap when not the default (top-start).
     // We use mainAxisSize.min so the cell doesn't inflate vertically beyond
     // its content — the Row itself aligns cells via CrossAxisAlignment.start.
@@ -1709,9 +1724,14 @@ class _CellB extends _Builder {
     }
 
     // Padding: CSS padding on the cell element takes priority over cellpadding.
-    // cellpadding is the HTML table-level default; CSS can override per-cell.
+    // Browser default cellpadding feels like ~3px horizontal, ~2px vertical;
+    // we use cellPad * 2 horizontal and cellPad * 1.5 vertical as an approximation,
+    // with a minimum of 3px horizontal / 2px vertical for un-padded tables so that
+    // cell content doesn't appear glued to the border.
+    final double hPad = (cellPad * 2.0).clamp(3.0, 12.0);
+    final double vPad = (cellPad * 1.5).clamp(2.0, 8.0);
     final EdgeInsets cellPadding = css.padding ??
-        EdgeInsets.symmetric(horizontal: cellPad * 2.0, vertical: cellPad);
+        EdgeInsets.symmetric(horizontal: hPad, vertical: vPad);
 
     Widget cell = Container(
       padding: cellPadding,
