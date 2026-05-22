@@ -442,6 +442,20 @@ class PCGCharacterIO {
     }
     buf.writeln();
 
+    // Current HP (editable on character sheet)
+    final currentHp = (data['hp'] as num?)?.toInt() ?? 0;
+    if (currentHp > 0) buf.writeln('HP:$currentHp');
+
+    // Generic sheet input variables (ammo checkboxes, etc.)
+    final sheetVars = data['sheetVars'];
+    if (sheetVars is Map && sheetVars.isNotEmpty) {
+      buf.writeln('# Sheet input variables');
+      sheetVars.forEach((k, v) {
+        if (k.toString().isNotEmpty) buf.writeln('FLUTTERPCG_SHEETVAR:$k=$v');
+      });
+      buf.writeln();
+    }
+
     // Age Set
     buf.writeln('# Age Set Selections');
     buf.writeln('AGESET:1:0:0:0:0:0:0:0:0:0');
@@ -730,6 +744,16 @@ class PCGCharacterIO {
         case 'HP':
           data['hp'] = int.tryParse(value.trim()) ?? 0;
           break;
+        case 'FLUTTERPCG_SHEETVAR': {
+          // KEY=value pairs for generic sheet input variables
+          final eq = value.indexOf('=');
+          if (eq > 0) {
+            final k = value.substring(0, eq);
+            final v = value.substring(eq + 1);
+            (data['sheetVars'] ??= <String, String>{})[k] = v;
+          }
+          break;
+        }
       }
     }
 

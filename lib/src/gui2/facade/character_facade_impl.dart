@@ -406,6 +406,36 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
     notifyListeners();
   }
 
+  // ---- Sheet input variables -----------------------------------------------
+  // These are persisted in the character file so editable fields on the sheet
+  // (current HP, ammo checkboxes, etc.) survive save/load.
+
+  /// Read a sheet input variable. 'PC.HP' maps to current HP; all others go
+  /// to a generic string map stored under 'sheetVars'.
+  String getSheetVar(String key) {
+    if (key == 'PC.HP') return (_data['hp'] as num?)?.toInt().toString() ?? '';
+    final vars = _data['sheetVars'] as Map?;
+    return vars?[key]?.toString() ?? '';
+  }
+
+  /// Write a sheet input variable.  Does NOT call notifyListeners so that
+  /// typing in an input field does not trigger a full sheet rebuild.
+  void setSheetVar(String key, String value) {
+    if (key == 'PC.HP') {
+      final n = int.tryParse(value.trim());
+      if (n != null) _data['hp'] = n;
+    } else {
+      ((_data['sheetVars'] ??= <String, String>{}) as Map)[key] = value;
+    }
+  }
+
+  /// All generic sheet vars (for PCG serialisation).
+  Map<String, String> getSheetVars() {
+    final m = _data['sheetVars'];
+    if (m is! Map) return {};
+    return Map<String, String>.from(m.map((k, v) => MapEntry(k.toString(), v.toString())));
+  }
+
   /// Set the HP gained at level [levelIndex] (0-based).
   void setLevelHP(int levelIndex, int hp) {
     final levels = _data['classLevels'] as List? ?? [];

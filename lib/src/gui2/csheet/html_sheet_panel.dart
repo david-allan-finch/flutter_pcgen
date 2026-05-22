@@ -181,7 +181,7 @@ class _HtmlSheetPanelState extends State<HtmlSheetPanel> {
         final widget = await Future(() {
           final ctx  = PcgenTokenContext(pc, loadedDataSet.value);
           ctx.vars['gamemodename'] = pc.getGameMode();
-          final sink = FtlWidgetSink();
+          final sink = FtlWidgetSink(pc: pc);
           FtlEngine().renderFileToSink(template, ctx, sink);
           return sink.build();
         });

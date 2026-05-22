@@ -11,6 +11,7 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_layout_grid/flutter_layout_grid.dart';
+import 'package:flutter_pcgen/src/gui2/facade/character_facade_impl.dart';
 import 'package:flutter_pcgen/src/io/freemarker/ftl_engine.dart';
 
 // ─── Public API ───────────────────────────────────────────────────────────────
@@ -19,6 +20,9 @@ class FtlWidgetSink extends FtlSink {
   static const _defHeaderBg = Color(0xFF37474F);
   static const _defHeaderFg = Colors.white;
   static const _borderCol   = Color(0xFFB0BEC5);
+
+  /// Optional character reference — enables interactive sheet inputs.
+  final CharacterFacadeImpl? pc;
 
   // ─── Parser state ────────────────────────────────────────────────────────
 
@@ -44,7 +48,7 @@ class FtlWidgetSink extends FtlSink {
   final _root  = _Column();
   late final List<_Builder> _stack;
 
-  FtlWidgetSink() { _stack = [_root]; }
+  FtlWidgetSink({this.pc}) { _stack = [_root]; }
 
   _Builder get _top => _stack.last;
 
@@ -369,17 +373,33 @@ class FtlWidgetSink extends FtlSink {
       // <input> cannot be interactive in Flutter (no JS). Render a placeholder
       // that takes up space so surrounding layout is preserved.
       case 'input': {
-        final type = (_attrValue(attrs, 'type') ?? 'text').toLowerCase();
+        final type      = (_attrValue(attrs, 'type') ?? 'text').toLowerCase();
+        final targetVar = _attrValue(attrs, 'target_var') ?? '';
+        final character = pc;
         if (type == 'checkbox') {
-          _top.addText('☐'); // ☐
+          if (character != null && targetVar.isNotEmpty) {
+            _top.addWidget(_SheetCheckbox(
+              targetVar: targetVar,
+              pc: character,
+            ));
+          } else {
+            _top.addText('☐');
+          }
         } else {
-          // text / number input — visible empty box
-          _top.addWidget(Container(
-            width: 60, height: 18,
-            decoration: BoxDecoration(
-              border: Border.all(color: const Color(0xFF888888), width: 1),
-            ),
-          ));
+          // text / number input
+          if (character != null && targetVar.isNotEmpty) {
+            _top.addWidget(_SheetTextInput(
+              targetVar: targetVar,
+              pc: character,
+            ));
+          } else {
+            _top.addWidget(Container(
+              width: 60, height: 20,
+              decoration: BoxDecoration(
+                border: Border.all(color: const Color(0xFF888888), width: 1),
+              ),
+            ));
+          }
         }
         return;
       }
@@ -1794,5 +1814,87 @@ class _ListItemB extends _Builder {
     if (_children.isEmpty) return null;
     return _children.length == 1 ? _children.first
         : Column(crossAxisAlignment: CrossAxisAlignment.start, children: _children);
+  }
+}
+
+// ─── Interactive sheet inputs ─────────────────────────────────────────────────
+
+/// Editable text box wired to a character sheet variable via target_var.
+/// Does NOT trigger a full sheet rebuild on each keypress — only writes the
+/// value silently to the character so it survives save/load.
+class _SheetTextInput extends StatefulWidget {
+  final String targetVar;
+  final CharacterFacadeImpl pc;
+  const _SheetTextInput({required this.targetVar, required this.pc});
+  @override State<_SheetTextInput> createState() => _SheetTextInputState();
+}
+
+class _SheetTextInputState extends State<_SheetTextInput> {
+  late final TextEditingController _ctrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = TextEditingController(text: widget.pc.getSheetVar(widget.targetVar));
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 60,
+      height: 22,
+      child: TextField(
+        controller: _ctrl,
+        textAlign: TextAlign.center,
+        style: const TextStyle(fontSize: 11),
+        decoration: const InputDecoration(
+          isDense: true,
+          contentPadding: EdgeInsets.symmetric(vertical: 2, horizontal: 4),
+          border: OutlineInputBorder(),
+        ),
+        onChanged: (v) => widget.pc.setSheetVar(widget.targetVar, v),
+      ),
+    );
+  }
+}
+
+/// Interactive checkbox wired to a character sheet variable via target_var.
+class _SheetCheckbox extends StatefulWidget {
+  final String targetVar;
+  final CharacterFacadeImpl pc;
+  const _SheetCheckbox({required this.targetVar, required this.pc});
+  @override State<_SheetCheckbox> createState() => _SheetCheckboxState();
+}
+
+class _SheetCheckboxState extends State<_SheetCheckbox> {
+  late bool _checked;
+
+  @override
+  void initState() {
+    super.initState();
+    _checked = widget.pc.getSheetVar(widget.targetVar) == 'true';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 18,
+      height: 18,
+      child: Checkbox(
+        value: _checked,
+        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        visualDensity: VisualDensity.compact,
+        onChanged: (v) {
+          setState(() => _checked = v ?? false);
+          widget.pc.setSheetVar(widget.targetVar, _checked.toString());
+        },
+      ),
+    );
   }
 }
