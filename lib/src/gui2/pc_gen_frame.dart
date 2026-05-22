@@ -121,21 +121,29 @@ class PCGenFrameState extends State<PCGenFrame> {
     final campaignNames = (header['campaigns'] ?? '').split('|')
         .map((s) => s.trim()).where((s) => s.isNotEmpty).toList();
 
-    // 1. Already have this game mode in the registry — reuse it instantly.
-    if (datasetRegistry.containsKey(gameModeKey)) {
+    // Match the character's CAMPAIGN: lines to locally available PCC files.
+    final allCampaigns = Globals.getCampaignList();
+    final matched = <Campaign>[];
+    for (final name in campaignNames) {
+      final nameLower = name.toLowerCase();
+      final found = allCampaigns.where((c) =>
+          c.getDisplayName().toLowerCase() == nameLower ||
+          c.getKeyName().toLowerCase() == nameLower).firstOrNull;
+      if (found != null) matched.add(found);
+    }
+
+    // Check if the cached dataset for this game mode was built from the same
+    // campaigns.  If so, reuse it; if not, reload with the correct sources.
+    final cachedCampaigns = datasetRegistryCampaigns[gameModeKey];
+    final neededCampaigns = matched.map((c) => c.getDisplayName().toLowerCase()).toSet();
+    final cacheMatches = cachedCampaigns != null &&
+        (neededCampaigns.isEmpty || neededCampaigns == cachedCampaigns);
+
+    if (datasetRegistry.containsKey(gameModeKey) && cacheMatches) {
+      // 1. Correct dataset already loaded — reuse instantly.
       loadedDataSet.value = datasetRegistry[gameModeKey];
     } else {
-      // 2. Need to load sources for this game mode.
-      final allCampaigns = Globals.getCampaignList();
-      final matched = <Campaign>[];
-      for (final name in campaignNames) {
-        final nameLower = name.toLowerCase();
-        final found = allCampaigns.where((c) =>
-            c.getDisplayName().toLowerCase() == nameLower ||
-            c.getKeyName().toLowerCase() == nameLower).firstOrNull;
-        if (found != null) matched.add(found);
-      }
-
+      // 2. Need to load (or reload) sources for this character.
       if (matched.isNotEmpty) {
         await _loadSourcesWithOverlay(matched, gameModeName);
         // _loadSources stores the result in the registry and updates loadedDataSet.
