@@ -857,16 +857,14 @@ class PcgenTokenContext extends FtlContext {
   }
 
   Map<String, dynamic> _weaponStats(Map item, String slot) {
-    // Simplified — just return what we can
     final name = item['name'] as String? ?? '';
-    final isRanged = item['isRanged'] as bool? ?? false;
-    final bab = _pc.getBABAsInt();
-    final bonus = isRanged ? _pc.getTohitBonusRanged() : _pc.getTohitBonusMelee();
-    final tohit = bab + bonus;
-    final attacks = <String>[];
-    var cur = tohit;
-    while (cur > 0 || attacks.isEmpty) { attacks.add(_signed(cur)); cur -= 5; if (cur <= tohit - 20) break; }
-    // Collect type list from dataset for ISTYPE queries
+
+    // Determine melee vs ranged — check stored flag first, then dataset TYPE list.
+    bool isRanged = item['isRanged'] as bool? ?? false;
+
+    // Look up the dataset item for damage string and type list.
+    String dmg = '';
+    String critStr = '20/×2';
     List<String> typeList = [];
     try {
       final dataset = _dataset;
@@ -874,22 +872,52 @@ class PcgenTokenContext extends FtlContext {
         final dsKey = item['dsKey'] as String? ?? item['key'] as String? ?? name;
         for (final eq in (dataset as dynamic).equipment as List) {
           if ((eq as dynamic).getKeyName() == dsKey) {
+            dmg = (eq as dynamic).getDamageString() as String? ?? '';
+            // Crit range + multiplier
+            try {
+              final critR = (eq as dynamic).getCritRange() as int? ?? 1;
+              final critM = (eq as dynamic).getCritMult()  as String? ?? '';
+              final thrRange = critR <= 1 ? '20' : '${21 - critR}–20';
+              critStr = critM.isNotEmpty ? '$thrRange/$critM' : thrRange;
+            } catch (_) {}
             typeList = ((eq as dynamic).getSafeListFor(
                 ListKey.getConstant<String>('TYPE')) as List?)
                 ?.cast<String>() ?? [];
+            if (typeList.any((t) => t.toUpperCase() == 'RANGED')) isRanged = true;
             break;
           }
         }
       }
     } catch (_) {}
+
+    // Attack = BAB + stat mod (STR melee / DEX ranged) + TOHIT bonus accumulator.
+    final bab     = _pc.getBABAsInt();
+    final statMod = _pc.getStatModByAbb(isRanged ? 'DEX' : 'STR');
+    final tohitBonus = isRanged ? _pc.getTohitBonusRanged() : _pc.getTohitBonusMelee();
+    final tohit = bab + statMod + tohitBonus;
+
+    final attacks = <String>[];
+    var cur = tohit;
+    while (cur > 0 || attacks.isEmpty) {
+      attacks.add(_signed(cur));
+      cur -= 5;
+      if (cur <= tohit - 20) break;
+    }
+
+    // Damage = base dice + STR mod (melee only, not ranged unless composite bow).
+    final dmgMod = isRanged ? 0 : statMod;
+    final dmgStr = dmg.isNotEmpty
+        ? (dmgMod > 0 ? '$dmg+$dmgMod' : dmgMod < 0 ? '$dmg$dmgMod' : dmg)
+        : (dmgMod != 0 ? _signed(dmgMod) : '—');
+
     return {
-      'name': name,
-      'tohit': attacks.join('/'),
-      'damage': item['damage'] as String? ?? '1d6',
-      'crit': item['crit'] as String? ?? '20/×2',
+      'name':     name,
+      'tohit':    attacks.join('/'),
+      'damage':   dmgStr,
+      'crit':     critStr,
       'isRanged': isRanged,
-      'range': isRanged ? '60 ft.' : 'melee',
-      'type': typeList.join('.'),
+      'range':    isRanged ? '60 ft.' : 'melee',
+      'type':     typeList.join('.'),
       'typeList': typeList,
     };
   }
