@@ -1724,14 +1724,14 @@ class _CellB extends _Builder {
     }
 
     // Padding: CSS padding on the cell element takes priority over cellpadding.
-    // Browser default cellpadding feels like ~3px horizontal, ~2px vertical;
-    // we use cellPad * 2 horizontal and cellPad * 1.5 vertical as an approximation,
-    // with a minimum of 3px horizontal / 2px vertical for un-padded tables so that
-    // cell content doesn't appear glued to the border.
-    final double hPad = (cellPad * 2.0).clamp(3.0, 12.0);
-    final double vPad = (cellPad * 1.5).clamp(2.0, 8.0);
-    final EdgeInsets cellPadding = css.padding ??
-        EdgeInsets.symmetric(horizontal: hPad, vertical: vPad);
+    // When cellpadding is explicitly 0, honour it; otherwise scale up slightly
+    // from the HTML value to approximate real browser rendering (browsers add
+    // a little extra visual spacing beyond the raw cellpadding pixel value).
+    final EdgeInsets cellPadding = css.padding ?? (cellPad == 0.0
+        ? EdgeInsets.zero
+        : EdgeInsets.symmetric(
+            horizontal: (cellPad * 2.0).clamp(3.0, 12.0),
+            vertical:   (cellPad * 1.5).clamp(2.0,  8.0)));
 
     Widget cell = Container(
       padding: cellPadding,
