@@ -637,7 +637,7 @@ class PCGenFrameState extends State<PCGenFrame> {
                   border: Border.all(color: Colors.amber.shade600),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: Text('Version 7.0.0-alpha.1',
+                child: Text(kVersionString,
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
@@ -718,7 +718,7 @@ class PCGenFrameState extends State<PCGenFrame> {
                   const SizedBox(width: 8),
                   Text(_title ?? 'PCGen 7 α'),
                   const SizedBox(width: 8),
-                  Text(kBuildVersion, style: const TextStyle(fontSize: 10, color: Colors.white54)),
+                  Text(kVersionBadge, style: const TextStyle(fontSize: 10, color: Colors.white54)),
                 ],
               ),
               actions: [

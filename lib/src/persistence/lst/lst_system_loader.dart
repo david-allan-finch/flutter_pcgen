@@ -57,7 +57,7 @@ class LstSystemLoader {
   }) async {
     final systemDir = ConfigurationSettings.getSystemsDir();
     final dataDir   = ConfigurationSettings.getPccFilesDir();
-    print('PCGen $kBuildVersion — system: $systemDir  data: $dataDir');
+    print('PCGen $kVersionString — system: $systemDir  data: $dataDir');
 
     onProgress?.call(0.0, 'Loading game modes…');
     await GameModeFileLoader().run();

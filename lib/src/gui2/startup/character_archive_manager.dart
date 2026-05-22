@@ -42,7 +42,7 @@ class CharacterArchiveManager {
     }
     final meta = CharacterArchiveMetadata(
       version: '1.0.0',
-      appVersion: kBuildVersion,
+      appVersion: kVersionString,
       exportDate: _isoDate(DateTime.now()),
       characters: summaries,
     );
