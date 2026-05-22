@@ -427,19 +427,30 @@ class PcgenTokenContext extends FtlContext {
         if (dataset != null) {
           try {
             final stat = (dataset.stats as List).firstWhere((s) => s.getKeyName() == abb);
-            return _pc.getEffectiveScore(stat).toString();
+            final eff = _pc.getEffectiveScore(stat);
+            // ignore: avoid_print
+            print('[STAT] $abb ${parts[2]} firstWhere HIT keyName=${stat.getKeyName()} effective=$eff');
+            return eff.toString();
           } catch (_) {}
         }
-        return (_data('statScores')?[abb] as num?)?.toString() ?? '10';
+        final raw = (_data('statScores')?[abb] as num?)?.toString() ?? '10';
+        // ignore: avoid_print
+        print('[STAT] $abb ${parts[2]} fallback raw=$raw');
+        return raw;
       case 'MOD':
       case 'BASEMOD':
         if (dataset != null) {
           try {
             final stat = (dataset.stats as List).firstWhere((s) => s.getKeyName() == abb);
-            return _signed(_pc.getModTotal(stat));
+            final m = _pc.getModTotal(stat);
+            // ignore: avoid_print
+            print('[STAT] $abb MOD firstWhere HIT keyName=${stat.getKeyName()} mod=$m');
+            return _signed(m);
           } catch (_) {}
         }
         final score = (_data('statScores')?[abb] as num?)?.toInt() ?? 10;
+        // ignore: avoid_print
+        print('[STAT] $abb MOD fallback score=$score mod=${((score - 10) / 2).floor()}');
         return _signed(((score - 10) / 2).floor());
       case 'BASE':
         if (dataset != null) {
