@@ -21,6 +21,11 @@ final ValueNotifier<DataSet?> loadedDataSet = ValueNotifier(null);
 /// between characters from different game modes is instant.
 final Map<String, DataSet> datasetRegistry = {};
 
+/// Tracks which campaign display names (lower-cased) were used to build
+/// each entry in datasetRegistry.  Used to detect when a new character
+/// needs a different source set within the same game mode.
+final Map<String, Set<String>> datasetRegistryCampaigns = {};
+
 /// Set to the currently active character when one is selected.
 /// Null when no character is open/selected.
 final ValueNotifier<CharacterFacade?> currentCharacter = ValueNotifier(null);

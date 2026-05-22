@@ -756,10 +756,18 @@ class PcgenTokenContext extends FtlContext {
           'skill': s,
         };
         final ranks = _pc.getSkillRanks(entry);
-        // Specialised skills (those whose EXPORT-visible variant includes a separator)
-        // only appear when the character has ranks.  The VISIBLE filter above already
-        // handles most of this, but keep the separator check as a safety net.
-        final isSpecialised = name.contains('(') || name.contains('~');
+        // RSRD uses two entries per specialised skill:
+        //   KEY:Craft (Alchemy)  VISIBLE:DISPLAY  — GUI selection only, filtered above
+        //   KEY:Craft ~ Alchemy  VISIBLE:EXPORT   — sheet only, with PREMULT:ranks>=1
+        // The ~ in the KEY marks the export PREMULT variant; it must only appear
+        // when the character has ranks.  The untrained fallback is the separate
+        // "Craft (Untrained)" / "Perform (Untrained)" skill entry.
+        final isExportPremult = name.contains('~');
+        if (isExportPremult) {
+          if (ranks > 0) results.add(entry);
+          continue;
+        }
+        final isSpecialised = name.contains('(');
         bool canUseUntrained = false;
         try { canUseUntrained = (s as dynamic).isUntrained() as bool? ?? false; } catch (_) {}
         if (ranks > 0 || !isSpecialised || canUseUntrained) {

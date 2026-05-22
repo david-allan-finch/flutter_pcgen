@@ -548,8 +548,10 @@ class PCGenFrameState extends State<PCGenFrame> {
     await loader.run();
     final dataset = loader.getDataSetFacade();
     if (dataset != null) {
-      // Cache in registry so other characters with the same game mode reuse it.
-      datasetRegistry[gameModeName.toLowerCase()] = dataset;
+      final key = gameModeName.toLowerCase();
+      datasetRegistry[key] = dataset;
+      datasetRegistryCampaigns[key] =
+          campaigns.map((c) => c.getDisplayName().toLowerCase()).toSet();
       loadedDataSet.value = dataset;
       GenericLoader.flushUnknownTagReport();
     }
