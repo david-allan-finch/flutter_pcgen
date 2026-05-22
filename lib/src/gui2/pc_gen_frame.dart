@@ -38,7 +38,6 @@ import 'package:flutter_pcgen/src/facade/core/source_selection_facade.dart';
 import 'package:flutter_pcgen/src/facade/core/data_set_facade.dart';
 import 'package:flutter_pcgen/src/facade/core/ui_delegate.dart';
 import 'package:flutter_pcgen/src/facade/util/default_reference_facade.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_pcgen/src/gui2/app_state.dart';
 import 'package:flutter_pcgen/src/gui2/sources/source_selection_dialog.dart';
 import 'package:flutter_pcgen/src/gui2/facade/character_facade_impl.dart';
@@ -46,9 +45,11 @@ import 'package:flutter_pcgen/src/persistence/lst/generic_loader.dart';
 import 'package:flutter_pcgen/src/io/character_file_io.dart';
 import 'package:flutter_pcgen/src/io/character_text_export.dart';
 import 'package:flutter_pcgen/src/io/pcg_character_io.dart';
+
 import 'package:flutter_pcgen/src/persistence/source_file_loader.dart';
 import 'package:flutter_pcgen/src/system/character_manager.dart';
 import 'package:flutter_pcgen/src/core/globals.dart';
+import 'package:flutter_pcgen/src/cdom/enumeration/list_key.dart';
 import 'package:flutter_pcgen/src/version.dart';
 
 /// The main window for PCGen. Also responsible for global UI functions
@@ -138,9 +139,23 @@ class PCGenFrameState extends State<PCGenFrame> {
       if (matched.isNotEmpty) {
         await _loadSourcesWithOverlay(matched, gameModeName);
         // _loadSources stores the result in the registry and updates loadedDataSet.
-      } else if (campaignNames.isNotEmpty) {
-        // Campaigns listed but not found locally — best-effort with whatever is loaded.
-        if (mounted) {
+      } else {
+        // Named campaigns not found locally — try the best available fallback
+        // for this game mode (e.g. proprietary "Dungeons & Dragons - Core Books"
+        // maps to the nearest RSRD equivalent we have).
+        final fallback = _bestFallbackCampaign(allCampaigns, gameModeName);
+        if (fallback != null) {
+          await _loadSourcesWithOverlay([fallback], gameModeName);
+          if (mounted && campaignNames.isNotEmpty) {
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text(
+                'Source "${campaignNames.first}" not found locally — '
+                'loaded "${fallback.getDisplayName()}" as fallback.',
+              ),
+              duration: const Duration(seconds: 5),
+            ));
+          }
+        } else if (campaignNames.isNotEmpty && mounted) {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text(
               'Could not find source data for "$gameModeName". '
@@ -164,6 +179,30 @@ class PCGenFrameState extends State<PCGenFrame> {
       CharacterManager.getCharacters().addElement(character);
       setCharacter(character);
     }
+  }
+
+  /// Returns the best available campaign for [gameModeName] when the character's
+  /// own campaigns are not found locally (e.g. proprietary "Dungeons & Dragons -
+  /// Core Books" → nearest RSRD equivalent).  Prefers TYPE=Complete sets.
+  Campaign? _bestFallbackCampaign(List<Campaign> allCampaigns, String gameModeName) {
+    final modeLower = gameModeName.toLowerCase();
+    final gmKey     = ListKey.getConstant<String>('GAMEMODES');
+    final typeKey   = ListKey.getConstant<String>('CAMPAIGN_TYPE');
+
+    final candidates = allCampaigns.where((c) {
+      final modes = c.getListFor(gmKey)?.cast<String>() ?? [];
+      return modes.any((m) => m.toLowerCase() == modeLower);
+    }).toList();
+
+    if (candidates.isEmpty) return null;
+
+    // Prefer a campaign explicitly typed as "Complete" (the full game-mode set).
+    final complete = candidates.where((c) {
+      final types = c.getListFor(typeKey)?.cast<String>() ?? [];
+      return types.any((t) => t.toLowerCase().contains('complete'));
+    }).toList();
+
+    return complete.isNotEmpty ? complete.first : candidates.first;
   }
 
   /// Load sources with a modal progress overlay so the user sees that work
