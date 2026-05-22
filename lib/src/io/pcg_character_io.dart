@@ -31,6 +31,9 @@ class PCGCharacterIO {
   static const String _tagUuid    = 'FLUTTERPCG_UUID';
   static const String _tagVersion = 'FLUTTERPCG_SAVEVERSION';
   static const String _tagSaved   = 'FLUTTERPCG_SAVED';
+  // Native Java PCGen tag: PREVIEWVAR:key|value
+  // Matches IOConstants.TAG_PREVIEWSHEETVAR in PCGVer2Creator/PCGVer2Parser.
+  static const String _tagPreviewVar = 'PREVIEWVAR';
 
   // ---------------------------------------------------------------------------
   // Write
@@ -442,16 +445,15 @@ class PCGCharacterIO {
     }
     buf.writeln();
 
-    // Current HP (editable on character sheet)
-    final currentHp = (data['hp'] as num?)?.toInt() ?? 0;
-    if (currentHp > 0) buf.writeln('HP:$currentHp');
-
-    // Generic sheet input variables (ammo checkboxes, etc.)
+    // Sheet input variables (ammo checkboxes, spell slots, PC.HP, etc.)
+    // Native Java PCGen format: PREVIEWVAR:key|value
+    //   PREVIEWVAR:key|value   (matches IOConstants.TAG_PREVIEWSHEETVAR)
     final sheetVars = data['sheetVars'];
     if (sheetVars is Map && sheetVars.isNotEmpty) {
-      buf.writeln('# Sheet input variables');
       sheetVars.forEach((k, v) {
-        if (k.toString().isNotEmpty) buf.writeln('FLUTTERPCG_SHEETVAR:$k=$v');
+        if (k.toString().isNotEmpty && v.toString().isNotEmpty) {
+          buf.writeln('$_tagPreviewVar:$k|$v');
+        }
       });
       buf.writeln();
     }
@@ -741,11 +743,25 @@ class PCGCharacterIO {
         case 'NOTE':
           _readNote(data, value);
           break;
-        case 'HP':
+        case 'FLUTTERPCG_HP': // legacy tag — superseded by PREVIEWVAR:PC.HP|N
           data['hp'] = int.tryParse(value.trim()) ?? 0;
           break;
+        case 'PREVIEWVAR': {
+          // Native Java PCGen format: PREVIEWVAR:key|value
+          final sep = value.indexOf('|');
+          if (sep > 0) {
+            final k = value.substring(0, sep);
+            final v = value.substring(sep + 1);
+            if (k == 'PC.HP') {
+              data['hp'] = int.tryParse(v.trim()) ?? 0;
+            } else {
+              (data['sheetVars'] ??= <String, String>{})[k] = v;
+            }
+          }
+          break;
+        }
         case 'FLUTTERPCG_SHEETVAR': {
-          // KEY=value pairs for generic sheet input variables
+          // Legacy format (key=value) — kept for backward compatibility
           final eq = value.indexOf('=');
           if (eq > 0) {
             final k = value.substring(0, eq);
@@ -1385,6 +1401,7 @@ class PCGCharacterIO {
       //                    'in Backpack' = inside a container
       'equipment':         <String, String>{},
       'baseStats':         <String, int>{},     // STR/DEX/CON/INT/WIS/CHA → base score
+      'previewVars':       <String, String>{},  // PREVIEWVAR sheet input state
       'race':              '',
       'saveVersion': 0,
       'savedAt': '',
@@ -1454,6 +1471,20 @@ class PCGCharacterIO {
         equipsetRaw.add(line.substring(9));
       } else if (line.startsWith('CALCEQUIPSET:')) {
         activeSetRoot = line.substring(13).trim();
+      } else if (line.startsWith('PREVIEWVAR:')) {
+        final rest = line.substring(11);
+        final sep  = rest.indexOf('|');
+        if (sep > 0) {
+          final k = rest.substring(0, sep);
+          final v = rest.substring(sep + 1);
+          ((data['previewVars'] ??= <String, String>{}) as Map<String, String>)[k] = v;
+        }
+      } else if (line.startsWith('FLUTTERPCG_HP:')) {
+        // Legacy tag — map to PC.HP in previewVars
+        final v = line.substring(14).trim();
+        if (v.isNotEmpty) {
+          ((data['previewVars'] ??= <String, String>{}) as Map<String, String>)['PC.HP'] = v;
+        }
       }
     }
 

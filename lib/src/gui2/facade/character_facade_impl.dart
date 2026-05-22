@@ -429,11 +429,16 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
     }
   }
 
-  /// All generic sheet vars (for PCG serialisation).
+  /// All sheet vars for PCG serialisation, including PC.HP if set.
   Map<String, String> getSheetVars() {
+    final result = <String, String>{};
+    final hp = (_data['hp'] as num?)?.toInt();
+    if (hp != null) result['PC.HP'] = hp.toString();
     final m = _data['sheetVars'];
-    if (m is! Map) return {};
-    return Map<String, String>.from(m.map((k, v) => MapEntry(k.toString(), v.toString())));
+    if (m is Map) {
+      m.forEach((k, v) => result[k.toString()] = v.toString());
+    }
+    return result;
   }
 
   /// Set the HP gained at level [levelIndex] (0-based).

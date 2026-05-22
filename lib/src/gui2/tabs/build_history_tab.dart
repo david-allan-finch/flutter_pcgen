@@ -142,12 +142,12 @@ class _BuildHistoryTabState extends State<BuildHistoryTab> {
     }
 
     if (orderedData.isEmpty) orderedData.add(charData);
-    return _buildBlocks(orderedData);
+    return _buildBlocks(orderedData, char);
   }
 
   // ─── History reconstruction ────────────────────────────────────────────────
 
-  List<_SaveBlock> _buildBlocks(List<Map<String, dynamic>> saves) {
+  List<_SaveBlock> _buildBlocks(List<Map<String, dynamic>> saves, CharacterFacadeImpl char) {
     // Authoritative source = save with most levels (not necessarily saves.last,
     // since sort order doesn't guarantee max levels are last).
     final authoritative = saves.reduce((a, b) {
@@ -174,9 +174,10 @@ class _BuildHistoryTabState extends State<BuildHistoryTab> {
     }
 
     // Baselines for diff computation.
-    var prevSkills = <String, double>{};
-    var prevEquip  = <String, String>{};  // name → slot
-    var prevFeats  = <String>{};
+    var prevSkills      = <String, double>{};
+    var prevEquip       = <String, String>{};  // name → slot
+    var prevFeats       = <String>{};
+    var prevPreviewVars = <String, String>{};
     // Running stat totals: initialised from first save's STAT: scores.
     var runningStats = Map<String, int>.from(
         Map.fromEntries((saves.first['baseStats'] as Map? ?? {}).entries.map(
@@ -272,6 +273,21 @@ class _BuildHistoryTabState extends State<BuildHistoryTab> {
         blockEntries.last.changedFeats = changedFeats;
       }
 
+      // ── PreviewVar diffs ──────────────────────────────────────────────────
+      final currPreviewVars = Map<String, String>.from(
+          (data['previewVars'] as Map? ?? {}).cast<String, String>());
+      final previewVarChanges = <String, (String, String)>{};
+      for (final e in currPreviewVars.entries) {
+        final prev = prevPreviewVars[e.key] ?? '';
+        if (prev != e.value) previewVarChanges[e.key] = (prev, e.value);
+      }
+      for (final e in prevPreviewVars.entries) {
+        if (!currPreviewVars.containsKey(e.key)) {
+          previewVarChanges[e.key] = (e.value, '');
+        }
+      }
+      prevPreviewVars = currPreviewVars;
+
       // Block label: use display order when version is 0 (unknown).
       final version    = data['saveVersion'] as int? ?? 0;
       final displayNum = version > 0 ? 'v$version' : '${si + 1}';
@@ -299,10 +315,33 @@ class _BuildHistoryTabState extends State<BuildHistoryTab> {
             ? Map<String, int>.from(
                 (saves.first['baseStats'] as Map? ?? {}).cast<String, int>())
             : const {},
+        previewVarChanges: previewVarChanges,
       ));
 
       prevLevelCount = currCount;
     }
+
+    // ── Draft block: in-memory changes not yet saved ───────────────────────
+    final liveVars = char.getSheetVars();
+    final draftChanges = <String, (String, String)>{};
+    for (final e in liveVars.entries) {
+      final saved = prevPreviewVars[e.key] ?? '';
+      if (saved != e.value) draftChanges[e.key] = (saved, e.value);
+    }
+    for (final e in prevPreviewVars.entries) {
+      if (!liveVars.containsKey(e.key)) {
+        draftChanges[e.key] = (e.value, '');
+      }
+    }
+    blocks.add(_SaveBlock(
+      label: 'Draft (unsaved)',
+      saveVersion: 0,
+      savedAt: '',
+      levels: const [],
+      isSingleFile: false,
+      isDraft: true,
+      previewVarChanges: draftChanges,
+    ));
 
     return blocks;
   }
@@ -419,9 +458,12 @@ class _SaveBlock {
   final String savedAt;
   final List<_LevelEntry> levels;
   final bool isSingleFile;
+  final bool isDraft;
   // Only populated for the initial creation block (si == 0):
   final String race;
   final Map<String, int> baseStats;
+  // PREVIEWVAR changes vs previous save: key → (oldValue, newValue)
+  final Map<String, (String, String)> previewVarChanges;
 
   _SaveBlock({
     required this.label,
@@ -429,8 +471,10 @@ class _SaveBlock {
     required this.savedAt,
     required this.levels,
     required this.isSingleFile,
+    this.isDraft = false,
     this.race = '',
     this.baseStats = const {},
+    this.previewVarChanges = const {},
   });
 }
 
@@ -484,6 +528,7 @@ class _HistoryView extends StatelessWidget {
   });
 
   int get _totalLevels => blocks.fold(0, (s, b) => s + b.levels.length);
+  int get _saveCount   => blocks.where((b) => !b.isDraft).length;
 
   @override
   Widget build(BuildContext context) {
@@ -497,7 +542,7 @@ class _HistoryView extends StatelessWidget {
             Text('Build History — ${character.getName()}',
                 style: theme.textTheme.titleSmall),
             const Spacer(),
-            Text('$_totalLevels levels · ${blocks.length} ${blocks.length == 1 ? "save" : "saves"}',
+            Text('$_totalLevels levels · $_saveCount ${_saveCount == 1 ? "save" : "saves"}',
                 style: TextStyle(fontSize: 11, color: Colors.grey.shade600)),
           ]),
         ),
@@ -562,10 +607,12 @@ class _BlockCard extends StatelessWidget {
                 top: const Radius.circular(6),
                 bottom: isCollapsed ? const Radius.circular(6) : Radius.zero,
               ),
-              onTap: onToggle,
+              onTap: block.isDraft ? null : onToggle,
               child: Container(
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.5),
+                  color: block.isDraft
+                      ? Colors.amber.shade50
+                      : theme.colorScheme.surfaceContainerHighest.withOpacity(0.5),
                   borderRadius: BorderRadius.vertical(
                     top: const Radius.circular(6),
                     bottom: isCollapsed ? const Radius.circular(6) : Radius.zero,
@@ -573,17 +620,27 @@ class _BlockCard extends StatelessWidget {
                 ),
                 padding: const EdgeInsets.fromLTRB(12, 7, 8, 7),
                 child: Row(children: [
-                  Icon(Icons.save_outlined, size: 15, color: theme.colorScheme.primary),
+                  Icon(
+                    block.isDraft ? Icons.edit_note : Icons.save_outlined,
+                    size: 15,
+                    color: block.isDraft ? Colors.amber.shade800 : theme.colorScheme.primary,
+                  ),
                   const SizedBox(width: 6),
                   Expanded(
                     child: Text(block.label,
-                        style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12)),
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 12,
+                          color: block.isDraft ? Colors.amber.shade900 : null,
+                        )),
                   ),
-                  Text('$levelCount ${levelCount == 1 ? "level" : "levels"}',
-                      style: TextStyle(fontSize: 11, color: Colors.grey.shade600)),
-                  const SizedBox(width: 4),
-                  Icon(isCollapsed ? Icons.expand_more : Icons.expand_less,
-                      size: 18, color: Colors.grey.shade500),
+                  if (!block.isDraft) ...[
+                    Text('$levelCount ${levelCount == 1 ? "level" : "levels"}',
+                        style: TextStyle(fontSize: 11, color: Colors.grey.shade600)),
+                    const SizedBox(width: 4),
+                    Icon(isCollapsed ? Icons.expand_more : Icons.expand_less,
+                        size: 18, color: Colors.grey.shade500),
+                  ],
                 ]),
               ),
             ),
@@ -595,15 +652,28 @@ class _BlockCard extends StatelessWidget {
               _CreationSummaryRow(race: block.race, baseStats: block.baseStats),
             if (block.race.isNotEmpty || block.baseStats.isNotEmpty)
               Divider(height: 1, color: Colors.grey.shade200),
-            _HeaderRow(),
-            Divider(height: 1, color: Colors.grey.shade200),
-            ...block.levels.asMap().entries.map(
-              (e) => Column(children: [
-                _LevelRow(entry: e.value),
-                if (e.key < block.levels.length - 1)
-                  Divider(height: 1, color: Colors.grey.shade100),
-              ]),
-            ),
+            if (block.levels.isNotEmpty) ...[
+              _HeaderRow(),
+              Divider(height: 1, color: Colors.grey.shade200),
+              ...block.levels.asMap().entries.map(
+                (e) => Column(children: [
+                  _LevelRow(entry: e.value),
+                  if (e.key < block.levels.length - 1)
+                    Divider(height: 1, color: Colors.grey.shade100),
+                ]),
+              ),
+            ],
+            if (block.previewVarChanges.isNotEmpty) ...[
+              Divider(height: 1, color: Colors.grey.shade200),
+              _PreviewVarChangesRow(changes: block.previewVarChanges, isDraft: block.isDraft),
+            ],
+            if (block.isDraft && block.previewVarChanges.isEmpty)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+                child: Text('No unsaved changes.',
+                    style: TextStyle(fontSize: 11, color: Colors.grey.shade500,
+                        fontStyle: FontStyle.italic)),
+              ),
           ],
         ],
       ),
@@ -891,5 +961,88 @@ class _LevelRow extends StatelessWidget {
   String _fmtRank(double r) {
     if (r == r.truncateToDouble()) return r.toInt().toString();
     return r.toStringAsFixed(1);
+  }
+}
+
+class _PreviewVarChangesRow extends StatelessWidget {
+  final Map<String, (String, String)> changes;
+  final bool isDraft;
+
+  const _PreviewVarChangesRow({required this.changes, required this.isDraft});
+
+  String _labelFor(String key) {
+    if (key == 'PC.HP') return 'HP';
+    // Spell slot: SpellName_N  →  "SpellName (slot N)"
+    final slotMatch = RegExp(r'^(.+)_(\d+)$').firstMatch(key);
+    if (slotMatch != null) return '${slotMatch.group(1)} slot ${slotMatch.group(2)}';
+    // Spellbook slot: Book_SpellName+N
+    final bookMatch = RegExp(r'^(.+)\+(\d+)$').firstMatch(key);
+    if (bookMatch != null) {
+      final inner = bookMatch.group(1)!;
+      final sep   = inner.lastIndexOf('_');
+      if (sep > 0) return '${inner.substring(sep + 1)} slot ${bookMatch.group(2)} (${inner.substring(0, sep)})';
+    }
+    // Ammo: WeaponName_ammo_R_C
+    final ammoMatch = RegExp(r'^(.+)_ammo_(\d+)_(\d+)$').firstMatch(key);
+    if (ammoMatch != null) return '${ammoMatch.group(1)} ammo [${ammoMatch.group(2)},${ammoMatch.group(3)}]';
+    return key;
+  }
+
+  String _fmtValue(String v) {
+    if (v == 'true')  return '✓';
+    if (v == 'false' || v.isEmpty) return '—';
+    return v;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final accent = isDraft ? Colors.amber.shade800 : Colors.blueGrey.shade700;
+    final sorted = changes.entries.toList()
+      ..sort((a, b) => a.key.compareTo(b.key));
+
+    return Container(
+      color: isDraft ? Colors.amber.shade50.withOpacity(0.5) : null,
+      padding: const EdgeInsets.fromLTRB(12, 6, 12, 6),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(children: [
+            Icon(Icons.tune, size: 12, color: accent),
+            const SizedBox(width: 5),
+            Text(isDraft ? 'Unsaved session changes' : 'Sheet variable changes',
+                style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: accent)),
+          ]),
+          const SizedBox(height: 4),
+          Wrap(
+            spacing: 12,
+            runSpacing: 2,
+            children: sorted.map((e) {
+              final (oldV, newV) = e.value;
+              return RichText(
+                text: TextSpan(
+                  style: TextStyle(fontSize: 11, color: Colors.grey.shade800),
+                  children: [
+                    TextSpan(text: '${_labelFor(e.key)}: ',
+                        style: const TextStyle(fontWeight: FontWeight.w500)),
+                    if (oldV.isNotEmpty) ...[
+                      TextSpan(text: _fmtValue(oldV),
+                          style: TextStyle(
+                              color: Colors.red.shade600,
+                              decoration: TextDecoration.lineThrough)),
+                      const TextSpan(text: ' → '),
+                    ],
+                    TextSpan(text: _fmtValue(newV),
+                        style: TextStyle(
+                            color: newV.isEmpty
+                                ? Colors.grey.shade500
+                                : Colors.green.shade700)),
+                  ],
+                ),
+              );
+            }).toList(),
+          ),
+        ],
+      ),
+    );
   }
 }
