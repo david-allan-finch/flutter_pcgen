@@ -1,5 +1,5 @@
 // Auto-updated on each commit — check this matches the running app.
-const int kBuildNumber = 152;
+const int kBuildNumber = 153;
 
 const int kVersionMajor = 7;
 const int kVersionMinor = 0;

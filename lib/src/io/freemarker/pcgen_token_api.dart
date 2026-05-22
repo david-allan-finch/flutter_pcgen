@@ -742,11 +742,14 @@ class PcgenTokenContext extends FtlContext {
         // Skip placeholder / artifact skill names
         if (name.toLowerCase() == 'not used' || name.toLowerCase() == 'untrained') continue;
         final ranks = _pc.getSkillRanks(entry);
-        // Only include specialised skills (Craft ~ Armorsmithing, Knowledge ~ Arcana,
-        // Perform ~ Sing, etc.) if the character has ranks in them. Both '(' and '~'
-        // are PCGen specialisation separators; skills without either are always shown.
+        // Specialised skills (Craft ~ Armorsmithing, Knowledge ~ Arcana, Perform ~ Sing,
+        // etc.) are only shown when the character has ranks in them — UNLESS the skill
+        // itself allows untrained use (e.g. "Craft (untrained)"), in which case it always
+        // shows. Both '(' and '~' are PCGen specialisation separators.
         final isSpecialised = name.contains('(') || name.contains('~');
-        if (ranks > 0 || !isSpecialised) {
+        bool canUseUntrained = false;
+        try { canUseUntrained = (s as dynamic).isUntrained() as bool? ?? false; } catch (_) {}
+        if (ranks > 0 || !isSpecialised || canUseUntrained) {
           results.add(entry);
         }
       } catch (_) {}
