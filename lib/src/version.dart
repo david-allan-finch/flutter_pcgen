@@ -1,11 +1,17 @@
 // Auto-updated on each commit — check this matches the running app.
-const int kBuildNumber = 146;
+const int kBuildNumber = 147;
 
 const int kVersionMajor = 7;
 const int kVersionMinor = 0;
 
-/// Full semver-style string: 7.0.146
-String get kVersionString => '$kVersionMajor.$kVersionMinor.$kBuildNumber';
+/// 'alpha', 'beta', 'rc.1', or '' for production.
+const String kVersionQualifier = 'alpha';
 
-/// Shorter form used in the title bar: v7.0.146
+/// Full semver-style string: 7.0.147-alpha
+String get kVersionString {
+  final q = kVersionQualifier.isEmpty ? '' : '-$kVersionQualifier';
+  return '$kVersionMajor.$kVersionMinor.$kBuildNumber$q';
+}
+
+/// Shorter form used in the title bar: v7.0.147-alpha
 String get kVersionBadge => 'v$kVersionString';
