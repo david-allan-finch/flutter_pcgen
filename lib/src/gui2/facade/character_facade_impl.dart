@@ -2540,12 +2540,12 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
     }
     // Substitute TL (total level) and try again.
     final withTl = clean.replaceAll(RegExp(r'\bTL\b', caseSensitive: false),
-        getTotalLevel().toString());
+        getTotalLevels().toString());
     final afterTl = double.tryParse(withTl);
     if (afterTl != null) return afterTl;
     // Fall back to formula evaluator.
     try {
-      return FormulaEvaluator().evaluate(withTl, _buildFormulaCtx()).toDouble();
+      return FormulaEvaluator.evaluate(withTl, _buildFormulaCtx()).toDouble();
     } catch (_) {
       debugPrint('[TempBonus] could not evaluate formula: "$formula"');
       return 0;
