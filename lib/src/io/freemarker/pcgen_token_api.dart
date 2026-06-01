@@ -951,8 +951,17 @@ class PcgenTokenContext extends FtlContext {
       if (cur <= tohit - 20) break;
     }
 
-    // Damage = base dice + STR mod (melee only, not ranged unless composite bow).
-    final dmgMod = isRanged ? 0 : statMod;
+    // Damage = base dice + STR mod (melee) + enhancement + feat damage bonuses.
+    // Composite bows: add min(STR, BOWSTR rating) from EQMOD arg.
+    int dmgMod;
+    if (isRanged) {
+      final eqArgs = item['eqmodArgs'] as Map?;
+      final bowstrRating = int.tryParse(eqArgs?['BOWSTR']?.toString() ?? '') ?? 0;
+      final bowstrBonus = bowstrRating > 0 ? statMod.clamp(0, bowstrRating) : 0;
+      dmgMod = bowstrBonus + _pc.getDamageBonusRanged();
+    } else {
+      dmgMod = statMod + _pc.getDamageBonusMelee();
+    }
     final dmgStr = dmg.isNotEmpty
         ? (dmgMod > 0 ? '$dmg+$dmgMod' : dmgMod < 0 ? '$dmg$dmgMod' : dmg)
         : (dmgMod != 0 ? _signed(dmgMod) : '—');
