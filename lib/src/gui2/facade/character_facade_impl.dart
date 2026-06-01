@@ -642,30 +642,33 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
   /// Universal to-hit bonus (BONUS:COMBAT|TOHIT — applies to all attacks).
   int getTohitBonus() => _bonusAcc.totalInt('COMBAT', 'TOHIT');
 
-  /// Melee-specific to-hit (TOHIT + TOHIT.MELEE). Use for melee weapons only.
-  /// BONUS:WEAPON|TOHIT from EQMODs is handled separately by the sheet via
-  /// _eqmodBonuses — don't include it here to avoid double-counting.
+  /// Melee-specific to-hit. Includes COMBAT|TOHIT, COMBAT|TOHIT.MELEE, and
+  /// WEAPON|TOHIT (Enhancement bonuses granted by EQMODs like PLUS1W/PLUS2W).
   int getTohitBonusMelee() =>
       _bonusAcc.totalInt('COMBAT', 'TOHIT') +
-      _bonusAcc.totalInt('COMBAT', 'TOHIT.MELEE');
+      _bonusAcc.totalInt('COMBAT', 'TOHIT.MELEE') +
+      _bonusAcc.totalInt('WEAPON', 'TOHIT');
 
-  /// Ranged-specific to-hit (TOHIT + TOHIT.RANGED). Use for ranged weapons only.
+  /// Ranged-specific to-hit. Includes WEAPON|TOHIT for enchanted ranged weapons.
   int getTohitBonusRanged() =>
       _bonusAcc.totalInt('COMBAT', 'TOHIT') +
-      _bonusAcc.totalInt('COMBAT', 'TOHIT.RANGED');
+      _bonusAcc.totalInt('COMBAT', 'TOHIT.RANGED') +
+      _bonusAcc.totalInt('WEAPON', 'TOHIT');
 
   /// Universal damage bonus (BONUS:COMBAT|DAMAGE — applies to all attacks).
   int getDamageBonus() => _bonusAcc.totalInt('COMBAT', 'DAMAGE');
 
-  /// Melee-specific damage (DAMAGE + DAMAGE.MELEE).
+  /// Melee-specific damage. Includes WEAPON|DAMAGE (EQMOD enhancement bonuses).
   int getDamageBonusMelee() =>
       _bonusAcc.totalInt('COMBAT', 'DAMAGE') +
-      _bonusAcc.totalInt('COMBAT', 'DAMAGE.MELEE');
+      _bonusAcc.totalInt('COMBAT', 'DAMAGE.MELEE') +
+      _bonusAcc.totalInt('WEAPON', 'DAMAGE');
 
-  /// Ranged-specific damage (DAMAGE + DAMAGE.RANGED).
+  /// Ranged-specific damage. Includes WEAPON|DAMAGE for enchanted ranged weapons.
   int getDamageBonusRanged() =>
       _bonusAcc.totalInt('COMBAT', 'DAMAGE') +
-      _bonusAcc.totalInt('COMBAT', 'DAMAGE.RANGED');
+      _bonusAcc.totalInt('COMBAT', 'DAMAGE.RANGED') +
+      _bonusAcc.totalInt('WEAPON', 'DAMAGE');
 
   /// Short-range (≤30ft) to-hit bonus — Point Blank Shot etc.
   int getShortRangeTohitBonus() =>
@@ -2017,20 +2020,13 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
             }
           }
         } catch (_) {}
-        // PLUS:N enhancement bonus — synthesise BONUS entries so the +N
-        // is included in the character's attack, damage, or AC totals.
+        // PLUS:N enhancement bonus — synthesise BONUS entries for armor/shield
+        // AC (weapons get their enhancement from BONUS:WEAPON in EQMOD LSTs).
         try {
           final plus = (item as dynamic).getPlus() as int? ?? 0;
           if (plus > 0) {
-            final isWeapon = (item as dynamic).isWeapon() as bool? ?? false;
             final isArmor  = (item as dynamic).isArmor()  as bool? ?? false;
             final isShield = (item as dynamic).isShield()  as bool? ?? false;
-            if (isWeapon) {
-              final b1 = ParsedBonus.parse('COMBAT|TOHIT|$plus|TYPE=ENHANCEMENT');
-              final b2 = ParsedBonus.parse('COMBAT|DAMAGE|$plus|TYPE=ENHANCEMENT');
-              if (b1 != null) allBonuses.add(b1);
-              if (b2 != null) allBonuses.add(b2);
-            }
             if (isArmor) {
               final b = ParsedBonus.parse('COMBAT|AC|$plus|TYPE=ARMORENHANCEMENT');
               if (b != null) allBonuses.add(b);
@@ -2050,16 +2046,41 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
       for (final tb in tempBonusList) {
         if (tb is! Map) continue;
         if (!(tb['active'] as bool? ?? true)) continue;
-        final category  = tb['category']  as String? ?? '';
-        final target    = tb['target']    as String? ?? '';
-        final valueStr  = tb['value']     as String? ?? '0';
-        final bonusType = tb['bonusType'] as String? ?? '';
-        if (category.isEmpty || target.isEmpty) continue;
-        final bonusStr = bonusType.isNotEmpty
-            ? '$category|$target|$valueStr|TYPE=$bonusType'
-            : '$category|$target|$valueStr';
-        final bonus = ParsedBonus.parse(bonusStr);
-        if (bonus != null) allBonuses.add(bonus);
+        final subBonuses = tb['bonuses'];
+        if (subBonuses is List) {
+          // Grouped structure: one entry, multiple bonus sub-objects
+          for (final sub in subBonuses) {
+            if (sub is! Map) continue;
+            final category  = sub['category']  as String? ?? '';
+            final targets   = sub['targets']   as List?;
+            final target0   = sub['target']    as String? ?? '';
+            final formula   = sub['formula']   as String? ?? sub['value'] as String? ?? '0';
+            final bonusType = sub['bonusType'] as String? ?? '';
+            final tgts = (targets != null && targets.isNotEmpty)
+                ? targets.map((t) => t.toString()).toList()
+                : (target0.isNotEmpty ? [target0] : <String>[]);
+            for (final tgt in tgts) {
+              if (category.isEmpty || tgt.isEmpty) continue;
+              final bonusStr = bonusType.isNotEmpty
+                  ? '$category|$tgt|$formula|TYPE=$bonusType'
+                  : '$category|$tgt|$formula';
+              final bonus = ParsedBonus.parse(bonusStr);
+              if (bonus != null) allBonuses.add(bonus);
+            }
+          }
+        } else {
+          // Legacy flat structure
+          final category  = tb['category']  as String? ?? '';
+          final target    = tb['target']    as String? ?? '';
+          final valueStr  = tb['value']     as String? ?? '0';
+          final bonusType = tb['bonusType'] as String? ?? '';
+          if (category.isEmpty || target.isEmpty) continue;
+          final bonusStr = bonusType.isNotEmpty
+              ? '$category|$target|$valueStr|TYPE=$bonusType'
+              : '$category|$target|$valueStr';
+          final bonus = ParsedBonus.parse(bonusStr);
+          if (bonus != null) allBonuses.add(bonus);
+        }
       }
     } catch (_) {}
 
