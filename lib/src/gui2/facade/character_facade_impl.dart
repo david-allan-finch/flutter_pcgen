@@ -47,6 +47,7 @@ import 'package:flutter_pcgen/src/gui2/facade/equipment_set_facade_impl.dart';
 import 'package:flutter_pcgen/src/gui2/facade/companion_support_facade_impl.dart';
 import 'package:flutter_pcgen/src/gui2/facade/spell_support_facade_impl.dart';
 import 'package:flutter_pcgen/src/gui2/facade/temp_bonus_facade_impl.dart';
+import 'package:flutter_pcgen/src/core/system_collections.dart';
 
 /// Main implementation of CharacterFacade — the primary model object for an
 /// open character in the GUI. Wraps all character data and provides accessors
@@ -2316,7 +2317,10 @@ class CharacterFacadeImpl extends ChangeNotifier implements CharacterFacade {
       },
     );
 
-    _bonusAcc = CharacterBonusEngine.compute(state, allBonuses);
+    final bonusStacks = SystemCollections
+        .getGameModeNamed(_str('gameMode'))
+        ?.getBonusStacks() ?? '';
+    _bonusAcc = CharacterBonusEngine.compute(state, allBonuses, bonusStacks: bonusStacks);
 
     // Evaluate class-specific bonuses with per-class level context.
     // This ensures classlevel("APPLIEDAS=NONEPIC") returns the correct

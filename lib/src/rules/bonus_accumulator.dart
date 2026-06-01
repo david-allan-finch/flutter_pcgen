@@ -23,11 +23,18 @@ class BonusAccumulator {
   final Map<String, Map<String, List<double>>> _untyped = {};
 
   /// Bonus types that always stack (from game mode BONUSSTACKS).
-  /// e.g. Dodge, Circumstance, Defense — multiple sources sum rather than max.
-  static final Set<String> _stackingTypes = {
-    'DODGE', 'CIRCUMSTANCE', 'DEFENSE', 'RACIAL',
-    'NOTRANGED', 'NOTFLATFOOTED',
-  };
+  /// Populated by [setStackingTypes] from the loaded game mode's miscinfo.lst.
+  Set<String> _stackingTypes = {};
+
+  /// Load stacking types from a BONUSSTACKS value (dot-separated, e.g.
+  /// "Defense.Dodge.Circumstance.NotRanged.NotFlatFooted").
+  void setStackingTypes(String bonusStacks) {
+    _stackingTypes = bonusStacks
+        .split('.')
+        .map((s) => s.trim().toUpperCase())
+        .where((s) => s.isNotEmpty)
+        .toSet();
+  }
 
   void clear() {
     _values.clear();
@@ -273,8 +280,9 @@ class CharacterBonusEngine {
   /// equipped item bonuses, etc.).
   static BonusAccumulator compute(
     CharacterBonusState state,
-    List<ParsedBonus> allBonuses,
-  ) {
+    List<ParsedBonus> allBonuses, {
+    String bonusStacks = '',
+  }) {
     final formulaCtx = FormulaContext(
       statMods:    state.statMods,
       statScores:  state.statScores,
@@ -283,9 +291,29 @@ class CharacterBonusEngine {
       variables:   state.definedVars,
     );
 
+    final formulaCtxWithCallbacks = FormulaContext(
+      statMods:    formulaCtx.statMods,
+      statScores:  formulaCtx.statScores,
+      totalLevel:  formulaCtx.totalLevel,
+      classLevels: formulaCtx.classLevels,
+      variables:   formulaCtx.variables,
+      countFn: (what) {
+        final w = what.toUpperCase();
+        if (w == 'CLASSES') return state.classLevelCounts.length.toDouble();
+        if (w.startsWith('ABILITIES') || w.startsWith('FEATS')) {
+          return state.selectedAbilityKeys.values
+              .fold<int>(0, (s, l) => s + l.length).toDouble();
+        }
+        return 0.0;
+      },
+      skillinfo: (skillName) =>
+          state.skillRanks[skillName.toLowerCase()] ?? 0.0,
+    );
+
     final prereqCtx = _PrereqCtx(state);
     final acc = BonusAccumulator();
-    acc.applyAll(allBonuses, formulaCtx, prereqCtx);
+    if (bonusStacks.isNotEmpty) acc.setStackingTypes(bonusStacks);
+    acc.applyAll(allBonuses, formulaCtxWithCallbacks, prereqCtx);
     return acc;
   }
 }
